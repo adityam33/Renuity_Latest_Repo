@@ -1,0 +1,710 @@
+{
+	"name": "EDW_DIM_INCENTIVE_LOAD",
+	"properties": {
+		"activities": [
+			{
+				"name": "cpy_DIM_INCENTIVE_METRICS",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"sqlReaderQuery": "SELECT \nMetricCode AS IncentiveMetricID,\nMetricName AS IncentiveMetricName,\nMetricDirection,\nPBI_MetricCal,\nUOM,\nGETDATE() AS LastUpdatedTS\nFROM ODS.INCENTIVE_METRICS",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "TRUNCATE TABLE EDW_INC.DIM_INCENTIVE_METRICS",
+						"allowCopyCommand": true
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "Azure_blobStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "staging"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "IncentiveMetricID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "IncentiveMetricID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "IncentiveMetricName",
+									"type": "String"
+								},
+								"sink": {
+									"name": "IncentiveMetricName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PBI_MetricCal",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PBI_MetricCal",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UOM",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UOM",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "MetricDirection",
+									"type": "String"
+								},
+								"sink": {
+									"name": "MetricDirection",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ODS_INCENTIVE_METRICS",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_DIM_INCENTIVE_METRICS1",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "cpy_DIM_INCENTIVE_METRICS_PLAN",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "cpy_DIM_INCENTIVE_METRICS",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"sqlReaderQuery": "\nSELECT  \nIncentivePlanCode AS IncentivePlanID,\nIncentivePlanCategory,\nIncentivePlanName,\nPlanType AS IncentivePlanType,\n[Function],\nSubSourceFlag,\nSubSourceID,\nEffectiveFrom,\nEffectiveTo,\nGETDATE() AS LastUpdatedTS\nFROM [ODS].[INCENTIVE_PLANS]\n",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "TRUNCATE TABLE EDW_INC.DIM_INCENTIVE_PLAN",
+						"allowCopyCommand": true
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "Azure_blobStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "staging"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "IncentivePlanID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "IncentivePlanID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "IncentivePlanCategory",
+									"type": "String"
+								},
+								"sink": {
+									"name": "IncentivePlanCategory",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "IncentivePlanName",
+									"type": "String"
+								},
+								"sink": {
+									"name": "IncentivePlanName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "IncentivePlanType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "IncentivePlanType",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Function",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Function",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "SubSourceFlag",
+									"type": "String"
+								},
+								"sink": {
+									"name": "SubSourceFlag",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "SubSourceID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "SubSourceID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "EffectiveFrom",
+									"type": "String"
+								},
+								"sink": {
+									"name": "EffectiveFrom",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "EffectiveTo",
+									"type": "String"
+								},
+								"sink": {
+									"name": "EffectiveTo",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ODS_INCENTIVE_METRICS",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_DIM_INCENTIVE_PLAN1",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "cpy_DIM_INCENTIVE_ELIGIBLE_EMPLOYEE",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "cpy_DIM_INCENTIVE_METRICS_ALLOCATION_copy1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"sqlReaderQuery": "SELECT \n1000 + ROW_NUMBER() OVER (ORDER BY M1.EmployeeID,M1.EffectiveFrom) AS EmployeePK,\nM1.EmployeeID,\nCOALESCE(M2.IncentivePlanID,'NA') AS IncentivePlanID,\nM1.Division,\nM1.EmployeeName,\nM1.[Function],\nM1.Role,\nM1.BaseSalary,\nM1.Pct_TargetBonus,\n( M1.BaseSalary * M1.Pct_TargetBonus ) AS EligibleIncentiveTarget,\nM1.RegionID,\nM1.PersonalVolumeMetric,\nM1.PV_OverridePct,\nM1.PV_Regional_At_Division_Override,\nM1.EffectiveFrom,\nM1.EffectiveTo,\nGETDATE() AS LastUpdatedTS\nFROM ODS.INCENTIVE_ELIGIBLE_EMPLOYEE M1\nLEFT JOIN [EDW_INC].[DIM_INCENTIVE_PLAN] M2\n\tON M1.IncentivePlanCode = M2.IncentivePlanID",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "TRUNCATE TABLE EDW_INC.DIM_INCENTIVE_ELIGIBLE_EMPLOYEE",
+						"allowCopyCommand": true
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "Azure_blobStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "staging"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "EmployeePK",
+									"type": "Int64"
+								},
+								"sink": {
+									"name": "EmployeePK",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "EmployeeID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "EmployeeID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "IncentivePlanID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "IncentivePlanID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Division",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "EmployeeName",
+									"type": "String"
+								},
+								"sink": {
+									"name": "EmployeeName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Function",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Function",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Role",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Role",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "BaseSalary",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "BaseSalary",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "Pct_TargetBonus",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Pct_TargetBonus",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "EligibleIncentiveTarget",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "EligibleIncentiveTarget",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "RegionID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "RegionID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PersonalVolumeMetric",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PersonalVolumeMetric",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PV_OverridePct",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "PV_OverridePct",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "PV_Regional_At_Division_Override",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PV_Regional_At_Division_Override",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "EffectiveFrom",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "EffectiveFrom",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "EffectiveTo",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "EffectiveTo",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ODS_INCENTIVE_METRICS",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_DIM_INCENTIVE_ELIGIBLE_EMPLOYEE1",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "cpy_DIM_INCENTIVE_METRICS_ALLOCATION_copy1",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "cpy_DIM_INCENTIVE_METRICS_PLAN",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"sqlReaderQuery": "\nSELECT \nCONCAT('ALLOC_',SUBSTRING(M1.IncentivePlanCode,1,8),'_',CAST(M1.IncentiveAllocationID AS VARCHAR(20))) AS IncentiveAllocationID,\nM3.IncentivePlanID AS IncentivePlanID,\nM2.IncentiveMetricID,\nM1.AllocationPct,\nM1.DistributionType,\nM1.RegionalMetricFlag,\nM1.ScaleID AS IncentiveScaleID,\nGETDATE() AS LastUpdatedTS\nFROM \n(\n\tSELECT\n\tROW_NUMBER() OVER (ORDER BY IncentivePlanCode,[Function],MetricCode,DistributionType) AS IncentiveAllocationID, \n\tIncentivePlanCode,\n\t[Function],\n\tMetricCode,\n\tAllocationPct,\n\tDistributionType,\n\tRegionalMetricFlag,\n\tScaleID\n\tFROM  [ODS].[INCENTIVE_METRIC_ALLOCATION]\n\t\n\t) M1\n\n\tJOIN [EDW_INC].[DIM_INCENTIVE_METRICS] M2\n\tON M1.MetricCode = M2.IncentiveMetricID\n\n\tJOIN [EDW_INC].[DIM_INCENTIVE_PLAN] M3\n\tON M1.IncentivePlanCode = M3.IncentivePlanID\n\n\tJOIN (SELECT DISTINCT ScaleID FROM EDW_INC.REF_INCENTIVE_SCALE) M4\n\tON M1.ScaleID = M4.ScaleID",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "TRUNCATE TABLE EDW_INC.DIM_INCENTIVE_METRIC_ALLOCATION",
+						"allowCopyCommand": true
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "Azure_blobStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "staging"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "IncentiveAllocationID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "IncentiveAllocationID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "IncentivePlanID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "IncentivePlanID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "IncentiveMetricID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "IncentiveMetricID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "IncentiveScaleID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "IncentiveScaleID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "AllocationPct",
+									"type": "String"
+								},
+								"sink": {
+									"name": "AllocationPct",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "DistributionType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "DistributionType",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "RegionalMetricFlag",
+									"type": "String"
+								},
+								"sink": {
+									"name": "RegionalMetricFlag",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ODS_INCENTIVE_METRICS",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_DIM_INCENTIVE_METRIC_ALLOCATION1",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "DIM_INCENTIVE_METRIC_BUDGET_ACTUALS",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "cpy_DIM_INCENTIVE_ELIGIBLE_EMPLOYEE",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "SELECT \n\t\tCASE \n\t\tWHEN TRIM(Account)='Gross Profit' \t\t\t\t\t\t\t\t\t\t\t\t\t\tTHEN 'GROSS_PROFIT'\n\t\tWHEN TRIM(Account)='EBITDA' AND TRIM(Market)!='Renuity (excl Project Home)'\t\t\t\tTHEN 'DIVISION_EBITDA'\n\t\tWHEN TRIM(Account)='EBITDA' AND TRIM(Market) ='Renuity (excl Project Home)'\t\t\t\tTHEN 'ENTERPRISE_POOL-RENUITY_EBITDA'\n\t\tWHEN TRIM(Account)='Contact Center' \t\t\tTHEN 'CC_COST'\n\t\tWHEN TRIM(Account)='Marketing & Advertising' \tTHEN 'MARKETING_COST'\n\t\tWHEN TRIM(Account)='Net Revenue' \t\t\t\tTHEN 'NET_REVENUE'\n\t\tELSE TRIM(Account) END AS Account,\n\t\t\n\t\tEOMONTH(\n\t\t\t\tDATEFROMPARTS(\n\t\t\t\t\t2000 + RIGHT(LTRIM(RTRIM(Period)), 2),  -- Year (26 → 2026)\n\t\t\t\t\tCASE LEFT(LTRIM(RTRIM(Period)), 3)      -- Month\n\t\t\t\t\t\tWHEN 'Jan' THEN 1\n\t\t\t\t\t\tWHEN 'Feb' THEN 2\n\t\t\t\t\t\tWHEN 'Mar' THEN 3\n\t\t\t\t\t\tWHEN 'Apr' THEN 4\n\t\t\t\t\t\tWHEN 'May' THEN 5\n\t\t\t\t\t\tWHEN 'Jun' THEN 6\n\t\t\t\t\t\tWHEN 'Jul' THEN 7\n\t\t\t\t\t\tWHEN 'Aug' THEN 8\n\t\t\t\t\t\tWHEN 'Sep' THEN 9\n\t\t\t\t\t\tWHEN 'Oct' THEN 10\n\t\t\t\t\t\tWHEN 'Nov' THEN 11\n\t\t\t\t\t\tWHEN 'Dec' THEN 12\n\t\t\t\t\tEND,\n\t\t\t\t\t1\n\t\t\t\t)\n\t\t\t) AS PeriodDate,\n\t\tCASE \n\t\t\t\tWHEN LEFT(LTRIM(RTRIM(Market)), 4) LIKE '[0-9][0-9][0-9][0-9]'\n\t\t\t\tTHEN LEFT(LTRIM(RTRIM(Market)), 4)\n\t\t\t\tELSE NULL\n\t\t\t\tEND  AS ACU_ID,\n\t\tTRIM(Market)\t\t\t\tAS Market_SRC,\n\t\tTRIM([Marketing Source])\tAS MarketingSource_SRC,\n\t\t[Actual Group] AS ActualValue,\n\t\t[Budget - Division] AS BudgetValue\n\t\t\n\t\tINTO #T_INCENTIVE_METRIC_BUDGET_ACTUALS\n\t\tFROM [ODS].INCENTIVE_METRIC_BUDGET_ACTUALS;\n\t\t\n\t\t\n--****************************************\n\n\nSELECT * INTO \n#T_REF_SALES_BUDGETS \nFROM \n\n(\n\n\t\tSELECT\n\t\t'ISSUED_LEAD_COUNT' AS Account,\n\t\tDate AS PeriodDate,\n\t\tCASE \n\t\t\tWHEN LEFT(LTRIM(RTRIM(Market)), 4) LIKE '[0-9][0-9][0-9][0-9]'\n\t\t\tTHEN LEFT(LTRIM(RTRIM(Market)), 4)\n\t\t\tELSE NULL\n\t\t\tEND  AS ACU_ID,\n\t\tTRIM(Market) AS Market_SRC,\n\t\tTRIM(Source) AS MarketingSource,\n\t\tNULL AS ActualValue,\n\t\tSUM(Issue_Count) AS BudgetValue\n\t\tFROM RDM.REF_SALES_BUDGETS WHERE YEar=2026\n\t\tGROUP BY Date,CASE \n\t\t\tWHEN LEFT(LTRIM(RTRIM(Market)), 4) LIKE '[0-9][0-9][0-9][0-9]'\n\t\t\tTHEN LEFT(LTRIM(RTRIM(Market)), 4)\n\t\t\tELSE NULL\n\t\t\tEND,TRIM(Market),TRIM(Source)\n\t\t\n\t\tUNION ALL \n\t\t\n\t\tSELECT\n\t\t'NETSALES_AMT' AS Account,\n\t\tDate AS PeriodDate,\n\t\tCASE \n\t\t\tWHEN LEFT(LTRIM(RTRIM(Market)), 4) LIKE '[0-9][0-9][0-9][0-9]'\n\t\t\tTHEN LEFT(LTRIM(RTRIM(Market)), 4)\n\t\t\tELSE NULL\n\t\t\tEND  AS ACU_ID,\n\t\tTRIM(Market) AS Market_SRC,\n\t\tTRIM(Source) AS MarketingSource,\n\t\tNULL AS ActualValue,\n\t\tSUM(NetSales_Amt) AS BudgetValue\n\t\tFROM RDM.REF_SALES_BUDGETS WHERE YEar=2026\n\t\tGROUP BY Date,CASE \n\t\t\tWHEN LEFT(LTRIM(RTRIM(Market)), 4) LIKE '[0-9][0-9][0-9][0-9]'\n\t\t\tTHEN LEFT(LTRIM(RTRIM(Market)), 4)\n\t\t\tELSE NULL\n\t\t\tEND,TRIM(Market),TRIM(Source)\n\t\t\t\n\t\t\n\t\tUNION ALL \n\t\t\n\t\tSELECT\n\t\t'RAW_LEAD_COUNT' AS Account,\n\t\tDate AS PeriodDate,\n\t\tCASE \n\t\t\tWHEN LEFT(LTRIM(RTRIM(Market)), 4) LIKE '[0-9][0-9][0-9][0-9]'\n\t\t\tTHEN LEFT(LTRIM(RTRIM(Market)), 4)\n\t\t\tELSE NULL\n\t\t\tEND  AS ACU_ID,\n\t\tTRIM(Market) AS Market_SRC,\n\t\tTRIM(Source) AS MarketingSource,\n\t\tNULL AS ActualValue,\n\t\tSUM(Raw_Count) AS BudgetValue\n\t\tFROM RDM.REF_SALES_BUDGETS WHERE YEar=2026\n\t\tGROUP BY Date,CASE \n\t\t\tWHEN LEFT(LTRIM(RTRIM(Market)), 4) LIKE '[0-9][0-9][0-9][0-9]'\n\t\t\tTHEN LEFT(LTRIM(RTRIM(Market)), 4)\n\t\t\tELSE NULL\n\t\t\tEND,TRIM(Market),TRIM(Source)\n\t\t\t\n\t\t\n\t\tUNION ALL \n\t\t\n\t\tSELECT\n\t\t'NETSALES_COUNT' AS Account,\n\t\tDate AS PeriodDate,\n\t\tCASE \n\t\t\tWHEN LEFT(LTRIM(RTRIM(Market)), 4) LIKE '[0-9][0-9][0-9][0-9]'\n\t\t\tTHEN LEFT(LTRIM(RTRIM(Market)), 4)\n\t\t\tELSE NULL\n\t\t\tEND  AS ACU_ID,\n\t\tTRIM(Market) AS Market_SRC,\n\t\tTRIM(Source) AS MarketingSource,\n\t\tNULL AS ActualValue,\n\t\tSUM(NetSales_Count) AS BudgetValue\n\t\tFROM RDM.REF_SALES_BUDGETS WHERE YEar=2026\n\t\tGROUP BY Date,CASE \n\t\t\tWHEN LEFT(LTRIM(RTRIM(Market)), 4) LIKE '[0-9][0-9][0-9][0-9]'\n\t\t\tTHEN LEFT(LTRIM(RTRIM(Market)), 4)\n\t\t\tELSE NULL\n\t\t\tEND,TRIM(Market),TRIM(Source)\n\t\n\t) M1\n\t\t\n\n\n\n--****************************************\n\nSELECT *,\nCASE \n\tWHEN ACU_ID LIKE '1%' THEN 'H.Rite Window'\n\tWHEN ACU_ID LIKE '2%' THEN 'A.East Florida'\n\tWHEN ACU_ID LIKE '3%' THEN 'B.Statewide'\n\tWHEN ACU_ID LIKE '4%' THEN 'C.Mad City'\n\tWHEN ACU_ID LIKE '5%' THEN 'I.Home Org'\n\tWHEN ACU_ID LIKE '6%' THEN 'H.Rite Window'\n\tWHEN ACU_ID LIKE '7%' THEN 'A.East Gulf'\n\tWHEN ACU_ID LIKE '8%' AND ACU_ID NOT LIKE '81%' THEN 'G.West Division'\n\tWHEN ACU_ID LIKE '81%' THEN 'G.Pacific Gutter'\n\tWHEN ACU_ID LIKE '01%' OR ACU_ID LIKE '03%' THEN 'I.Home Org'\n\tWHEN ACU_ID LIKE '0001%' OR ACU_ID LIKE '0003%' THEN '0.Home Base'\n\tWHEN ACU_ID LIKE '9%' THEN '0.Bylt'\n\tELSE NULL END AS UNI_CompanyReporting\t\n\t\nINTO #T_ACTUAL_1\nFROM \n\t( SELECT * FROM  #T_INCENTIVE_METRIC_BUDGET_ACTUALS\n\t\tUNION ALL \n\t  SELECT * FROM #T_REF_SALES_BUDGETS \n\t  ) M1;\n\n--****************************\n\nSELECT *,\nCASE \n\tWHEN UNI_CompanyReporting IN ('A.East Florida','A.East Gulf') \t\tTHEN 'FHI'\n\tWHEN UNI_CompanyReporting IN ('H.Rite Window') \t\t\t\t\t\tTHEN 'RTW'\n\tWHEN UNI_CompanyReporting IN ('B.Statewide') \t\t\t\t\t\tTHEN 'SWR'\n\tWHEN UNI_CompanyReporting IN ('C.Mad City') \t\t\t\t\t\tTHEN 'MAC'\n\tWHEN UNI_CompanyReporting IN ('I.Home Org') \t\t\t\t\t\tTHEN 'CTA'\n\tWHEN UNI_CompanyReporting IN ('G.West Division','G.Pacific Gutter') THEN 'PBC'\n\tWHEN UNI_CompanyReporting IN ('0.Bylt','0.Home Base','0.Renuity') \tTHEN 'REN'\n\tELSE NULL END AS Division\nINTO #T_ACTUAL\nFROM #T_ACTUAL_1;\n\n\n\n\nUPDATE #T_ACTUAL SET Division ='FHI',UNI_CompanyReporting='A.East Florida' WHERE Division IS NULL AND Market_SRC IN ('East','East Florida');\nUPDATE #T_ACTUAL SET Division ='FHI',UNI_CompanyReporting='A.East Gulf' WHERE Division IS NULL AND Market_SRC IN ('East Gulf');\n\nUPDATE #T_ACTUAL SET Division ='CTA',UNI_CompanyReporting='I.Home Org' WHERE Division IS NULL AND Market_SRC IN ('Home Org','Project Home');\n\n\nUPDATE #T_ACTUAL SET Division ='MAC',UNI_CompanyReporting='C.Mad City' WHERE Division IS NULL AND Market_SRC IN ('Mad City');\n\nUPDATE #T_ACTUAL SET Division ='REN',UNI_CompanyReporting='0.Home Base' WHERE Division IS NULL AND Market_SRC LIKE ('%Renuity%');\nUPDATE #T_ACTUAL SET Division ='REN',UNI_CompanyReporting='0.Home Base' WHERE Division IS NULL AND Market_SRC IN ('Home Base');\n\nUPDATE #T_ACTUAL SET Division ='RTW',UNI_CompanyReporting='H.Rite Window'  WHERE Division IS NULL AND Market_SRC LIKE ('%Rite%');\n\nUPDATE #T_ACTUAL SET Division ='SWR',UNI_CompanyReporting='B.Statewide'  WHERE Division IS NULL AND Market_SRC LIKE ('%Statewide%');\n\nUPDATE #T_ACTUAL SET Division ='PBC',UNI_CompanyReporting='G.West Division'  WHERE Division IS NULL AND Market_SRC LIKE ('%West%');\n\n--**************************************\n\n\n\n\nSELECT\nM1.Account,\nM1.PeriodDate,\nM1.ACU_ID,\nM2.BranchName AS ACU_BranchName,\nM1.UNI_CompanyReporting,\nCOALESCE(M1.Division,M3.Division) AS Division,\nM1.ActualValue,\nM1.BudgetValue,\n\nM1.Market_SRC,\nM1.MarketingSource_SRC\nINTO #T_1\nFROM \n#T_ACTUAL M1\n\nLEFT JOIN EDW.DIM_ERP_BRANCH M2 \nON M1.ACU_ID = M2.BranchCode\n\nLEFT JOIN (SELECT DISTINCT A.Division,A.ACU_ID FROM EDW_DUN.DIM_BRANCH_EXTN A \n\t\t\tJOIN EDW.DIM_BRANCH B ON A.Division= B.Division\n\t\t\tWHERE A.ACU_ID IN \n\t\t\t(\n\t\t\t\tSELECT ACU_ID FROM \n\t\t\t\t\t(\n\t\t\t\t\t\tSELECT DISTINCT A.Division,A.ACU_ID FROM EDW_DUN.DIM_BRANCH_EXTN A \n\t\t\t\t\t\tJOIN EDW.DIM_BRANCH B ON A.Division= B.Division\n\t\t\t\t\t\t) M1\n\t\t\t\t\t\tGROUP BY ACU_ID\n\t\t\t\t\t\tHAVING COUNT(1)=1\n\t\t\t\t\t)\n\t\t\t) M3\nON M1.ACU_ID = M3.ACU_ID;\n\n\n\n\n--************************\n\n\n\nSELECT *,\n    CASE \n\t\n        WHEN MarketingSource_SRC LIKE '%Events%'                   THEN 'Events'\n        WHEN MarketingSource_SRC LIKE '%Retail%'                   THEN 'Retail'\n        WHEN MarketingSource_SRC LIKE '%Canvas%'                   THEN 'Canvass'\n        WHEN MarketingSource_SRC LIKE '%Agents Referral%'          THEN 'Agents Referral'\n        WHEN MarketingSource_SRC LIKE '%Shared Mail%'              THEN 'Shared Mail'\n        WHEN MarketingSource_SRC LIKE '%Shared%'                   THEN 'Shared'\n        WHEN MarketingSource_SRC LIKE '%Exclusive%'                THEN 'Exclusive'\n        WHEN MarketingSource_SRC LIKE '%Manufacturer%'             THEN 'Manufacturer'\n        WHEN MarketingSource_SRC LIKE '%Branded Partner%'          THEN 'Branded Partner'\n        WHEN MarketingSource_SRC LIKE '%Paid Search%'              THEN 'Paid Search'\n        WHEN MarketingSource_SRC LIKE '%Paid Social%'              THEN 'Paid Social'\n        WHEN MarketingSource_SRC LIKE '%Native%'\t\t           THEN 'Native'\n        WHEN MarketingSource_SRC LIKE '%Email%'                    THEN 'Email'\n        WHEN MarketingSource_SRC LIKE '%Organic Web%'              THEN 'Organic/SEO'\n        WHEN MarketingSource_SRC LIKE '%Lead Nurturing%'           THEN 'Lead Nurturing'\n        WHEN MarketingSource_SRC LIKE '%Direct Mail%'              THEN 'Direct Mail'\n        WHEN MarketingSource_SRC LIKE '%Newspapers%'               THEN 'Newspapers/Magazines'\n        WHEN MarketingSource_SRC LIKE '%Radio%'                    THEN 'Broadcast Radio'\n        WHEN MarketingSource_SRC LIKE '%TV%'                       THEN 'Broadcast TV'\n        WHEN MarketingSource_SRC LIKE '%Out of Home%'              THEN 'Out of Home'\n        WHEN MarketingSource_SRC LIKE '%Consumer Referral%'        THEN 'Consumer Referral'\n        WHEN MarketingSource_SRC LIKE '%Employee Referral%' OR MarketingSource_SRC LIKE '%Employee Discount%'        THEN 'Employee Referral'\n        WHEN MarketingSource_SRC LIKE '%Paid Directories%'         THEN 'Directories'\n\t\tWHEN MarketingSource_SRC LIKE '%YouTube%'         \t\t   THEN 'YouTube'\n\t\tWHEN MarketingSource_SRC LIKE '%Programmatic%'         \t   THEN 'Programmatic'\n\t\t\n\n\t\tWHEN MarketingSource_SRC LIKE '%None Marketing Source%'    THEN 'None Marketing Source'\n\t\tWHEN MarketingSource_SRC LIKE '%Consumer Incentives%'      THEN 'Consumer Incentives'\n        WHEN MarketingSource_SRC LIKE '%Content%'                  THEN 'Content'\n        WHEN MarketingSource_SRC LIKE '%Online Presence%'          THEN 'Online Presence'\n        WHEN MarketingSource_SRC LIKE '%Creative/Research%'        THEN 'Creative/Research'\n        WHEN MarketingSource_SRC LIKE '%Branding Media%'           THEN 'Branding Media'\n        WHEN MarketingSource_SRC LIKE '%Company Merchandise%'      THEN 'Company Merchandise'\n        WHEN MarketingSource_SRC LIKE '%MarTech%'                  THEN 'MarTech'\n        WHEN MarketingSource_SRC LIKE '%Marketing Dept%'           THEN 'Marketing Dept'\n        WHEN MarketingSource_SRC LIKE '%All Marketing Sources%'    THEN 'All Marketing Sources'\n        WHEN MarketingSource_SRC LIKE '%Marketing Source - Other%' THEN 'Marketing Source - Other'\n        ELSE NULL\n    END AS SourceCode\nINTO #T_2\nFROM #T_1;\n\n\n\n\n--**********************************\n\n\n\n\nSELECT\nA.*,B.*,\nCASE \n\t\tWHEN A.MarketingSource_SRC LIKE '%Gift Cards%'               THEN 'Branding'\n        WHEN A.MarketingSource_SRC LIKE '%Content%'                  THEN 'Branding'\n        WHEN A.MarketingSource_SRC LIKE '%Online Presence%'          THEN 'Branding'\n        WHEN A.MarketingSource_SRC LIKE '%Website%'                  THEN 'Branding'\n        WHEN A.MarketingSource_SRC LIKE '%Communications%'           THEN 'Branding'\n        WHEN A.MarketingSource_SRC LIKE '%Creative/Research%'        THEN 'Branding'\n        WHEN A.MarketingSource_SRC LIKE '%Branding Media%'           THEN 'Branding'\n        WHEN A.MarketingSource_SRC LIKE '%Company Merchandise%'      THEN 'Branding'\n\t\tWHEN A.MarketingSource_SRC LIKE '%Consumer Incentives%'      THEN 'Branding'\n\n\t\tWHEN A.MarketingSource_SRC LIKE '%None Marketing Source%'\t\tTHEN 'Marketing Dept & Tech'\n        WHEN A.MarketingSource_SRC LIKE '%Affiliates - Exclusive%'      THEN 'Marketing Dept & Tech'\n        WHEN A.MarketingSource_SRC LIKE '%Affiliates - Manufacturer%'   THEN 'Marketing Dept & Tech'\n        WHEN A.MarketingSource_SRC LIKE '%Performance - Aggregators%'   THEN 'Marketing Dept & Tech'\n\t\tWHEN A.MarketingSource_SRC LIKE '%MarTech%'\t\t\t\t\t\tTHEN 'Marketing Dept & Tech'\n\t\tWHEN A.MarketingSource_SRC LIKE '%Marketing Dept%'\t\t\t\tTHEN 'Marketing Dept & Tech'\n\n\t\tWHEN A.MarketingSource_SRC LIKE '%HRC Tech & Services%'\t\t\tTHEN 'Call Center'\n\n\t\tWHEN A.MarketingSource_SRC LIKE '%Marketing Source - Other%'\tTHEN 'Marketing Source - Other'\n\nELSE NULL \nEND AS MarketingSource_SRC_1\n\nINTO #T_3\nFROM  #T_2 A \nLEFT JOIN (SELECT DISTINCT TX_SourceGroup,TX_SourceCode FROM EDW.DIM_MKTNG_SUB_SOURCE_MAPPING\n\t\t\tWHERE TX_Channel!='0') B\nON A.SourceCode = B.TX_SourceCode;\n\n\n\n\n--*******************************\n\nTRUNCATE TABLE [EDW_INC].[DIM_INCENTIVE_METRIC_BUDGET_ACTUALS];\n\n\n\n\nINSERT INTO [EDW_INC].[DIM_INCENTIVE_METRIC_BUDGET_ACTUALS]\n\n\n\nSELECT \nAccount \t\tAS Metric,\n'MONTHLY' \t\tAS DistributionType,\nDivision,\nUNI_CompanyReporting,\nYear(PeriodDate) AS Year,\nPeriodDate,\nMarket_SRC \t\t\tAS Source_Market,\nMarketingSource_SRC AS Source_MarketingSource,\n\nACU_ID,\nACU_BranchName,\n\nCASE WHEN SourceCode='All Marketing Sources' THEN 'All Marketing Sources' ELSE SourceGroup END AS SourceGroup,\nSourceCode,\nActualValue,\nBudgetValue,\nGETDATE() AS LastUpdatedTS\n\nFROM\n(\n\tSELECT\n\tAccount,\n\tPeriodDate,\n\tACU_ID,\n\tACU_BranchName,\n\tDivision,\n\tActualValue,\n\tBudgetValue,\n\tUNI_CompanyReporting,\n\t\n\tMarket_SRC,\n\tMarketingSource_SRC,\n\tCOALESCE(TX_SourceGroup,MarketingSource_SRC_1) AS SourceGroup,\n\tCOALESCE(TX_SourceCode,SourceCode) AS SourceCode\n\tFROM  #T_3\n\n\t) M1;\n\n\n"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "DIM_INCENTIVE_METRIC_BUDGET_ACTUALS_SS_NPS",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "DIM_INCENTIVE_METRIC_BUDGET_ACTUALS",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "DECLARE @Year INT = 2026;\n\nDELETE FROM [EDW_INC].[DIM_INCENTIVE_METRIC_BUDGET_ACTUALS] \nWHERE Metric IN ('SALES_SATISFACTION_INDEX', 'NPS', 'CUSTOMER_EXPERIENCE_INDEX');\n\n\nWITH CAL AS\n(\n    SELECT DISTINCT EOMONTH(CalendarDate) AS PeriodDate\n    FROM EDW.DIM_CALENDAR\n    WHERE YEAR(CalendarDate) = @Year\n),\nPRE_METRIC AS \n(\n\tSELECT 'SALES_SATISFACTION_INDEX'  AS Metric, 4.4  AS BudgetValue\n    UNION ALL\n    SELECT 'NPS',                                 75.0  AS BudgetValue\n),\n\nMETRICS AS\n(\n    \n\tSELECT * FROM PRE_METRIC\n\t\n\tUNION ALL \n\t\n\tSELECT 'CUSTOMER_EXPERIENCE_INDEX' AS Metric, ( ( A1.BudgetValue * 10 ) + (A2.BudgetValue / 2 ) ) AS BudgetValue\n\tFROM\n\t\t(SELECT * FROM PRE_METRIC WHERE Metric='SALES_SATISFACTION_INDEX') A1\n\t\tJOIN \n\t\t(SELECT * FROM PRE_METRIC WHERE Metric='NPS') A2\n\t\tON 1=1\n)\n\nINSERT INTO [EDW_INC].[DIM_INCENTIVE_METRIC_BUDGET_ACTUALS]\n\nSELECT \n    M.Metric                        AS Metric,\n    'MONTHLY'                       AS DistributionType,\n    D.Division                      AS Division,\n    CASE \n        WHEN D.Division = 'FHI' THEN 'A.East Division'\n        WHEN D.Division = 'SWR' THEN 'B.Statewide'\n        WHEN D.Division = 'RTW' THEN 'H.Rite Window'\n        WHEN D.Division = 'MAC' THEN 'C.Mad City'\n        WHEN D.Division = 'CTA' THEN 'I.Home Org'\n        WHEN D.Division = 'PBC' THEN 'G.West Division'\n        ELSE NULL \n    END                             AS UNI_CompanyReporting,\n    @Year                           AS Year,\n    CAST(C.PeriodDate AS DATE)      AS PeriodDate,\n    NULL                            AS Source_Market,\n    NULL                            AS Source_MarketingSource,\n    NULL                            AS ACU_ID,\n    NULL                            AS ACU_BranchName,\n    NULL                            AS SourceGroup,\n    NULL                            AS SourceCode,\n    NULL                            AS ActualValue,\n    M.BudgetValue                   AS BudgetValue,\n    GETDATE()                       AS LastUpdatedTS\nFROM CAL C\nCROSS JOIN (SELECT DISTINCT Division FROM EDW.DIM_JOB_STATUS) D\nCROSS JOIN METRICS M;\n\n\n\n\n\n\n\n\n\nDELETE FROM [EDW_INC].[DIM_INCENTIVE_METRIC_BUDGET_ACTUALS] \nWHERE Metric IN ('ENTERPRISE_POOL-RENUITY_SCORECARD');\n\n\nWITH CAL AS\n(\n    SELECT DISTINCT EOMONTH(CalendarDate) AS PeriodDate\n    FROM EDW.DIM_CALENDAR\n    WHERE YEAR(CalendarDate) = @Year\n),\nMETRICS AS\n(\n    SELECT 'ENTERPRISE_POOL-RENUITY_SCORECARD'  AS Metric, 1.00  AS BudgetValue\n)\n\nINSERT INTO [EDW_INC].[DIM_INCENTIVE_METRIC_BUDGET_ACTUALS]\n\nSELECT \n    M.Metric                        AS Metric,\n    'MONTHLY'                       AS DistributionType,\n    D.Division                      AS Division,\n    CASE \n        WHEN D.Division = 'REN' THEN '0.Home Base'\n        ELSE NULL \n    END                             AS UNI_CompanyReporting,\n    @Year                           AS Year,\n    CAST(C.PeriodDate AS DATE)      AS PeriodDate,\n    NULL                            AS Source_Market,\n    NULL                            AS Source_MarketingSource,\n    NULL                            AS ACU_ID,\n    NULL                            AS ACU_BranchName,\n    NULL                            AS SourceGroup,\n    NULL                            AS SourceCode,\n    NULL                            AS ActualValue,\n    M.BudgetValue                   AS BudgetValue,\n    GETDATE()                       AS LastUpdatedTS\nFROM CAL C\nCROSS JOIN (SELECT 'REN' Division FROM EDW.DIM_JOB_STATUS) D\nCROSS JOIN METRICS M;"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/INCENTIVE_METRICS"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-04-27T13:17:41Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

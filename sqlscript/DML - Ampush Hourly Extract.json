@@ -1,0 +1,20 @@
+{
+	"name": "DML - Ampush Hourly Extract",
+	"properties": {
+		"folder": {
+			"name": "DMLs/Ampush"
+		},
+		"content": {
+			"query": "/** When Ampush is coded in as a Sub Source - For FHI, PHI and SWR */\n\nSELECT\nlds.id as [Lead]\n,cst.FirstName\n,cst.LastName\n,cst.Email\n,cst.Phone\n,lds.EntryDate\n,app.SetDate as AppointmentSetDate\n,app.ApptDate as AppointmentDate\n,brn.LongName as Market\n,prd.ProductID as Product\n,cst.Address1\n,cst.City\n,cst.Zip\n,cst.[State]\n,dsp.descr as CurrentLeadDisposition\n,case when lds.ApptSet = 'True' then 1 else 0 end as ApptSet\n,case when lds.Sat = 'True' then 1 else 0 end as Demo\n,case when lds.Sold = 'True' then 1 else 0 end as Sold\n,job.GrossAmount as GrossSales\n,case when job.JobNetAmt = 0 then job.GrossAmount else job.JobNetAmt end  as NetSales\n,job.id as JobID\n,jbs.Descr as JobStatus\n,'SWR' as OperatingCompany\n,GETDATE() as LastUpdateTS\nFROM \n[ODS].[LP_SWR_Lds_Leads] lds\ninner join [ODS].[LP_SWR_srs_SourceSubs] srs\non lds.srs_id = srs.id\nleft join [ODS].[LP_SWR_dsp_Dispositions] dsp\non lds.dsp_id = dsp.Descr\nleft join [ODS].[LP_SWR_cst_Customers] cst\non lds.cst_id = cst.id\nleft join [ODS].[LP_SWR_brn_Branches] brn\non lds.brn_id = brn.id\nleft join\n[ODS].[LP_SWR_app_Appointments] app\non lds.id = app.lds_id\nleft join\n[ODS].[LP_SWR_job_Jobs] job\non lds.id = job.lds_id\nleft join [ODS].[LP_SWR_jbs_JobStatus] jbs\non job.jbs_id = jbs.id\nleft join [ODS].[LP_SWR_prd_Products] prd\non job.productid = prd.ProductID\nwhere\n srs.descr = 'Ampush'\n\n\n /** When Ampush is coded in as a Source - For MAC */\n\nSELECT\nlds.id as [Lead]\n,cst.FirstName\n,cst.LastName\n,cst.Email\n,cst.Phone\n,lds.EntryDate\n,app.SetDate as AppointmentSetDate\n,app.ApptDate as AppointmentDate\n,brn.LongName as Market\n,prd.ProductID as Product\n,cst.Address1\n,cst.City\n,cst.Zip\n,cst.[State]\n,dsp.descr as CurrentLeadDisposition\n,case when lds.ApptSet = 'True' then 1 else 0 end as ApptSet\n,case when lds.Sat = 'True' then 1 else 0 end as Demo\n,case when lds.Sold = 'True' then 1 else 0 end as Sold\n,job.GrossAmount as GrossSales\n,case when job.JobNetAmt = 0 then job.GrossAmount else job.JobNetAmt end  as NetSales\n,job.id as JobID\n,jbs.Descr as JobStatus\n,'MAC' as OperatingCompany\n,GETDATE() as LastUpdateTS\nFROM \n[ODS].[LP_MAC_Lds_Leads] lds\nleft join [ODS].[LP_MAC_dsp_Dispositions] dsp\non lds.dsp_id = dsp.Descr\nleft join [ODS].[LP_MAC_cst_Customers] cst\non lds.cst_id = cst.id\nleft join [ODS].[LP_SWR_brn_Branches] brn\non lds.brn_id = brn.id\nleft join\n[ODS].[LP_MAC_app_Appointments] app\non lds.id = app.lds_id\nleft join\n[ODS].[LP_MAC_job_Jobs] job\non lds.id = job.lds_id\nleft join [ODS].[LP_MAC_jbs_JobStatus] jbs\non job.jbs_id = jbs.id\nleft join [ODS].[LP_MAC_prd_Products] prd\non job.productid = prd.ProductID\nwhere\n lds.src_id like 'Ampush'\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

@@ -1,0 +1,614 @@
+{
+	"name": "batch_1andFund_Finance_Applications_ODS",
+	"properties": {
+		"activities": [
+			{
+				"name": "ODS",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Get the JobResults to Blob",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.03:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "JsonSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"wildcardFolderPath": "applications",
+							"wildcardFileName": {
+								"value": "@concat('ApplicationExport_',formatDateTime(convertTimeZone(utcNow(), 'UTC', 'Eastern Standard Time'),'yyyy-MM-dd'),'.json')",
+								"type": "Expression"
+							},
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "JsonReadSettings"
+						}
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE ODS.FINANCE_APPLICATIONS",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "$['application_id']"
+								},
+								"sink": {
+									"name": "ApplicationId",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['application_friendly_id']"
+								},
+								"sink": {
+									"name": "ApplicationFriendlyId",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['source_platform_id']"
+								},
+								"sink": {
+									"name": "SourcePlatformId",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['prospect_id']"
+								},
+								"sink": {
+									"name": "ProspectId",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['project_numbers']"
+								},
+								"sink": {
+									"name": "ProjectNumbers",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['transunion_credit_range']"
+								},
+								"sink": {
+									"name": "TransUnionCreditRange",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['experian_credit_range']"
+								},
+								"sink": {
+									"name": "ExperianCreditRange",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['appetite_engine_status']"
+								},
+								"sink": {
+									"name": "AppetiteEngineStatus",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['applicant_annual_income']"
+								},
+								"sink": {
+									"name": "Applicant_Annual_Income",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['applicant_additional_annual_income']"
+								},
+								"sink": {
+									"name": "Applicant_Additional_Annual_Income",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['coapplicant_annual_income']"
+								},
+								"sink": {
+									"name": "CoApplicant_Annual_Income",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['coapplicant_additional_annual_income']"
+								},
+								"sink": {
+									"name": "CoApplicant_Additional_Annual_Income",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['applicant_housing_cost']"
+								},
+								"sink": {
+									"name": "Applicant_Housing_Cost",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['applicant_transunion_monthly']"
+								},
+								"sink": {
+									"name": "Applicant_Transunion_Monthly",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['applicant_experian_monthly']"
+								},
+								"sink": {
+									"name": "Applicant_Experian_Monthly",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['coapplicant_transunion_monthly']"
+								},
+								"sink": {
+									"name": "CoApplicant_Transunion_Monthly",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['coapplicant_experian_monthly']"
+								},
+								"sink": {
+									"name": "CoApplicant_Rxperian_Monthly",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['postal_code']"
+								},
+								"sink": {
+									"name": "PostalCode",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['has_coapplicant']"
+								},
+								"sink": {
+									"name": "HasCoApplicant",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['coapplicant_transunion_credit_range']"
+								},
+								"sink": {
+									"name": "CoApplicantTransUnionCreditRange",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['coapplicant_experian_credit_range']"
+								},
+								"sink": {
+									"name": "CoApplicantExperianCreditRange",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['sales_representative_email']"
+								},
+								"sink": {
+									"name": "SalesRepresentativeEmail",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['project_amount']"
+								},
+								"sink": {
+									"name": "ProjectAmount",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "declined_lenders"
+								},
+								"sink": {
+									"name": "DeclinedLenders",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "eligible_lenders"
+								},
+								"sink": {
+									"name": "EligibleLenders",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['lender']"
+								},
+								"sink": {
+									"name": "Lender",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['lender_status']"
+								},
+								"sink": {
+									"name": "LenderStatus",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['credit_limit']"
+								},
+								"sink": {
+									"name": "CreditLimit",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['plan_selected']"
+								},
+								"sink": {
+									"name": "PlanSelected",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['term_length']"
+								},
+								"sink": {
+									"name": "TermLength",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['interest_rate']"
+								},
+								"sink": {
+									"name": "InterestRate",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['apr']"
+								},
+								"sink": {
+									"name": "APR",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['monthly_payment']"
+								},
+								"sink": {
+									"name": "MonthlyPayment",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['payment_factor']"
+								},
+								"sink": {
+									"name": "PaymentFactor",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['financed_amount']"
+								},
+								"sink": {
+									"name": "FinancedAmount",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['down_payment']"
+								},
+								"sink": {
+									"name": "DownPayment",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['expires_at']"
+								},
+								"sink": {
+									"name": "ExpiresAt",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['submitted_at']"
+								},
+								"sink": {
+									"name": "SubmittedAt",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['lender_last_updated_at']"
+								},
+								"sink": {
+									"name": "LenderLastUpdatedAt",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['tombstoned_at']"
+								},
+								"sink": {
+									"name": "Tombstoned_At",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['tombstone_type']"
+								},
+								"sink": {
+									"name": "Tombstone_Type",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['tombstone_source']"
+								},
+								"sink": {
+									"name": "Tombstone_Source",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['tombstone_reason']"
+								},
+								"sink": {
+									"name": "Tombstone_Reason",
+									"type": "String"
+								}
+							}
+						],
+						"collectionReference": "",
+						"mapComplexValuesToString": true
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ONEANDFUND_API_RESPONSE_APPLICATIONS",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_CTA_TEST_DYN_DIM_CUSTOMER",
+						"type": "DatasetReference",
+						"parameters": {
+							"SchemaName": "ODS",
+							"TableName": "FINANCE_APPLICATIONS"
+						}
+					}
+				]
+			},
+			{
+				"name": "Get JobId",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "GetBearerToken",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "Select JobId from ODS.FINANCE_API_RESPONSE_RAW where Id = (Select Max(Id) from ODS.FINANCE_API_RESPONSE_RAW Where ExportType='applications')"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "GetBearerToken",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"url": "https://auth.1andfund.com/oauth/token",
+					"connectVia": {
+						"referenceName": "AutoResolveIntegrationRuntime",
+						"type": "IntegrationRuntimeReference"
+					},
+					"body": {
+						"value": "@concat('{\n    \"client_id\":\"',pipeline().parameters.client_id,'\",\n    \"client_secret\":\"',pipeline().parameters.client_secret,'\",\n    \"audience\":\"',pipeline().parameters.audience,'\",\n    \"grant_type\":\"client_credentials\"\n}')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Get the JobResults to Blob",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Get JobId",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.03:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "JsonSource",
+						"storeSettings": {
+							"type": "HttpReadSettings",
+							"requestMethod": "GET",
+							"additionalHeaders": {
+								"value": "@concat('Authorization: Bearer ',\n        activity('GetBearerToken').output.access_token,\n    '\n    X-1LOOK-SALES-REPRESENTATIVE: ',pipeline().parameters.Email)",
+								"type": "Expression"
+							},
+							"requestTimeout": ""
+						},
+						"formatSettings": {
+							"type": "JsonReadSettings"
+						}
+					},
+					"sink": {
+						"type": "JsonSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "JsonWriteSettings"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "ONEANDFUND_API_CALL_JSON",
+						"type": "DatasetReference",
+						"parameters": {
+							"JOBID": {
+								"value": "@activity('Get JobId').output.resultSets[0].rows[0].JobId",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ONEANDFUND_API_RESPONSE_APPLICATIONS",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"parameters": {
+			"client_id": {
+				"type": "string",
+				"defaultValue": "ufLT2EvnzUsCN8kBtlnxToEeVaXgLksu"
+			},
+			"client_secret": {
+				"type": "string",
+				"defaultValue": "XqWv56kq2qRPWo9QqbkswUd6Wc5ivJR-2KzIITl0xjRmtMJbt2iofcvJZ97bTzTh"
+			},
+			"audience": {
+				"type": "string",
+				"defaultValue": "https://1look.1andfund.com/"
+			},
+			"BaseURL": {
+				"type": "string",
+				"defaultValue": "https://renuity.1look.cloud/api"
+			},
+			"Email": {
+				"type": "string",
+				"defaultValue": " renuity.datacore@renuityhome.com"
+			}
+		},
+		"folder": {
+			"name": "1andFund to EDW"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-03-09T05:41:34Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

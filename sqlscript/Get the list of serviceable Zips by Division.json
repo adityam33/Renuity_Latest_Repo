@@ -1,0 +1,17 @@
+{
+	"name": "Get the list of serviceable Zips by Division",
+	"properties": {
+		"content": {
+			"query": "SELECT distinct\nbrz.[Division]\n,brz.[ZipCode]\n,zip.City\n,zip.County\n,zip.State\n,cast(PopulationEstimate as INT) as PopulationEstimate\n,zip.[HouseholdsPerZipCode]\n FROM \n [EDW].[DIM_BRANCH_ZIP] brz\n left join [ODS].[MKTDATA_ZIP_CODES_DB_DELUXE_BUSINESS] zip on \n brz.ZipCode = zip.ZipCode\n and zip.PrimaryRecord = 'P'\n order by \n [Division], cast(PopulationEstimate as INT) desc\n\n -- 21086",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

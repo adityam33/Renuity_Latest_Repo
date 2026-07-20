@@ -1,0 +1,157 @@
+{
+	"name": "df_load_DIM_PLANITEM_ZML",
+	"properties": {
+		"folder": {
+			"name": "ZML_ODS_to_EDW/DIMENSIONS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ZML_ODS_FHI_PlanItem",
+						"type": "DatasetReference"
+					},
+					"name": "FHI"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_DIM_PLANITEM_ZML",
+						"type": "DatasetReference"
+					},
+					"name": "targetDim",
+					"description": "Export data to EDW_DIM_BRANCH",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "selectColsFHI"
+				},
+				{
+					"name": "createIDsFHI"
+				},
+				{
+					"name": "unionAllOpCos"
+				},
+				{
+					"name": "addLastUpdateTimestamp"
+				},
+				{
+					"name": "AlterRow"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          PlanItem_ID as string,",
+				"          Project_ID as string,",
+				"          Name as string,",
+				"          Busy as boolean,",
+				"          Important as boolean,",
+				"          DateBegin as timestamp,",
+				"          DateEnd as timestamp,",
+				"          Color as string,",
+				"          RecID as string,",
+				"          RecType as string,",
+				"          brp_id as string,",
+				"          UpdateJob as boolean,",
+				"          Sit_id as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> FHI",
+				"FHI select(mapColumn(",
+				"          LP_PlanItemId = PlanItem_ID,",
+				"          LP_ProjectId = Project_ID,",
+				"          PlanItemName = Name,",
+				"          Busy,",
+				"          Important,",
+				"          DateBegin,",
+				"          DateEnd,",
+				"          Color,",
+				"          LP_RecordId = RecID,",
+				"          RecordType = RecType,",
+				"          LP_ProductionBranchId = brp_id,",
+				"          UpdateJob,",
+				"          LP_ScheduleItemTypeId = Sit_id",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColsFHI",
+				"selectColsFHI derive(Division = 'FHI') ~> createIDsFHI",
+				"createIDsFHI union(byName: true)~> unionAllOpCos",
+				"unionAllOpCos derive(LastUpdateTS = currentTimestamp(),",
+				"          PlanItemId = concat(Division,'-',toString(LP_PlanItemId)),",
+				"          ProjectId = concat(Division,'-',toString(LP_ProjectId)),",
+				"          RecordId = concat(Division,'-',toString(LP_RecordId)),",
+				"          ProductionBranchId = concat(Division,'-',toString(LP_ProductionBranchId)),",
+				"          ScheduleItemTypeId = concat(Division,'-',toString(LP_ScheduleItemTypeId))) ~> addLastUpdateTimestamp",
+				"addLastUpdateTimestamp alterRow(upsertIf(true())) ~> AlterRow",
+				"AlterRow sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          PlanItemId as string,",
+				"          ProjectId as string,",
+				"          PlanItemName as string,",
+				"          Busy as boolean,",
+				"          Important as boolean,",
+				"          DateBegin as timestamp,",
+				"          DateEnd as timestamp,",
+				"          Color as string,",
+				"          RecordId as string,",
+				"          RecordType as string,",
+				"          ProductionBranchId as string,",
+				"          UpdateJob as boolean,",
+				"          ScheduleItemTypeId as string,",
+				"          Division as string,",
+				"          LP_PlanItemId as integer,",
+				"          LP_ProjectId as integer,",
+				"          LP_RecordId as integer,",
+				"          LP_ProductionBranchId as string,",
+				"          LP_ScheduleItemTypeId as integer,",
+				"          LastUpdateTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['PlanItemId'],",
+				"     format: 'table',",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          PlanItemId,",
+				"          ProjectId,",
+				"          PlanItemName,",
+				"          Busy,",
+				"          Important,",
+				"          DateBegin,",
+				"          DateEnd,",
+				"          Color,",
+				"          RecordId,",
+				"          RecordType,",
+				"          ProductionBranchId,",
+				"          UpdateJob,",
+				"          ScheduleItemTypeId,",
+				"          Division,",
+				"          LP_PlanItemId,",
+				"          LP_ProjectId,",
+				"          LP_RecordId,",
+				"          LP_ProductionBranchId,",
+				"          LP_ScheduleItemTypeId,",
+				"          LastUpdateTS",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> targetDim"
+			]
+		}
+	}
+}

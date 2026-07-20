@@ -1,0 +1,17 @@
+{
+	"name": "Natl WIT - Get Serviceable Zip Codes by Division",
+	"properties": {
+		"content": {
+			"query": "/** Get the zip codes for Paradise **/\n\nSELECT \nbrz.[ZipCode]\n,brz.[LP_BranchID]\n,prg.[ProductGroup]\n,brz.[Division]\n FROM \n [EDW].[DIM_BRANCH_ZIP] brz\n ,[EDW].[DIM_PRODUCT_GROUP] prg\n where\n brz.ProductGroupID = prg.ProductGroupID\n and brz.Division = 'PHI'\n and ZipCode not in ('00000')\n and prg.[Active] = 'True'\n and prg.ProductGroup in ('Default')\n order BY\nprg.[ProductGroup]\n,brz.[LP_BranchID]\n,brz.[ZipCode]\n\n/** Get the zip codes for Statewide **/\n\nSELECT distinct\nbrz.[ZipCode]\n,brz.[LP_BranchID]\n,prg.[ProductGroup]\n,brz.[Division]\n FROM \n [EDW].[DIM_BRANCH_ZIP] brz\n ,[EDW].[DIM_BRANCH] brn\n ,[EDW].[DIM_PRODUCT_GROUP] prg\n where\n brz.ProductGroupID = prg.ProductGroupID\n and brz.BranchID = brn.BranchID\n and brz.Division = 'SWR'\n and ZipCode not in ('00000')\n and prg.[Active] = 'True'\n and brn.[Active] = 'True'\n and prg.ProductGroup in ('WalkIn Tubs')\n order BY\nprg.[ProductGroup]\n,brz.[LP_BranchID]\n,brz.[ZipCode]\n\n\n/** Get the zip codes for Pacific **/\n\nSELECT distinct\nbrz.[ZipCode]\n,brz.[LP_BranchID]\n,prg.[ProductGroup]\n,brz.[Division]\n FROM \n [EDW].[DIM_BRANCH_ZIP] brz\n ,[EDW].[DIM_PRODUCT_GROUP] prg\n where\n brz.ProductGroupID = prg.ProductGroupID\n and brz.Division = 'PBC'\n and ZipCode not in ('00000')\n and prg.[Active] = 'True'\n and prg.ProductGroup in ('Bath')\n order BY\nprg.[ProductGroup]\n,brz.[LP_BranchID]\n,brz.[ZipCode]\n\n\n/** Get the zip codes for MaxHome **/\n\nSELECT \nbrz.[ZipCode]\n,brz.[LP_BranchID]\n,prg.[ProductGroup]\n,brz.[Division]\n FROM \n [EDW].[DIM_BRANCH_ZIP] brz\n ,[EDW].[DIM_PRODUCT_GROUP] prg\n where\n brz.ProductGroupID = prg.ProductGroupID\n and brz.Division = 'MXH'\n and ZipCode not in ('00000')\n and prg.[Active] = 'True'\n and prg.ProductGroup in ('Bath')\n and brz.BranchID not in ('MXH-HUB')\n order BY\nprg.[ProductGroup]\n,brz.[LP_BranchID]\n,brz.[ZipCode]\n\n/** For Homesmart... only DC, VA and MD... rest supplied by Beth **/\n\nSELECT distinct\nbrz.[ZipCode]\n FROM [EDW].[DIM_BRANCH_ZIP] brz,\n(\n SELECT [ZipCode]\n FROM [ODS].[MKTDATA_ZIP_CODES_DB_DELUXE_BUSINESS]\n WHERE\n [PrimaryRecord] = 'P'\n and [State] in ('MD','VA','DC')\n ) zip\n where \n brz.Division = 'HSI'\n and brz.ZipCode = zip.ZipCode\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

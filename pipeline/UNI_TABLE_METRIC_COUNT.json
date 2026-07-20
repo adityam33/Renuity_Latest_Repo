@@ -1,0 +1,361 @@
+{
+	"name": "UNI_TABLE_METRIC_COUNT",
+	"properties": {
+		"activities": [
+			{
+				"name": "cpy_UNI_TABLE_METRIC_COUNT",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT 'LP' AS SourceSystem,*,GETDATE() AS LastUpdatedTS FROM \n\n(\n--***** DIM_BRANCH  *******\n\nSELECT  -- NOT NULL CHECK\nCAST(GETDATE() AS DATE) AS ReportDate,\n'DIM_BRANCH' AS TableName,\n'NOT NULL-CHECK' AS Identifier,\nCOALESCE(SUM(CASE WHEN Division='FHI' THEN 1 ELSE 0 END ),0) AS FHI_UNICount,\nCOALESCE(SUM(CASE WHEN Division='RTW' THEN 1 ELSE 0 END ),0) AS RTW_UNICount,\nCOALESCE(SUM(CASE WHEN Division='SWR' THEN 1 ELSE 0 END ),0) AS SWR_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MAC' THEN 1 ELSE 0 END ),0) AS MAC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MXH' THEN 1 ELSE 0 END ),0) AS MXH_UNICount,\nCOALESCE(SUM(CASE WHEN Division='PBC' THEN 1 ELSE 0 END ),0) AS PBC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='CTA' THEN 1 ELSE 0 END ),0) AS CTA_UNICount\nFROM EDW.DIM_BRANCH WHERE UNI_Market IS NOT NULL\n\nUNION ALL \n\nSELECT \nCAST(GETDATE() AS DATE) AS ReportDate,\n'DIM_BRANCH' AS TableName,  -- NULL CHECK\n'NULL-CHECK' AS Identifier,\nCOALESCE(SUM(CASE WHEN Division='FHI' THEN 1 ELSE 0 END ),0) AS FHI_UNICount,\nCOALESCE(SUM(CASE WHEN Division='RTW' THEN 1 ELSE 0 END ),0) AS RTW_UNICount,\nCOALESCE(SUM(CASE WHEN Division='SWR' THEN 1 ELSE 0 END ),0) AS SWR_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MAC' THEN 1 ELSE 0 END ),0) AS MAC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MXH' THEN 1 ELSE 0 END ),0) AS MXH_UNICount,\nCOALESCE(SUM(CASE WHEN Division='PBC' THEN 1 ELSE 0 END ),0) AS PBC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='CTA' THEN 1 ELSE 0 END ),0) AS CTA_UNICount\nFROM EDW.DIM_BRANCH WHERE UNI_Market IS NULL\n\n\nUNION ALL \n\n\n--***** DIM_CALL_RESULT  *******\n\nSELECT  -- NOT NULL CHECK\nCAST(GETDATE() AS DATE) AS ReportDate,\n'DIM_CALL_RESULT' AS TableName,\n'NOT NULL-CHECK' AS Identifier,\nCOALESCE(SUM(CASE WHEN Division='FHI' THEN 1 ELSE 0 END ),0) AS FHI_UNICount,\nCOALESCE(SUM(CASE WHEN Division='RTW' THEN 1 ELSE 0 END ),0) AS RTW_UNICount,\nCOALESCE(SUM(CASE WHEN Division='SWR' THEN 1 ELSE 0 END ),0) AS SWR_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MAC' THEN 1 ELSE 0 END ),0) AS MAC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MXH' THEN 1 ELSE 0 END ),0) AS MXH_UNICount,\nCOALESCE(SUM(CASE WHEN Division='PBC' THEN 1 ELSE 0 END ),0) AS PBC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='CTA' THEN 1 ELSE 0 END ),0) AS CTA_UNICount\nFROM EDW.DIM_CALL_RESULT WHERE UNI_CallResult IS NOT NULL\n\nUNION ALL \n\nSELECT \nCAST(GETDATE() AS DATE) AS ReportDate,\n'DIM_CALL_RESULT' AS TableName,  -- NULL CHECK\n'NULL-CHECK' AS Identifier,\nCOALESCE(SUM(CASE WHEN Division='FHI' THEN 1 ELSE 0 END ),0) AS FHI_UNICount,\nCOALESCE(SUM(CASE WHEN Division='RTW' THEN 1 ELSE 0 END ),0) AS RTW_UNICount,\nCOALESCE(SUM(CASE WHEN Division='SWR' THEN 1 ELSE 0 END ),0) AS SWR_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MAC' THEN 1 ELSE 0 END ),0) AS MAC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MXH' THEN 1 ELSE 0 END ),0) AS MXH_UNICount,\nCOALESCE(SUM(CASE WHEN Division='PBC' THEN 1 ELSE 0 END ),0) AS PBC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='CTA' THEN 1 ELSE 0 END ),0) AS CTA_UNICount\nFROM EDW.DIM_CALL_RESULT WHERE UNI_CallResult IS NULL\n\n\n\n\nUNION ALL \n\n\n--***** DIM_CALL_TYPE  *******\n\nSELECT  -- NOT NULL CHECK\nCAST(GETDATE() AS DATE) AS ReportDate,\n'DIM_CALL_TYPE' AS TableName,\n'NOT NULL-CHECK' AS Identifier,\nCOALESCE(SUM(CASE WHEN Division='FHI' THEN 1 ELSE 0 END ),0) AS FHI_UNICount,\nCOALESCE(SUM(CASE WHEN Division='RTW' THEN 1 ELSE 0 END ),0) AS RTW_UNICount,\nCOALESCE(SUM(CASE WHEN Division='SWR' THEN 1 ELSE 0 END ),0) AS SWR_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MAC' THEN 1 ELSE 0 END ),0) AS MAC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MXH' THEN 1 ELSE 0 END ),0) AS MXH_UNICount,\nCOALESCE(SUM(CASE WHEN Division='PBC' THEN 1 ELSE 0 END ),0) AS PBC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='CTA' THEN 1 ELSE 0 END ),0) AS CTA_UNICount\nFROM EDW.DIM_CALL_TYPE WHERE UNI_CallType IS NOT NULL\n\nUNION ALL \n\nSELECT \nCAST(GETDATE() AS DATE) AS ReportDate,\n'DIM_CALL_TYPE' AS TableName,  -- NULL CHECK\n'NULL-CHECK' AS Identifier,\nCOALESCE(SUM(CASE WHEN Division='FHI' THEN 1 ELSE 0 END ),0) AS FHI_UNICount,\nCOALESCE(SUM(CASE WHEN Division='RTW' THEN 1 ELSE 0 END ),0) AS RTW_UNICount,\nCOALESCE(SUM(CASE WHEN Division='SWR' THEN 1 ELSE 0 END ),0) AS SWR_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MAC' THEN 1 ELSE 0 END ),0) AS MAC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MXH' THEN 1 ELSE 0 END ),0) AS MXH_UNICount,\nCOALESCE(SUM(CASE WHEN Division='PBC' THEN 1 ELSE 0 END ),0) AS PBC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='CTA' THEN 1 ELSE 0 END ),0) AS CTA_UNICount\nFROM EDW.DIM_CALL_TYPE WHERE UNI_CallType IS NULL\n\n\n\n\nUNION ALL \n\n\n--***** DIM_DISPOSITION  *******\n\nSELECT  -- NOT NULL CHECK\nCAST(GETDATE() AS DATE) AS ReportDate,\n'DIM_DISPOSITION' AS TableName,\n'NOT NULL-CHECK' AS Identifier,\nCOALESCE(SUM(CASE WHEN Division='FHI' THEN 1 ELSE 0 END ),0) AS FHI_UNICount,\nCOALESCE(SUM(CASE WHEN Division='RTW' THEN 1 ELSE 0 END ),0) AS RTW_UNICount,\nCOALESCE(SUM(CASE WHEN Division='SWR' THEN 1 ELSE 0 END ),0) AS SWR_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MAC' THEN 1 ELSE 0 END ),0) AS MAC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MXH' THEN 1 ELSE 0 END ),0) AS MXH_UNICount,\nCOALESCE(SUM(CASE WHEN Division='PBC' THEN 1 ELSE 0 END ),0) AS PBC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='CTA' THEN 1 ELSE 0 END ),0) AS CTA_UNICount\nFROM EDW.DIM_DISPOSITION WHERE UNI_DispositionComments IS NOT NULL\n\nUNION ALL \n\nSELECT \nCAST(GETDATE() AS DATE) AS ReportDate,\n'DIM_DISPOSITION' AS TableName,  -- NULL CHECK\n'NULL-CHECK' AS Identifier,\nCOALESCE(SUM(CASE WHEN Division='FHI' THEN 1 ELSE 0 END ),0) AS FHI_UNICount,\nCOALESCE(SUM(CASE WHEN Division='RTW' THEN 1 ELSE 0 END ),0) AS RTW_UNICount,\nCOALESCE(SUM(CASE WHEN Division='SWR' THEN 1 ELSE 0 END ),0) AS SWR_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MAC' THEN 1 ELSE 0 END ),0) AS MAC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MXH' THEN 1 ELSE 0 END ),0) AS MXH_UNICount,\nCOALESCE(SUM(CASE WHEN Division='PBC' THEN 1 ELSE 0 END ),0) AS PBC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='CTA' THEN 1 ELSE 0 END ),0) AS CTA_UNICount\nFROM EDW.DIM_DISPOSITION WHERE UNI_DispositionComments IS NULL\n\n\n\n\nUNION ALL \n\n\n--***** DIM_FINANCE_COMPANY  *******\n\nSELECT  -- NOT NULL CHECK\nCAST(GETDATE() AS DATE) AS ReportDate,\n'DIM_FINANCE_COMPANY' AS TableName,\n'NOT NULL-CHECK' AS Identifier,\nCOALESCE(SUM(CASE WHEN Division='FHI' THEN 1 ELSE 0 END ),0) AS FHI_UNICount,\nCOALESCE(SUM(CASE WHEN Division='RTW' THEN 1 ELSE 0 END ),0) AS RTW_UNICount,\nCOALESCE(SUM(CASE WHEN Division='SWR' THEN 1 ELSE 0 END ),0) AS SWR_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MAC' THEN 1 ELSE 0 END ),0) AS MAC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MXH' THEN 1 ELSE 0 END ),0) AS MXH_UNICount,\nCOALESCE(SUM(CASE WHEN Division='PBC' THEN 1 ELSE 0 END ),0) AS PBC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='CTA' THEN 1 ELSE 0 END ),0) AS CTA_UNICount\nFROM EDW.DIM_FINANCE_COMPANY WHERE UNI_FinanceCompany IS NOT NULL\n\nUNION ALL \n\nSELECT \nCAST(GETDATE() AS DATE) AS ReportDate,\n'DIM_FINANCE_COMPANY' AS TableName,  -- NULL CHECK\n'NULL-CHECK' AS Identifier,\nCOALESCE(SUM(CASE WHEN Division='FHI' THEN 1 ELSE 0 END ),0) AS FHI_UNICount,\nCOALESCE(SUM(CASE WHEN Division='RTW' THEN 1 ELSE 0 END ),0) AS RTW_UNICount,\nCOALESCE(SUM(CASE WHEN Division='SWR' THEN 1 ELSE 0 END ),0) AS SWR_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MAC' THEN 1 ELSE 0 END ),0) AS MAC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MXH' THEN 1 ELSE 0 END ),0) AS MXH_UNICount,\nCOALESCE(SUM(CASE WHEN Division='PBC' THEN 1 ELSE 0 END ),0) AS PBC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='CTA' THEN 1 ELSE 0 END ),0) AS CTA_UNICount\nFROM EDW.DIM_FINANCE_COMPANY WHERE UNI_FinanceCompany IS NULL\n\n\n\n\n\nUNION ALL \n\n\n--***** DIM_FINANCE_SOURCE  *******\n\nSELECT  -- NOT NULL CHECK\nCAST(GETDATE() AS DATE) AS ReportDate,\n'DIM_FINANCE_SOURCE' AS TableName,\n'NOT NULL-CHECK' AS Identifier,\nCOALESCE(SUM(CASE WHEN Division='FHI' THEN 1 ELSE 0 END ),0) AS FHI_UNICount,\nCOALESCE(SUM(CASE WHEN Division='RTW' THEN 1 ELSE 0 END ),0) AS RTW_UNICount,\nCOALESCE(SUM(CASE WHEN Division='SWR' THEN 1 ELSE 0 END ),0) AS SWR_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MAC' THEN 1 ELSE 0 END ),0) AS MAC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MXH' THEN 1 ELSE 0 END ),0) AS MXH_UNICount,\nCOALESCE(SUM(CASE WHEN Division='PBC' THEN 1 ELSE 0 END ),0) AS PBC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='CTA' THEN 1 ELSE 0 END ),0) AS CTA_UNICount\nFROM EDW.DIM_FINANCE_SOURCE WHERE UNI_FinanceSource IS NOT NULL\n\nUNION ALL \n\nSELECT \nCAST(GETDATE() AS DATE) AS ReportDate,\n'DIM_FINANCE_SOURCE' AS TableName,  -- NULL CHECK\n'NULL-CHECK' AS Identifier,\nCOALESCE(SUM(CASE WHEN Division='FHI' THEN 1 ELSE 0 END ),0) AS FHI_UNICount,\nCOALESCE(SUM(CASE WHEN Division='RTW' THEN 1 ELSE 0 END ),0) AS RTW_UNICount,\nCOALESCE(SUM(CASE WHEN Division='SWR' THEN 1 ELSE 0 END ),0) AS SWR_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MAC' THEN 1 ELSE 0 END ),0) AS MAC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MXH' THEN 1 ELSE 0 END ),0) AS MXH_UNICount,\nCOALESCE(SUM(CASE WHEN Division='PBC' THEN 1 ELSE 0 END ),0) AS PBC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='CTA' THEN 1 ELSE 0 END ),0) AS CTA_UNICount\nFROM EDW.DIM_FINANCE_SOURCE WHERE UNI_FinanceSource IS NULL\n\n\n\n\nUNION ALL \n\n\n--***** DIM_JOB_STATUS  *******\n\nSELECT  -- NOT NULL CHECK\nCAST(GETDATE() AS DATE) AS ReportDate,\n'DIM_JOB_STATUS' AS TableName,\n'NOT NULL-CHECK' AS Identifier,\nCOALESCE(SUM(CASE WHEN Division='FHI' THEN 1 ELSE 0 END ),0) AS FHI_UNICount,\nCOALESCE(SUM(CASE WHEN Division='RTW' THEN 1 ELSE 0 END ),0) AS RTW_UNICount,\nCOALESCE(SUM(CASE WHEN Division='SWR' THEN 1 ELSE 0 END ),0) AS SWR_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MAC' THEN 1 ELSE 0 END ),0) AS MAC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MXH' THEN 1 ELSE 0 END ),0) AS MXH_UNICount,\nCOALESCE(SUM(CASE WHEN Division='PBC' THEN 1 ELSE 0 END ),0) AS PBC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='CTA' THEN 1 ELSE 0 END ),0) AS CTA_UNICount\nFROM EDW.DIM_JOB_STATUS WHERE UNI_JobStatus IS NOT NULL\n\nUNION ALL \n\nSELECT \nCAST(GETDATE() AS DATE) AS ReportDate,\n'DIM_JOB_STATUS' AS TableName,  -- NULL CHECK\n'NULL-CHECK' AS Identifier,\nCOALESCE(SUM(CASE WHEN Division='FHI' THEN 1 ELSE 0 END ),0) AS FHI_UNICount,\nCOALESCE(SUM(CASE WHEN Division='RTW' THEN 1 ELSE 0 END ),0) AS RTW_UNICount,\nCOALESCE(SUM(CASE WHEN Division='SWR' THEN 1 ELSE 0 END ),0) AS SWR_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MAC' THEN 1 ELSE 0 END ),0) AS MAC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MXH' THEN 1 ELSE 0 END ),0) AS MXH_UNICount,\nCOALESCE(SUM(CASE WHEN Division='PBC' THEN 1 ELSE 0 END ),0) AS PBC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='CTA' THEN 1 ELSE 0 END ),0) AS CTA_UNICount\nFROM EDW.DIM_JOB_STATUS WHERE UNI_JobStatus IS NULL\n\n\n\nUNION ALL \n\n\n--***** DIM_LEAD_SOURCE_GROUP  *******\n\nSELECT  -- NOT NULL CHECK\nCAST(GETDATE() AS DATE) AS ReportDate,\n'DIM_LEAD_SOURCE_GROUP' AS TableName,\n'NOT NULL-CHECK' AS Identifier,\nCOALESCE(SUM(CASE WHEN Division='FHI' THEN 1 ELSE 0 END ),0) AS FHI_UNICount,\nCOALESCE(SUM(CASE WHEN Division='RTW' THEN 1 ELSE 0 END ),0) AS RTW_UNICount,\nCOALESCE(SUM(CASE WHEN Division='SWR' THEN 1 ELSE 0 END ),0) AS SWR_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MAC' THEN 1 ELSE 0 END ),0) AS MAC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MXH' THEN 1 ELSE 0 END ),0) AS MXH_UNICount,\nCOALESCE(SUM(CASE WHEN Division='PBC' THEN 1 ELSE 0 END ),0) AS PBC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='CTA' THEN 1 ELSE 0 END ),0) AS CTA_UNICount\nFROM EDW.DIM_LEAD_SOURCE_GROUP WHERE UNI_SourceGroup IS NOT NULL\n\nUNION ALL \n\nSELECT \nCAST(GETDATE() AS DATE) AS ReportDate,\n'DIM_LEAD_SOURCE_GROUP' AS TableName,  -- NULL CHECK\n'NULL-CHECK' AS Identifier,\nCOALESCE(SUM(CASE WHEN Division='FHI' THEN 1 ELSE 0 END ),0) AS FHI_UNICount,\nCOALESCE(SUM(CASE WHEN Division='RTW' THEN 1 ELSE 0 END ),0) AS RTW_UNICount,\nCOALESCE(SUM(CASE WHEN Division='SWR' THEN 1 ELSE 0 END ),0) AS SWR_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MAC' THEN 1 ELSE 0 END ),0) AS MAC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MXH' THEN 1 ELSE 0 END ),0) AS MXH_UNICount,\nCOALESCE(SUM(CASE WHEN Division='PBC' THEN 1 ELSE 0 END ),0) AS PBC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='CTA' THEN 1 ELSE 0 END ),0) AS CTA_UNICount\nFROM EDW.DIM_LEAD_SOURCE_GROUP WHERE UNI_SourceGroup IS NULL\n\n\n\nUNION ALL \n\n\n--***** DIM_LEAD_SOURCE  *******\n\nSELECT  -- NOT NULL CHECK\nCAST(GETDATE() AS DATE) AS ReportDate,\n'DIM_LEAD_SOURCE' AS TableName,\n'NOT NULL-CHECK' AS Identifier,\nCOALESCE(SUM(CASE WHEN Division='FHI' THEN 1 ELSE 0 END ),0) AS FHI_UNICount,\nCOALESCE(SUM(CASE WHEN Division='RTW' THEN 1 ELSE 0 END ),0) AS RTW_UNICount,\nCOALESCE(SUM(CASE WHEN Division='SWR' THEN 1 ELSE 0 END ),0) AS SWR_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MAC' THEN 1 ELSE 0 END ),0) AS MAC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MXH' THEN 1 ELSE 0 END ),0) AS MXH_UNICount,\nCOALESCE(SUM(CASE WHEN Division='PBC' THEN 1 ELSE 0 END ),0) AS PBC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='CTA' THEN 1 ELSE 0 END ),0) AS CTA_UNICount\nFROM EDW.DIM_LEAD_SOURCE WHERE UNI_SourceCode IS NOT NULL\n\nUNION ALL \n\nSELECT \nCAST(GETDATE() AS DATE) AS ReportDate,\n'DIM_LEAD_SOURCE' AS TableName,  -- NULL CHECK\n'NULL-CHECK' AS Identifier,\nCOALESCE(SUM(CASE WHEN Division='FHI' THEN 1 ELSE 0 END ),0) AS FHI_UNICount,\nCOALESCE(SUM(CASE WHEN Division='RTW' THEN 1 ELSE 0 END ),0) AS RTW_UNICount,\nCOALESCE(SUM(CASE WHEN Division='SWR' THEN 1 ELSE 0 END ),0) AS SWR_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MAC' THEN 1 ELSE 0 END ),0) AS MAC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MXH' THEN 1 ELSE 0 END ),0) AS MXH_UNICount,\nCOALESCE(SUM(CASE WHEN Division='PBC' THEN 1 ELSE 0 END ),0) AS PBC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='CTA' THEN 1 ELSE 0 END ),0) AS CTA_UNICount\nFROM EDW.DIM_LEAD_SOURCE WHERE UNI_SourceCode IS NULL\n\n\n\n\nUNION ALL \n\n\n--***** DIM_MILESTONE_DATE_TYPE  *******\n\nSELECT  -- NOT NULL CHECK\nCAST(GETDATE() AS DATE) AS ReportDate,\n'DIM_MILESTONE_DATE_TYPE' AS TableName,\n'NOT NULL-CHECK' AS Identifier,\nCOALESCE(SUM(CASE WHEN Division='FHI' THEN 1 ELSE 0 END ),0) AS FHI_UNICount,\nCOALESCE(SUM(CASE WHEN Division='RTW' THEN 1 ELSE 0 END ),0) AS RTW_UNICount,\nCOALESCE(SUM(CASE WHEN Division='SWR' THEN 1 ELSE 0 END ),0) AS SWR_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MAC' THEN 1 ELSE 0 END ),0) AS MAC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MXH' THEN 1 ELSE 0 END ),0) AS MXH_UNICount,\nCOALESCE(SUM(CASE WHEN Division='PBC' THEN 1 ELSE 0 END ),0) AS PBC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='CTA' THEN 1 ELSE 0 END ),0) AS CTA_UNICount\nFROM EDW.DIM_MILESTONE_DATE_TYPE WHERE UNI_MilestoneDateType IS NOT NULL\n\nUNION ALL \n\nSELECT \nCAST(GETDATE() AS DATE) AS ReportDate,\n'DIM_MILESTONE_DATE_TYPE' AS TableName,  -- NULL CHECK\n'NULL-CHECK' AS Identifier,\nCOALESCE(SUM(CASE WHEN Division='FHI' THEN 1 ELSE 0 END ),0) AS FHI_UNICount,\nCOALESCE(SUM(CASE WHEN Division='RTW' THEN 1 ELSE 0 END ),0) AS RTW_UNICount,\nCOALESCE(SUM(CASE WHEN Division='SWR' THEN 1 ELSE 0 END ),0) AS SWR_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MAC' THEN 1 ELSE 0 END ),0) AS MAC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MXH' THEN 1 ELSE 0 END ),0) AS MXH_UNICount,\nCOALESCE(SUM(CASE WHEN Division='PBC' THEN 1 ELSE 0 END ),0) AS PBC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='CTA' THEN 1 ELSE 0 END ),0) AS CTA_UNICount\nFROM EDW.DIM_MILESTONE_DATE_TYPE WHERE UNI_MilestoneDateType IS NULL\n\n\n\n\n\nUNION ALL \n\n\n--***** DIM_PAYMENT_METHOD  *******\n\nSELECT  -- NOT NULL CHECK\nCAST(GETDATE() AS DATE) AS ReportDate,\n'DIM_PAYMENT_METHOD' AS TableName,\n'NOT NULL-CHECK' AS Identifier,\nCOALESCE(SUM(CASE WHEN Division='FHI' THEN 1 ELSE 0 END ),0) AS FHI_UNICount,\nCOALESCE(SUM(CASE WHEN Division='RTW' THEN 1 ELSE 0 END ),0) AS RTW_UNICount,\nCOALESCE(SUM(CASE WHEN Division='SWR' THEN 1 ELSE 0 END ),0) AS SWR_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MAC' THEN 1 ELSE 0 END ),0) AS MAC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MXH' THEN 1 ELSE 0 END ),0) AS MXH_UNICount,\nCOALESCE(SUM(CASE WHEN Division='PBC' THEN 1 ELSE 0 END ),0) AS PBC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='CTA' THEN 1 ELSE 0 END ),0) AS CTA_UNICount\nFROM EDW.DIM_PAYMENT_METHOD WHERE UNI_PaymentMethod IS NOT NULL\n\nUNION ALL \n\nSELECT \nCAST(GETDATE() AS DATE) AS ReportDate,\n'DIM_PAYMENT_METHOD' AS TableName,  -- NULL CHECK\n'NULL-CHECK' AS Identifier,\nCOALESCE(SUM(CASE WHEN Division='FHI' THEN 1 ELSE 0 END ),0) AS FHI_UNICount,\nCOALESCE(SUM(CASE WHEN Division='RTW' THEN 1 ELSE 0 END ),0) AS RTW_UNICount,\nCOALESCE(SUM(CASE WHEN Division='SWR' THEN 1 ELSE 0 END ),0) AS SWR_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MAC' THEN 1 ELSE 0 END ),0) AS MAC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MXH' THEN 1 ELSE 0 END ),0) AS MXH_UNICount,\nCOALESCE(SUM(CASE WHEN Division='PBC' THEN 1 ELSE 0 END ),0) AS PBC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='CTA' THEN 1 ELSE 0 END ),0) AS CTA_UNICount\nFROM EDW.DIM_PAYMENT_METHOD WHERE UNI_PaymentMethod IS NULL\n\n\n\nUNION ALL \n\n\n--***** DIM_PAYMENT_TYPE  *******\n\nSELECT  -- NOT NULL CHECK\nCAST(GETDATE() AS DATE) AS ReportDate,\n'DIM_PAYMENT_TYPE' AS TableName,\n'NOT NULL-CHECK' AS Identifier,\nCOALESCE(SUM(CASE WHEN Division='FHI' THEN 1 ELSE 0 END ),0) AS FHI_UNICount,\nCOALESCE(SUM(CASE WHEN Division='RTW' THEN 1 ELSE 0 END ),0) AS RTW_UNICount,\nCOALESCE(SUM(CASE WHEN Division='SWR' THEN 1 ELSE 0 END ),0) AS SWR_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MAC' THEN 1 ELSE 0 END ),0) AS MAC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MXH' THEN 1 ELSE 0 END ),0) AS MXH_UNICount,\nCOALESCE(SUM(CASE WHEN Division='PBC' THEN 1 ELSE 0 END ),0) AS PBC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='CTA' THEN 1 ELSE 0 END ),0) AS CTA_UNICount\nFROM EDW.DIM_PAYMENT_TYPE WHERE UNI_PaymentType IS NOT NULL\n\nUNION ALL \n\nSELECT \nCAST(GETDATE() AS DATE) AS ReportDate,\n'DIM_PAYMENT_TYPE' AS TableName,  -- NULL CHECK\n'NULL-CHECK' AS Identifier,\nCOALESCE(SUM(CASE WHEN Division='FHI' THEN 1 ELSE 0 END ),0) AS FHI_UNICount,\nCOALESCE(SUM(CASE WHEN Division='RTW' THEN 1 ELSE 0 END ),0) AS RTW_UNICount,\nCOALESCE(SUM(CASE WHEN Division='SWR' THEN 1 ELSE 0 END ),0) AS SWR_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MAC' THEN 1 ELSE 0 END ),0) AS MAC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MXH' THEN 1 ELSE 0 END ),0) AS MXH_UNICount,\nCOALESCE(SUM(CASE WHEN Division='PBC' THEN 1 ELSE 0 END ),0) AS PBC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='CTA' THEN 1 ELSE 0 END ),0) AS CTA_UNICount\nFROM EDW.DIM_PAYMENT_TYPE WHERE UNI_PaymentType IS NULL\n\n\n\n\nUNION ALL \n\n\n--***** DIM_PRODUCT  *******\n\nSELECT  -- NOT NULL CHECK\nCAST(GETDATE() AS DATE) AS ReportDate,\n'DIM_PRODUCT' AS TableName,\n'NOT NULL-CHECK' AS Identifier,\nCOALESCE(SUM(CASE WHEN Division='FHI' THEN 1 ELSE 0 END ),0) AS FHI_UNICount,\nCOALESCE(SUM(CASE WHEN Division='RTW' THEN 1 ELSE 0 END ),0) AS RTW_UNICount,\nCOALESCE(SUM(CASE WHEN Division='SWR' THEN 1 ELSE 0 END ),0) AS SWR_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MAC' THEN 1 ELSE 0 END ),0) AS MAC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MXH' THEN 1 ELSE 0 END ),0) AS MXH_UNICount,\nCOALESCE(SUM(CASE WHEN Division='PBC' THEN 1 ELSE 0 END ),0) AS PBC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='CTA' THEN 1 ELSE 0 END ),0) AS CTA_UNICount\nFROM EDW.DIM_PRODUCT WHERE UNI_ProductName IS NOT NULL\n\nUNION ALL \n\nSELECT \nCAST(GETDATE() AS DATE) AS ReportDate,\n'DIM_PRODUCT' AS TableName,  -- NULL CHECK\n'NULL-CHECK' AS Identifier,\nCOALESCE(SUM(CASE WHEN Division='FHI' THEN 1 ELSE 0 END ),0) AS FHI_UNICount,\nCOALESCE(SUM(CASE WHEN Division='RTW' THEN 1 ELSE 0 END ),0) AS RTW_UNICount,\nCOALESCE(SUM(CASE WHEN Division='SWR' THEN 1 ELSE 0 END ),0) AS SWR_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MAC' THEN 1 ELSE 0 END ),0) AS MAC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MXH' THEN 1 ELSE 0 END ),0) AS MXH_UNICount,\nCOALESCE(SUM(CASE WHEN Division='PBC' THEN 1 ELSE 0 END ),0) AS PBC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='CTA' THEN 1 ELSE 0 END ),0) AS CTA_UNICount\nFROM EDW.DIM_PRODUCT WHERE UNI_ProductName IS NULL\n\n\n\n\n\nUNION ALL \n\n\n--***** DIM_PRODUCT_GROUP  *******\n\nSELECT  -- NOT NULL CHECK\nCAST(GETDATE() AS DATE) AS ReportDate,\n'DIM_PRODUCT_GROUP' AS TableName,\n'NOT NULL-CHECK' AS Identifier,\nCOALESCE(SUM(CASE WHEN Division='FHI' THEN 1 ELSE 0 END ),0) AS FHI_UNICount,\nCOALESCE(SUM(CASE WHEN Division='RTW' THEN 1 ELSE 0 END ),0) AS RTW_UNICount,\nCOALESCE(SUM(CASE WHEN Division='SWR' THEN 1 ELSE 0 END ),0) AS SWR_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MAC' THEN 1 ELSE 0 END ),0) AS MAC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MXH' THEN 1 ELSE 0 END ),0) AS MXH_UNICount,\nCOALESCE(SUM(CASE WHEN Division='PBC' THEN 1 ELSE 0 END ),0) AS PBC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='CTA' THEN 1 ELSE 0 END ),0) AS CTA_UNICount\nFROM EDW.DIM_PRODUCT_GROUP WHERE UNI_ProductGroup IS NOT NULL\n\nUNION ALL \n\nSELECT \nCAST(GETDATE() AS DATE) AS ReportDate,\n'DIM_PRODUCT_GROUP' AS TableName,  -- NULL CHECK\n'NULL-CHECK' AS Identifier,\nCOALESCE(SUM(CASE WHEN Division='FHI' THEN 1 ELSE 0 END ),0) AS FHI_UNICount,\nCOALESCE(SUM(CASE WHEN Division='RTW' THEN 1 ELSE 0 END ),0) AS RTW_UNICount,\nCOALESCE(SUM(CASE WHEN Division='SWR' THEN 1 ELSE 0 END ),0) AS SWR_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MAC' THEN 1 ELSE 0 END ),0) AS MAC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MXH' THEN 1 ELSE 0 END ),0) AS MXH_UNICount,\nCOALESCE(SUM(CASE WHEN Division='PBC' THEN 1 ELSE 0 END ),0) AS PBC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='CTA' THEN 1 ELSE 0 END ),0) AS CTA_UNICount\nFROM EDW.DIM_PRODUCT_GROUP WHERE UNI_ProductGroup IS NULL\n\n\n\n\nUNION ALL \n\n\n--***** DIM_SERVICE_CATEGORY  *******\n\nSELECT  -- NOT NULL CHECK\nCAST(GETDATE() AS DATE) AS ReportDate,\n'DIM_SERVICE_CATEGORY' AS TableName,\n'NOT NULL-CHECK' AS Identifier,\nCOALESCE(SUM(CASE WHEN Division='FHI' THEN 1 ELSE 0 END ),0) AS FHI_UNICount,\nCOALESCE(SUM(CASE WHEN Division='RTW' THEN 1 ELSE 0 END ),0) AS RTW_UNICount,\nCOALESCE(SUM(CASE WHEN Division='SWR' THEN 1 ELSE 0 END ),0) AS SWR_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MAC' THEN 1 ELSE 0 END ),0) AS MAC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MXH' THEN 1 ELSE 0 END ),0) AS MXH_UNICount,\nCOALESCE(SUM(CASE WHEN Division='PBC' THEN 1 ELSE 0 END ),0) AS PBC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='CTA' THEN 1 ELSE 0 END ),0) AS CTA_UNICount\nFROM EDW.DIM_SERVICE_CATEGORY WHERE UNI_ServiceCategory IS NOT NULL\n\nUNION ALL \n\nSELECT \nCAST(GETDATE() AS DATE) AS ReportDate,\n'DIM_SERVICE_CATEGORY' AS TableName,  -- NULL CHECK\n'NULL-CHECK' AS Identifier,\nCOALESCE(SUM(CASE WHEN Division='FHI' THEN 1 ELSE 0 END ),0) AS FHI_UNICount,\nCOALESCE(SUM(CASE WHEN Division='RTW' THEN 1 ELSE 0 END ),0) AS RTW_UNICount,\nCOALESCE(SUM(CASE WHEN Division='SWR' THEN 1 ELSE 0 END ),0) AS SWR_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MAC' THEN 1 ELSE 0 END ),0) AS MAC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MXH' THEN 1 ELSE 0 END ),0) AS MXH_UNICount,\nCOALESCE(SUM(CASE WHEN Division='PBC' THEN 1 ELSE 0 END ),0) AS PBC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='CTA' THEN 1 ELSE 0 END ),0) AS CTA_UNICount\nFROM EDW.DIM_SERVICE_CATEGORY WHERE UNI_ServiceCategory IS NULL\n\n\n\n\nUNION ALL \n\n\n--***** DIM_SERVICE_STATUS  *******\n\nSELECT  -- NOT NULL CHECK\nCAST(GETDATE() AS DATE) AS ReportDate,\n'DIM_SERVICE_STATUS' AS TableName,\n'NOT NULL-CHECK' AS Identifier,\nCOALESCE(SUM(CASE WHEN Division='FHI' THEN 1 ELSE 0 END ),0) AS FHI_UNICount,\nCOALESCE(SUM(CASE WHEN Division='RTW' THEN 1 ELSE 0 END ),0) AS RTW_UNICount,\nCOALESCE(SUM(CASE WHEN Division='SWR' THEN 1 ELSE 0 END ),0) AS SWR_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MAC' THEN 1 ELSE 0 END ),0) AS MAC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MXH' THEN 1 ELSE 0 END ),0) AS MXH_UNICount,\nCOALESCE(SUM(CASE WHEN Division='PBC' THEN 1 ELSE 0 END ),0) AS PBC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='CTA' THEN 1 ELSE 0 END ),0) AS CTA_UNICount\nFROM EDW.DIM_SERVICE_STATUS WHERE UNI_ServiceStatus IS NOT NULL\n\nUNION ALL \n\nSELECT \nCAST(GETDATE() AS DATE) AS ReportDate,\n'DIM_SERVICE_STATUS' AS TableName,  -- NULL CHECK\n'NULL-CHECK' AS Identifier,\nCOALESCE(SUM(CASE WHEN Division='FHI' THEN 1 ELSE 0 END ),0) AS FHI_UNICount,\nCOALESCE(SUM(CASE WHEN Division='RTW' THEN 1 ELSE 0 END ),0) AS RTW_UNICount,\nCOALESCE(SUM(CASE WHEN Division='SWR' THEN 1 ELSE 0 END ),0) AS SWR_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MAC' THEN 1 ELSE 0 END ),0) AS MAC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MXH' THEN 1 ELSE 0 END ),0) AS MXH_UNICount,\nCOALESCE(SUM(CASE WHEN Division='PBC' THEN 1 ELSE 0 END ),0) AS PBC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='CTA' THEN 1 ELSE 0 END ),0) AS CTA_UNICount\nFROM EDW.DIM_SERVICE_STATUS WHERE UNI_ServiceStatus IS NULL\n\n\n) M1 \n\nORDER BY 3,2",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "DELETE FROM [EDW_DUN].[UNI_TABLE_METRIC_COUNT]\nWHERE ReportDate=CAST(GETDATE() AS DATE);\n\n\nDELETE FROM [EDW_DUN].[UNI_TABLE_METRIC_COUNT]\nWHERE ReportDate < CAST(GETDATE() - 7 AS DATE);",
+						"allowCopyCommand": true
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "staging"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "SourceSystem",
+									"type": "String"
+								},
+								"sink": {
+									"name": "SourceSystem",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ReportDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "ReportDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "TableName",
+									"type": "String"
+								},
+								"sink": {
+									"name": "TableName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Identifier",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Identifier",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "FHI_UNICount",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "FHI_UNICount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "RTW_UNICount",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "RTW_UNICount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "SWR_UNICount",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "SWR_UNICount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "MAC_UNICount",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "MAC_UNICount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "MXH_UNICount",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "MXH_UNICount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "PBC_UNICount",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "PBC_UNICount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "CTA_UNICount",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "CTA_UNICount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastUpdateTS",
+									"type": "DateTime"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_DIM_BRANCH",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_UNI_TABLE_METRIC_COUNT",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "cpy_UNI_TABLE_BTD_CANCELLED",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "cpy_UNI_TABLE_METRIC_COUNT",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT \n'LP' AS SourceSystem,\nCAST(GETDATE() AS DATE) AS ReportDate,\n'DIM_JOB_STATUS' AS TableName,\n'BTD' AS Identifier,\nCOALESCE(SUM(CASE WHEN A.Division='FHI' THEN 1 ELSE 0 END ),0) AS FHI_UNICount,\nCOALESCE(SUM(CASE WHEN A.Division='RTW' THEN 1 ELSE 0 END ),0) AS RTW_UNICount,\nCOALESCE(SUM(CASE WHEN A.Division='SWR' THEN 1 ELSE 0 END ),0) AS SWR_UNICount,\nCOALESCE(SUM(CASE WHEN A.Division='MAC' THEN 1 ELSE 0 END ),0) AS MAC_UNICount,\nCOALESCE(SUM(CASE WHEN A.Division='MXH' THEN 1 ELSE 0 END ),0) AS MXH_UNICount,\nCOALESCE(SUM(CASE WHEN A.Division='PBC' THEN 1 ELSE 0 END ),0) AS PBC_UNICount,\nCOALESCE(SUM(CASE WHEN A.Division='CTA' THEN 1 ELSE 0 END ),0) AS CTA_UNICount,\nGETDATE() AS LastUpdatedTS\n\nFROM EDW.FACT_JOB A\nJOIN EDW.DIM_JOB_STATUS JS\nON A.JobStatusID = JS.JobStatusID\nWHERE ContractDate > DATEADD(MONTH,-7,EOMONTH(GETDATE()))  -- Last 6 Months\nAND ContractDate <= DATEADD(MONTH,-1,EOMONTH(GETDATE()))\nAND JS.Uni_JobStatusCategory='Bank Turn Down'\n\n\nUNION ALL \n\n\nSELECT \n'LP' AS SourceSystem,\nCAST(GETDATE() AS DATE) AS ReportDate,\n'DIM_JOB_STATUS' AS TableName,\n'CANCELLED' AS Identifier,\nCOALESCE(SUM(CASE WHEN A.Division='FHI' THEN 1 ELSE 0 END ),0) AS FHI_UNICount,\nCOALESCE(SUM(CASE WHEN A.Division='RTW' THEN 1 ELSE 0 END ),0) AS RTW_UNICount,\nCOALESCE(SUM(CASE WHEN A.Division='SWR' THEN 1 ELSE 0 END ),0) AS SWR_UNICount,\nCOALESCE(SUM(CASE WHEN A.Division='MAC' THEN 1 ELSE 0 END ),0) AS MAC_UNICount,\nCOALESCE(SUM(CASE WHEN A.Division='MXH' THEN 1 ELSE 0 END ),0) AS MXH_UNICount,\nCOALESCE(SUM(CASE WHEN A.Division='PBC' THEN 1 ELSE 0 END ),0) AS PBC_UNICount,\nCOALESCE(SUM(CASE WHEN A.Division='CTA' THEN 1 ELSE 0 END ),0) AS CTA_UNICount,\nGETDATE() AS LastUpdatedTS\n\nFROM EDW.FACT_JOB A\nJOIN EDW.DIM_JOB_STATUS JS\nON A.JobStatusID = JS.JobStatusID\nWHERE ContractDate > DATEADD(MONTH,-7,EOMONTH(GETDATE()))  -- Last 6 Months\nAND ContractDate <= DATEADD(MONTH,-1,EOMONTH(GETDATE()))\nAND JS.Uni_JobStatusCategory='Cancelled'\n\n\nUNION ALL \n\n\n\nSELECT \n'LP' AS SourceSystem,\nCAST(GETDATE() AS DATE) AS ReportDate,\n'DIM_JOB_STATUS' AS TableName,\n'NETSALES' AS Identifier,\nCOALESCE(SUM(CASE WHEN Division='FHI' THEN NetSales ELSE 0 END ),0) AS FHI_UNICount,\nCOALESCE(SUM(CASE WHEN Division='RTW' THEN NetSales ELSE 0 END ),0) AS RTW_UNICount,\nCOALESCE(SUM(CASE WHEN Division='SWR' THEN NetSales ELSE 0 END ),0) AS SWR_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MAC' THEN NetSales ELSE 0 END ),0) AS MAC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='MXH' THEN NetSales ELSE 0 END ),0) AS MXH_UNICount,\nCOALESCE(SUM(CASE WHEN Division='PBC' THEN NetSales ELSE 0 END ),0) AS PBC_UNICount,\nCOALESCE(SUM(CASE WHEN Division='CTA' THEN NetSales ELSE 0 END ),0) AS CTA_UNICount,\nGETDATE() AS LastUpdatedTS\nFROM \n(\n\t\tSELECT \n\t\tDivision,\n\t\t(GrossSales - BTD_CANCEL) AS NetSales\n\t\tFROM\n\t\t(\n\t\t\tSELECT \n\t\t\tA.Division,\n\t\t\tSUM ( COALESCE( (CASE WHEN JObNetAmt > 0 AND A.Division!='MXH' THEN JObNetAmt ELSE GrossAmount END) , 0) ) AS GrossSales,\n\t\t\tSUM\t(\n\t\t\t\tCASE \n\t\t\t\tWHEN JS.Uni_JobStatusCategory IN ('Bank Turn Down','Cancelled')\n\t\t\t\t\tTHEN COALESCE( (CASE WHEN JObNetAmt > 0 AND A.Division!='MXH' THEN JObNetAmt ELSE GrossAmount END) , 0)\n\t\t\t\t\tELSE 0 END\n\t\t\t\t\t)\t\t\n\t\t\t\t\t\tAS BTD_CANCEL\n\t\t\tFROM EDW.FACT_JOB A\n\t\t\tJOIN EDW.DIM_JOB_STATUS JS\n\t\t\tON A.JobStatusID = JS.JobStatusID\n\t\t\tWHERE ContractDate > DATEADD(MONTH,-7,EOMONTH(GETDATE()))  -- Last 6 Months\n\t\t\tAND ContractDate <= DATEADD(MONTH,-1,EOMONTH(GETDATE()))\n\t\t\t\n\t\t\tGROUP BY A.Division\n\t\t\t\n\t\t\t) M1\n\t\t\t\n\t) M_F",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"allowCopyCommand": true
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "staging"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "SourceSystem",
+									"type": "String"
+								},
+								"sink": {
+									"name": "SourceSystem",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ReportDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "ReportDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "TableName",
+									"type": "String"
+								},
+								"sink": {
+									"name": "TableName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Identifier",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Identifier",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "FHI_UNICount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "FHI_UNICount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "RTW_UNICount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "RTW_UNICount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "SWR_UNICount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "SWR_UNICount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "MAC_UNICount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "MAC_UNICount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "MXH_UNICount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "MXH_UNICount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "PBC_UNICount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "PBC_UNICount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "CTA_UNICount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "CTA_UNICount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastUpdateTS",
+									"type": "DateTime"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_DIM_BRANCH",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_UNI_TABLE_METRIC_COUNT",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/DIMENSIONS/Unification"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-05-13T11:05:08Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

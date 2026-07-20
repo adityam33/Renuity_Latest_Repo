@@ -1,0 +1,20 @@
+{
+	"name": "LP - Get All Milestones and Usage",
+	"properties": {
+		"folder": {
+			"name": "DMLs/LP Data"
+		},
+		"content": {
+			"query": "SELECT\nmdt.[OperatingCompany]\n,mdt.[Active]\n,mdt.[MilestoneDateTypeID]\n,mdt.[MilestoneDateType]\n,mld_vol.MilestoneCount\n,mld_vol.JobCount\n,mdt.[LP_MilestoneDateTypeID]\nFROM \n[EDW].[DIM_MILESTONE_DATE_TYPE] mdt left join\n(\nSELECT\n[MilestoneDateTypeID]\n,count([MilestoneDetailID]) as MilestoneCount\n,count(distinct [JobID]) as JobCount\nFROM \n[EDW].[FACT_MILESTONE_DETAIL] mld\ngroup BY\n[MilestoneDateTypeID]\n) mld_vol\n ON\nmdt.[MilestoneDateTypeID] = mld_vol.[MilestoneDateTypeID]\norder BY\n[OperatingCompany]\n,[Active] desc\n,JobCount desc\n,[MilestoneDateTypeID]\n\n\n\n\n\n\n\n\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

@@ -1,0 +1,30 @@
+{
+	"name": "OUT_FILE_AMPUSH_MAC_FB_CONVERSION_API",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "RDC_FILES_DOT_COM",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "OUT/AMPUSH"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "SftpLocation",
+				"fileName": {
+					"value": "@concat('MAC_FB_CONV_API_', formatDateTime(convertFromUtc(utcnow(), 'Pacific Standard Time'),'yyyyMMdd_HHmmss'), '.csv')",
+					"type": "Expression"
+				},
+				"folderPath": "/ampush-s3"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": []
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}

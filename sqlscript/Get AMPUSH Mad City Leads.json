@@ -1,0 +1,17 @@
+{
+	"name": "Get AMPUSH Mad City Leads",
+	"properties": {
+		"content": {
+			"query": "select\nlds.id as lds_id\n,lds.brn_id\n,lds.ProductID\n,lds.ApptSet\n,lds.NetIssued\n,lds.dsp_id\n,lds.cst_id\n,cst.Zip\n,job.GrossAmount\n,jbs.Descr as JobStatus\n,jsc.Descr as JobStatusCategory\n,case when jsc.Descr not in ('Credit Decline','Cancelled') then job.GrossAmount else 0 end as NetSalesAmount\n,case when jsc.Descr in ('Credit Decline') then job.GrossAmount else 0 end as BTD\n,case when jsc.Descr in ('Cancelled') then job.GrossAmount else 0 end as Cancellations\n,lds.EntryDate\nfrom \nODS.LP_MAC_Lds_Leads lds\ninner join ODS.LP_MAC_cst_Customers cst\non lds.cst_id = cst.id\nleft join ODS.LP_MAC_job_Jobs job\non lds.id = job.lds_id\nleft join ODS.LP_MAC_jbs_JobStatus jbs\non job.jbs_id = jbs.id\nleft join ODS.LP_MAC_jsc_JobStatusCategory jsc\non jbs.jsc_id = jsc.id\nwhere srs_id in\n(\nselect id from ODS.LP_MAC_srs_SourceSubs where Descr = 'Facebook' and SourceCode in ('AMPUSH')\n)\nand EntryDate between '2022-01-01' and '2022-10-31'\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

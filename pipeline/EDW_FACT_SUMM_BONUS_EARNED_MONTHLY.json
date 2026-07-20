@@ -1,0 +1,283 @@
+{
+	"name": "EDW_FACT_SUMM_BONUS_EARNED_MONTHLY",
+	"properties": {
+		"activities": [
+			{
+				"name": "cpy_FACT_SUMM_BONUS_EARNED_MONTHLY",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "DIM_INCENTIVE_BONUS_MIN_OVERRIDES",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "MIN_OVERRIDES_PV_NETSALES",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"sqlReaderQuery": "WITH M1 AS \n(\n\tSELECT \n\t A.EmployeePK\n\t,A.IncentivePlanID\n\t,A.Division\n\t,A.PeriodDate\n\t,A.[DistributionType]\n\t,B.PV_OverrideFlag\n\t,B.Min_PayoutFlag\n\t,B.Pct_EmployeeMinPayout\n\t,SUM(A.EarnedIncentiveAmount)\t\tAS TotalEarnedIncentiveAmount\n\t,SUM(A.EligibleIncentiveTarget)\t\tAS EligibleIncentiveTarget\n\tFROM EDW_INC.FACT_INCENTIVE_EARNED_MONTHLY  A\n\tLEFT JOIN [EDW_INC].[DIM_INCENTIVE_BONUS_MIN_OVERRIDES] B\n\tON   A.EmployeePK = B.EmployeePK\n\tAND  A.Division\t  = B.Division\n\tAND  A.PeriodDate = B.PeriodDate\n\tGROUP BY \n\tA.EmployeePK\n\t,A.IncentivePlanID\n\t,A.Division\n\t,A.PeriodDate\n\t,A.[DistributionType]\n\t,B.PV_OverrideFlag\n\t,B.Min_PayoutFlag\n\t,B.Pct_EmployeeMinPayout\n\t\n\t),\n\t\nM2 AS \n(\n\tSELECT *,\n\tCASE WHEN COALESCE(PV_Bonus,0.00) > COALESCE(Min_Payout_Bonus,0.00) THEN PV_Bonus ELSE Min_Payout_Bonus END AS Qualified_Min_Bonus\n\tFROM \n\t(\n\t\tSELECT *,\n\t\t\tCASE WHEN PV_OverrideFlag = 'Y' THEN EligibleIncentiveTarget * 1.00 \t\t\t\t\tEND AS PV_Bonus,   \t\t\t-- 100 % Minimum Bonus\n\t\t\tCASE WHEN Min_PayoutFlag  = 'Y' THEN EligibleIncentiveTarget * Pct_EmployeeMinPayout \tEND AS Min_Payout_Bonus   \t-- Percentage from Employee Min Payout\n\t\t\tFROM M1 \n\t\t) M1_X\n\t\t\n\t)\n\t\n\n\nSELECT *,\nCASE WHEN COALESCE(EligibleIncentiveTarget,0.00)=0.00 THEN 0.00 ELSE ( COALESCE(TotalEarnedIncentiveAmount_PostOverride,0.00) * 1.000 / COALESCE(EligibleIncentiveTarget,0.00) * 1.000 ) END AS Pct_IncentivePoolEarned_PostOverride,\nGETDATE() AS LastUpdatedTS\nFROM \n(\n\tSELECT \n\tEmployeePK\n\t,IncentivePlanID\n\t,Division\n\t,PeriodDate\n\t,DistributionType\n\t,PV_OverrideFlag\n\t,Min_PayoutFlag\n\t,TotalEarnedIncentiveAmount\n\t,EligibleIncentiveTarget\n\t,CASE WHEN \tCOALESCE(Qualified_Min_Bonus,0.00) > COALESCE(TotalEarnedIncentiveAmount,0.00) THEN Qualified_Min_Bonus ELSE \tTotalEarnedIncentiveAmount END \tAS TotalEarnedIncentiveAmount_PostOverride\n\t\n\tFROM M2\n\t\n\t) M2_1",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "TRUNCATE TABLE  [EDW_INC].[FACT_SUMM_BONUS_EARNED_MONTHLY];",
+						"allowCopyCommand": true
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "Azure_blobStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "staging"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "EmployeePK",
+									"type": "String"
+								},
+								"sink": {
+									"name": "EmployeePK",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "IncentivePlanID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "IncentivePlanID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Division",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PeriodDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "PeriodDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "DistributionType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "DistributionType",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PV_OverrideFlag",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PV_OverrideFlag",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Min_PayoutFlag",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Min_PayoutFlag",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "TotalEarnedIncentiveAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "TotalEarnedIncentiveAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "EligibleIncentiveTarget",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "EligibleIncentiveTarget",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "TotalEarnedIncentiveAmount_PostOverride",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "TotalEarnedIncentiveAmount_PostOverride",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "Pct_IncentivePoolEarned_PostOverride",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "Pct_IncentivePoolEarned_PostOverride",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_FACT_INCENTIVE_METRICS_RESULT1",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_FACT_SUMM_BONUS_EARNED_MONTHLY1",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "DIM_INCENTIVE_BONUS_MIN_OVERRIDES",
+				"type": "Script",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "\nDECLARE @Year INT;\nSET @Year = 2026;\n\n\n-- ============================================================\n-- STEP 1: Query 1 \n-- ============================================================\n\n-- ************ Employees where PV metric is at Regional level (applicable Regional Employees)\n\nSELECT DISTINCT \n\tA.EmployeePK,\n    INC.PeriodDate,\n    INC.IncentiveMetricID AS PersonalVolumeMetricID,\n\tD.DistributionType,\n    A.Division,\n    A.PV_OverridePct,\n    INC.PerformanceRatio AS PV_PerformanceRatio\n\nINTO #T_EMP_PV_Override_1\nFROM [EDW_INC].[DIM_INCENTIVE_ELIGIBLE_EMPLOYEE] A\nJOIN [EDW_INC].[DIM_INCENTIVE_PLAN] B\n    ON A.IncentivePlanID = B.IncentivePlanID\nJOIN [EDW_INC].[DIM_INCENTIVE_METRIC_ALLOCATION] D\n    ON A.IncentivePlanID      \t= D.IncentivePlanID\n    AND A.PersonalVolumeMetric \t= D.IncentiveMetricID\nJOIN [EDW_INC].[FACT_INCENTIVE_EARNED_MONTHLY] INC\n    ON \tA.EmployeePK           = INC.EmployeePK\n    AND A.PersonalVolumeMetric = INC.IncentiveMetricID\n    AND A.Division             = INC.Division \n\nWHERE COALESCE(A.PV_Regional_At_Division_Override,'N') = 'N' \nOR A.PV_Regional_At_Division_Override='' ;\n\n\n\n--#####################################################################################\n-- ************START : Employees where PV metric is at Division level (applicable Regional Employees)\n--#####################################################################################\n\nSELECT DISTINCT \n\tA.EmployeePK,\n    INC.PeriodDate,\n    INC.IncentiveMetricID AS PersonalVolumeMetricID,\n\tD.DistributionType,\n    A.Division,\n    A.PV_OverridePct,\n    INC.PerformanceRatio AS PV_PerformanceRatio\n\nINTO #T_EMP_PV_Override_2\nFROM [EDW_INC].[DIM_INCENTIVE_ELIGIBLE_EMPLOYEE] A\nJOIN [EDW_INC].[DIM_INCENTIVE_PLAN] B\n    ON A.IncentivePlanID = B.IncentivePlanID\nJOIN [EDW_INC].[DIM_INCENTIVE_METRIC_ALLOCATION] D\n    ON A.IncentivePlanID      \t= D.IncentivePlanID\n    AND A.PersonalVolumeMetric \t= D.IncentiveMetricID\nJOIN [EDW_INC].[FACT_INCENTIVE_EARNED_MONTHLY] INC\n    ON \tA.EmployeePK           = INC.EmployeePK\n    AND A.PersonalVolumeMetric = INC.IncentiveMetricID\n    AND A.Division             = INC.Division \n\nWHERE COALESCE(A.PV_Regional_At_Division_Override,'N') = 'Y' ;\n\n\n--************ DIVISION LEVEL METRIC CALCULATION **************\n\n\nSELECT \nMetric,\nDivision,\nPeriodDate,\nDistributionType,\nSUM(BudgetValue) AS Budget_ISSUED_LEAD_COUNT\nINTO #T_BUDGET_1\nFROM [EDW_INC].[DIM_INCENTIVE_METRIC_BUDGET_ACTUALS] \nWHERE [Year]=@Year AND Metric IN ('ISSUED_LEAD_COUNT','NETSALES_AMT')\nGROUP BY \nMetric,\nDivision,\nPeriodDate,\nDistributionType;\n\n\n\nSELECT \nDivision,\n'MONTHLY' \t\t\t\tAS DistributionType,\nEOMONTH(CalendarDate) \tAS CalendarDate,\nSUM(NET_ISSUED) \t\tAS NET_ISSUED,\nSUM(NETSALES_AMT) \t\tAS NETSALES_AMT\nINTO #T_ACTUAL\nFROM [EDW_FCST].[FACT_SALES_ACTUAL_INCENTIVE] \nWHERE IDENTIFIER='APPOINTMENT_DATE' AND  BranchID NOT IN ('PBC-MN','PBC-WI') \nAND YEAR(CalendarDate) = @Year\nGROUP BY Division,\nEOMONTH(CalendarDate);\n\n\n\nSELECT \nA.Division,\nA.PeriodDate,\nA.DistributionType,\nA.Budget_ISSUED_LEAD_COUNT,\nB.Budget_NETSALES_AMT\nINTO #T_BUDGET\nFROM\n(\n\tSELECT \n\tDivision,\n\tPeriodDate,\n\tDistributionType,\n\tBudget_ISSUED_LEAD_COUNT\n\tFROM #T_BUDGET_1 WHERE Metric='ISSUED_LEAD_COUNT'\n\t) A\nLEFT JOIN \n(\n\tSELECT \n\tDivision,\n\tPeriodDate,\n\tDistributionType,\n\tBudget_ISSUED_LEAD_COUNT AS Budget_NETSALES_AMT\n\tFROM #T_BUDGET_1 WHERE Metric='NETSALES_AMT'\n\t) B\nON\tA.Division\t\t= B.Division\nAND A.PeriodDate\t= B.PeriodDate\nAND A.DistributionType = B.DistributionType;\n\n\n\n\nSELECT \nDivision,\nPeriodDate,\nDistributionType,\nBudget_ISSUED_LEAD_COUNT,\nBudget_NETSALES_AMT,\nNET_ISSUED,\nNETSALES_AMT,\n\n(NET_ISSUED \t* 1.000 / Budget_ISSUED_LEAD_COUNT \t* 1.000 ) AS PV_PerformanceRatio_Issued_Lead,\n(NETSALES_AMT \t* 1.000 / Budget_NETSALES_AMT \t\t* 1.000 ) AS PV_PerformanceRatio_NetSales_Amt\n\nINTO \n#T_YEARLY_METRICS\nFROM \n(\n\n\t\tSELECT \n\t\tA.Division,\n\t\tA.PeriodDate,\n\t\tA.DistributionType,\n\t\tA.Budget_ISSUED_LEAD_COUNT,\t\n\t\tA.Budget_NETSALES_AMT,\n\t\tCOALESCE(B.NET_ISSUED,0) AS  NET_ISSUED,\n\t\tCOALESCE(B.NETSALES_AMT,0.000) AS NETSALES_AMT\n\t\tFROM #T_BUDGET A\n\t\tLEFT JOIN  #T_ACTUAL B\n\t\tON A.Division\t\t\t= B.Division\n\t\tAND A.PeriodDate\t\t= B.CalendarDate\n\t\tAND A.DistributionType\t= B.DistributionType\n\t\t\n\t\t\n\t\tUNION ALL \n\t\t\n\t\t\n\t\tSELECT \n\t\tA.Division,\n\t\tEOMONTH(DATEADD(MONTH, 2, DATEADD(QUARTER, DATEDIFF(QUARTER,0,PeriodDate),0))) \tAS PeriodDate,\n\t\t'QUARTERLY' \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tAS DistributionType,\n\t\tSUM(A.Budget_ISSUED_LEAD_COUNT) \t\t\t\t\t\t\t\t\t\t\t\tAS Budget_ISSUED_LEAD_COUNT,\t\n\t\tSUM(A.Budget_NETSALES_AMT) \t\t\t\t\t\t\t\t\t\t\t\t\t\tAS Budget_NETSALES_AMT,\n\t\tSUM(COALESCE(B.NET_ISSUED,0))\t\t\t\t\t\t\t\t\t\t\t\t\tAS NET_ISSUED,\n\t\tSUM(COALESCE(B.NETSALES_AMT,0.000)) \t\t\t\t\t\t\t\t\t\t\tAS NETSALES_AMT\n\t\tFROM #T_BUDGET A\n\t\tLEFT JOIN  #T_ACTUAL B\n\t\tON A.Division\t\t\t= B.Division\n\t\tAND A.PeriodDate\t\t= B.CalendarDate\n\t\tAND A.DistributionType\t= B.DistributionType\n\t\tGROUP BY \n\t\tA.Division,\n\t\tEOMONTH(DATEADD(MONTH, 2, DATEADD(QUARTER, DATEDIFF(QUARTER,0,PeriodDate),0)))\n\t\t\n\t\t\n\t\t\n\t\tUNION ALL \n\t\t\n\t\t\n\t\tSELECT \n\t\tA.Division,\n\t\tEOMONTH(DATEFROMPARTS(YEAR(PeriodDate),12,1)) \tAS PeriodDate,\n\t\t'YEARLY' \t\t\t\t\t\t\t\t\t\tAS DistributionType,\n\t\tSUM(A.Budget_ISSUED_LEAD_COUNT) \t\t\t\tAS Budget_ISSUED_LEAD_COUNT,\t\n\t\tSUM(A.Budget_NETSALES_AMT) \t\t\t\t\t\tAS Budget_NETSALES_AMT,\n\t\tSUM(COALESCE(B.NET_ISSUED,0))\t\t\t\t\tAS NET_ISSUED,\n\t\tSUM(COALESCE(B.NETSALES_AMT,0.000)) \t\t\tAS NETSALES_AMT\n\t\tFROM #T_BUDGET A\n\t\tLEFT JOIN  #T_ACTUAL B\n\t\tON A.Division\t\t\t= B.Division\n\t\tAND A.PeriodDate\t\t= B.CalendarDate\n\t\tAND A.DistributionType\t= B.DistributionType\n\t\tGROUP BY \n\t\tA.Division,\n\t\tEOMONTH(DATEFROMPARTS(YEAR(PeriodDate),12,1)) \n\t\t\n\t\t) M1;\n\n\n\n\n\nUPDATE A\nSET A.PV_PerformanceRatio = B.PV_PerformanceRatio_NetSales_Amt\nFROM\n#T_EMP_PV_Override_2 A\nJOIN #T_YEARLY_METRICS B \nON  A.PeriodDate\t\t= B.PeriodDate\nAND A.DistributionType\t= B.DistributionType\nAND A.Division\t\t\t= B.Division\nWHERE A.PersonalVolumeMetricID='NETSALES_AMT';\n\n\nUPDATE A\nSET A.PV_PerformanceRatio = B.PV_PerformanceRatio_NetSales_Amt\nFROM\n#T_EMP_PV_Override_2 A\nJOIN #T_YEARLY_METRICS B \nON  A.PeriodDate\t\t= B.PeriodDate\nAND A.DistributionType\t= B.DistributionType\nAND A.Division\t\t\t= B.Division\nWHERE A.PersonalVolumeMetricID='ISSUED_LEAD_COUNT';\n\n\n\n\n\nSELECT * INTO #T_EMP_PV_Override\nFROM \n\t( \n\t\tSELECT * FROM #T_EMP_PV_Override_1\n\t\tUNION ALL \n\t\tSELECT * FROM #T_EMP_PV_Override_2\n\t\t) M1;\n\t  \n\n\n\n\n--#####################################################################################\n-- ************END : Employees where PV metric is at Division level (applicable Regional Employees)\n--#####################################################################################\n\n\n\n-- ============================================================\n-- STEP 2: EBITDA MOnthly Quarterly and Yearly Grain\n-- ============================================================\n\n\n\nWITH M1 AS \n(\t\nSELECT \n\t'DIVISION_EBITDA' AS Override_Metric,\n\tDivision,\n\tDistributionType,\n\tPeriodDate,\n\tSUM(ActualValue) AS ActualValue,\n\tSUM(BudgetValue) AS BudgetValue\n\tFROM [EDW_INC].[DIM_INCENTIVE_METRIC_BUDGET_ACTUALS] \n\tWHERE Metric = 'DIVISION_EBITDA'\n\tAND Division IS NOT NULL\n\tAND [Year] = @Year\n\tGROUP BY \n\tDivision,\n\tDistributionType,\n\tPeriodDate\n\t\n\tUNION ALL \n\t\n\tSELECT \n\t'NET_REVENUE' AS Override_Metric,\n\tDivision,\n\tDistributionType,\n\tPeriodDate,\n\tSUM(ActualValue) AS ActualValue,\n\tSUM(BudgetValue) AS BudgetValue\n\tFROM [EDW_INC].[DIM_INCENTIVE_METRIC_BUDGET_ACTUALS] \n\tWHERE Metric = 'NET_REVENUE'\n\tAND Division IS NOT NULL\n\tAND [Year] = @Year\n\tGROUP BY \n\tDivision,\n\tDistributionType,\n\tPeriodDate\n\n\t\n\t),\n\nM2  AS\n(\n\tSELECT \n\tOverride_Metric,\n\tDivision,\n\tDistributionType,\n\tPeriodDate,\n\tActualValue,\n\tBudgetValue\n\tFROM M1\n\t\n\tUNION ALL \n\t\n\t\n\tSELECT \n\t\tOverride_Metric,\n\t\tDivision,\n\t\t'QUARTERLY'                                                                 AS DistributionType,\n\t\tEOMONTH(DATEADD(MONTH, 2, DATEADD(QUARTER, DATEDIFF(QUARTER,0,PeriodDate),0))) AS PeriodDate,\n\t\tSUM(ActualValue)                                                            AS ActualValue,\n\t\tSUM(BudgetValue)                                                            AS BudgetValue\n\tFROM M1\n\tGROUP BY \n\tOverride_Metric,\n\t\tDivision,\n\t\tEOMONTH(DATEADD(MONTH, 2, DATEADD(QUARTER, DATEDIFF(QUARTER,0,PeriodDate),0)))\n\t\t\n\t\t\n\tUNION ALL \n\t\n\t\n\tSELECT \n\t\tOverride_Metric,\n\t\tDivision,\n\t\t'YEARLY'\t\t                                                                 \tAS DistributionType,\n\t\tEOMONTH(DATEFROMPARTS(YEAR(PeriodDate),12,1)) \t\t\t\t\t\t\t\t \t\tAS PeriodDate,\n\t\tSUM(ActualValue)                                                            \t\tAS ActualValue,\n\t\tSUM(BudgetValue)                                                            \t\tAS BudgetValue\n\tFROM M1\n\tGROUP BY \n\tOverride_Metric,\n\t\tDivision,\n\t\tEOMONTH(DATEFROMPARTS(YEAR(PeriodDate),12,1))\n\t\t\n\t\t)\n\t\t\n\nSELECT \nOverride_Metric,\nDivision,\nDistributionType,\nPeriodDate,\nActualValue,\nBudgetValue,\n(ActualValue * 1.000 / BudgetValue * 1.000 ) AS PerformanceRatio\n\nINTO #T_EBITDA\n\nFROM M2;\n\t\n\t\n\n\nSELECT \nA.Division,\nA.DistributionType,\nA.PeriodDate,\nA.PerformanceRatio AS EBITDA_PerformanceRatio,\n( A.ActualValue * 1.00 / B.ActualValue * 1.00 ) / ( A.BudgetValue * 1.00 / B.BudgetValue * 1.00 ) AS EBITDA_PCT_PerformanceRatio\n\nINTO #T_EBITDA_PCT\n\nFROM \n( SELECT * FROM #T_EBITDA A  WHERE Override_Metric='DIVISION_EBITDA' ) A \nLEFT JOIN \n( SELECT * FROM #T_EBITDA A  WHERE Override_Metric='NET_REVENUE' ) B \nON  A.Division \t\t\t= B.Division \nAND A.DistributionType  = B.DistributionType\nAND A.PeriodDate\t\t= B.PeriodDate\n\n\n\n\n\n-- ============================================================\n-- STEP 3: Combined Performance Ratios\n-- ============================================================\n\n\nTRUNCATE TABLE [EDW_INC].[DIM_INCENTIVE_BONUS_MIN_OVERRIDES];\n\n\nINSERT INTO [EDW_INC].[DIM_INCENTIVE_BONUS_MIN_OVERRIDES]\n(\nEmployeePK\t\t\t\t\t,\nPeriodDate\t\t\t\t\t,\nPersonalVolumeMetricID\t\t,\nDistributionType\t\t\t,\nDivision\t\t\t\t\t,\nPV_OverridePct\t\t\t\t,\nPV_PerformanceRatio\t\t\t,\nEBITDA_PerformanceRatio\t\t,\nEBITDA_PCT_PerformanceRatio\t,\nPct_EmployeeMinPayout\t\t,\nPV_OverrideFlag\t\t\t\t,\nMin_PayoutFlag\t\t\t\t,\nLastUpdatedTS\t\n)\n\n\nSELECT \nA.EmployeePK\t,\nA.PeriodDate\t,\nA.PersonalVolumeMetricID\t,\nA.DistributionType\t,\nA.Division\t,\nA.PV_OverridePct\t,\nA.PV_PerformanceRatio\t,\nB.EBITDA_PerformanceRatio\t\t\t\t\tAS EBITDA_PerformanceRatio\t,\nB.EBITDA_PCT_PerformanceRatio\t\t\t\tAS EBITDA_PCT_PerformanceRatio\t,\nC.Pct_MinPayout\t,\n( CASE WHEN COALESCE(A.PV_PerformanceRatio,0.00) > A.PV_OverridePct\t AND B.EBITDA_PerformanceRatio\t>= 1.00 AND B.EBITDA_PCT_PerformanceRatio >= 1.00\tTHEN 'Y' ELSE 'N' END )  AS PV_OverrideFlag ,\n( CASE WHEN C.Pct_MinPayout IS NOT NULL AND C.Pct_MinPayout!=0.00\t\t\t\tTHEN 'Y' ELSE 'N' END )\t AS Min_PayoutFlag\t,\nGETDATE() AS LastUpdatedTS\t\n\nFROM  #T_EMP_PV_Override A\nLEFT JOIN #T_EBITDA_PCT B\nON   A.Division   = B.Division\nAND  A.PeriodDate = B.PeriodDate\nAND  A.DistributionType = B.DistributionType\n\nLEFT JOIN \n\t\t(\n\t\t\tSELECT DISTINCT \n\t\t\t\tA1.EmployeePK,\n\t\t\t\tA2.PeriodDate,\n\t\t\t\tA1.EmployeeID,\n\t\t\t\tA2.Pct_MinPayout\n\t\t\t\tFROM [EDW_INC].[DIM_INCENTIVE_ELIGIBLE_EMPLOYEE] A1 \n\t\t\t\tJOIN EDW_INC.REF_EMPLOYEE_MIN_BONUS_PAYOUT A2\n\t\t\t\tON A1.EmployeeID = A2.EmployeeID\n\t\t\t) C\nON A.PeriodDate  = ( CASE \n\t\t\t\t\t\tWHEN A.DistributionType = 'MONTHLY'     THEN EOMONTH(C.PeriodDate)\n\t\t\t\t\t\tWHEN A.DistributionType = 'QUARTERLY'   THEN EOMONTH(DATEADD(MONTH, 2, DATEADD(QUARTER, DATEDIFF(QUARTER,0,C.PeriodDate),0)))\n\t\t\t\t\t\tWHEN A.DistributionType = 'YEARLY'      THEN EOMONTH(DATEFROMPARTS(YEAR(C.PeriodDate),12,1))\n\t\t\t\t\t  END\n\t\t\t\t\t\t)\nAND A.EmployeePK = C.EmployeePK;"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "DIM_INCENTIVE_BONUS_MIN_OVERRIDES_v1",
+				"type": "Script",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "\nDECLARE @Year INT;\nSET @Year = 2026;\n\n\n-- ============================================================\n-- STEP 1: Query 1 \n-- ============================================================\n\n-- ************ Employees where PV metric is at Regional level (applicable Regional Employees)\n\nSELECT DISTINCT \n\tA.EmployeePK,\n    INC.PeriodDate,\n    INC.IncentiveMetricID AS PersonalVolumeMetricID,\n\tD.DistributionType,\n    A.Division,\n    A.PV_OverridePct,\n    INC.PerformanceRatio AS PV_PerformanceRatio\n\nINTO #T_EMP_PV_Override\nFROM [EDW_INC].[DIM_INCENTIVE_ELIGIBLE_EMPLOYEE] A\nJOIN [EDW_INC].[DIM_INCENTIVE_PLAN] B\n    ON A.IncentivePlanID = B.IncentivePlanID\nJOIN [EDW_INC].[DIM_INCENTIVE_METRIC_ALLOCATION] D\n    ON A.IncentivePlanID      \t= D.IncentivePlanID\n    AND A.PersonalVolumeMetric \t= D.IncentiveMetricID\nJOIN [EDW_INC].[FACT_INCENTIVE_EARNED_MONTHLY] INC\n    ON \tA.EmployeePK           = INC.EmployeePK\n    AND A.PersonalVolumeMetric = INC.IncentiveMetricID\n    AND A.Division             = INC.Division ;\n\n\n\n\n-- ============================================================\n-- STEP 2: EBITDA MOnthly Quarterly and Yearly Grain\n-- ============================================================\n\n\n\nWITH M1 AS \n(\t\nSELECT \n\t'DIVISION_EBITDA' AS Override_Metric,\n\tDivision,\n\tDistributionType,\n\tPeriodDate,\n\tSUM(ActualValue) AS ActualValue,\n\tSUM(BudgetValue) AS BudgetValue\n\tFROM [EDW_INC].[DIM_INCENTIVE_METRIC_BUDGET_ACTUALS] \n\tWHERE Metric = 'DIVISION_EBITDA'\n\tAND Division IS NOT NULL\n\tAND [Year] = @Year\n\tGROUP BY \n\tDivision,\n\tDistributionType,\n\tPeriodDate\n\t\n\tUNION ALL \n\t\n\tSELECT \n\t'NET_REVENUE' AS Override_Metric,\n\tDivision,\n\tDistributionType,\n\tPeriodDate,\n\tSUM(ActualValue) AS ActualValue,\n\tSUM(BudgetValue) AS BudgetValue\n\tFROM [EDW_INC].[DIM_INCENTIVE_METRIC_BUDGET_ACTUALS] \n\tWHERE Metric = 'NET_REVENUE'\n\tAND Division IS NOT NULL\n\tAND [Year] = @Year\n\tGROUP BY \n\tDivision,\n\tDistributionType,\n\tPeriodDate\n\n\t\n\t),\n\nM2  AS\n(\n\tSELECT \n\tOverride_Metric,\n\tDivision,\n\tDistributionType,\n\tPeriodDate,\n\tActualValue,\n\tBudgetValue\n\tFROM M1\n\t\n\tUNION ALL \n\t\n\t\n\tSELECT \n\t\tOverride_Metric,\n\t\tDivision,\n\t\t'QUARTERLY'                                                                 AS DistributionType,\n\t\tEOMONTH(DATEADD(MONTH, 2, DATEADD(QUARTER, DATEDIFF(QUARTER,0,PeriodDate),0))) AS PeriodDate,\n\t\tSUM(ActualValue)                                                            AS ActualValue,\n\t\tSUM(BudgetValue)                                                            AS BudgetValue\n\tFROM M1\n\tGROUP BY \n\tOverride_Metric,\n\t\tDivision,\n\t\tEOMONTH(DATEADD(MONTH, 2, DATEADD(QUARTER, DATEDIFF(QUARTER,0,PeriodDate),0)))\n\t\t\n\t\t\n\tUNION ALL \n\t\n\t\n\tSELECT \n\t\tOverride_Metric,\n\t\tDivision,\n\t\t'YEARLY'\t\t                                                                 \tAS DistributionType,\n\t\tEOMONTH(DATEFROMPARTS(YEAR(PeriodDate),12,1)) \t\t\t\t\t\t\t\t \t\tAS PeriodDate,\n\t\tSUM(ActualValue)                                                            \t\tAS ActualValue,\n\t\tSUM(BudgetValue)                                                            \t\tAS BudgetValue\n\tFROM M1\n\tGROUP BY \n\tOverride_Metric,\n\t\tDivision,\n\t\tEOMONTH(DATEFROMPARTS(YEAR(PeriodDate),12,1))\n\t\t\n\t\t)\n\t\t\n\nSELECT \nOverride_Metric,\nDivision,\nDistributionType,\nPeriodDate,\nActualValue,\nBudgetValue,\n(ActualValue * 1.000 / BudgetValue * 1.000 ) AS PerformanceRatio\n\nINTO #T_EBITDA\n\nFROM M2;\n\t\n\t\n\n\nSELECT \nA.Division,\nA.DistributionType,\nA.PeriodDate,\nA.PerformanceRatio AS EBITDA_PerformanceRatio,\n( A.ActualValue * 1.00 / B.ActualValue * 1.00 ) / ( A.BudgetValue * 1.00 / B.BudgetValue * 1.00 ) AS EBITDA_PCT_PerformanceRatio\n\nINTO #T_EBITDA_PCT\n\nFROM \n( SELECT * FROM #T_EBITDA A  WHERE Override_Metric='DIVISION_EBITDA' ) A \nLEFT JOIN \n( SELECT * FROM #T_EBITDA A  WHERE Override_Metric='NET_REVENUE' ) B \nON  A.Division \t\t\t= B.Division \nAND A.DistributionType  = B.DistributionType\nAND A.PeriodDate\t\t= B.PeriodDate\n\n\n\n\n-- ============================================================\n-- STEP 3: Combined Performance Ratios\n-- ============================================================\n\n\nTRUNCATE TABLE [EDW_INC].[DIM_INCENTIVE_BONUS_MIN_OVERRIDES];\n\n\nINSERT INTO [EDW_INC].[DIM_INCENTIVE_BONUS_MIN_OVERRIDES]\n(\nEmployeePK\t\t\t\t\t,\nPeriodDate\t\t\t\t\t,\nPersonalVolumeMetricID\t\t,\nDistributionType\t\t\t,\nDivision\t\t\t\t\t,\nPV_OverridePct\t\t\t\t,\nPV_PerformanceRatio\t\t\t,\nEBITDA_PerformanceRatio\t\t,\nEBITDA_PCT_PerformanceRatio\t,\nPct_EmployeeMinPayout\t\t,\nPV_OverrideFlag\t\t\t\t,\nMin_PayoutFlag\t\t\t\t,\nLastUpdatedTS\t\n)\n\n\nSELECT \nA.EmployeePK\t,\nA.PeriodDate\t,\nA.PersonalVolumeMetricID\t,\nA.DistributionType\t,\nA.Division\t,\nA.PV_OverridePct\t,\nA.PV_PerformanceRatio\t,\nB.EBITDA_PerformanceRatio\t\t\t\t\tAS EBITDA_PerformanceRatio\t,\nB.EBITDA_PCT_PerformanceRatio\t\t\t\tAS EBITDA_PCT_PerformanceRatio\t,\nC.Pct_MinPayout\t,\n( CASE WHEN COALESCE(A.PV_PerformanceRatio,0.00) > A.PV_OverridePct\t AND B.EBITDA_PerformanceRatio\t>= 1.00 AND B.EBITDA_PCT_PerformanceRatio >= 1.00\tTHEN 'Y' ELSE 'N' END )  AS PV_OverrideFlag ,\n( CASE WHEN C.Pct_MinPayout IS NOT NULL AND C.Pct_MinPayout!=0.00\t\t\t\tTHEN 'Y' ELSE 'N' END )\t AS Min_PayoutFlag\t,\nGETDATE() AS LastUpdatedTS\t\n\nFROM  #T_EMP_PV_Override A\nLEFT JOIN #T_EBITDA_PCT B\nON   A.Division   = B.Division\nAND  A.PeriodDate = B.PeriodDate\nAND  A.DistributionType = B.DistributionType\n\nLEFT JOIN \n\t\t(\n\t\t\tSELECT DISTINCT \n\t\t\t\tA1.EmployeePK,\n\t\t\t\tA2.PeriodDate,\n\t\t\t\tA1.EmployeeID,\n\t\t\t\tA2.Pct_MinPayout\n\t\t\t\tFROM [EDW_INC].[DIM_INCENTIVE_ELIGIBLE_EMPLOYEE] A1 \n\t\t\t\tJOIN EDW_INC.REF_EMPLOYEE_MIN_BONUS_PAYOUT A2\n\t\t\t\tON A1.EmployeeID = A2.EmployeeID\n\t\t\t) C\nON A.PeriodDate  = ( CASE \n\t\t\t\t\t\tWHEN A.DistributionType = 'MONTHLY'     THEN EOMONTH(C.PeriodDate)\n\t\t\t\t\t\tWHEN A.DistributionType = 'QUARTERLY'   THEN EOMONTH(DATEADD(MONTH, 2, DATEADD(QUARTER, DATEDIFF(QUARTER,0,C.PeriodDate),0)))\n\t\t\t\t\t\tWHEN A.DistributionType = 'YEARLY'      THEN EOMONTH(DATEFROMPARTS(YEAR(C.PeriodDate),12,1))\n\t\t\t\t\t  END\n\t\t\t\t\t\t)\nAND A.EmployeePK = C.EmployeePK;"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "MIN_OVERRIDES_PV_NETSALES",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "DIM_INCENTIVE_BONUS_MIN_OVERRIDES_v1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "\n--NETSALES \n\n\nDECLARE @Year INT\nSET \t@Year = 2026\n\n--#####################################################################################\n-- ************START : Employees where PV metric is at Division level (applicable Regional Employees)\n--#####################################################################################\n\n\n--##################### Start : COMMON CODE to calculate Metrics ###################\n-- ############### Start : METRIC CALCULATION REFERENCE SET #################\n\nSELECT \nDISTINCT \nM1.IncentivePlanCategory,\nM1.IncentivePlanID,\nM1.SubSourceFlag,\nM1.SubSourceID,\nSS.Market_SubSource \tAS SubSource,\nM3.IncentiveMetricID,\nM2.DistributionType,\nM2.RegionalMetricFlag,\nM1.EffectiveFrom \tAS IncentivePlanEffectiveFrom,\nM1.EffectiveTo  \tAS IncentivePlanEffectiveTo\nINTO #T_INC\nFROM EDW_INC.DIM_INCENTIVE_PLAN M1\nJOIN EDW_INC.DIM_INCENTIVE_METRIC_ALLOCATION M2\nON M1.IncentivePlanID = M2.IncentivePlanID\nJOIN EDW_INC.DIM_INCENTIVE_METRICS M3\nON M2.IncentiveMetricID = M3.IncentiveMetricID\nLEFT JOIN [EDW_INC].[REF_INCENTIVE_MARKET_SUBSOURCE] SS\nON M1.SubSourceID = SS.Region_SubSource_ID;\n\n\n--*******************************\n\n\n\nSELECT DISTINCT\n\tEOMONTH(C.CalendarDate) AS CalendarDate,\n\tD.Division,\n\tINC.IncentivePlanID,\n\tINC.IncentivePlanCategory,\n\tINC.IncentiveMetricID,\n\tINC.DistributionType,\n\tINC.SubSourceFlag,\n\tINC.SubSource,\n\tINC.RegionalMetricFlag\n\t\n\tINTO #T_CAL\n\tFROM \n\t\tEDW.DIM_CALENDAR C\n\tCROSS JOIN \n\t\t( \n\t\t\tSELECT DISTINCT Division FROM EDW.DIM_JOB_STATUS\n\t\t\t\n\t\t\t) D\n\tLEFT JOIN #T_INC INC\n\tON 1=1\n\tWHERE  \n\tC.CalendarDate>=INC.IncentivePlanEffectiveFrom \n\tAND C.CalendarDate<=INC.IncentivePlanEffectiveTo;\n\n\n\n--*******************************\n\n\n\n\nSELECT \nDISTINCT \nB.EmployeePK,\nCASE \n        WHEN DistributionType = 'YEARLY' \n            THEN DATEFROMPARTS(YEAR(CalendarDate), 12, 31)\n\n        WHEN DistributionType = 'QUARTERLY'\n            THEN EOMONTH(\n                    DATEADD(MONTH, \n                        (3 - MONTH(CalendarDate) % 3) % 3, \n                        CalendarDate\n                    )\n                 )\n\n        ELSE CalendarDate\n    END AS PeriodDate,\nA.DistributionType,\nB.Division,\nA.SubSource,\nCAST(NULL AS NVARCHAR(100)) AS ACU_ID,   --- REMOVING MARKTET LEVEL TO Process PV METRIC WHICH ARE AT NON MARKET LEVEL\nA.IncentiveMetricID,\nA.IncentivePlanID,\nA.IncentivePlanCategory,\n\nB.EffectiveFrom \tAS EmployeeEffectiveFrom,\nB.EffectiveTo\t\tAS EmployeeEffectiveTo\n\nINTO #T_EMP\n\nFROM #T_CAL A \nJOIN [EDW_INC].[DIM_INCENTIVE_ELIGIBLE_EMPLOYEE] B\nON \tA.IncentivePlanID \t= B.IncentivePlanID\nAND A.Division \t\t\t= B.Division\n\nLEFT JOIN [EDW_INC].[REF_INCENTIVE_MARKET_SUBSOURCE] RG\nON B.RegionID = RG.Region_SubSource_ID\n\nWHERE A.IncentiveMetricID ='NETSALES_AMT'\nAND COALESCE(B.PV_Regional_At_Division_Override,'N') = 'Y' ;\n\n\n\n\nIF OBJECT_ID('tempdb..#T_EMP_METRICS') IS NOT NULL\n    DROP TABLE #T_EMP_METRICS;\n\t\nCREATE TABLE #T_EMP_METRICS\n(\n\tEmployeePK \t\t\tNVARCHAR(100)\t,\n    Division \t\t\tNVARCHAR(100)\t,\n    PeriodDate \t\t\tDATE\t\t\t,\n    IncentiveMetricID \tNVARCHAR(100)\t,\n    DistributionType \tNVARCHAR(50)\t,\n\tIncentivePlanID \tNVARCHAR(100)\t,\n    Metric_Budget \t\tDECIMAL(18,6)\t,\n\tMetric_Actual \t\tDECIMAL(18,6)\t\n);\n\n\n\n\n-- ############### END : METRIC CALCULATION REFERENCE SET #################\n--##################### End : COMMON CODE to calculate Metrics ###################\n\n\n\n\n\n--#############################################################\n-- ********  Metric_4    NETSALES_AMT   ***********\n--#############################################################\n\t\n\n\nINSERT INTO #T_EMP_METRICS\n\nSELECT \nM1.EmployeePK\t\t\t\t\t\t\t,\nM1.Division\t\t\t\t\t\t\t\t,\nM1.PeriodDate\t\t\t\t\t\t\t,\nM1.IncentiveMetricID\t\t\t\t\t,\nM1.DistributionType\t\t\t\t\t\t,\nM1.IncentivePlanID\t\t\t\t\t\t,\n(M1.Metric_Budget) \tAS Metric_Budget,\n(M2.NETSALES_AMT) \tAS Metric_Actual\nFROM \n(\n\tSELECT \n\tEmployeePK,\n\tDivision,\n\tPeriodDate,\n\tDistributionType,\n\tIncentiveMetricID,\n\tIncentivePlanID,\n\tSUM(Metric_Budget) AS Metric_Budget\n\tFROM \n\t(\n\n\t\tSELECT \n\t\tA.EmployeePK,\n\t\tA.Division,\n\t\tCASE \n\t\t\tWHEN A.DistributionType = 'MONTHLY'     THEN EOMONTH(B.PeriodDate)\n\t\t\tWHEN A.DistributionType = 'QUARTERLY'   THEN EOMONTH(DATEADD(MONTH, 2, DATEADD(QUARTER, DATEDIFF(QUARTER,0,B.PeriodDate),0)))\n\t\t\tWHEN A.DistributionType = 'YEARLY'      THEN EOMONTH(DATEFROMPARTS(YEAR(B.PeriodDate),12,1))\n\t\tEND \t\t\t\t\t\t\t\t\t\t\tAS PeriodDate,\n\t\tA.DistributionType,\n\t\tA.IncentiveMetricID,\n\t\tA.IncentivePlanID,\n\t\tA.SubSource,\n\t\tA.ACU_ID,\n\t\tB.BudgetValue AS Metric_Budget\n\t\t\n\t\tFROM #T_EMP A \n\t\tJOIN (SELECT * FROM [EDW_INC].[DIM_INCENTIVE_METRIC_BUDGET_ACTUALS] WHERE [Year]=@Year AND Metric='NETSALES_AMT') B \n\t\tON  A.Division \t\t\t\t\t\t= B.Division \n\t\tAND A.IncentiveMetricID \t\t\t= B.Metric\n\t\t\n\t\tAND (\n\t\t\t\tA.SubSource IS NULL\n\t\t\t\tOR COALESCE(A.SubSource,'NA1')  = COALESCE(B.SourceCode,'NA1')\n\t\t\t\t)\n\t\tAND (\n\t\t\t\tA.ACU_ID IS NULL\n\t\t\t\tOR COALESCE(A.ACU_ID,'NA1')     = COALESCE(B.ACU_ID,'NA1')\n\t\t\t\t)\n\n\t\tAND A.PeriodDate\t\t\t\t\t= ( CASE \n\t\t\t\t\t\t\t\t\t\t\t\t\tWHEN A.DistributionType = 'MONTHLY'     THEN EOMONTH(B.PeriodDate)\n\t\t\t\t\t\t\t\t\t\t\t\t\tWHEN A.DistributionType = 'QUARTERLY'   THEN EOMONTH(DATEADD(MONTH, 2, DATEADD(QUARTER, DATEDIFF(QUARTER,0,B.PeriodDate),0)))\n\t\t\t\t\t\t\t\t\t\t\t\t\tWHEN A.DistributionType = 'YEARLY'      THEN EOMONTH(DATEFROMPARTS(YEAR(B.PeriodDate),12,1))\n\t\t\t\t\t\t\t\t\t\t\t\tEND\n\t\t\t\t\t\t\t\t\t\t\t\t)\n\t\t\t\t\n\t\tWHERE A.IncentiveMetricID='NETSALES_AMT'\n\t\t\n\t\t) M1_X\n\t\n\tGROUP BY\n\tEmployeePK,\n\tDivision,\n\tPeriodDate,\n\tDistributionType,\n\tIncentiveMetricID,\n\tIncentivePlanID\n\t\t\n\t\t\n\t) M1 \n\t\t\n\nLEFT JOIN \n\n(\n\tSELECT \n\tEmployeePK,\n\tDivision,\n\tPeriodDate,\n\tDistributionType,\n\tIncentiveMetricID,\n\tIncentivePlanID,\n\tSUM(NETSALES_AMT) AS NETSALES_AMT\n\tFROM \n\t(\n\t\t\tSELECT \n\t\t\tA.EmployeePK,\n\t\t\tA.Division,\n\t\t\tCASE \n\t\t\t\tWHEN A.DistributionType = 'MONTHLY'     THEN EOMONTH(B.CalendarDate)\n\t\t\t\tWHEN A.DistributionType = 'QUARTERLY'   THEN EOMONTH(DATEADD(MONTH, 2, DATEADD(QUARTER, DATEDIFF(QUARTER,0,B.CalendarDate),0)))\n\t\t\t\tWHEN A.DistributionType = 'YEARLY'      THEN EOMONTH(DATEFROMPARTS(YEAR(B.CalendarDate),12,1))\n\t\t\tEND \t\t\t\t\t\t\t\t\t\t\tAS PeriodDate,\n\t\t\tA.DistributionType,\n\t\t\tA.IncentiveMetricID,\n\t\t\tA.IncentivePlanID,\n\t\t\tA.SubSource,\n\t\t\tA.ACU_ID,\n\t\t\tB.NETSALES_AMT AS NETSALES_AMT\n\t\t\t\n\t\t\tFROM #T_EMP A \n\t\t\tJOIN (SELECT * FROM [EDW_FCST].[FACT_SALES_ACTUAL_INCENTIVE] WHERE IDENTIFIER='APPOINTMENT_DATE' AND  BranchID NOT IN ('PBC-MN','PBC-WI')  -- ** Excluding Wisconsin & Minnesota For West\n\t\t\t\t\t) B \n\t\t\tON  A.Division \t\t\t\t\t\t= B.Division \n\t\t\t\n\t\t\tAND (\n\t\t\t\t\tA.SubSource IS NULL\n\t\t\t\t\tOR COALESCE(A.SubSource,'NA1')  = COALESCE(B.TX_SourceCode,'NA1')\n\t\t\t\t\t)\n\t\t\tAND (\n\t\t\t\t\tA.ACU_ID IS NULL\n\t\t\t\t\tOR COALESCE(A.ACU_ID,'NA1')     = COALESCE(B.Market,'NA1')\n\t\t\t\t\t)\n\t\n\t\t\tAND A.PeriodDate\t\t\t\t\t= ( CASE \n\t\t\t\t\t\t\t\t\t\t\t\t\t\tWHEN A.DistributionType = 'MONTHLY'     THEN EOMONTH(B.CalendarDate)\n\t\t\t\t\t\t\t\t\t\t\t\t\t\tWHEN A.DistributionType = 'QUARTERLY'   THEN EOMONTH(DATEADD(MONTH, 2, DATEADD(QUARTER, DATEDIFF(QUARTER,0,B.CalendarDate),0)))\n\t\t\t\t\t\t\t\t\t\t\t\t\t\tWHEN A.DistributionType = 'YEARLY'      THEN EOMONTH(DATEFROMPARTS(YEAR(B.CalendarDate),12,1))\n\t\t\t\t\t\t\t\t\t\t\t\t\tEND\n\t\t\t\t\t\t\t\t\t\t\t\t\t)\n\t\t\t\t\t\n\t\t\tWHERE A.IncentiveMetricID='NETSALES_AMT'\n\t\t\t\n\t\t\t) M2_X\n\t\t\t\n\t\tGROUP BY \n\t\tEmployeePK,\n\t\tDivision,\n\t\tPeriodDate,\n\t\tDistributionType,\n\t\tIncentiveMetricID,\n\t\tIncentivePlanID\n\t\t\n\t\t\n\t\t) M2\n\t\t\nON \n\nM1.EmployeePK           =  M2.EmployeePK             AND \nM1.Division             =  M2.Division               AND \nM1.PeriodDate           =  M2.PeriodDate             AND \nM1.DistributionType     =  M2.DistributionType       AND \nM1.IncentiveMetricID    =  M2.IncentiveMetricID      AND \nM1.IncentivePlanID      =  M2.IncentivePlanID        \t;\n\n\n\n\n\n\n\n--################# FINAL TABLE UPDATE ###############\n\nUPDATE M1 \nSET M1.PV_PerformanceRatio = (M2.Metric_Actual * 1.000 / M2.Metric_Budget * 1.000 )\n\nFROM [EDW_INC].[DIM_INCENTIVE_BONUS_MIN_OVERRIDES] M1\nJOIN #T_EMP_METRICS M2\nON  M1.EmployeePK\t\t\t\t= M2.EmployeePK\nAND M1.PeriodDate\t\t\t\t= M2.PeriodDate\nAND M1.PersonalVolumeMetricID\t= M2.IncentiveMetricID\nAND M1.Division\t\t\t\t\t= M2.Division\nAND M1.DistributionType\t\t\t= M2.DistributionType;"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/INCENTIVE_METRICS"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-04-27T12:24:34Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 25",
+	"properties": {
+		"content": {
+			"query": "SELECT\n'lp_appointment_set' as event_type\n,'lp' as data_source\n,lower(app.Division) as division\n,lower(cst.CustomerID) as Prospect_ID\n,lower(lds.LeadID) as Lead_ID\n,lower(cst.Email) as email_id\n,case \n    when cst.[Phone] is not null then '+1'+Phone\n    else cst.[Phone]\nend as [phone_id]\n,cst.[FirstName] as first_name\n,cst.[LastName] as last_name\n,cst.[Address1] as address1\n,cst.[Address2] as address2\n,cst.[City] as city\n,cst.[State] as [state]\n,trim(str(cst.[Zip])) as zip\n,app.SetDate as set_date\n,app.ApptDate as appointment_date\n,lds.EntryDate as entry_date\n,lower(srs.LeadSubSourceID) as lead_subsource_id\n,lower(srs.LeadSubSource) as lead_subsource\n,lower(srs.[SourceCode]) as lead_sourcecode\n,dbo.fnConvertUTCtoEST (getdate()) as [timestamp]\nFROM\nEDW.FACT_LEAD lds\n,EDW.DIM_CUSTOMER cst\n,EDW.FACT_APPOINTMENT app\n,EDW.DIM_LEAD_SUB_SOURCE srs\nWHERE\nlds.CustomerID = cst.CustomerID\nand lds.LeadID = app.LeadID\nand lds.LeadSubSourceID = srs.LeadSubSourceID\nand app.SetDate is not null\nand lds.ApptSet = 'True'\nand DATEDIFF(DAY,CAST( app.ApptDate AS Date ),cast(dbo.fnConvertUtcToEST(GETDATE()) as DATE)) = 0\n\nselect * from ODS.LP_HSI_prd_Products where Active = 'True'\n\n\n\nselect count(1), EntryDate from EDW.FACT_LEAD where Division = 'PHI' group by EntryDate order by EntryDate desc\n\nselect * from EDW.FACT_LEAD where Division = 'HSI' and LeadID = 'HSI-248752'\n\nselect * from EDW.DIM_LEAD_SUB_SOURCE where LeadSubSourceID = 'HSI-4891'\n\n\nselect * from EDW.DIM_PRODUCT where ProductID = 'HSI-2'",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

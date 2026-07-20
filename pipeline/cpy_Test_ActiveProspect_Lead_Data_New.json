@@ -1,0 +1,344 @@
+{
+	"name": "cpy_Test_ActiveProspect_Lead_Data_New",
+	"properties": {
+		"activities": [
+			{
+				"name": "cpy AP Data to Json Files",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Set Time",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:01:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "GET",
+						"paginationRules": {
+							"supportRFC5988": "true"
+						}
+					},
+					"sink": {
+						"type": "JsonSink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings"
+						},
+						"formatSettings": {
+							"type": "JsonWriteSettings"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "ActiveProspect_LeadConduit_All_Events",
+						"type": "DatasetReference",
+						"parameters": {
+							"Date": {
+								"value": "@variables('v_Date')",
+								"type": "Expression"
+							},
+							"StartTime": {
+								"value": "@variables('StartTime')",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ActiveProspectLeadData_New",
+						"type": "DatasetReference",
+						"parameters": {
+							"Filename": {
+								"value": "@concat('ActiveProspect_Lead_Data_New_',replace(variables('v_Date'),'-', '_'),'_',replace(variables('StartTime'), ':', '_'),'.json')",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "SetDate",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "v_Date",
+					"value": "2025-12-01"
+				}
+			},
+			{
+				"name": "Set Time",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "SetDate",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "StartTime",
+					"value": "00:20:00"
+				}
+			},
+			{
+				"name": "df_activeprospect_Lead_Data SRC to ODS",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "cpy AP Data to Json Files",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_Active_Prospect_Leads_Data",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "AzureBlobStorage1",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdctestanuj/Staging"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "cpy ODS To EDW",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "df_activeprospect_Lead_Data SRC to ODS",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "\nSelect AP_ID,CAST(starttimestamp as DATE) as CreatedDate,vars_lead_company_name as Division,NULL as Market,vars_lead_srsid as SRS_ID,vars_lead_product as Product,Main_Outcome as Outcome,Main_Reason as Reason\n from ODS.ACTIVE_PROSPECT_LEADS_DATA",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "Delete from EDW.Fact_Active_Prospect_Leads_Data where CAST(CreatedDate as DATE)>=DATEADD(dd,-1,CAST(GETDATE() AS DATE))",
+						"writeBehavior": "Upsert",
+						"upsertSettings": {
+							"keys": [
+								"AP_ID"
+							],
+							"interimSchemaName": ""
+						},
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "AP_ID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "AP_ID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CreatedDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "CreatedDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Market",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Market",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SRS_ID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Srs_ID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Product",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Product",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Outcome",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Outcome",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Reason",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Reason",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ODS_ACTIVE_PROSPECT_LEADS_DATA",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_FACT_ACTIVE_PROSPECT_LEADS_DATA",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"parameters": {
+			"p_WindowStart": {
+				"type": "string"
+			},
+			"p_WindowEnd": {
+				"type": "string"
+			},
+			"p_LastAfterID": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"v_Date": {
+				"type": "String"
+			},
+			"v_CurrentCursorID": {
+				"type": "String",
+				"defaultValue": "@pipeline().parameters.p_LastAfterID"
+			},
+			"v_RecordCount": {
+				"type": "String"
+			},
+			"v_LogID": {
+				"type": "String"
+			},
+			"StartTime": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "Temp/Akshay"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-01-29T06:13:40Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

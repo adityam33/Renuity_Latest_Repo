@@ -1,0 +1,244 @@
+{
+	"name": "cpy_edw_summ_fact_call_log",
+	"properties": {
+		"activities": [
+			{
+				"name": "cp_summ_fact_call_log",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "WITH HolidayTable AS (\r\n    SELECT 'Home Org' AS Division, CAST('2025-01-01' AS DATE) AS Holiday UNION ALL\r\n    SELECT 'Home Org', CAST('2025-07-04' AS DATE) UNION ALL\r\n\tSELECT 'Home Org', CAST('2025-05-26' AS DATE) UNION ALL\r\n    SELECT 'Home Org', CAST('2025-12-25' AS DATE) UNION ALL\r\n    SELECT 'Home Org', CAST('2025-11-27' AS DATE) UNION ALL\r\n    SELECT 'FHIA', CAST('2025-01-01' AS DATE) UNION ALL\r\n    SELECT 'FHIA', CAST('2025-07-04' AS DATE) UNION ALL\r\n    SELECT 'FHIA', CAST('2025-11-27' AS DATE) UNION ALL\r\n\tSELECT 'FHIA', CAST('2025-12-25' AS DATE) UNION ALL\r\n    SELECT 'Mad City', CAST('2025-12-25' AS DATE) UNION ALL\r\n    SELECT 'Mad City', CAST('2025-01-01' AS DATE) UNION ALL\r\n\tSELECT 'Mad City', CAST('2025-11-27' AS DATE) UNION ALL\r\n    SELECT 'State Wide', CAST('2025-12-25' AS DATE) UNION ALL\r\n    SELECT 'State Wide', CAST('2025-11-27' AS DATE) UNION ALL\r\n    SELECT 'Max Home', CAST('2025-01-01' AS DATE) UNION ALL\r\n    SELECT 'Max Home', CAST('2025-04-20' AS DATE) UNION ALL\r\n    SELECT 'Max Home', CAST('2025-05-26' AS DATE) UNION ALL\r\n\tSELECT 'Max Home', CAST('2025-07-04' AS DATE) UNION ALL\r\n\tSELECT 'Max Home', CAST('2025-09-01' AS DATE) UNION ALL\r\n\tSELECT 'Max Home', CAST('2025-11-27' AS DATE) UNION ALL\r\n\tSELECT 'Max Home', CAST('2025-12-25' AS DATE) UNION ALL\r\n    SELECT 'Pacific Bath', CAST('2025-07-04' AS DATE) UNION ALL\r\n    SELECT 'Pacific Bath', CAST('2025-11-27' AS DATE) UNION ALL\r\n\tSELECT 'Pacific Bath', CAST('2025-12-24' AS DATE) UNION ALL\r\n\tSELECT 'Pacific Bath', CAST('2025-12-25' AS DATE) UNION ALL\r\n    SELECT 'Rite Window', CAST('2025-01-01' AS DATE) UNION ALL\r\n\tSELECT 'Rite Window', CAST('2025-05-26' AS DATE) UNION ALL\r\n    SELECT 'Rite Window', CAST('2025-07-04' AS DATE) UNION ALL\r\n\tSELECT 'Rite Window', CAST('2025-09-01' AS DATE) UNION ALL\r\n    SELECT 'Rite Window', CAST('2025-11-27' AS DATE) UNION ALL\r\n\tSELECT 'Rite Window', CAST('2025-12-25' AS DATE)\r\n),\r\n\r\nRankedLeads AS (\r\n    SELECT \r\n    l.LeadID,\r\n    l.CustomerID,\r\n\r\n    -- Manually adjusting LeadEntryDate to EST based on Division\r\n    CASE \r\n        WHEN l.Division IN ('MAC', 'MXH', 'SWR') \r\n            THEN FORMAT(DATEADD(HOUR, 1, COALESCE(l.DateReceived, l.DateEntered)), 'yyyy-MM-dd HH:mm:ss')\r\n        WHEN l.Division = 'PBC' \r\n            THEN FORMAT(DATEADD(HOUR, 3, COALESCE(l.DateReceived, l.DateEntered)), 'yyyy-MM-dd HH:mm:ss')\r\n        ELSE \r\n            FORMAT(COALESCE(l.DateReceived, l.DateEntered), 'yyyy-MM-dd HH:mm:ss')\r\n    END AS LeadEntryDate,\r\n\r\n    l.Division,\r\n    c.CleanedPhone,\r\n\r\n    ROW_NUMBER() OVER (\r\n        PARTITION BY c.CleanedPhone, l.Division \r\n        ORDER BY \r\n            CASE \r\n                WHEN l.Division IN ('MAC', 'MXH', 'SWR') \r\n                    THEN FORMAT(DATEADD(HOUR, 1, COALESCE(l.DateReceived, l.DateEntered)), 'yyyy-MM-dd HH:mm:ss')\r\n                WHEN l.Division = 'PBC' \r\n                    THEN FORMAT(DATEADD(HOUR, 3, COALESCE(l.DateReceived, l.DateEntered)), 'yyyy-MM-dd HH:mm:ss')\r\n                ELSE \r\n                    FORMAT(COALESCE(l.DateReceived, l.DateEntered), 'yyyy-MM-dd HH:mm:ss')\r\n            END\r\n    ) AS LeadRank\r\n\r\nFROM EDW.FACT_LEAD l\r\nLEFT JOIN (\r\n    SELECT \r\n        CustomerID,\r\n        REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(Phone, '+', ''), '-', ''), '(', ''), ')', ''), ' ', ''), '?', '') AS CleanedPhone\r\n    FROM EDW.DIM_CUSTOMER\r\n) c ON l.CustomerID = c.CustomerID\r\n\r\nWHERE \r\n    CAST(COALESCE(l.DateReceived, l.DateEntered) AS DATE) >= '2025-01-01'\r\n    AND c.CleanedPhone IS NOT NULL\r\n    AND LEN(c.CleanedPhone) = 10\r\n    AND ISNUMERIC(c.CleanedPhone) = 1 \r\n    --AND c.CleanedPhone IN ('8507552485','7122357167','5633799007','2522921586','9196324230','2033682665','9545592689')\r\n),\r\n\r\nLeadBoundaries AS (\r\n    SELECT \r\n        rl.LeadID,\r\n        rl.CustomerID,\r\n        rl.LeadEntryDate,\r\n        rl.Division,\r\n        rl.CleanedPhone,\r\n        rl.LeadRank,\r\n        LEAD(rl.LeadEntryDate) OVER (\r\n            PARTITION BY rl.CleanedPhone, rl.Division \r\n            ORDER BY rl.LeadEntryDate\r\n        ) AS NextLeadEntryDate\r\n    FROM RankedLeads rl\r\n),\r\n\r\nCallData AS (\r\n    SELECT \r\n        lb.LeadID,\r\n        lb.CustomerID,\r\n        lb.LeadEntryDate,\r\n        lb.NextLeadEntryDate,\r\n        lb.Division,\r\n        lb.CleanedPhone,\r\n        FORMAT(CAST(f.[DATE] AS DATETIME) + CAST(ISNULL(COALESCE(CAST(f.[TIME] AS TIME), CAST(f.[HOUR] AS TIME)), '00:00:00') AS DATETIME), 'yyyy-MM-dd HH:mm:ss') AS CallDateTime,\r\n        d.CallResult,\r\n        f.Call_Type,\r\n        f.Contact_ID,\r\n        d.AnsweredCall AS Answered\r\n    FROM LeadBoundaries lb\r\n    JOIN EDW.FACT_FIVE9_CALL_LOG_ALL_NEW f \r\n        ON f.Number1 = lb.CleanedPhone AND f.Division = lb.Division\r\n    LEFT JOIN EDW.DIM_FIVE9_CALL_RESULT_DISPOSITION d \r\n        ON f.CallResultID = d.CallResultId\r\n    WHERE \r\n        FORMAT(CAST(f.[DATE] AS DATETIME) + CAST(ISNULL(COALESCE(CAST(f.[TIME] AS TIME), CAST(f.[HOUR] AS TIME)), '00:00:00') AS DATETIME), 'yyyy-MM-dd HH:mm:ss') >= lb.LeadEntryDate\r\n        AND (\r\n            lb.NextLeadEntryDate IS NULL \r\n            OR FORMAT(CAST(f.[DATE] AS DATETIME) + \r\n                CAST(ISNULL(COALESCE(CAST(f.[TIME] AS TIME), CAST(f.[HOUR] AS TIME)), '00:00:00') AS DATETIME), 'yyyy-MM-dd HH:mm:ss') < lb.NextLeadEntryDate\r\n        ) --and f.Number1 IN ('8507552485','7122357167','5633799007','2522921586','9196324230','2033682665','9545592689')\r\n),\r\n\r\nFirstAnswerInfo AS (\r\n    SELECT \r\n        LeadID,\r\n        MIN(CallDateTime) AS FirstAnsweredTime\r\n    FROM CallData\r\n    WHERE Answered = 1\r\n    GROUP BY LeadID\r\n),\r\n\r\nFirstCallInfo AS (\r\n    SELECT \r\n        LeadID,\r\n        MIN(CallDateTime) AS FirstCallTime\r\n    FROM CallData\r\n    GROUP BY LeadID\r\n),\r\n\r\nFirstCallDetails AS (\r\n    SELECT \r\n        cd.LeadID,\r\n        cd.CallDateTime AS FirstCallTime,\r\n        cd.Call_Type AS FirstCallType,\r\n        cd.Contact_ID AS FirstCallContactID\r\n    FROM CallData cd\r\n    JOIN (\r\n        SELECT LeadID, MIN(CallDateTime) AS FirstCallTime\r\n        FROM CallData\r\n        GROUP BY LeadID\r\n    ) fc ON cd.LeadID = fc.LeadID AND cd.CallDateTime = fc.FirstCallTime\r\n),\r\n\r\nCallBuckets AS (\r\n    SELECT \r\n        cd.LeadID,\r\n        cd.CustomerID,\r\n        cd.CleanedPhone,\r\n        cd.Division,\r\n        cd.LeadEntryDate,\r\n        cd.CallDateTime,\r\n        cd.Call_Type,\r\n        cd.Contact_ID,\r\n        cd.Answered,\r\n        fa.FirstAnsweredTime,\r\n        DATEDIFF(SECOND, cd.LeadEntryDate, fa.FirstAnsweredTime) AS AnsweredAgeIncludingHolidays,\r\n        CASE \r\n            WHEN fa.FirstAnsweredTime IS NULL THEN 'No Answered Call'\r\n            WHEN DATEDIFF(HOUR, cd.LeadEntryDate, fa.FirstAnsweredTime) -\r\n                (SELECT COUNT(*) * 24 \r\n                 FROM HolidayTable ht\r\n                 WHERE ht.Division = cd.Division \r\n                   AND ht.Holiday BETWEEN CAST(cd.LeadEntryDate AS DATE) AND CAST(fa.FirstAnsweredTime AS DATE)) < 24 THEN 'Under24'\r\n            WHEN DATEDIFF(HOUR, cd.LeadEntryDate, fa.FirstAnsweredTime) -\r\n                (SELECT COUNT(*) * 24 \r\n                 FROM HolidayTable ht\r\n                 WHERE ht.Division = cd.Division \r\n                   AND ht.Holiday BETWEEN CAST(cd.LeadEntryDate AS DATE) AND CAST(fa.FirstAnsweredTime AS DATE)) < 48 THEN '24to48'\r\n            WHEN DATEDIFF(HOUR, cd.LeadEntryDate, fa.FirstAnsweredTime) -\r\n                (SELECT COUNT(*) * 24 \r\n                 FROM HolidayTable ht\r\n                 WHERE ht.Division = cd.Division \r\n                   AND ht.Holiday BETWEEN CAST(cd.LeadEntryDate AS DATE) AND CAST(fa.FirstAnsweredTime AS DATE)) < 72 THEN '48to72'\r\n            ELSE 'Over72'\r\n        END AS ContactBucket\r\n    FROM CallData cd\r\n    LEFT JOIN FirstAnswerInfo fa ON cd.LeadID = fa.LeadID\r\n),\r\n\r\nFilteredCalls AS (\r\n    SELECT *,\r\n        CASE \r\n            WHEN ContactBucket = 'Under24' AND CallDateTime <= FirstAnsweredTime THEN 1\r\n            WHEN ContactBucket = '24to48' AND CallDateTime >= DATEADD(HOUR, 24, LeadEntryDate) AND CallDateTime < DATEADD(HOUR, 48, LeadEntryDate) AND CallDateTime <= FirstAnsweredTime THEN 1\r\n            WHEN ContactBucket = '48to72' AND CallDateTime >= DATEADD(HOUR, 48, LeadEntryDate) AND CallDateTime < DATEADD(HOUR, 72, LeadEntryDate) AND CallDateTime <= FirstAnsweredTime THEN 1\r\n            WHEN ContactBucket = 'Over72' AND CallDateTime >= DATEADD(HOUR, 72, LeadEntryDate) AND CallDateTime <= FirstAnsweredTime THEN 1\r\n            ELSE 0\r\n        END AS CountableCall\r\n    FROM CallBuckets\r\n),\r\n\r\nFilteredCallsWithHoliday AS (\r\n    SELECT \r\n        fc.*,\r\n        fcd.FirstCallType,\r\n        fcd.FirstCallContactID,\r\n        fcd.FirstCallTime,\r\n        DATEDIFF(SECOND, fc.LeadEntryDate, fcd.FirstCallTime) AS FirstCallAgeIncludingHolidays,\r\n        DATEDIFF(SECOND, fc.LeadEntryDate, fcd.FirstCallTime) -\r\n            (SELECT COUNT(*) * 24 * 60 * 60\r\n             FROM HolidayTable ht\r\n             WHERE ht.Division = fc.Division \r\n               AND ht.Holiday BETWEEN CAST(fc.LeadEntryDate AS DATE) AND CAST(fcd.FirstCallTime AS DATE)) AS FirstCallAgeExcludingHolidays,\r\n        DATEDIFF(SECOND, fc.LeadEntryDate, fc.FirstAnsweredTime) -\r\n            (SELECT COUNT(*) * 24 * 60 * 60 \r\n             FROM HolidayTable ht\r\n             WHERE ht.Division = fc.Division \r\n               AND ht.Holiday BETWEEN CAST(fc.LeadEntryDate AS DATE) AND CAST(fc.FirstAnsweredTime AS DATE)) AS AnsweredAgeExcludingHolidays\r\n    FROM FilteredCalls fc\r\n    LEFT JOIN FirstCallDetails fcd ON fc.LeadID = fcd.LeadID\r\n),\r\n\r\nFinalAgg AS (\r\n    SELECT \r\n        LeadID,\r\n        CustomerID,\r\n        CleanedPhone,\r\n        Division,\r\n        LeadEntryDate,\r\n        MIN(CallDateTime) AS FirstCallTime,\r\n        MAX(FirstAnsweredTime) AS FirstAnsweredTime,\r\n        MAX(FirstCallType) AS FirstCallType,\r\n        MAX(FirstCallContactID) AS FirstCallContactID,\r\n        ContactBucket,\r\n        SUM(CountableCall) AS CallsInBucket,\r\n        MAX(AnsweredAgeIncludingHolidays) AS AnsweredAgeIncludingHolidays,\r\n        MAX(AnsweredAgeExcludingHolidays) AS AnsweredAgeExcludingHolidays,\r\n        MAX(FirstCallAgeIncludingHolidays) AS FirstCallAgeIncludingHolidays,\r\n        MAX(FirstCallAgeExcludingHolidays) AS FirstCallAgeExcludingHolidays\r\n    FROM FilteredCallsWithHoliday\r\n    GROUP BY \r\n        LeadID, CustomerID, CleanedPhone, Division, LeadEntryDate, ContactBucket\r\n)\r\n\r\nSELECT \r\n    *,\r\n    CASE \r\n        WHEN ContactBucket = 'Under24' THEN '< 24 hrs'\r\n        WHEN ContactBucket = '24to48' THEN '24-48 hrs'\r\n        WHEN ContactBucket = '48to72' THEN '48-72 hrs'\r\n        WHEN ContactBucket = 'Over72' THEN '4+ days'\r\n        ELSE 'No Answered Call'\r\n    END AS FirstContactTimeBucket\r\nFROM FinalAgg\r\nORDER BY LeadEntryDate;\r\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "Truncate table EDW.SUMM_FACT_FIVE9_CALL_LOG",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "LeadID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "LeadID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CustomerID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CustomerID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CleanedPhone",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "PhoneNumber",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadEntryDate",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "LeadEntryDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "FirstCallTime",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "FirstCallTime",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "FirstAnsweredTime",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "FirstAnsweredTime",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "FirstCallType",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "CallType",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "FirstCallContactID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "CallContactID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "FirstContactTimeBucket",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ContactTimeBucket",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CallsInBucket",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "CallsInBucket",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "AnsweredAgeIncludingHolidays",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "AnsweredAgeIncludingHolidays",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AnsweredAgeExcludingHolidays",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "AnsweredAgeExcludingHolidays",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "FirstCallAgeIncludingHolidays",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "FirstCallAgeIncludingHolidays",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "FirstCallAgeExcludingHolidays",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "FirstCallAgeExcludingHolidays",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_FACT_FIVE9_CALL_LOG_ALL_NEW",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_SUMM_FACT_FIVE9_CALL_LOG",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "Temp/Akshay"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-07-17T21:11:31Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

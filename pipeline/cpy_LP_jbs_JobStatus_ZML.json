@@ -1,0 +1,515 @@
+{
+	"name": "cpy_LP_jbs_JobStatus_ZML",
+	"properties": {
+		"activities": [
+			{
+				"name": "FHI",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:30:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT \nId\t,\nDescr\t,\nisBackLog\t,\nisRestricted\t,\njsc_id\t,\nActive\t,\nSortOrder\t,\nisBacklog1\t,\nisBacklog2\t,\nisBacklog3\t,\nisBacklog4\t,\nisBacklog5\t,\nisBacklog6\t,\nisBacklog7\t,\nisBacklog8\t,\nisBacklog9\t,\nForeColor\t,\nBackColor\t,\nidpkey\t,\npor_id\t\n\n\nFROM dbo.jbs_JobStatus WITH (NOLOCK)",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE [ZML].[LP_FHI_jbs_JobStatus]",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Descr",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Descr",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "isBackLog",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "isBackLog",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "isRestricted",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "isRestricted",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "jsc_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "jsc_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Active",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "Active",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "SortOrder",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "SortOrder",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "isBacklog1",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "isBacklog1",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "isBacklog2",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "isBacklog2",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "isBacklog3",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "isBacklog3",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "isBacklog4",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "isBacklog4",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "isBacklog5",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "isBacklog5",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "isBacklog6",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "isBacklog6",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "isBacklog7",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "isBacklog7",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "isBacklog8",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "isBacklog8",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "isBacklog9",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "isBacklog9",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "ForeColor",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ForeColor",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "BackColor",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BackColor",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "idpkey",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "idpkey",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "por_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "por_id",
+									"type": "String"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_ZML_FHI_aph_AlternatePhones",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ZML_ODS_FHI_jbs_JobStatus",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "MXH",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:30:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT \nId\t,\nDescr\t,\nisBackLog\t,\nisRestricted\t,\njsc_id\t,\nActive\t,\nSortOrder\t,\nisBacklog1\t,\nisBacklog2\t,\nisBacklog3\t,\nisBacklog4\t,\nisBacklog5\t,\nisBacklog6\t,\nisBacklog7\t,\nisBacklog8\t,\nisBacklog9\t,\nForeColor\t,\nBackColor\t,\nidpkey\t,\npor_id\t\n\n\nFROM dbo.jbs_JobStatus WITH (NOLOCK)",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE [ZML].[LP_MXH_jbs_JobStatus]",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Descr",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Descr",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "isBackLog",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "isBackLog",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "isRestricted",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "isRestricted",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "jsc_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "jsc_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Active",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "Active",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "SortOrder",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "SortOrder",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "isBacklog1",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "isBacklog1",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "isBacklog2",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "isBacklog2",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "isBacklog3",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "isBacklog3",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "isBacklog4",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "isBacklog4",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "isBacklog5",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "isBacklog5",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "isBacklog6",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "isBacklog6",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "isBacklog7",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "isBacklog7",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "isBacklog8",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "isBacklog8",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "isBacklog9",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "isBacklog9",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "ForeColor",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ForeColor",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "BackColor",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BackColor",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "idpkey",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "idpkey",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "por_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "por_id",
+									"type": "String"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_ZML_MXH_aph_AlternatePhones",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ZML_ODS_MXH_jbs_JobStatus",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "Temp/Anuj/ZML/LP_to_ODS_ZML"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-11-12T10:19:57Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

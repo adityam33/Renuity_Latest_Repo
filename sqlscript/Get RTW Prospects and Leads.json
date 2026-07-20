@@ -1,0 +1,20 @@
+{
+	"name": "Get RTW Prospects and Leads",
+	"properties": {
+		"folder": {
+			"name": "DMLs/Analysis SQL/Carefree and Rite Coverage"
+		},
+		"content": {
+			"query": "SELECT\ncst.id as ProspectID\n,lds.id as LeadID\n,cst.Address1\n,cst.City\n,cst.Zip\n,cst.[State]\n,case when lds.dsp_id = 'Sale' then 'Sale' else 'No Sale' end as Disposition\n,lds.EntryDate\n,lds.gsa as GrossSaleAmount\n,zip.[Latitude] as ZipLatitude\n,zip.[Longitude] as ZipLongitude\n FROM \n [ODS].[LP_RTW_cst_Customers] cst\n ,[ODS].[LP_RTW_lds_Leads] lds\n ,[ODS].[MKTDATA_ZIP_CODES_DB_DELUXE_BUSINESS] zip\n where\n lds.cst_id = cst.id\nand cst.Zip = zip.[ZipCode]\nand zip.PrimaryRecord = 'P'\n\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

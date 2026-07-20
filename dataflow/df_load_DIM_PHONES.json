@@ -1,0 +1,396 @@
+{
+	"name": "df_load_DIM_PHONES",
+	"properties": {
+		"folder": {
+			"name": "ODS_to_EDW/DIMENSIONS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_FHI_phn_phones",
+						"type": "DatasetReference"
+					},
+					"name": "FHI",
+					"description": "Source to Fetch data from ODS Phones for FHI"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_HSI_phn_phones",
+						"type": "DatasetReference"
+					},
+					"name": "HSI",
+					"description": "Source to Fetch data from ODS Phones for HSI"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_MAC_phn_phones",
+						"type": "DatasetReference"
+					},
+					"name": "MAC",
+					"description": "Source to Fetch data from ODS Phones for MAC"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_MXH_phn_phones",
+						"type": "DatasetReference"
+					},
+					"name": "MXH",
+					"description": "Source to Fetch data from ODS Phones for MXH"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_PBC_phn_phones",
+						"type": "DatasetReference"
+					},
+					"name": "PBC",
+					"description": "Source to Fetch data from ODS Phones for PBC"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_RTW_phn_phones",
+						"type": "DatasetReference"
+					},
+					"name": "RTW",
+					"description": "Source to Fetch data from ODS Phones for RTW"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_SWR_phn_phones",
+						"type": "DatasetReference"
+					},
+					"name": "SWR",
+					"description": "Source to Fetch data from ODS  Phones for SWR"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_CTA_phn_phones",
+						"type": "DatasetReference"
+					},
+					"name": "CTA"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_DIM_PHONES",
+						"type": "DatasetReference"
+					},
+					"name": "targetDIM",
+					"description": "Load DIM_PHONES_CTA",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "selectColsFHI"
+				},
+				{
+					"name": "selectColsHSI"
+				},
+				{
+					"name": "selectColsMAC"
+				},
+				{
+					"name": "selectColsMXH"
+				},
+				{
+					"name": "selectColsPBC"
+				},
+				{
+					"name": "derivedDivisionFHI",
+					"description": "Creating/updating the columns DivisionID"
+				},
+				{
+					"name": "derivedDivisionHSI",
+					"description": "Creating/updating the columns DivisionID"
+				},
+				{
+					"name": "derivedDivisionMAC",
+					"description": "Creating/updating the columns DivisionID"
+				},
+				{
+					"name": "derivedDivisionMXH",
+					"description": "Creating/updating the columns DivisionID"
+				},
+				{
+					"name": "derivedDivisionPBC",
+					"description": "Creating/updating the columns DivisionID"
+				},
+				{
+					"name": "unionAllOpCos",
+					"description": "Combining rows from transformation 'createIDsFHI, createIDsHSI, createIDsMAC, createIDsPBC, createIDsPHI, createIDsSWR, createIDsRTW, createIDsMXH'"
+				},
+				{
+					"name": "addLastUpdatedTimestamp"
+				},
+				{
+					"name": "selectColsRTW",
+					"description": "Renaming RTW to selectColsPHI with columns 'LP_AlternatePhoneId, LP_CustomerID, Phone, LP_PhoneTypeID, CallMorning, CallAfternoon, CallEvening, CallWeekend, dnc_id, intdnc'"
+				},
+				{
+					"name": "derivedDivisionRTW",
+					"description": "Creating/updating the columns DivisionID"
+				},
+				{
+					"name": "selectColsSWR",
+					"description": "Renaming SWR to selectColsPHI with columns 'LP_AlternatePhoneId, LP_CustomerID, Phone, LP_PhoneTypeID, CallMorning, CallAfternoon, CallEvening, CallWeekend, dnc_id, intdnc'"
+				},
+				{
+					"name": "derivedDivisionSWR",
+					"description": "Creating/updating the columns DivisionID"
+				},
+				{
+					"name": "selectColsCTA"
+				},
+				{
+					"name": "derivedDivisionCTA"
+				},
+				{
+					"name": "AlterRow"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          Id as long,",
+				"          Phone as string,",
+				"          Descr as string,",
+				"          Active as integer,",
+				"          SortOrder as integer,",
+				"          srs_id as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> FHI",
+				"source(output(",
+				"          Id as long,",
+				"          Phone as string,",
+				"          Descr as string,",
+				"          Active as integer,",
+				"          SortOrder as integer,",
+				"          srs_id as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> HSI",
+				"source(output(",
+				"          Id as long,",
+				"          Phone as string,",
+				"          Descr as string,",
+				"          Active as integer,",
+				"          SortOrder as integer,",
+				"          srs_id as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> MAC",
+				"source(output(",
+				"          Id as long,",
+				"          Phone as string,",
+				"          Descr as string,",
+				"          Active as integer,",
+				"          SortOrder as integer,",
+				"          srs_id as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> MXH",
+				"source(output(",
+				"          Id as long,",
+				"          Phone as string,",
+				"          Descr as string,",
+				"          Active as integer,",
+				"          SortOrder as integer,",
+				"          srs_id as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> PBC",
+				"source(output(",
+				"          Id as long,",
+				"          Phone as string,",
+				"          Descr as string,",
+				"          Active as integer,",
+				"          SortOrder as integer,",
+				"          srs_id as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> RTW",
+				"source(output(",
+				"          Id as long,",
+				"          Phone as string,",
+				"          Descr as string,",
+				"          Active as integer,",
+				"          SortOrder as integer,",
+				"          srs_id as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> SWR",
+				"source(output(",
+				"          Id as long,",
+				"          Phone as string,",
+				"          Descr as string,",
+				"          Active as integer,",
+				"          SortOrder as integer,",
+				"          srs_id as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> CTA",
+				"FHI select(mapColumn(",
+				"          LP_PhoneId = Id,",
+				"          Phone,",
+				"          PhoneDescription = Descr,",
+				"          Active,",
+				"          SortOrder,",
+				"          LP_SubSourceID = srs_id",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColsFHI",
+				"HSI select(mapColumn(",
+				"          LP_PhoneId = Id,",
+				"          Phone,",
+				"          PhoneDescription = Descr,",
+				"          Active,",
+				"          SortOrder,",
+				"          LP_SubSourceID = srs_id",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColsHSI",
+				"MAC select(mapColumn(",
+				"          LP_PhoneId = Id,",
+				"          Phone,",
+				"          PhoneDescription = Descr,",
+				"          Active,",
+				"          SortOrder,",
+				"          LP_SubSourceID = srs_id",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColsMAC",
+				"MXH select(mapColumn(",
+				"          LP_PhoneId = Id,",
+				"          Phone,",
+				"          PhoneDescription = Descr,",
+				"          Active,",
+				"          SortOrder,",
+				"          LP_SubSourceID = srs_id",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColsMXH",
+				"PBC select(mapColumn(",
+				"          LP_PhoneId = Id,",
+				"          Phone,",
+				"          PhoneDescription = Descr,",
+				"          Active,",
+				"          SortOrder,",
+				"          LP_SubSourceID = srs_id",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColsPBC",
+				"selectColsFHI derive(Division = 'FHI') ~> derivedDivisionFHI",
+				"selectColsHSI derive(Division = 'HSI') ~> derivedDivisionHSI",
+				"selectColsMAC derive(Division = 'MAC') ~> derivedDivisionMAC",
+				"selectColsMXH derive(Division = 'MXH') ~> derivedDivisionMXH",
+				"selectColsPBC derive(Division = 'PBC') ~> derivedDivisionPBC",
+				"derivedDivisionFHI, derivedDivisionHSI, derivedDivisionMAC, derivedDivisionMXH, derivedDivisionPBC, derivedDivisionRTW, derivedDivisionSWR, derivedDivisionCTA union(byName: true)~> unionAllOpCos",
+				"unionAllOpCos derive(LastUpdatedTS = currentTimestamp(),",
+				"          SubSourceID = concat(Division,'-',toString(LP_SubSourceID)),",
+				"          PhoneID = concat(Division,'-',toString(LP_PhoneId))) ~> addLastUpdatedTimestamp",
+				"RTW select(mapColumn(",
+				"          LP_PhoneId = Id,",
+				"          Phone,",
+				"          PhoneDescription = Descr,",
+				"          Active,",
+				"          SortOrder,",
+				"          LP_SubSourceID = srs_id",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColsRTW",
+				"selectColsRTW derive(Division = 'RTW') ~> derivedDivisionRTW",
+				"SWR select(mapColumn(",
+				"          LP_PhoneId = Id,",
+				"          Phone,",
+				"          PhoneDescription = Descr,",
+				"          Active,",
+				"          SortOrder,",
+				"          LP_SubSourceID = srs_id",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColsSWR",
+				"selectColsSWR derive(Division = 'SWR') ~> derivedDivisionSWR",
+				"CTA select(mapColumn(",
+				"          LP_PhoneId = Id,",
+				"          Phone,",
+				"          PhoneDescription = Descr,",
+				"          Active,",
+				"          SortOrder,",
+				"          LP_SubSourceID = srs_id",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColsCTA",
+				"selectColsCTA derive(Division = 'CTA') ~> derivedDivisionCTA",
+				"addLastUpdatedTimestamp alterRow(upsertIf(true())) ~> AlterRow",
+				"AlterRow sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          PhoneId as string,",
+				"          Phone as string,",
+				"          PhoneDescription as string,",
+				"          Active as integer,",
+				"          SortOrder as integer,",
+				"          SubSourceID as string,",
+				"          LP_SubSourceID as integer,",
+				"          LP_PhoneId as integer,",
+				"          Division as string,",
+				"          LastUpdatedTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['PhoneId'],",
+				"     format: 'table',",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          LP_PhoneId,",
+				"          Phone,",
+				"          PhoneDescription,",
+				"          Active,",
+				"          SortOrder,",
+				"          LP_SubSourceID,",
+				"          Division,",
+				"          LastUpdatedTS,",
+				"          SubSourceID,",
+				"          PhoneId = PhoneID",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> targetDIM"
+			]
+		}
+	}
+}

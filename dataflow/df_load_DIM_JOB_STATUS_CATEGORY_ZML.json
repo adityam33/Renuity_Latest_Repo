@@ -1,0 +1,107 @@
+{
+	"name": "df_load_DIM_JOB_STATUS_CATEGORY_ZML",
+	"properties": {
+		"folder": {
+			"name": "ZML_ODS_to_EDW/DIMENSIONS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ZML_ODS_FHI_jsc_JobStatusCategory",
+						"type": "DatasetReference"
+					},
+					"name": "FHI"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_DIM_JOB_STATUS_CATEGORY_ZML",
+						"type": "DatasetReference"
+					},
+					"name": "targetDim",
+					"description": "Export data to EDW_DIM_JOB_STATUS_CATEGORY",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "addOpCoNameFHI"
+				},
+				{
+					"name": "unionAllOpCos"
+				},
+				{
+					"name": "derivedColumns"
+				},
+				{
+					"name": "selectRenameColumns"
+				},
+				{
+					"name": "AlterRow"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          id as integer,",
+				"          Descr as string,",
+				"          Active as boolean,",
+				"          SortOrder as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> FHI",
+				"FHI derive(Division = 'FHI') ~> addOpCoNameFHI",
+				"addOpCoNameFHI union(byName: true)~> unionAllOpCos",
+				"selectRenameColumns derive(LastUpdateTS = currentTimestamp(),",
+				"          JobStatusCategoryID = concat(Division,'-',toString(LP_JobStatusCategoryID))) ~> derivedColumns",
+				"unionAllOpCos select(mapColumn(",
+				"          LP_JobStatusCategoryID = id,",
+				"          JobStatusCategory = Descr,",
+				"          Active,",
+				"          Division",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectRenameColumns",
+				"derivedColumns alterRow(upsertIf(true())) ~> AlterRow",
+				"AlterRow sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          JobStatusCategoryID as string,",
+				"          JobStatusCategory as string,",
+				"          Active as boolean,",
+				"          LP_JobStatusCategoryID as integer,",
+				"          Division as string,",
+				"          LastUpdateTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['JobStatusCategoryID'],",
+				"     format: 'table',",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          LP_JobStatusCategoryID,",
+				"          JobStatusCategory,",
+				"          Active,",
+				"          Division,",
+				"          LastUpdateTS,",
+				"          JobStatusCategoryID",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> targetDim"
+			]
+		}
+	}
+}

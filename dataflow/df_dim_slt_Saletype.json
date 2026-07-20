@@ -1,0 +1,307 @@
+{
+	"name": "df_dim_slt_Saletype",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "LP_ODS_FHI_slt_SalesTypes",
+						"type": "DatasetReference"
+					},
+					"name": "FHI"
+				},
+				{
+					"dataset": {
+						"referenceName": "LP_ODS_SWR_slt_SalesTypes",
+						"type": "DatasetReference"
+					},
+					"name": "SWR"
+				},
+				{
+					"dataset": {
+						"referenceName": "LP_ODS_MAC_slt_SalesTypes",
+						"type": "DatasetReference"
+					},
+					"name": "MAC"
+				},
+				{
+					"dataset": {
+						"referenceName": "LP_ODS_PBC_slt_SalesTypes",
+						"type": "DatasetReference"
+					},
+					"name": "PBC"
+				},
+				{
+					"dataset": {
+						"referenceName": "LP_ODS_RTW_slt_SalesTypes",
+						"type": "DatasetReference"
+					},
+					"name": "RTW"
+				},
+				{
+					"dataset": {
+						"referenceName": "LP_ODS_MXH_slt_SalesTypes",
+						"type": "DatasetReference"
+					},
+					"name": "MXH"
+				},
+				{
+					"dataset": {
+						"referenceName": "LP_ODS_CTA_slt_SalesTypes",
+						"type": "DatasetReference"
+					},
+					"name": "CTA"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_DIM_slt_SalesType",
+						"type": "DatasetReference"
+					},
+					"name": "sink1",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "selectColFHI"
+				},
+				{
+					"name": "selectColSWR"
+				},
+				{
+					"name": "selectColMAC"
+				},
+				{
+					"name": "selectColPBC"
+				},
+				{
+					"name": "selectColRTW"
+				},
+				{
+					"name": "selectColMXH"
+				},
+				{
+					"name": "selectColCTA"
+				},
+				{
+					"name": "createDsFHI"
+				},
+				{
+					"name": "createDsSWR"
+				},
+				{
+					"name": "createDsMAC"
+				},
+				{
+					"name": "createDsPBC"
+				},
+				{
+					"name": "createDsRTW"
+				},
+				{
+					"name": "createDsMXH"
+				},
+				{
+					"name": "createDsCTA"
+				},
+				{
+					"name": "union1"
+				},
+				{
+					"name": "select1"
+				},
+				{
+					"name": "AlterRow1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          id as integer,",
+				"          descr as string,",
+				"          Active as boolean,",
+				"          SortOrder as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> FHI",
+				"source(output(",
+				"          id as integer,",
+				"          descr as string,",
+				"          Active as boolean,",
+				"          SortOrder as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> SWR",
+				"source(output(",
+				"          id as integer,",
+				"          descr as string,",
+				"          Active as boolean,",
+				"          SortOrder as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> MAC",
+				"source(output(",
+				"          id as integer,",
+				"          descr as string,",
+				"          Active as boolean,",
+				"          SortOrder as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> PBC",
+				"source(output(",
+				"          id as integer,",
+				"          descr as string,",
+				"          Active as boolean,",
+				"          SortOrder as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> RTW",
+				"source(output(",
+				"          id as integer,",
+				"          descr as string,",
+				"          Active as boolean,",
+				"          SortOrder as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> MXH",
+				"source(output(",
+				"          id as integer,",
+				"          descr as string,",
+				"          Active as boolean,",
+				"          SortOrder as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> CTA",
+				"FHI select(mapColumn(",
+				"          LP_SaleTypeID = id,",
+				"          descr,",
+				"          Active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColFHI",
+				"SWR select(mapColumn(",
+				"          LP_SaleTypeID = id,",
+				"          descr,",
+				"          Active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColSWR",
+				"MAC select(mapColumn(",
+				"          LP_SaleTypeID = id,",
+				"          descr,",
+				"          Active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColMAC",
+				"PBC select(mapColumn(",
+				"          LP_SaleTypeID = id,",
+				"          descr,",
+				"          Active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColPBC",
+				"RTW select(mapColumn(",
+				"          LP_SaleTypeID = id,",
+				"          descr,",
+				"          Active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColRTW",
+				"MXH select(mapColumn(",
+				"          LP_SaleTypeID = id,",
+				"          descr,",
+				"          Active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColMXH",
+				"CTA select(mapColumn(",
+				"          LP_SaleTypeID = id,",
+				"          descr,",
+				"          Active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColCTA",
+				"selectColFHI derive(SaleTypeID = concat('FHI-', toString(LP_SaleTypeID)),",
+				"          Division = 'FHI',",
+				"          LastUpdateTS = currentTimestamp()) ~> createDsFHI",
+				"selectColSWR derive(SaleTypeID = concat('SWR-', toString(LP_SaleTypeID)),",
+				"          Division = 'SWR',",
+				"          LastUpdateTS = currentTimestamp()) ~> createDsSWR",
+				"selectColMAC derive(SaleTypeID = concat('MAC-', toString(LP_SaleTypeID)),",
+				"          Division = 'MAC',",
+				"          LastUpdateTS = currentTimestamp()) ~> createDsMAC",
+				"selectColPBC derive(SaleTypeID = concat('PBC-', toString(LP_SaleTypeID)),",
+				"          Division = 'PBC',",
+				"          LastUpdateTS = currentTimestamp()) ~> createDsPBC",
+				"selectColRTW derive(SaleTypeID = concat('RTW-', toString(LP_SaleTypeID)),",
+				"          Division = 'RTW',",
+				"          LastUpdateTS = currentTimestamp()) ~> createDsRTW",
+				"selectColMXH derive(SaleTypeID = concat('MXH-', toString(LP_SaleTypeID)),",
+				"          Division = 'MXH',",
+				"          LastUpdateTS = currentTimestamp()) ~> createDsMXH",
+				"selectColCTA derive(SaleTypeID = concat('CTA-', toString(LP_SaleTypeID)),",
+				"          Division = 'CTA',",
+				"          LastUpdateTS = currentTimestamp()) ~> createDsCTA",
+				"createDsFHI, createDsSWR, createDsMAC, createDsPBC, createDsRTW, createDsMXH, createDsCTA union(byName: true)~> union1",
+				"union1 select(mapColumn(",
+				"          SaleTypeID,",
+				"          descr,",
+				"          Active,",
+				"          LP_SaleTypeID,",
+				"          Division,",
+				"          LastUpdateTS",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"select1 alterRow(upsertIf(true())) ~> AlterRow1",
+				"AlterRow1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['SaleTypeID'],",
+				"     format: 'table',",
+				"     staged: true,",
+				"     allowCopyCommand: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          SaleTypeID,",
+				"          descr,",
+				"          Active,",
+				"          LP_SaleTypeID,",
+				"          Division,",
+				"          LastUpdateTS",
+				"     )) ~> sink1"
+			]
+		}
+	}
+}

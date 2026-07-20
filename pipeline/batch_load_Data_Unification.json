@@ -1,0 +1,219 @@
+{
+	"name": "batch_load_Data_Unification",
+	"properties": {
+		"activities": [
+			{
+				"name": "Execute Pipeline STG Landing",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Re-process_LatestAppRules",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "UNI_STG_LANDING_Load",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Execute Pipeline REF Mapping Load",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute Pipeline STG Landing",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "UNI_REF_MAPPING_RuleMatch_Load",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "DF Unification File Archive",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "Execute Pipeline EXTN Load",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "DF_UNI_REF_MAPPING_Archive",
+						"type": "DataFlowReference",
+						"parameters": {
+							"FolderName": "TableName"
+						}
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdctestanuj/Anuj_Test"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "Execute Pipeline EXTN Load",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "REF Mapping UPD - Rules for SCD Type2",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "UNI_EXTN_Tables_Load",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "REF Mapping UPD - Rules for SCD Type2",
+				"description": "Update SCD Type 2 Rules for Historic data in Ref Mapping table",
+				"type": "SqlPoolStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "Manual Updates",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.6:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"sqlPool": {
+					"referenceName": "rdc_sqlpool_prod",
+					"type": "SqlPoolReference"
+				},
+				"typeProperties": {
+					"storedProcedureName": "[EDW_DUN].[SP_UNI_REF_MAPPING_HIST_UPD_SCD2]",
+					"storedProcedureParameters": {
+						"Source": {
+							"value": {
+								"value": "LP",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				}
+			},
+			{
+				"name": "Manual Updates",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Execute Pipeline REF Mapping Load",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "UPDATE EDW_DUN.UNI_REF_MAPPING \nSET MatchType='EXACT',\nUnifiedValue='Wind/Doors',\nUnifiedValue_Group='Other',\nMappingInd='MAPPED',\nCreatedByProcess = 'Manual Process Load',\nLastUpdatedTS=GETDATE()\nWHERE TableName='DIM_PRODUCT'\nAND TablePK_EDW IN ('FHI-1','PHI-1','RTW-1');\n\n\n\nUPDATE EDW_DUN.UNI_REF_MAPPING \nSET MatchType='EXACT',\nUnifiedValue='Bath',\nUnifiedValue_Group='Other',\nMappingInd='MAPPED',\nCreatedByProcess = 'Manual Process Load',\nLastUpdatedTS=GETDATE()\nWHERE TableName='DIM_PRODUCT'\nAND TablePK_EDW IN ('HSI-1','MAC-1','MXH-1','PBC-1');\n\n\n\n\nUPDATE EDW_DUN.UNI_REF_MAPPING \nSET MatchType='EXACT',\nUnifiedValue='Closet',\nUnifiedValue_Group='Closet',\nMappingInd='MAPPED',\nCreatedByProcess = 'Manual Process Load',\nLastUpdatedTS=GETDATE()\nWHERE TableName='DIM_PRODUCT'\nAND TablePK_EDW IN ('CTA-2');"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Re-process_LatestAppRules",
+				"type": "Script",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "UPDATE [EDW_DUN].[UNI_REF_MAPPING] SET MappingInd='UNMAPPED'\nWHERE UNI_RuleID IN \n(\n\tSELECT DISTINCT A.UNI_RuleID FROM [EDW_DUN].[UNI_RULEBOOK_XREF] A\n\tJOIN \n\t(\n\tSELECT * FROM [EDW_DUN].[UNI_RULEBOOK_XREF] \n\tWHERE CreatedTS>=GETDATE()-5\n\t) M1\n\tON \t\n\t A.TableName\t\t\t= M1.TableName\n\tAND A.TableColumnName\t= M1.TableColumnName\t\n\tAND A.MatchType\t\t\t= M1.MatchType\n\tAND A.RuleValue\t\t\t= M1.RuleValue\n\t\t);"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/DIMENSIONS/Unification"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-03-05T05:56:17Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

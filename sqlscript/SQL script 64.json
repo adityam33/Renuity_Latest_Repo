@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 64",
+	"properties": {
+		"content": {
+			"query": "SELECT TOP (100) [CalendarDate]\n,[DayOfWeek]\n,[Month]\n,[Quarter]\n,[Year]\n FROM [EDW].[DIM_CALENDAR]\n where year([CalendarDate]) in ('2024','2025')\n order by [CalendarDate] \n\n\n select * from (select * ,\n row_number() over (partition by year,month order by calendardate) as bussiness_day\n  from  [EDW].[DIM_CALENDAR]\n where dayofweek not in(1,7)) t1\n where t1. bussiness_day = 2\n and year = 2024\n order by calendardate desc",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

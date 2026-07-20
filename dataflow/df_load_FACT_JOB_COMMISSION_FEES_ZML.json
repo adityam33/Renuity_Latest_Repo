@@ -1,0 +1,139 @@
+{
+	"name": "df_load_FACT_JOB_COMMISSION_FEES_ZML",
+	"properties": {
+		"folder": {
+			"name": "ODS_to_EDW/FACTS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ODS_DYN_TGT_TBL",
+						"type": "DatasetReference"
+					},
+					"name": "FHI"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_FACT_JOB_COMMISSION_FEES_ZML",
+						"type": "DatasetReference"
+					},
+					"name": "targetFact",
+					"description": "Export data to EDW_FACT_COMMISSION",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "addOpCoNameFHI"
+				},
+				{
+					"name": "unionAllOpCos"
+				},
+				{
+					"name": "selectRenameColumns"
+				},
+				{
+					"name": "derivedColumns"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          id as integer,",
+				"          job_id as integer,",
+				"          bookvalue as decimal(19,4),",
+				"          adminfee as decimal(19,4),",
+				"          bankchop as decimal(19,4),",
+				"          promochop as decimal(19,4),",
+				"          enteredby as integer,",
+				"          enteredon as timestamp,",
+				"          updatedby as integer,",
+				"          updatedon as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> FHI",
+				"FHI derive(Division = 'FHI') ~> addOpCoNameFHI",
+				"addOpCoNameFHI union(byName: true)~> unionAllOpCos",
+				"unionAllOpCos select(mapColumn(",
+				"          LP_JobCommisionFeeId = id,",
+				"          LP_JobId = job_id,",
+				"          bookvalue,",
+				"          adminfee,",
+				"          bankchop,",
+				"          promochop,",
+				"          LP_enteredby = enteredby,",
+				"          enteredon,",
+				"          LP_updatedby = updatedby,",
+				"          updatedon,",
+				"          Division",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectRenameColumns",
+				"selectRenameColumns derive(LastUpdateTS = currentTimestamp(),",
+				"          JobCommissionFeeID = concat(Division,'-',toString(LP_JobCommisionFeeId)),",
+				"          JobID = concat(Division,'-',toString(LP_JobId)),",
+				"          EnteredBy = concat(Division,'-',toString(LP_enteredby)),",
+				"          UpdatedBy = concat(Division,'-',toString(LP_updatedby))) ~> derivedColumns",
+				"derivedColumns sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          JobCommissionFeeID as string,",
+				"          JobId as string,",
+				"          BookValue as decimal(19,4),",
+				"          Adminfee as decimal(19,4),",
+				"          Bankchop as decimal(19,4),",
+				"          Promochop as decimal(19,4),",
+				"          EnteredBy as string,",
+				"          EnteredOn as timestamp,",
+				"          UpdatedBy as string,",
+				"          UpdatedOn as timestamp,",
+				"          LP_JobCommissionFeeID as integer,",
+				"          LP_JobId as integer,",
+				"          LP_EnteredBy as integer,",
+				"          LP_UpdatedBy as integer,",
+				"          Division as string,",
+				"          LastUpdatedTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     truncate:true,",
+				"     format: 'table',",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          JobCommissionFeeID,",
+				"          JobId = JobID,",
+				"          BookValue = bookvalue,",
+				"          Adminfee = adminfee,",
+				"          Bankchop = bankchop,",
+				"          Promochop = promochop,",
+				"          EnteredBy,",
+				"          EnteredOn = enteredon,",
+				"          UpdatedBy,",
+				"          UpdatedOn = updatedon,",
+				"          LP_JobCommissionFeeID = LP_JobCommisionFeeId,",
+				"          LP_JobId,",
+				"          LP_EnteredBy = LP_enteredby,",
+				"          LP_UpdatedBy = LP_updatedby,",
+				"          Division,",
+				"          LastUpdatedTS = LastUpdateTS",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> targetFact"
+			]
+		}
+	}
+}

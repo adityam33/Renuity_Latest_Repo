@@ -1,0 +1,104 @@
+{
+	"name": "df_load_DIM_CALL_TYPE_ZML",
+	"properties": {
+		"folder": {
+			"name": "ZML_ODS_to_EDW/DIMENSIONS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ZML_ODS_FHI_cty_CallTypes",
+						"type": "DatasetReference"
+					},
+					"name": "FHI"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_DIM_CALL_TYPE_ZML",
+						"type": "DatasetReference"
+					},
+					"name": "targetDim",
+					"description": "Export data to EDW_DIM_CALL_TYPE",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "selectColsFHI"
+				},
+				{
+					"name": "createIDsFHI"
+				},
+				{
+					"name": "unionAllOpCos"
+				},
+				{
+					"name": "addLastUpdateTimestamp"
+				},
+				{
+					"name": "AlterRow"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          ID as string,",
+				"          Descr as string,",
+				"          SortOrder as integer,",
+				"          idpkey as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> FHI",
+				"FHI select(mapColumn(",
+				"          LP_CallTypeID = ID,",
+				"          CallType = Descr",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColsFHI",
+				"selectColsFHI derive(CallTypeID = concat('FHI-',toString(LP_CallTypeID)),",
+				"          Division = 'FHI') ~> createIDsFHI",
+				"createIDsFHI union(byName: true)~> unionAllOpCos",
+				"unionAllOpCos derive(LastUpdateTS = currentTimestamp()) ~> addLastUpdateTimestamp",
+				"addLastUpdateTimestamp alterRow(upsertIf(true())) ~> AlterRow",
+				"AlterRow sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          CallTypeID as string,",
+				"          CallType as string,",
+				"          LP_CallTypeID as string,",
+				"          Division as string,",
+				"          UNI_CallType as string,",
+				"          LastUpdateTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['CallTypeID'],",
+				"     format: 'table',",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          LP_CallTypeID,",
+				"          CallType,",
+				"          CallTypeID,",
+				"          Division,",
+				"          LastUpdateTS",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> targetDim"
+			]
+		}
+	}
+}

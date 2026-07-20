@@ -1,0 +1,797 @@
+{
+	"name": "ODS_Employee_WBR",
+	"properties": {
+		"activities": [
+			{
+				"name": "If Condition File exist",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Set variable Latest FIle",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@greater(length(activity('Filter_Latest_File').output.value), 0)",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "cpy_Employee_WBR",
+							"type": "Copy",
+							"state": "Active",
+							"onInactiveMarkAs": "Succeeded",
+							"dependsOn": [
+								{
+									"activity": "Get Last Updated Date",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 1,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"additionalColumns": [
+										{
+											"name": "ReportDate",
+											"value": {
+												"value": "@utcnow()",
+												"type": "Expression"
+											}
+										}
+									],
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": true,
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
+								},
+								"sink": {
+									"type": "SqlDWSink",
+									"preCopyScript": "TRUNCATE TABLE  [ODS].[ADP_EMPLOYEE_WBR]",
+									"writeBehavior": "Insert",
+									"sqlWriterUseTableLock": false,
+									"disableMetricsCollection": false
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"mappings": [
+										{
+											"source": {
+												"name": "Payroll Company Code",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "PayrollCompanyCode",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Division",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "Division",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Associate ID",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "AssociateID",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Legal Last Name",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "LastName",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Legal First Name",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "FirstName",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Home Department Description",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "HomeDepartmentDesc",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Location Description",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "LocationDesc",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Sub Location",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "SubLocation",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Sub Department",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "SubDept",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Business Unit Description",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "BusinessUnitDesc",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Job Title Description",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "JobTitleDesc",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Termination Reason Description",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "TerminationReasonDesc",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Termination Date",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "TerminationDate",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Hire Date",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "HireDate",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Position Status",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "PositionStatus",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Recruiter",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "Recruiter",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "FLSA Description",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "FLSA_Desc",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Race Description",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "Race_Desc",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Worker Category Description",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "WorkerCategoryDesc",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Gender / Sex (Self-ID)",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "Gender",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Primary Address: City",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "City",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Primary Address: State / Territory Code",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "State",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Reports To Legal Name",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "ReportsToName",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Reports To Job Title Description",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "ReportsToJobTitleDesc",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Reports To Associate ID",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "ReportsToAssociateID",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Position ID",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "PositionID",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Hire/Rehire Date",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "Hire_Rehire_Date",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Birth Date",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "BirthDate",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "ReportDate",
+												"type": "String"
+											},
+											"sink": {
+												"name": "ReportDate",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Is this employee eligible for rehire",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "EmployeeEligibleForRehire",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Rehire Date",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "RehireDate",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Rehire eligibility Comments",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "Rehire_EligibilityComments",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Rehire Reason Description",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "Rehire_ReasonDescription",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Work Contact: Work Email",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "WorkEmail",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Personal Contact: Personal Email",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "PersonalEmail",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Years of Service",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "YearsOfService",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										}
+									],
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "SRC_Employee_WBR",
+									"type": "DatasetReference",
+									"parameters": {
+										"p_FileName": "@variables('FileName')"
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ODS_ADP_EMPLOYEE_WBR",
+									"type": "DatasetReference"
+								}
+							]
+						},
+						{
+							"name": "Archive files",
+							"type": "Copy",
+							"state": "Inactive",
+							"onInactiveMarkAs": "Succeeded",
+							"dependsOn": [
+								{
+									"activity": "cpy_Employee_WBR",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": false,
+										"wildcardFolderPath": "in",
+										"wildcardFileName": "*WBR*.csv",
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "SRC_Employee_WBR",
+									"type": "DatasetReference",
+									"parameters": {
+										"p_FileName": "@variables('FileName')"
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "Employee_WBR_Arch",
+									"type": "DatasetReference",
+									"parameters": {
+										"FileName": {
+											"value": "@concat(\n  'WBR_',\n  formatDateTime(utcNow(), 'yyyyMMdd_HHmmss')\n)\n",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "Delete",
+							"type": "Delete",
+							"dependsOn": [
+								{
+									"activity": "Archive files",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "SRC_Employee_WBR",
+									"type": "DatasetReference",
+									"parameters": {
+										"p_FileName": "@variables('FileName')"
+									}
+								},
+								"enableLogging": false,
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": false,
+									"wildcardFileName": "*WBR*.csv",
+									"enablePartitionDiscovery": false
+								}
+							}
+						},
+						{
+							"name": "Get Last Updated Date",
+							"type": "GetMetadata",
+							"dependsOn": [
+								{
+									"activity": "Set variable_FileName",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.6:00:00",
+								"retry": 1,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "SRC_Employee_WBR",
+									"type": "DatasetReference",
+									"parameters": {
+										"p_FileName": "@variables('FileName')"
+									}
+								},
+								"fieldList": [
+									"lastModified"
+								],
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							}
+						},
+						{
+							"name": "Set variable_FileName",
+							"type": "SetVariable",
+							"state": "Inactive",
+							"onInactiveMarkAs": "Succeeded",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "FileName",
+								"value": {
+									"value": "@activity('Filter_Latest_File').output.value[0].name\n",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Check file Name",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.6:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "ADP_In_Files",
+						"type": "DatasetReference"
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "DelimitedTextReadSettings"
+					}
+				}
+			},
+			{
+				"name": "Filter_Latest_File",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "Check file Name",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Check file Name').output.childItems",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@and(\n  equals(item().type, 'File'),\n  contains(item().name, 'WBR')\n)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Set variable Latest FIle",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Filter_Latest_File",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "FileName",
+					"value": {
+						"value": "@if(\n  greater(length(activity('Filter_Latest_File').output.value), 0),\n  last(activity('Filter_Latest_File').output.value).name,\n  ''\n)\n",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"variables": {
+			"FileName": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "ADP_Employee"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-02-12T14:12:55Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

@@ -1,0 +1,126 @@
+{
+	"name": "batch_out_EmployeeList_SRMax",
+	"properties": {
+		"activities": [
+			{
+				"name": "SR MAX Out",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:30:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "Select  FirstName, LastName, EmployeeId, LocationDesc as BranchLocation, LocationCode, \r\ncase when LocationCode in ('120','068','083','111','118','RENNC','RENG') then 'Y' else 'N' end as [Soft Toe]\r\nfrom EDW.DIM_HR_employee \r\nwhere PositionStatus='Active' and CurrentRecordflag='Y'\r\nand locationCode not in ('029','042','044','045','058','072')\r\nand JobTitleDescription  in (\r\n'Manager, Regional Operations',\r\n'Trainer, Install',\r\n'Chief Operating Officer',\r\n'Associate Garage Installer',\r\n'Bath Lead',\r\n'Bath Tech',\r\n'Drywall Finisher',\r\n'Finalization Team Supervisor',\r\n'In-House Labor',\r\n'In-House Service & Installation',\r\n'Installation Helper',\r\n'Installation Manager',\r\n'Installer',\r\n'Inventory Coordinator',\r\n'Kitchen Lead',\r\n'Kitchen Tech',\r\n'Lead Garage Installer',\r\n'Master Electrician',\r\n'Nested Router Cell Lead',\r\n'Pack-out Cell Lead',\r\n'Production Control Associate',\r\n'Senior Installer',\r\n'Service Lead',\r\n'Service Tech',\r\n'Shift Manager',\r\n'Shop Worker',\r\n'Training Lead',\r\n'Warehouse Associate',\r\n'Warehouse',\r\n'Window Lead',\r\n'Window Tech',\r\n'Measure Tech',\r\n'Journeyman Plumber',\r\n'Master Plumber',\r\n'Director of Training',\r\n'Field Manager',\r\n'Installation Trainer',\r\n'Assistant Production Manager',\r\n'Baths Installation Manager',\r\n'Baths Production Manager',\r\n'Branch Manager',\r\n'Chief Operating Officer',\r\n'Construction Specialist',\r\n'Director of Installation',\r\n'Director of Manufacturing',\r\n'Director of Operations',\r\n'Division Director, Operations',\r\n'Division VP, Operations',\r\n'Engineer',\r\n'Engineering Manager',\r\n'Facilities Manager',\r\n'Field Manager',\r\n'Field Supervisor',\r\n'General Operations Manager',\r\n'Install Support Assistant',\r\n'Installation Manager',\r\n'Installation Process Manager',\r\n'Installer Onboarding Coordinator',\r\n'Measure Tech Manager',\r\n'Operations',\r\n'Operations Assistant',\r\n'Operations Assistant Manager',\r\n'Operations Manager',\r\n'Operations Manager: Fort Lauderdale',\r\n'Plumbing Manager',\r\n'Procurement Tech',\r\n'Production Assistant',\r\n'Production Control Associate',\r\n'Production Coordinator',\r\n'Production Manager',\r\n'Regional Operations Manager',\r\n'Regional Production Manager',\r\n'Roofing Field Manager',\r\n'Safety & Fleet Specialist',\r\n'Senior Field Supervisor',\r\n'Senior Manager, Engineering & Manufacturing',\r\n'Shop Maintenance Associate',\r\n'Sr. Manager, Operations',\r\n'Supply Chain Manager',\r\n'SVP, Operations',\r\n'Technical Reviewer',\r\n'Territory Operations Manager',\r\n'VP of Operations',\r\n'Windows Production Manager',\r\n'Director, Safety and Fleet',\r\n'Division Director, Safety',\r\n'Sr. Associate, Regional EHS',\r\n'Service Assistant',\r\n'Service Coordinator',\r\n'Service Lead',\r\n'Service Manager',\r\n'Service Team Lead',\r\n'Service Tech',\r\n'Inventory Manager',\r\n'Lead, National Supply Chain',\r\n'Manager, Warehouse Operations',\r\n'Regional Delivery Driver',\r\n'Warehouse',\r\n'Warehouse Assistant Manager',\r\n'Warehouse Coordinator',\r\n'Warehouse Lead',\r\n'Warehouse Manager',\r\n'Warehouse Supervisor'\r\n);\r\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "SftpWriteSettings",
+							"operationTimeout": "01:00:00",
+							"useTempFileRename": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_DIM_BRANCH",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "TGT_SR_MAX_EmployeeList_OUT",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Archive",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "SR MAX Out",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:30:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "Select  FirstName, LastName, EmployeeId, LocationDesc as BranchLocation, LocationCode, \ncase when LocationCode in ('120','068','083','111','118','RENNC','RENG') then 'Y' else 'N' end as [Soft Toe]\nfrom EDW.DIM_HR_employee \nwhere PositionStatus='Active' and CurrentRecordflag='Y'\nand locationCode not in ('029','042','044','045','058','072')\nand JobTitleDescription  in (\n'Chief Operating Officer',\n'Associate Garage Installer',\n'Bath Lead',\n'Bath Tech',\n'Drywall Finisher',\n'Finalization Team Supervisor',\n'In-House Labor',\n'In-House Service & Installation',\n'Installation Helper',\n'Installation Manager',\n'Installer',\n'Inventory Coordinator',\n'Kitchen Lead',\n'Kitchen Tech',\n'Lead Garage Installer',\n'Master Electrician',\n'Nested Router Cell Lead',\n'Pack-out Cell Lead',\n'Production Control Associate',\n'Senior Installer',\n'Service Lead',\n'Service Tech',\n'Shift Manager',\n'Shop Worker',\n'Training Lead',\n'Warehouse Associate',\n'Warehouse',\n'Window Lead',\n'Window Tech',\n'Measure Tech',\n'Journeyman Plumber',\n'Master Plumber',\n'Director of Training',\n'Field Manager',\n'Installation Trainer',\n'Assistant Production Manager',\n'Baths Installation Manager',\n'Baths Production Manager',\n'Branch Manager',\n'Chief Operating Officer',\n'Construction Specialist',\n'Director of Installation',\n'Director of Manufacturing',\n'Director of Operations',\n'Division Director, Operations',\n'Division VP, Operations',\n'Engineer',\n'Engineering Manager',\n'Facilities Manager',\n'Field Manager',\n'Field Supervisor',\n'General Operations Manager',\n'Install Support Assistant',\n'Installation Manager',\n'Installation Process Manager',\n'Installer Onboarding Coordinator',\n'Measure Tech Manager',\n'Operations',\n'Operations Assistant',\n'Operations Assistant Manager',\n'Operations Manager',\n'Operations Manager: Fort Lauderdale',\n'Plumbing Manager',\n'Procurement Tech',\n'Production Assistant',\n'Production Control Associate',\n'Production Coordinator',\n'Production Manager',\n'Regional Operations Manager',\n'Regional Production Manager',\n'Roofing Field Manager',\n'Safety & Fleet Specialist',\n'Senior Field Supervisor',\n'Senior Manager, Engineering & Manufacturing',\n'Shop Maintenance Associate',\n'Sr. Manager, Operations',\n'Supply Chain Manager',\n'SVP, Operations',\n'Technical Reviewer',\n'Territory Operations Manager',\n'VP of Operations',\n'Windows Production Manager',\n'Director, Safety and Fleet',\n'Division Director, Safety',\n'Sr. Associate, Regional EHS',\n'Service Assistant',\n'Service Coordinator',\n'Service Lead',\n'Service Manager',\n'Service Team Lead',\n'Service Tech',\n'Inventory Manager',\n'Lead, National Supply Chain',\n'Manager, Warehouse Operations',\n'Regional Delivery Driver',\n'Warehouse',\n'Warehouse Assistant Manager',\n'Warehouse Coordinator',\n'Warehouse Lead',\n'Warehouse Manager',\n'Warehouse Supervisor'\n);\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_DIM_BRANCH",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "TGT_SRMAX_Blob",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "RDC_to_SRMax"
+		},
+		"annotations": []
+	}
+}

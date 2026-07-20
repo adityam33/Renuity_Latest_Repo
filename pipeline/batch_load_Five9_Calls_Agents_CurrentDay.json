@@ -1,0 +1,173 @@
+{
+	"name": "batch_load_Five9_Calls_Agents_CurrentDay",
+	"properties": {
+		"activities": [
+			{
+				"name": "Execute Pipeline_Five9AgentLogins",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_Five9_Agent_Login_Timeouts_CurrentDay",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Execute Pipeline_Five9Calls",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_Five9_Renuity_Call_Logs_CurrentDay",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_Five9_Agent_State_Summary",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_Five9_Agent_State_Summary_CurrentDay",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "ScriptToCheckEDWLoadCompleted",
+				"description": "This script checks if EDW load completed for few FACT, DIM tables which is used in SP_FACT_FIVE9_CALL_ALL_CURRDAY_UPD",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Execute Pipeline_Five9AgentLogins",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Execute Pipeline_Five9Calls",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "cpy_Five9_Agent_State_Summary",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.0:10:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "IF OBJECT_ID('tempdb..#T_Fact_lead') IS NOT NULL  DROP TABLE #T_Fact_lead\t\t\t;\nIF OBJECT_ID('tempdb..#T_Dim_Customer') IS NOT NULL  DROP TABLE #T_Dim_Customer\t\t;\nIF OBJECT_ID('tempdb..#T_DIM_Product') IS NOT NULL  DROP TABLE #T_DIM_Product\t\t\t;\nIF OBJECT_ID('tempdb..#T_Dim_LeadSubsource') IS NOT NULL  DROP TABLE #T_Dim_LeadSubsource\t;\nIF OBJECT_ID('tempdb..#T_Dim_Disposition') IS NOT NULL  DROP TABLE #T_Dim_Disposition\t\t;\nIF OBJECT_ID('tempdb..#T_Dim_Branch') IS NOT NULL  DROP TABLE #T_Dim_Branch\t\t\t;\nIF OBJECT_ID('tempdb..#T_Dim_CallResult') IS NOT NULL  DROP TABLE #T_Dim_CallResult \t\t;\n\n\n\nWith ODS AS\n(\nSELECT count(*) ODS_RecordsCount, 'FHI' as Division FROM ODS.LP_FHI_lds_leads Union all \nSELECT count(*) ODS_RecordsCount, 'RTW' as Division FROM ODS.LP_RTW_lds_leads Union all \nSELECT count(*) ODS_RecordsCount, 'PBC' as Division FROM ODS.LP_PBC_lds_leads Union all \nSELECT count(*) ODS_RecordsCount, 'MAC' as Division FROM ODS.LP_MAC_lds_leads Union all \nSELECT count(*) ODS_RecordsCount, 'MXH' as Division FROM ODS.LP_MXH_lds_leads Union all \nSELECT count(*) ODS_RecordsCount, 'CTA' as Division FROM ODS.LP_CTA_lds_leads Union all \nSELECT count(*) ODS_RecordsCount, 'SWR' as Division FROM ODS.LP_SWR_lds_leads \n)\nSelect Distinct 'FACT_Lead' as Tablename,EDW.Division,ODS_RecordsCount,EDW_RecordsCount,ODS_RecordsCount-EDW_RecordsCount as Diff ,\nmin(Case when ODS_RecordsCount-EDW_RecordsCount <=500 then 1 else 0 end) as IsEDWLoaded\nInto #T_Fact_lead\nfrom\n\t(Select Division, Count(*) as EDW_RecordsCount from EDW.FACT_Lead Group by Division ) EDW \n\tLeft join ODS on EDW.Division=ODS.Division \n\tGroup by EDW.Division,ODS_RecordsCount,EDW_RecordsCount,ODS_RecordsCount-EDW_RecordsCount \n\t;\n\t\n\n\t\n--**************************Customers\n\t\nWith ODS AS\n(\nSELECT count(*) ODS_RecordsCount, 'FHI' as Division FROM ODS.LP_FHI_cst_customers Union all \nSELECT count(*) ODS_RecordsCount, 'RTW' as Division FROM ODS.LP_RTW_cst_customers Union all \nSELECT count(*) ODS_RecordsCount, 'PBC' as Division FROM ODS.LP_PBC_cst_customers Union all \nSELECT count(*) ODS_RecordsCount, 'MAC' as Division FROM ODS.LP_MAC_cst_customers Union all \nSELECT count(*) ODS_RecordsCount, 'MXH' as Division FROM ODS.LP_MXH_cst_customers Union all \nSELECT count(*) ODS_RecordsCount, 'CTA' as Division FROM ODS.LP_CTA_cst_customers Union all \nSELECT count(*) ODS_RecordsCount, 'SWR' as Division FROM ODS.LP_SWR_cst_customers \n)\nSelect Distinct 'DIM_Customer' as Tablename, min(Case when ODS_RecordsCount-EDW_RecordsCount <=100 then 1 else 0 end) IsEDWLoaded \nInto #T_DIM_Customer\nfrom\n\t(Select Division, Count(*) as EDW_RecordsCount from EDW.DIM_Customer Group by Division ) EDW \n\tLeft join ODS on EDW.Division=ODS.Division ;\n\n\n\n--**************************Disposition\t\n\t\nWith ODS AS\n(\nSELECT count(*) ODS_RecordsCount, 'FHI' as Division FROM ODS.LP_FHI_dsp_dispositions Union all \nSELECT count(*) ODS_RecordsCount, 'RTW' as Division FROM ODS.LP_RTW_dsp_dispositions Union all \nSELECT count(*) ODS_RecordsCount, 'PBC' as Division FROM ODS.LP_PBC_dsp_dispositions Union all \nSELECT count(*) ODS_RecordsCount, 'MAC' as Division FROM ODS.LP_MAC_dsp_dispositions Union all \nSELECT count(*) ODS_RecordsCount, 'MXH' as Division FROM ODS.LP_MXH_dsp_dispositions Union all \nSELECT count(*) ODS_RecordsCount, 'CTA' as Division FROM ODS.LP_CTA_dsp_dispositions Union all \nSELECT count(*) ODS_RecordsCount, 'SWR' as Division FROM ODS.LP_SWR_dsp_dispositions \n)\nSelect Distinct 'DIM_Disposition' as Tablename, min(Case when ODS_RecordsCount-EDW_RecordsCount =0 then 1 else 0 end) IsEDWLoaded \nInto #T_DIM_Disposition\nfrom\n\t(Select Division, Count(*) as EDW_RecordsCount from EDW.DIM_Disposition Group by Division ) EDW \n\tLeft join ODS on EDW.Division=ODS.Division ;\n\t\n\n--**************************Product\n\n\nWith ODS AS\n(\nSELECT count(*) ODS_RecordsCount, 'FHI' as Division FROM ODS.LP_FHI_prd_products Union all \nSELECT count(*) ODS_RecordsCount, 'RTW' as Division FROM ODS.LP_RTW_prd_products Union all \nSELECT count(*) ODS_RecordsCount, 'PBC' as Division FROM ODS.LP_PBC_prd_products Union all \nSELECT count(*) ODS_RecordsCount, 'MAC' as Division FROM ODS.LP_MAC_prd_products Union all \nSELECT count(*) ODS_RecordsCount, 'MXH' as Division FROM ODS.LP_MXH_prd_products Union all \nSELECT count(*) ODS_RecordsCount, 'CTA' as Division FROM ODS.LP_CTA_prd_products Union all \nSELECT count(*) ODS_RecordsCount, 'SWR' as Division FROM ODS.LP_SWR_prd_products \n)\nSelect Distinct 'DIM_Product' as Tablename, min(Case when ODS_RecordsCount-EDW_RecordsCount =0 then 1 else 0 end) IsEDWLoaded \nInto #T_DIM_Product\nfrom\n\t(Select  Division, Count(*) as EDW_RecordsCount from EDW.DIM_Product Group by Division ) EDW \n\tLeft join ODS on EDW.Division=ODS.Division ;\n\t\n\n--**************************Subsource\n\t\nWith ODS AS\n(\nSELECT count(*) ODS_RecordsCount, 'FHI' as Division FROM ODS.LP_FHI_srs_sourcesubs Union all \nSELECT count(*) ODS_RecordsCount, 'RTW' as Division FROM ODS.LP_RTW_srs_sourcesubs Union all \nSELECT count(*) ODS_RecordsCount, 'PBC' as Division FROM ODS.LP_PBC_srs_sourcesubs Union all \nSELECT count(*) ODS_RecordsCount, 'MAC' as Division FROM ODS.LP_MAC_srs_sourcesubs Union all \nSELECT count(*) ODS_RecordsCount, 'MXH' as Division FROM ODS.LP_MXH_srs_sourcesubs Union all \nSELECT count(*) ODS_RecordsCount, 'CTA' as Division FROM ODS.LP_CTA_srs_sourcesubs Union all \nSELECT count(*) ODS_RecordsCount, 'SWR' as Division FROM ODS.LP_SWR_srs_sourcesubs \n)\nSelect Distinct 'DIM_Lead_sub_source' as Tablename, min(Case when ODS_RecordsCount-EDW_RecordsCount between 0 and 5 then 1 else 0 end) IsEDWLoaded \nInto #T_DIM_LeadSubsource\nfrom\n\t(Select Division, Count(*) as EDW_RecordsCount from EDW.DIM_Lead_sub_source Group by Division ) EDW \n\tLeft join ODS on EDW.Division=ODS.Division ;\n\t\n\n--************************** Callresult\n\t\nWith ODS AS\n(\nSELECT count(*) ODS_RecordsCount, 'FHI' as Division FROM ODS.LP_FHI_clr_callresults Union all \nSELECT count(*) ODS_RecordsCount, 'RTW' as Division FROM ODS.LP_RTW_clr_callresults Union all \nSELECT count(*) ODS_RecordsCount, 'PBC' as Division FROM ODS.LP_PBC_clr_callresults Union all \nSELECT count(*) ODS_RecordsCount, 'MAC' as Division FROM ODS.LP_MAC_clr_callresults Union all \nSELECT count(*) ODS_RecordsCount, 'MXH' as Division FROM ODS.LP_MXH_clr_callresults Union all \nSELECT count(*) ODS_RecordsCount, 'CTA' as Division FROM ODS.LP_CTA_clr_callresults Union all \nSELECT count(*) ODS_RecordsCount, 'SWR' as Division FROM ODS.LP_SWR_clr_callresults \n)\nSelect Distinct 'DIM_Call_Result' as Tablename, min(Case when ODS_RecordsCount-EDW_RecordsCount between 0 and 10 then 1 else 0 end) IsEDWLoaded \nInto #T_DIM_CallResult\nfrom\n\t(Select Division, Count(*) as EDW_RecordsCount from EDW.DIM_CALL_RESULT Group by Division ) EDW \n\tLeft join ODS on EDW.Division=ODS.Division ;\n\n\n\n--************************** Branch\n\n\nWith ODS AS\n(\nSELECT count(*) ODS_RecordsCount, 'FHI' as Division FROM ODS.LP_FHI_brn_branches Union all \nSELECT count(*) ODS_RecordsCount, 'RTW' as Division FROM ODS.LP_RTW_brn_branches Union all \nSELECT count(*) ODS_RecordsCount, 'PBC' as Division FROM ODS.LP_PBC_brn_branches Union all \nSELECT count(*) ODS_RecordsCount, 'MAC' as Division FROM ODS.LP_MAC_brn_branches Union all \nSELECT count(*) ODS_RecordsCount, 'MXH' as Division FROM ODS.LP_MXH_brn_branches Union all \nSELECT count(*) ODS_RecordsCount, 'CTA' as Division FROM ODS.LP_CTA_brn_branches Union all \nSELECT count(*) ODS_RecordsCount, 'SWR' as Division FROM ODS.LP_SWR_brn_branches \n)\nSelect Distinct 'DIM_Branch' as Tablename, min(Case when ODS_RecordsCount-EDW_RecordsCount =0 then 1 else 0 end) IsEDWLoaded \nInto #T_DIM_Branch\nfrom\n\t(Select Division, Count(*) as EDW_RecordsCount from EDW.DIM_Branch Group by Division ) EDW \n\tLeft join ODS on EDW.Division=ODS.Division ;\n\t\n\n\n\nSelect min(IsEDWLoaded) as FACT_Lead,  \n(Select  IsEDWLoaded from  #T_Dim_Customer) as\t\tDim_Customer ,\n(Select  IsEDWLoaded from  #T_DIM_Product) as\t\tDIM_Product ,\n(Select  IsEDWLoaded from  #T_Dim_LeadSubsource) as Dim_LeadSubsource ,\n(Select  IsEDWLoaded from  #T_Dim_Disposition) as\tDim_Disposition ,\n(Select  IsEDWLoaded from  #T_Dim_Branch) as\t\tDim_Branch ,\n(Select  IsEDWLoaded from  #T_Dim_CallResult) as    Dim_CallResult \nfrom  #T_Fact_lead ;\n\n\nSelect * from #T_Fact_lead;\n"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "ConditionTocheckEDWLoad",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Assign_IsEDWLoaded_Variable",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@if(variables('IsEDWLoaded'),1,0)",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "Execute_Renuity_Call_Logs_NEW_FACT_DIM",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "cpy_Renuity_Call_Logs_NEW_CurrentDay",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Assign_IsEDWLoaded_Variable",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "ScriptToCheckEDWLoadCompleted",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "IsEDWLoaded",
+					"value": {
+						"value": "@and(\nand(\n     and(equals(activity('ScriptToCheckEDWLoadCompleted').output.resultSets[0].rows[0].FACT_Lead,1),equals(activity('ScriptToCheckEDWLoadCompleted').output.resultSets[0].rows[0].DIM_Customer,1)),\n     and(equals(activity('ScriptToCheckEDWLoadCompleted').output.resultSets[0].rows[0].DIM_Product,1),equals(activity('ScriptToCheckEDWLoadCompleted').output.resultSets[0].rows[0].Dim_LeadSubsource,1))\n    )\n,\nand(\n     and(equals(activity('ScriptToCheckEDWLoadCompleted').output.resultSets[0].rows[0].Dim_Disposition,1),equals(activity('ScriptToCheckEDWLoadCompleted').output.resultSets[0].rows[0].Dim_Branch,1)),\n     equals(activity('ScriptToCheckEDWLoadCompleted').output.resultSets[0].rows[0].Dim_CallResult,1)\n   )\n)",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"variables": {
+			"IsEDWLoaded": {
+				"type": "Boolean"
+			}
+		},
+		"folder": {
+			"name": "Five9_to_EDW/Current Day Load"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-01-12T19:38:32Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

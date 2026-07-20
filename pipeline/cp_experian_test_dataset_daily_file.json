@@ -1,0 +1,66 @@
+{
+	"name": "cp_experian_test_dataset_daily_file",
+	"properties": {
+		"activities": [
+			{
+				"name": "cp_experian_dataset_file",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "Select l.LeadID as lp_lead_id,TRIM(REPLACE(REPLACE(concat(c.FirstName,' ',c.LastName),',',''),'\"','')) as lead_name,\nTRIM(REPLACE(REPLACE(\n    SUBSTRING(c.Address1, 1, \n        CASE \n            WHEN PATINDEX('%[a-zA-Z]%', c.Address1) = 0 THEN NULL\n\n            WHEN CHARINDEX(', ' + NULLIF(TRIM(c.City), ''), c.Address1) > 0 \n                 THEN CHARINDEX(', ' + NULLIF(TRIM(c.City), ''), c.Address1) - 1\n\n            WHEN CHARINDEX(' ' + NULLIF(TRIM(c.City), '') + ' ', c.Address1 + ' ') > 0 \n                 THEN CHARINDEX(' ' + NULLIF(TRIM(c.City), '') + ' ', c.Address1 + ' ') - 1\n\n            WHEN CHARINDEX(' ' + NULLIF(TRIM(c.State), '') + ' ', c.Address1 + ' ') > 0 \n                 THEN CHARINDEX(' ' + NULLIF(TRIM(c.State), '') + ' ', c.Address1 + ' ') - 1\n\n            WHEN CHARINDEX(' ' + NULLIF(TRIM(c.Zip), '') + ' ', c.Address1 + ' ') > 0 \n                 THEN CHARINDEX(' ' + NULLIF(TRIM(c.Zip), '') + ' ', c.Address1 + ' ') - 1\n\n            ELSE LEN(c.Address1)\n        END\n    ), ',', ''), '\"', ''))\n AS lead_address,TRIM(REPLACE(REPLACE(c.City,',',''),'\"','')) as lead_city,TRIM(REPLACE(REPLACE(c.State,',',''),'\"','')) as lead_state,\n    TRIM(REPLACE(REPLACE(c.Zip,',',''),'\"','')) as lead_zip,TRIM(REPLACE(REPLACE(c.Email,',',''),'\"','')) as lead_email,\n    TRIM(REPLACE(TRANSLATE(c.Phone, '+-(). ', '      '), ' ', '')) AS lead_phone\n    from EDW.FACT_LEAD l inner join EDW.DIM_CUSTOMER c on l.CustomerID=c.CustomerID\n    where CAST(l.EntryDate as DATE)=CAST(DATEADD(dd,-1,GETDATE()) AS DATE)",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_FACT_LEAD",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "Experian_Test_Daily_Dataset",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "Temp/Akshay"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-04-28T20:11:19Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

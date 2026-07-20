@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 78",
+	"properties": {
+		"content": {
+			"query": "Create View EDW.V_LP_Emp_PlanItems as\nSelect P.ProjectId, P.ParentId, P.ProjectName,P.InstallerId,\nPL.PlanitemId, PL.PlanItemName,Datebegin,DateEnd,RecordId,RecordType,PL.Color,PL.ProductionBranchId,\nH.EmployeeId_LP_Ref, H.Division, H.Firstname, H.Lastname, H.Jobtitledescription, H.workemail,H.terminationdate, H.positionstatus\nfrom EDW.DIM_Projects P \nLeft join EDW.DIM_PlanItem PL on P.Projectid=PL.ProjectId\nLeft join EDW.DIM_Installer I on P.InstallerId=I.InstallerId\nLeft join EDW.DIM_HR_EMployee H on H.EMployeeId_LP_Ref=I.EmployeeId\nwhere P.Division='MAC' and H.Terminationdate is null -- and H.positionstatus = 'Active'\nand  H.Jobtitledescription = 'Measure Tech';",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

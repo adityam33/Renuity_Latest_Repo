@@ -1,0 +1,52 @@
+{
+	"name": "batch_load_Complete_Discrepant_Jobs",
+	"properties": {
+		"activities": [
+			{
+				"name": "EXEC_SWR_Jobs_Complete_Discrepant",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_SWR_Complete_Discrepant_Jobs",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "EXEC_RTW_Jobs_Complete_Discrepant",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "EXEC_SWR_Jobs_Complete_Discrepant",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_RTW_Complete_Discrepant_Jobs",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/DATA_ENRICHMENT"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-07-23T08:13:59Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

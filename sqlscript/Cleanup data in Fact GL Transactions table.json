@@ -1,0 +1,17 @@
+{
+	"name": "Cleanup data in Fact GL Transactions table",
+	"properties": {
+		"content": {
+			"query": "delete\nFROM [EDW].[FACT_ERP_GL_TRANSACTION]\nwhere GL_LINE_KEY in \n(\nSELECT [GL_LINE_KEY]\n FROM [EDW].[FACT_ERP_GL_TRANSACTION]\n group by \n [GL_LINE_KEY]\n having count(1) > 1\n )\n and Selected IS NULL\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

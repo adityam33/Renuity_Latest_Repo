@@ -1,0 +1,17 @@
+{
+	"name": "Get All Sold Prospects for a Division",
+	"properties": {
+		"content": {
+			"query": "SELECT\nprd.LongDescription as Product\n,dsp.Disposition\n,brn.LongName as Market\n,cst.[CustomerID]\n,[FirstName]\n,[LastName]\n,[Address1]\n,[City]\n,[State]\n,[Zip]\n,[Phone]\n,[Email]\n,lds.GrossSalesAmount\n,lds.EntryDate\nFROM \n[EDW].[DIM_CUSTOMER] cst\n,[EDW].[FACT_LEAD] lds\n,[EDW].[DIM_DISPOSITION] dsp\n,[EDW].[DIM_PRODUCT] prd\n,[EDW].[DIM_BRANCH] brn\nwhere cst.CustomerID = lds.CustomerID\nand lds.DispositionID = dsp.DispositionID\nand lds.ProductID = prd.ProductID\nand lds.BranchID = brn.BranchID\nand dsp.Disposition = 'Sale'\nand lds.Division = 'MAC'\n--and prd.LongDescription = 'Windows/Doors'\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

@@ -1,0 +1,79 @@
+{
+	"name": "Dataflow2",
+	"properties": {
+		"folder": {
+			"name": "Test-Dataflows"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DS_CallForecasting_CSV",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "DS_CallForecasting_Sink",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "surrogateKey1"
+				},
+				{
+					"name": "filter1"
+				},
+				{
+					"name": "MapDrifted1",
+					"description": "Creates an explicit mapping for each drifted column"
+				}
+			],
+			"scriptLines": [
+				"source(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> source1",
+				"source1 keyGenerate(output(rowNumber as long),",
+				"     startAt: 1L,",
+				"     stepValue: 1L) ~> surrogateKey1",
+				"surrogateKey1 filter((rowNumber >= 20)) ~> filter1",
+				"filter1 derive(Company = toString(byName('Prop_0')),",
+				"          Market = toString(byName('Prop_1')),",
+				"          Product = toString(byName('Prop_2')),",
+				"          ForecastAmount = toString(byName('Prop_24')),",
+				"          BacklogAmount = toString(byName('Prop_26')),",
+				"          InsertDatetime = currentUTC(),",
+				"          Period = '') ~> MapDrifted1",
+				"MapDrifted1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     truncate:true,",
+				"     format: 'table',",
+				"     staged: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          rowNumber,",
+				"          Company,",
+				"          Market,",
+				"          Product,",
+				"          ForecastAmount,",
+				"          BacklogAmount,",
+				"          InsertDatetime,",
+				"          Period",
+				"     )) ~> sink1"
+			]
+		}
+	}
+}

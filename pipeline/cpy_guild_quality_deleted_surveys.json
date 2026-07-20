@@ -1,0 +1,192 @@
+{
+	"name": "cpy_guild_quality_deleted_surveys",
+	"properties": {
+		"activities": [
+			{
+				"name": "Set variable1",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "d_date",
+					"value": {
+						"value": "@formatDateTime(convertTimeZone(utcnow(),'UTC','Eastern Standard Time'),'yyyy-MM-dd')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "copy_deleted_surveys",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Set variable1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:01:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "GET",
+						"additionalHeaders": {
+							"Authorization": "Bearer Ale3uCQ4M77NgvhF"
+						},
+						"paginationRules": {
+							"supportRFC5988": "true"
+						}
+					},
+					"sink": {
+						"type": "JsonSink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings"
+						},
+						"formatSettings": {
+							"type": "JsonWriteSettings"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "$['id']"
+								},
+								"sink": {
+									"path": "$['id']"
+								}
+							},
+							{
+								"source": {
+									"path": "$['status']"
+								},
+								"sink": {
+									"path": "$['status']"
+								}
+							},
+							{
+								"source": {
+									"path": "$['companyId']"
+								},
+								"sink": {
+									"path": "$['companyId']"
+								}
+							},
+							{
+								"source": {
+									"path": "$['deletedAt']"
+								},
+								"sink": {
+									"path": "$['deletedAt']"
+								}
+							}
+						],
+						"collectionReference": ""
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "Prod_GQ_Deleted_Surveys",
+						"type": "DatasetReference",
+						"parameters": {
+							"Date": {
+								"value": "@variables('d_date')",
+								"type": "Expression"
+							},
+							"DeletedDateFilter": {
+								"value": "@pipeline().parameters.DeletedDateFilter",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "Prod_GQ_Deleted_Survey_Json",
+						"type": "DatasetReference",
+						"parameters": {
+							"Date": "2024-11-27"
+						}
+					}
+				]
+			},
+			{
+				"name": "df_deleted_surveys",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "copy_deleted_surveys",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_guild_quality_Deleted_Surveys",
+						"type": "DataFlowReference",
+						"datasetParameters": {
+							"source1": {
+								"Date": "2024-11-27"
+							}
+						}
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdctestanuj/AkshayTest/rejectedrows"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			}
+		],
+		"parameters": {
+			"DeletedDateFilter": {
+				"type": "string",
+				"defaultValue": "DeletedAt"
+			}
+		},
+		"variables": {
+			"d_date": {
+				"type": "String",
+				"defaultValue": "2025-01-01"
+			}
+		},
+		"folder": {
+			"name": "Temp/Akshay"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-10-01T14:27:06Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

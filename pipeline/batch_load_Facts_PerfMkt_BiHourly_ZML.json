@@ -1,0 +1,45 @@
+{
+	"name": "batch_load_Facts_PerfMkt_BiHourly_ZML",
+	"properties": {
+		"activities": [
+			{
+				"name": "Ad Performance metrics-Campaign Metro",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_FACT_AD_PERFORMANCE_METRICS_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Ad Performance Metrics Detail",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "df_load_Fact_Ad_Performance_Metrics_Detail_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"folder": {
+			"name": "Temp/Anuj/ZML/PerformanceMarketing"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-11-26T06:58:59Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

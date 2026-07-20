@@ -1,0 +1,131 @@
+{
+	"name": "df_load_FACT_MILESTONE_DETAIL_ZML",
+	"properties": {
+		"folder": {
+			"name": "ZML_ODS_to_EDW/FACTS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ZML_ODS_FHI_mld_MilestoneDetail",
+						"type": "DatasetReference"
+					},
+					"name": "FHI"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_FACT_MILESTONE_DETAIL_ZML",
+						"type": "DatasetReference"
+					},
+					"name": "targetFact",
+					"description": "Export data to EDW_FACT_MILESTONE_DETAIL",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "addOpCoNameFHI"
+				},
+				{
+					"name": "unionAllOpCos"
+				},
+				{
+					"name": "selectRenameColumns"
+				},
+				{
+					"name": "derivedColumns"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          ID as integer,",
+				"          job_id as integer,",
+				"          jpo_id as integer,",
+				"          mdt_id as string,",
+				"          EstDate as timestamp,",
+				"          ActDate as timestamp,",
+				"          EnteredBy as integer,",
+				"          EnteredOn as timestamp,",
+				"          LastChangedBy as integer,",
+				"          LastChangedOn as timestamp,",
+				"          ActTime as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> FHI",
+				"FHI derive(Division = 'FHI') ~> addOpCoNameFHI",
+				"addOpCoNameFHI union(byName: true)~> unionAllOpCos",
+				"unionAllOpCos select(mapColumn(",
+				"          Division,",
+				"          LP_MilestoneDetailID = ID,",
+				"          LP_MilestoneDateTypeID = mdt_id,",
+				"          LP_JobID = job_id,",
+				"          EstimatedDate = EstDate,",
+				"          ActualDate = ActDate,",
+				"          ActualTime = ActTime,",
+				"          EnteredOn,",
+				"          LastChangedOn",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectRenameColumns",
+				"selectRenameColumns derive(LastUpdateTS = currentTimestamp(),",
+				"          MilestoneDetailID = concat(Division,'-',toString(LP_MilestoneDetailID)),",
+				"          MilestoneDateTypeID = concat(Division,'-',toString(LP_MilestoneDateTypeID)),",
+				"          JobID = concat(Division,'-',toString(LP_JobID))) ~> derivedColumns",
+				"derivedColumns sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          MilestoneDetailID as string,",
+				"          MilestoneDateTypeID as string,",
+				"          JobID as string,",
+				"          EstimatedDate as timestamp,",
+				"          ActualDate as timestamp,",
+				"          ActualTime as string,",
+				"          EnteredOn as timestamp,",
+				"          LastChangedOn as timestamp,",
+				"          LP_MilestoneDetailID as integer,",
+				"          LP_MilestoneDateTypeID as string,",
+				"          LP_JobID as integer,",
+				"          Division as string,",
+				"          LastUpdateTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     truncate:true,",
+				"     format: 'table',",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          Division,",
+				"          LP_MilestoneDetailID,",
+				"          LP_MilestoneDateTypeID,",
+				"          LP_JobID,",
+				"          EstimatedDate,",
+				"          ActualDate,",
+				"          ActualTime,",
+				"          EnteredOn,",
+				"          LastChangedOn,",
+				"          LastUpdateTS,",
+				"          MilestoneDetailID,",
+				"          MilestoneDateTypeID,",
+				"          JobID",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> targetFact"
+			]
+		}
+	}
+}

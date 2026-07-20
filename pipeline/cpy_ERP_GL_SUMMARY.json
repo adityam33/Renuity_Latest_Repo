@@ -1,0 +1,165 @@
+{
+	"name": "cpy_ERP_GL_SUMMARY",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy Delta GL Summary",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.ERP_GL_SUMMARY')  IS NOT NULL TRUNCATE TABLE ODS.ERP_GL_SUMMARY",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Module",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Module",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PeriodID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PeriodID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Account",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Account",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Branch",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Branch",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DebitAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "DebitAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "CreditAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "CreditAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "LineCount",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "LineCount",
+									"type": "Int32"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LEGACYBI_STG_ERP_GL_SUMMARY",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_ERP_GL_SUMMARY",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Truncate Source Table on SQL DB",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Copy Delta GL Summary",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "LEGACY_BI_SQL",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "truncate table [dbo].[STG_ERP_GL_SUMMARY]"
+						}
+					]
+				}
+			}
+		],
+		"folder": {
+			"name": "SRC_to_ODS/ERP/LEGACYBI"
+		},
+		"annotations": [],
+		"lastPublishTime": "2024-07-02T07:27:40Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

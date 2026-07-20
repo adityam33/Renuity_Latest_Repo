@@ -1,0 +1,17 @@
+{
+	"name": "Affiliates - Get Leads of a particular Affiliate",
+	"properties": {
+		"content": {
+			"query": "SELECT distinct\n[FirstName]\n,[LastName]\n,[Address1]\n,[Address2]\n,[City]\n,[State]\n,[Zip]\n,[Zip4]\n,[Phone]\n,[Email]\n,cst.[CustomerID]\n,cst.[Division]\n FROM \n [EDW].[DIM_CUSTOMER] cst\n,[EDW].[FACT_LEAD] lds\nWHERE\ncst.CustomerID = lds.CustomerID\nand lds.LeadSubSourceID in\n(\nSELECT\n[Division]+'-'+trim(STR([srs_id])) as SRS_ID\n FROM [RDM].[AFFILIATES_SRS_MAPPING]\n where AffiliateName = 'Lavin'\n )",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

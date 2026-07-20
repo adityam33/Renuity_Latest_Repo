@@ -1,0 +1,44 @@
+{
+	"name": "Batch_load_GoogleSheet_MarketCost",
+	"properties": {
+		"activities": [
+			{
+				"name": "Data flow1",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_mkt_spend_DoD",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdctestanuj/AkshayTest/rejectedrows"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			}
+		],
+		"folder": {
+			"name": "Temp/Akshay"
+		},
+		"annotations": [],
+		"lastPublishTime": "2024-12-26T12:20:04Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

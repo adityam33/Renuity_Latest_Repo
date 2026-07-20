@@ -1,0 +1,1721 @@
+{
+	"name": "batch_out_Sales_metrics_to_GB",
+	"properties": {
+		"activities": [
+			{
+				"name": "Sales MetricsOut MRK",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": false,
+							"wildcardFolderPath": "MRK/L90Days",
+							"wildcardFileName": "*.csv",
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "ParquetSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings",
+							"copyBehavior": "MergeFiles"
+						},
+						"formatSettings": {
+							"type": "ParquetWriteSettings"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "[Calendar Date]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "CalendarDate",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Division]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Division",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Market]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Market",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Product]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Product",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Source Group]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "SourceGroup",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Subsource]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Subsource",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Source 3]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Source3",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Raw # MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Raw#MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Set # MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Set#MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Net Issue # MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "NetIssue#MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Demo # MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Demo#MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Issue/Raw % MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Issue/Raw%MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Set % MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Set%MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Issue % MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Issue%MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Demo % MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Demo%MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Close % MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Close%MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[BTD # % MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "BTD#%MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[BTD $ % MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "BTD$%MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Cancel # % MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Cancel#%MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Cancel $ % MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Cancel$%MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Tot Cancel $ % MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "TotCancel$%MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[NCP % MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "NCP%MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Mrkt Cost All]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "MrktCostAll",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Sold # MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Sold#MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[BTD # MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "BTD#MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Cancel # MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Cancel#MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Tot Cancel # MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "TotCancel#MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Net Sales # MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "NetSales#MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Gross Sales $ MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "GrossSales$MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[BTD $ MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "BTD$MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Cancel $ MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Cancel$MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Tot Cancel $ MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "TotCancel$MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Net Sales $ MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "NetSales$MRK",
+									"physicalType": "UTF8"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_CSV_SalesMetrics",
+						"type": "DatasetReference",
+						"parameters": {
+							"Para": "MRK"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "TGT_PAR_SalesMetrics_GB",
+						"type": "DatasetReference",
+						"parameters": {
+							"Para": "mrk"
+						}
+					}
+				]
+			},
+			{
+				"name": "Sales MetricsOut SLS",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": false,
+							"wildcardFolderPath": "SLS/L90Days",
+							"wildcardFileName": "*.csv",
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "ParquetSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings",
+							"copyBehavior": "MergeFiles"
+						},
+						"formatSettings": {
+							"type": "ParquetWriteSettings"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "[Calendar Date]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "CalendarDate",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Division]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Division",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Market]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Market",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Product]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Product",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Source Group]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "SourceGroup",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Subsource]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Subsource",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Source 3]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Source3",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Net Issue # SLS]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "NetIssue#SLS",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Demo # SLS]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Demo#SLS",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Sold # SLS]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Sold#SLS",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[BTD # SLS]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "BTD#SLS",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Cancel # SLS]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Cancel#SLS",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Tot Cancel # SLS]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "TotCancel#SLS",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Net Sales # SLS]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "NetSales#SLS",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Demo % SLS]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Demo%SLS",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Close % SLS]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Close%SLS",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[BTD # % SLS]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "BTD#%SLS",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[BTD $ % SLS]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "BTD$%SLS",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Cancel # % SLS]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Cancel#%SLS",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Cancel $ % SLS]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Cancel$%SLS",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Tot Cancel $ % SLS]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "TotCancel$%SLS",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Gross Sales $ SLS]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "GrossSales$SLS",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[BTD $ SLS]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "BTD$SLS",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Cancel $ SLS]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Cancel$SLS",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Tot Cancel $ SLS]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "TotCancel$SLS",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Net Sales $ SLS]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "NetSales$SLS",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[NCP % SLS]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "NCP%SLS",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Mrkt Cost All]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "MrktCostAll",
+									"physicalType": "UTF8"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_CSV_SalesMetrics",
+						"type": "DatasetReference",
+						"parameters": {
+							"Para": "MRK"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "TGT_PAR_SalesMetrics_GB",
+						"type": "DatasetReference",
+						"parameters": {
+							"Para": "sls"
+						}
+					}
+				]
+			},
+			{
+				"name": "Delete SLS",
+				"type": "Delete",
+				"dependsOn": [
+					{
+						"activity": "SLS Backup",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "SRC_CSV_SalesMetrics",
+						"type": "DatasetReference",
+						"parameters": {
+							"Para": "SLS/L90Days"
+						}
+					},
+					"logStorageSettings": {
+						"linkedServiceName": {
+							"referenceName": "Azure_blobStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "pbi-salesmetrics-export/SLS/logging"
+					},
+					"enableLogging": true,
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": false,
+						"wildcardFileName": "*.csv",
+						"enablePartitionDiscovery": false
+					}
+				}
+			},
+			{
+				"name": "SLS Backup",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Sales MetricsOut SLS",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": false,
+							"wildcardFolderPath": "SLS/L90Days",
+							"wildcardFileName": "*.csv",
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "ParquetSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings",
+							"copyBehavior": "MergeFiles"
+						},
+						"formatSettings": {
+							"type": "ParquetWriteSettings"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "[Calendar Date]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "CalendarDate",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Division]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Division",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Market]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Market",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Product]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Product",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Source Group]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "SourceGroup",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Subsource]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Subsource",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Source 3]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Source3",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Net Issue # SLS]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "NetIssue#SLS",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Demo # SLS]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Demo#SLS",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Sold # SLS]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Sold#SLS",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[BTD # SLS]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "BTD#SLS",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Cancel # SLS]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Cancel#SLS",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Tot Cancel # SLS]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "TotCancel#SLS",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Net Sales # SLS]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "NetSales#SLS",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Demo % SLS]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Demo%SLS",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Close % SLS]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Close%SLS",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[BTD # % SLS]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "BTD#%SLS",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[BTD $ % SLS]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "BTD$%SLS",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Cancel # % SLS]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Cancel#%SLS",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Cancel $ % SLS]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Cancel$%SLS",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Tot Cancel $ % SLS]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "TotCancel$%SLS",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Gross Sales $ SLS]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "GrossSales$SLS",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[BTD $ SLS]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "BTD$SLS",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Cancel $ SLS]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Cancel$SLS",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Tot Cancel $ SLS]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "TotCancel$SLS",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Net Sales $ SLS]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "NetSales$SLS",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[NCP % SLS]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "NCP%SLS",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Mrkt Cost All]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "MrktCostAll",
+									"physicalType": "UTF8"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_CSV_SalesMetrics",
+						"type": "DatasetReference",
+						"parameters": {
+							"Para": "SLS"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "TGT_PAR_SalesMetrics_GB_ARCHIVE",
+						"type": "DatasetReference",
+						"parameters": {
+							"Para": "sls"
+						}
+					}
+				]
+			},
+			{
+				"name": "Delete MRK",
+				"type": "Delete",
+				"dependsOn": [
+					{
+						"activity": "MRK backup",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "SRC_CSV_SalesMetrics",
+						"type": "DatasetReference",
+						"parameters": {
+							"Para": "MRK/L90Days"
+						}
+					},
+					"logStorageSettings": {
+						"linkedServiceName": {
+							"referenceName": "Azure_blobStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "pbi-salesmetrics-export/MRK/logging"
+					},
+					"enableLogging": true,
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": false,
+						"wildcardFileName": "*.csv",
+						"enablePartitionDiscovery": false
+					}
+				}
+			},
+			{
+				"name": "MRK backup",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Sales MetricsOut MRK",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": false,
+							"wildcardFolderPath": "MRK/L90Days",
+							"wildcardFileName": "*.csv",
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "ParquetSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings",
+							"copyBehavior": "MergeFiles"
+						},
+						"formatSettings": {
+							"type": "ParquetWriteSettings"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "[Calendar Date]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "CalendarDate",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Division]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Division",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Market]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Market",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Product]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Product",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Source Group]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "SourceGroup",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Subsource]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Subsource",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Source 3]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Source3",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Raw # MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Raw#MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Set # MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Set#MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Net Issue # MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "NetIssue#MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Demo # MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Demo#MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Issue/Raw % MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Issue/Raw%MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Set % MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Set%MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Issue % MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Issue%MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Demo % MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Demo%MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Close % MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Close%MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[BTD # % MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "BTD#%MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[BTD $ % MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "BTD$%MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Cancel # % MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Cancel#%MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Cancel $ % MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Cancel$%MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Tot Cancel $ % MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "TotCancel$%MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[NCP % MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "NCP%MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Mrkt Cost All]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "MrktCostAll",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Sold # MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Sold#MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[BTD # MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "BTD#MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Cancel # MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Cancel#MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Tot Cancel # MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "TotCancel#MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Net Sales # MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "NetSales#MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Gross Sales $ MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "GrossSales$MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[BTD $ MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "BTD$MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Cancel $ MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Cancel$MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Tot Cancel $ MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "TotCancel$MRK",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "[Net Sales $ MRK]",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "NetSales$MRK",
+									"physicalType": "UTF8"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_CSV_SalesMetrics",
+						"type": "DatasetReference",
+						"parameters": {
+							"Para": "MRK"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "TGT_PAR_SalesMetrics_GB_ARCHIVE",
+						"type": "DatasetReference",
+						"parameters": {
+							"Para": "mrk"
+						}
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "RDC_to_Blob/SalesMetrics_to_GB"
+		},
+		"annotations": []
+	}
+}

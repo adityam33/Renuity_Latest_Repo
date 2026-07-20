@@ -1,0 +1,17 @@
+{
+	"name": "LP Retargeting - Get Bath Prospects for PBC PHX and CH Markets",
+	"properties": {
+		"content": {
+			"query": "SELECT\ncase \n    when [Phone] is not null then '+1'+Phone\n    else [Phone]\nend as [phone_id]\n,lower([Email]) as [email_id]\n,HASHBYTES ( 'MD5', lower([Email]) )  as email_md5hash\n,HASHBYTES ( 'SHA2_256', lower([Email]) )  as email_sha256hash\n,[FirstName] as first_name\n,[LastName] as last_name\n,[Address1] as address1\n,[Address2] as address2\n,[City] as city\n,[State] as [state]\n,[Zip] as zip\n,[Zip4] as zip4\n,[FirstName]+' '+[LastName] as full_name\n,case \n    when [Phone] is not null then '+1'+Phone\n    else [Phone]\nend as [phone]\n,[Email] as [email]\n,'windows' as product\n,EntryDate as entry_date\n,[EverSet] as ever_set\n,[EverConfirmed] as ever_confirmed\n,[EverIssued] as ever_issued\n,[EverNetIssued] as ever_net_issued\n,[EverSat] as ever_sat\n,[Sold] as sold\n,cast(getdate() as DATE) as bulk_upload_date\n,'' as division\n FROM [ODS].[LP_TCT_ClientLeads]\n where \nEntryDate >= '2023-01-01'\nand (Email is not null or Phone is not null)\nand ClientID not in \n (\n     'gn07db','i417db','f199db','yy72db','d453db','v3v3db','a5b5db','zz99db'\n )\n and productid IN\n (\n    SELECT \n    [ProductID]\n    FROM [RDM].[REF_PROSPECTING_PRODUCTID_MAPPING]\n    where ProductCategory='Bath'\n )\n and Zip in\n (\n    SELECT \n    [ZipCode]\n    FROM [RDM].[REF_PRODUCT_ZIP_CODES]\n    WHERE\n    Product = 'Bath' and Division = 'PBC'\n    and ZipCode in \n    (\n        select distinct ZipCode from EDW.DIM_BRANCH_ZIP where Division = 'PBC' and LP_ProductGroupID = 'SHO' and LP_BranchID in ('PHX','CH')\n    )\n )\n order by [EntryDate] asc\n\n/*\nselect *  \nFROM [RDM].[REF_PRODUCT_ZIP_CODES]\n*/\n\n\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

@@ -1,0 +1,227 @@
+{
+	"name": "Cpy_Load_Dim_Mktng_Vendor_costtype",
+	"properties": {
+		"activities": [
+			{
+				"name": "Cpy Load Mktng VendorCostType",
+				"description": "Loads New records into DIM Mktng VendorCostType table",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "select SM.Division\r\n\t  ,SM.LeadSubSourceID\r\n\t  ,SM.SourceGroup\r\n\t  ,SM.SourceCode\r\n\t  ,SM.LeadSubSource\r\n\t  ,Cast(NULL as nvarchar(8)) AS HomeBaseManaged\r\n\t  ,Cast(NULL AS nvarchar(32)) AS CostType\r\n\t  ,Cast(NULL AS Decimal(16,2)) AS CPL$\r\n\t  ,Cast(NULL AS decimal(16,2)) AS RevShareAmount\r\n\t  ,Cast(NULL AS nvarchar(32)) AS Vendor\r\n\t  ,Cast('LP' as Varchar(32)) AS RecordInd\r\n\t  ,Getdate() as CreatedTS\r\n\t  ,Getdate() as LastUpdatedTS\r\n\tfrom EDW.DIM_MKTNG_SUB_SOURCE_MAPPING SM Left Join EDW.DIM_MKTNG_VENDOR_COSTTYPE VC on \r\n\t\t\tSM.Division=VC.Division and SM.LeadSubSourceID=VC.LeadSubSourceID\r\n\tWhere VC.LeadSubSourceID is NULL and VC.Division is Null\r\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadSubSourceID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "LeadSubSourceID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SourceGroup",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "SourceGroup",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SourceCode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "SourceCode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadSubSource",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "LeadSubSource",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "HomeBaseManaged",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "HomeBaseManaged",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CostType",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CostType",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CPL$",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 16
+								},
+								"sink": {
+									"name": "CPL$",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "RevShareAmount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 16
+								},
+								"sink": {
+									"name": "RevShareAmount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "Vendor",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "VendorName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "RecordInd",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "RecordInd",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CreatedTS",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "CreatedTS",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_DIM_MKTNG_SUB_SOURCE_MAPPING",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_DIM_MKTNG_VENDOR_COSTTYPE",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/DIMENSIONS/TAXONOMY"
+		},
+		"annotations": [],
+		"lastPublishTime": "2023-12-08T08:20:29Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

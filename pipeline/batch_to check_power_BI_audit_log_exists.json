@@ -1,0 +1,174 @@
+{
+	"name": "batch_to check_power_BI_audit_log_exists",
+	"properties": {
+		"activities": [
+			{
+				"name": "Check if Audit log exists",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": false,
+							"wildcardFolderPath": "archive",
+							"wildcardFileName": {
+								"value": "@concat('PBI_Audit_Log_',replace(formatDateTime(utcnow(),'yyyy-MM-dd'),'-','_'),'.csv')",
+								"type": "Expression"
+							},
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".csv"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "RecordId",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "RecordId",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CreationDate",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "CreationDate",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "RecordType",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "RecordType",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Operation",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Operation",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UserId",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "UserId",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "AuditData",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "AuditData",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "AssociatedAdminUnits",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "AssociatedAdminUnits",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "AssociatedAdminUnitsNames",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "AssociatedAdminUnitsNames",
+									"type": "String",
+									"physicalType": "String"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ARCHIVE_POWERBI_AUDITLOG",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ARCHIVE_POWERBI_AUDITLOG",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/FACTS/POWERBI"
+		},
+		"annotations": [],
+		"lastPublishTime": "2024-03-20T09:36:44Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

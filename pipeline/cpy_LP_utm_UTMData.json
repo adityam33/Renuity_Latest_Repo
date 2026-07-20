@@ -1,0 +1,125 @@
+{
+	"name": "cpy_LP_utm_UTMData",
+	"properties": {
+		"activities": [
+			{
+				"name": "FHI",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT * FROM dbo.utm_UTMData WITH (NOLOCK)",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.LP_FHI_utm_UTMData')  IS NOT NULL TRUNCATE TABLE ODS.LP_FHI_utm_UTMData",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"tableOption": "autoCreate",
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "id",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "id",
+									"type": "Int32",
+									"physicalType": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "lds_id",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "lds_id",
+									"type": "Int32",
+									"physicalType": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "utm_campaign",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "utm_campaign",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "utm_medium",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "utm_medium",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "utm_source",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "utm_source",
+									"type": "String",
+									"physicalType": "String"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_FHI_utm_UTMData",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_LP_FHI_utm_UTMData",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "SRC_to_ODS/CRM/LP"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-02-03T04:48:31Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

@@ -1,0 +1,31 @@
+{
+	"name": "OUT_REVSHARE_DAILY_REPORT_EXACTCUSTOMER",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "OUT/AFFILIATES/EXACTCUSTOMER"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@concat('REVSHARE_DAILY_REPORT_', formatdatetime(convertFromUtc(utcnow(), 'Eastern Standard Time'),'yyyyMMdd_HHmmss'), '.csv')",
+					"type": "Expression"
+				},
+				"folderPath": "out",
+				"fileSystem": "affiliate-exactcustomer"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": []
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}

@@ -1,0 +1,798 @@
+{
+	"name": "cpy_OUT_Lead_Change_Capture_CDC",
+	"properties": {
+		"activities": [
+			{
+				"name": "cpy_Lead_Change_Capture",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "Select l.*, '2' as DeleteInd,\r\n    CASE\r\n        WHEN l.ProductID != ls.ProductID THEN 'Product' \r\n        WHEN l.DispositionID != ls.DispositionID THEN 'Dispo' \r\n        WHEN l.LeadSourceID != ls.LeadSourceID THEN 'LeadSourceID' \r\n        WHEN l.InboundQueueLogID != ls.InboundQueueLogID THEN 'InboundQueueLog' \r\n        WHEN l.BranchID != ls.BranchID THEN 'Branch' \r\n        WHEN l.SalesDistrictID != ls.SalesDistrictID THEN 'SalesDistrict' \r\n        WHEN l.RankID != ls.RankID THEN 'Rank' \r\n        WHEN l.LeadSubSourceID != ls.LeadSubSourceID THEN 'LeadSubSource' \r\n        WHEN l.AppointmentID != ls.AppointmentID THEN 'AppointmentID' \r\n        WHEN l.SalesRep1_EmployeeID != ls.SalesRep1_EmployeeID THEN 'Sales Rep 1' \r\n        WHEN l.SalesRep2_EmployeeID != ls.SalesRep2_EmployeeID THEN 'Sales Rep 2' \r\n        WHEN l.CallBack_EmployeeID != ls.CallBack_EmployeeID THEN 'CallBack Emp' \r\n        WHEN l.PromoterID != ls.PromoterID THEN 'Promoter' \r\n        WHEN l.ApptDate != ls.ApptDate THEN 'ApptDate' \r\n        WHEN l.CallBackDate != ls.CallBackDate THEN 'CallBack Date' \r\n        WHEN l.DateReceived != ls.DateReceived THEN 'DateReceived' \r\n        WHEN l.FollowUpDate != ls.FollowUpDate THEN 'FollowupDate' \r\n        WHEN l.DeferDate != ls.DeferDate THEN 'Defer Date' \r\n        WHEN l.ApptSet != ls.ApptSet THEN 'ApptSet' \r\n        WHEN l.Verified != ls.Verified THEN 'Verified' \r\n        WHEN l.Confirmed != ls.Confirmed THEN 'Confirmed' \r\n        WHEN l.Issued != ls.Issued THEN 'Issued' \r\n        WHEN l.NetIssued != ls.NetIssued THEN 'Net Issued' \r\n        WHEN l.Sat != ls.Sat THEN 'Sat' \r\n        WHEN l.Sold != ls.Sold THEN 'Sold' \r\n        WHEN l.EverSet != ls.EverSet THEN 'EverSet' \r\n        WHEN l.EverVerified != ls.EverVerified THEN 'EverVerified'  \r\n        WHEN l.EverNetIssued != ls.EverNetIssued THEN 'Ever net Issued'  \r\n        WHEN l.EverSat != ls.EverSat THEN 'Ever Sat'  \r\n        WHEN l.EverConfirmed != ls.EverConfirmed THEN 'Ever Confirmed'  \r\n        WHEN l.SetBy_EmployeeID != ls.SetBy_EmployeeID THEN 'Set by Emp'  \r\n        WHEN l.VerifiedBy_EmployeeID != ls.VerifiedBy_EmployeeID THEN 'Verified by Emp'  \r\n        WHEN l.ConfirmedBy_EmployeeID != ls.ConfirmedBy_EmployeeID THEN 'Confirm by Emp'  \r\n        WHEN l.ApptDuration != ls.ApptDuration THEN 'ApptDuration'  \r\n        WHEN TRY_CAST(l.GrossSalesAmount as FLOAT) != TRY_CAST(ls.GrossSalesAmount as FLOAT) THEN 'Gross Sale Amt'  \r\n        WHEN l.SalesRepSplit != ls.SalesRepSplit THEN 'Sales Rep Split'  \r\n        WHEN l.LastCallDate != ls.LastCallDate THEN 'Last Call Date'  \r\n        WHEN l.LastCallResultID != ls.LastCallResultID THEN 'Last Call Result'\r\n    END as ChangeReason,\r\n    CASE\r\n        WHEN l.ProductID != ls.ProductID THEN ls.ProductID \r\n        WHEN l.DispositionID != ls.DispositionID THEN ls.DispositionID \r\n        WHEN l.LeadSourceID != ls.LeadSourceID THEN ls.LeadSourceID\r\n        WHEN l.InboundQueueLogID != ls.InboundQueueLogID THEN ls.InboundQueueLogID \r\n        WHEN l.BranchID != ls.BranchID THEN ls.BranchID\r\n        WHEN l.SalesDistrictID != ls.SalesDistrictID THEN ls.SalesDistrictID\r\n        WHEN l.RankID != ls.RankID THEN ls.RankID\r\n        WHEN l.LeadSubSourceID != ls.LeadSubSourceID THEN ls.LeadSubSourceID \r\n        WHEN l.AppointmentID != ls.AppointmentID THEN ls.AppointmentID\r\n        WHEN l.SalesRep1_EmployeeID != ls.SalesRep1_EmployeeID THEN ls.SalesRep1_EmployeeID \r\n        WHEN l.SalesRep2_EmployeeID != ls.SalesRep2_EmployeeID THEN ls.SalesRep2_EmployeeID\r\n        WHEN l.CallBack_EmployeeID != ls.CallBack_EmployeeID THEN ls.CallBack_EmployeeID \r\n        WHEN l.PromoterID != ls.PromoterID THEN ls.PromoterID \r\n        WHEN l.ApptDate != ls.ApptDate THEN CAST(ls.ApptDate as VARCHAR)\r\n        WHEN l.CallBackDate != ls.CallBackDate THEN CAST(ls.CallBackDate as VARCHAR) \r\n        WHEN l.DateReceived != ls.DateReceived THEN CAST(ls.DateReceived as VARCHAR)\r\n        WHEN l.FollowUpDate != ls.FollowUpDate THEN CAST(ls.FollowupDate as VARCHAR) \r\n        WHEN l.DeferDate != ls.DeferDate THEN CAST(ls.DeferDate as VARCHAR) \r\n        WHEN l.ApptSet != ls.ApptSet THEN CAST(ls.ApptSet as VARCHAR) \r\n        WHEN l.Verified != ls.Verified THEN CAST(ls.Verified as VARCHAR) \r\n        WHEN l.Confirmed != ls.Confirmed THEN CAST(ls.Confirmed as VARCHAR)\r\n        WHEN l.Issued != ls.Issued THEN CAST(ls.Issued as VARCHAR)\r\n        WHEN l.NetIssued != ls.NetIssued THEN CAST(ls.NetIssued as VARCHAR)\r\n        WHEN l.Sat != ls.Sat THEN CAST(ls.Sat as VARCHAR)\r\n        WHEN l.Sold != ls.Sold THEN CAST(ls.Sold as VARCHAR)\r\n        WHEN l.EverSet != ls.EverSet THEN CAST(ls.EverSet as VARCHAR)\r\n        WHEN l.EverVerified != ls.EverVerified THEN CAST(ls.EverVerified as VARCHAR) \r\n        WHEN l.EverNetIssued != ls.EverNetIssued THEN CAST(ls.EverNetIssued as VARCHAR)\r\n        WHEN l.EverSat != ls.EverSat THEN CAST(ls.EverSat as VARCHAR)\r\n        WHEN l.EverConfirmed != ls.EverConfirmed THEN CAST(ls.EverConfirmed as VARCHAR)  \r\n        WHEN l.SetBy_EmployeeID != ls.SetBy_EmployeeID THEN ls.SetBy_EmployeeID  \r\n        WHEN l.VerifiedBy_EmployeeID != ls.VerifiedBy_EmployeeID THEN ls.VerifiedBy_EmployeeID  \r\n        WHEN l.ConfirmedBy_EmployeeID != ls.ConfirmedBy_EmployeeID THEN ls.ConfirmedBy_EmployeeID  \r\n        WHEN l.ApptDuration != ls.ApptDuration THEN CAST(ls.ApptDuration as VARCHAR) \r\n        WHEN TRY_CAST(l.GrossSalesAmount as FLOAT) != TRY_CAST(ls.GrossSalesAmount as FLOAT) THEN CAST(ls.GrossSalesAmount as VARCHAR)\r\n        WHEN l.SalesRepSplit != ls.SalesRepSplit THEN CAST(ls.SalesRepSplit as VARCHAR) \r\n        WHEN l.LastCallDate != ls.LastCallDate THEN CAST(ls.LastCallDate as VARCHAR)\r\n        WHEN l.LastCallResultID != ls.LastCallResultID THEN ls.LastCallResultID\r\n    END as PreviousValue,\r\n    GETDATE() as ChangeCaptureDate\r\nfrom EDW.FACT_LEAD l\r\ninner join OUT.FACT_LEAD_SNAPSHOT ls on l.LeadID = ls.LeadID\r\nwhere\r\n    ISNUMERIC(l.GrossSalesAmount) = 1 AND ISNUMERIC(ls.GrossSalesAmount) = 1 AND\r\n    (\r\n        l.ProductID != ls.ProductID or l.DispositionID != ls.DispositionID or l.LeadSourceID != ls.LeadSourceID or\r\n        l.InboundQueueLogID != ls.InboundQueueLogID or l.BranchID != ls.BranchID or l.SalesDistrictID != ls.SalesDistrictID or\r\n        l.RankID != ls.RankID or l.LeadSubSourceID != ls.LeadSubSourceID or l.AppointmentID != ls.AppointmentID or\r\n        l.SalesRep1_EmployeeID != ls.SalesRep1_EmployeeID or l.SalesRep2_EmployeeID != ls.SalesRep2_EmployeeID or\r\n        l.CallBack_EmployeeID != ls.CallBack_EmployeeID or l.PromoterID != ls.PromoterID or l.ApptDate != ls.ApptDate or\r\n        l.CallBackDate != ls.CallBackDate or l.DateReceived != ls.DateReceived or l.FollowUpDate != ls.FollowUpDate or\r\n        l.DeferDate != ls.DeferDate or l.ApptSet != ls.ApptSet or l.Verified != ls.Verified or l.Confirmed != ls.Confirmed or\r\n        l.Issued != ls.Issued or l.NetIssued != ls.NetIssued or l.Sat != ls.Sat or l.Sold != ls.Sold or l.EverSet != ls.EverSet or\r\n        l.EverVerified != ls.EverVerified or l.EverNetIssued != ls.EverNetIssued or l.EverSat != ls.EverSat or\r\n        l.EverConfirmed != ls.EverConfirmed or l.SetBy_EmployeeID != ls.SetBy_EmployeeID or\r\n        l.VerifiedBy_EmployeeID != ls.VerifiedBy_EmployeeID or l.ConfirmedBy_EmployeeID != ls.ConfirmedBy_EmployeeID or\r\n        l.ApptDuration != ls.ApptDuration or TRY_CAST(l.GrossSalesAmount as FLOAT) != TRY_CAST(ls.GrossSalesAmount as FLOAT) or\r\n        l.SalesRepSplit != ls.SalesRepSplit or l.LastCallDate != ls.LastCallDate or l.LastCallResultID != ls.LastCallResultID\r\n    );\r\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "LeadID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "LeadID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CustomerID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CustomerID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ProductID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ProductID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DispositionID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "DispositionID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadSourceID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "LeadSourceID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "InboundQueueLogID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "InboundQueueLogID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "BranchID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SalesDistrictID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "SalesDistrictID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "RankID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "RankID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadSubSourceID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "LeadSubSourceID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AppointmentID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "AppointmentID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SalesRep1_EmployeeID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "SalesRep1_EmployeeID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SalesRep2_EmployeeID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "SalesRep2_EmployeeID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CallBack_EmployeeID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CallBack_EmployeeID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PromoterID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "PromoterID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadNumber",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "LeadNumber",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "EntryDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "EntryDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "DateEntered",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "DateEntered",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "ApptDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "ApptDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LastUpdateTS",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "LastUpdateTS",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "CallBackDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "CallBackDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "DateReceived",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "DateReceived",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "FollowUpDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "FollowUpDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "DeferDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "DeferDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "ApptSet",
+									"type": "Boolean",
+									"physicalType": "bit"
+								},
+								"sink": {
+									"name": "ApptSet",
+									"type": "Boolean",
+									"physicalType": "bit"
+								}
+							},
+							{
+								"source": {
+									"name": "Verified",
+									"type": "Boolean",
+									"physicalType": "bit"
+								},
+								"sink": {
+									"name": "Verified",
+									"type": "Boolean",
+									"physicalType": "bit"
+								}
+							},
+							{
+								"source": {
+									"name": "Confirmed",
+									"type": "Boolean",
+									"physicalType": "bit"
+								},
+								"sink": {
+									"name": "Confirmed",
+									"type": "Boolean",
+									"physicalType": "bit"
+								}
+							},
+							{
+								"source": {
+									"name": "Issued",
+									"type": "Boolean",
+									"physicalType": "bit"
+								},
+								"sink": {
+									"name": "Issued",
+									"type": "Boolean",
+									"physicalType": "bit"
+								}
+							},
+							{
+								"source": {
+									"name": "NetIssued",
+									"type": "Boolean",
+									"physicalType": "bit"
+								},
+								"sink": {
+									"name": "NetIssued",
+									"type": "Boolean",
+									"physicalType": "bit"
+								}
+							},
+							{
+								"source": {
+									"name": "Sat",
+									"type": "Boolean",
+									"physicalType": "bit"
+								},
+								"sink": {
+									"name": "Sat",
+									"type": "Boolean",
+									"physicalType": "bit"
+								}
+							},
+							{
+								"source": {
+									"name": "Sold",
+									"type": "Boolean",
+									"physicalType": "bit"
+								},
+								"sink": {
+									"name": "Sold",
+									"type": "Boolean",
+									"physicalType": "bit"
+								}
+							},
+							{
+								"source": {
+									"name": "EverSet",
+									"type": "Boolean",
+									"physicalType": "bit"
+								},
+								"sink": {
+									"name": "EverSet",
+									"type": "Boolean",
+									"physicalType": "bit"
+								}
+							},
+							{
+								"source": {
+									"name": "EverVerified",
+									"type": "Boolean",
+									"physicalType": "bit"
+								},
+								"sink": {
+									"name": "EverVerified",
+									"type": "Boolean",
+									"physicalType": "bit"
+								}
+							},
+							{
+								"source": {
+									"name": "EverIssued",
+									"type": "Boolean",
+									"physicalType": "bit"
+								},
+								"sink": {
+									"name": "EverIssued",
+									"type": "Boolean",
+									"physicalType": "bit"
+								}
+							},
+							{
+								"source": {
+									"name": "EverNetIssued",
+									"type": "Boolean",
+									"physicalType": "bit"
+								},
+								"sink": {
+									"name": "EverNetIssued",
+									"type": "Boolean",
+									"physicalType": "bit"
+								}
+							},
+							{
+								"source": {
+									"name": "EverSat",
+									"type": "Boolean",
+									"physicalType": "bit"
+								},
+								"sink": {
+									"name": "EverSat",
+									"type": "Boolean",
+									"physicalType": "bit"
+								}
+							},
+							{
+								"source": {
+									"name": "EverConfirmed",
+									"type": "Boolean",
+									"physicalType": "bit"
+								},
+								"sink": {
+									"name": "EverConfirmed",
+									"type": "Boolean",
+									"physicalType": "bit"
+								}
+							},
+							{
+								"source": {
+									"name": "SetBy_EmployeeID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "SetBy_EmployeeID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "VerifiedBy_EmployeeID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "VerifiedBy_EmployeeID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ConfirmedBy_EmployeeID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ConfirmedBy_EmployeeID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ApptDuration",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "ApptDuration",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "GrossSalesAmount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 4,
+									"precision": 19
+								},
+								"sink": {
+									"name": "GrossSalesAmount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 4,
+									"precision": 19
+								}
+							},
+							{
+								"source": {
+									"name": "SalesRepSplit",
+									"type": "Double",
+									"physicalType": "float"
+								},
+								"sink": {
+									"name": "SalesRepSplit",
+									"type": "Double",
+									"physicalType": "float"
+								}
+							},
+							{
+								"source": {
+									"name": "LastCallDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "LastCallDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "LastCallResultID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "LastCallResultID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadScore_ExpectedValueRank",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "LeadScore_ExpectedValueRank",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadScore_LogisticRegressionRank",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "LeadScore_LogisticRegressionRank",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadScore_RegressionRank",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "LeadScore_RegressionRank",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadScore_Initial_LikelihoodToBuy",
+									"type": "Decimal",
+									"physicalType": "money",
+									"scale": 4,
+									"precision": 19
+								},
+								"sink": {
+									"name": "LeadScore_Initial_LikelihoodToBuy",
+									"type": "Decimal",
+									"physicalType": "money",
+									"scale": 4,
+									"precision": 19
+								}
+							},
+							{
+								"source": {
+									"name": "LeadScore_Initial_LikelySaleAmount",
+									"type": "Decimal",
+									"physicalType": "money",
+									"scale": 4,
+									"precision": 19
+								},
+								"sink": {
+									"name": "LeadScore_Initial_LikelySaleAmount",
+									"type": "Decimal",
+									"physicalType": "money",
+									"scale": 4,
+									"precision": 19
+								}
+							},
+							{
+								"source": {
+									"name": "LeadScore_Initial_ExpectedValue",
+									"type": "Decimal",
+									"physicalType": "money",
+									"scale": 4,
+									"precision": 19
+								},
+								"sink": {
+									"name": "LeadScore_Initial_ExpectedValue",
+									"type": "Decimal",
+									"physicalType": "money",
+									"scale": 4,
+									"precision": 19
+								}
+							},
+							{
+								"source": {
+									"name": "LeadScore_Current_LikelihoodToBuy",
+									"type": "Decimal",
+									"physicalType": "money",
+									"scale": 4,
+									"precision": 19
+								},
+								"sink": {
+									"name": "LeadScore_Current_LikelihoodToBuy",
+									"type": "Decimal",
+									"physicalType": "money",
+									"scale": 4,
+									"precision": 19
+								}
+							},
+							{
+								"source": {
+									"name": "LeadScore_Current_LikelySaleAmount",
+									"type": "Decimal",
+									"physicalType": "money",
+									"scale": 4,
+									"precision": 19
+								},
+								"sink": {
+									"name": "LeadScore_Current_LikelySaleAmount",
+									"type": "Decimal",
+									"physicalType": "money",
+									"scale": 4,
+									"precision": 19
+								}
+							},
+							{
+								"source": {
+									"name": "LeadScore_Current_ExpectedValue",
+									"type": "Decimal",
+									"physicalType": "money",
+									"scale": 4,
+									"precision": 19
+								},
+								"sink": {
+									"name": "LeadScore_Current_ExpectedValue",
+									"type": "Decimal",
+									"physicalType": "money",
+									"scale": 4,
+									"precision": 19
+								}
+							},
+							{
+								"source": {
+									"name": "DeleteInd",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "DeleteInd",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ChangeReason",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ChangeReason",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PreviousValue",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "PreviousValue",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ChangeCaptureDate",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "ChangeCaptureDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "OUT_FACT_LEAD_SNAPSHOT",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "OUT_LEAD_CHANGE_CAPTURE",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "Temp/Akshay"
+		},
+		"annotations": [],
+		"lastPublishTime": "2024-08-27T14:00:45Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

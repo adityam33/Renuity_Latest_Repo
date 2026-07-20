@@ -1,0 +1,20 @@
+{
+	"name": "Prospects with multiple leads Analysis",
+	"properties": {
+		"folder": {
+			"name": "DMLs/Analysis SQL"
+		},
+		"content": {
+			"query": "\n\n-- Get the number of prospects that have multiple leads\n\nselect count([CustomerID]), OperatingCompany\nfrom\n(\nSELECT count([LeadID]) as LeadCount\n,[CustomerID]\n,OperatingCompany\n FROM [EDW].[FACT_LEAD]\n group BY\n CustomerID\n ,OperatingCompany\n having count([LeadID]) > 1\n) tmp1\ngroup BY\nOperatingCompany\n\n-- Get the total number of Prospects\n\nSELECT count(1), [OperatingCompany]\n FROM [EDW].[DIM_CUSTOMER]\n group by [OperatingCompany]\n\n-- Below statements give a sample of prospects that have multiple leads\n\nSELECT top (10) count([LeadID]) as LeadCount\n,[CustomerID]\n,OperatingCompany\n FROM [EDW].[FACT_LEAD]\n group BY\n CustomerID\n ,OperatingCompany\n having count([LeadID]) > 1\n\n\n\n select * from EDW.FACT_LEAD where CustomerID in \n (\n'FHI-101244'\n,'FHI-100520'\n)",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

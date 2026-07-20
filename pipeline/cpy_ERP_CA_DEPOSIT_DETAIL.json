@@ -1,0 +1,215 @@
+{
+	"name": "cpy_ERP_CA_DEPOSIT_DETAIL",
+	"properties": {
+		"activities": [
+			{
+				"name": "ERP to ODS - CA Deposit Detail",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ODataSource",
+						"httpRequestTimeout": "00:05:00"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Upsert",
+						"upsertSettings": {
+							"keys": [
+								"ReferenceNbr",
+								"ReferenceNbr_2",
+								"TranType"
+							],
+							"interimSchemaName": ""
+						},
+						"sqlWriterUseTableLock": false,
+						"tableOption": "autoCreate",
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "TranType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "TranType",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ReferenceNbr",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ReferenceNbr",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CashAccount",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CashAccount",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DocType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "DocType",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CADepositDetail_origAmt",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "CADepositDetail_origAmt",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "ReferenceNbr_2",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ReferenceNbr_2",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DocModule",
+									"type": "String"
+								},
+								"sink": {
+									"name": "DocModule",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Description",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Description",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PaymentMethod",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PaymentMethod",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CADepositDetail_createdDateTime",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "CreatedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "DepositAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "DepositAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "TranAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "TranAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "Description_2",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Description_2",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CADepositDetail_lastModifiedDateTime",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastModifiedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "LineNbr",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "LineNbr",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_ERP_CA_DEPOSIT_DETAIL",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_ERP_CA_DEPOSIT_DETAIL",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "SRC_to_ODS/ERP/Acumatica/TRANSACTIONS"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-11-17T15:25:38Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

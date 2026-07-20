@@ -1,0 +1,712 @@
+{
+	"name": "batch_load_DIM_MKTNG_SUB_SOURCE_MAPPING",
+	"properties": {
+		"activities": [
+			{
+				"name": "Mapping by Level2 Keywords Match",
+				"description": "Mapping the unmapped sub sources using Level2 keywords ",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Update LP data Changes - REMAP",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "--------------------------------------------------------Level2 Keywords Match\n\nWith LVL2_1 AS \n(\n\tSELECT Distinct\n\tDivision,\n\tLeadSubsourceID,\n\tSourceGroup,\n\tSourceCode,\n\tTX_SourceCode,\n\tCASE \n\t\tWHEN SourceCode LIKE '%Home Work%'    THEN 'Agents Referral'\n\t\tWHEN SourceCode LIKE '%Ron %'        THEN 'Broadcast TV'\n\t\tWHEN SourceCode LIKE '%Canvas%'    AND ( LeadSubSource NOT LIKE '%JB Canvas%' AND Leadsubsource NOT LIKE '%DP Canvass%') THEN 'Canvass'\n\t\tWHEN SourceCode LIKE '%Show %'    OR SourceCode LIKE '%Shows %' OR SourceCode LIKE '% Show'    OR SourceCode LIKE '% Shows' OR SourceCode LIKE 'Shows' OR SourceCode LIKE 'Show'    THEN 'Events'\n\t\tWHEN SourceCode LIKE '%Event%'        THEN 'Events'\n\t\tWHEN Division='RTW' AND SourceGroup LIKE '%Event Marketing%'  THEN 'Events'  -- Level 1 Match\n\t\tWHEN SourceCode LIKE 'Liner%'        THEN 'Manufacturer'\n\t\tWHEN SourceCode LIKE '%Out of Home%'THEN 'Out of Home'\n\t\tWHEN SourceCode LIKE '%PPC%'        THEN 'Paid Search'\n\t\tWHEN SourceCode LIKE '%BJs%'        THEN 'Retail'\n\t\tWHEN SourceCode LIKE '%Costco%'        THEN 'Retail'\n\t\tWHEN SourceCode LIKE '%Home Depot%'    THEN 'Retail'\n\t\tWHEN Division='SWR' AND SourceGroup LIKE '%Home Depot%'  \tTHEN 'Retail'  -- Level 1 Match\n\t\tWHEN Division='RTW' AND SourceCode \tLIKE '%Double Pop%'  \tTHEN 'Employee Referral'\n\t\tWHEN Division='RTW' AND SourceCode \tLIKE '%Reload%'  \t\tTHEN 'Employee Referral'\n\t\tWHEN Division='MAC' AND SourceCode \tLIKE '%Self-Gen%'  \t\tTHEN 'Employee Referral'\n\t\tWHEN SourceCode LIKE '%Mall%'        THEN 'Retail'\n\t\tWHEN SourceCode LIKE '%Wallmart%'    THEN 'Retail'\n\t\tWHEN SourceCode LIKE '%Sam%'        THEN 'Retail'\n\t\tWHEN SourceCode LIKE '%Store%'        THEN 'Retail'\n\t\tWHEN SourceCode LIKE '%Valpak%'        THEN 'Shared Mail'\n\t\tWHEN SourceCode LIKE '%Kohler%'        THEN 'Manufacturer'\n\t\tWHEN SourceCode LIKE '%RemoPro%'\tTHEN 'Agents Referral'\n\t\tWHEN SourceCode LIKE '%Programmatic%'and LeadSubSource LIKE '%Display%' THEN 'Programmatic'-- added for New source (TD)\n\t\tWHEN LeadSubSource LIKE '%Leads.IO%' or LeadSubSource like '%Social Blue%'  THEN 'Branded Partner' --- Level 3 Match for All Div\n\t\tWHEN SourceCode LIKE '%Leads.IO%' or SourceCode like '%Social Blue%'  THEN 'Branded Partner' \n\t\tWhen ( SourceCode LIKE '%Paid Search%' or SourceCode LIKE '%Website%' ) and LeadSubSource like '%Keyword Connect%' then 'Paid Search'\n\t\twhen  LeadSubSource like '%Guru Digital%' then 'Paid Social' \n\t\tELSE NULL END AS CAL_SourceCode\n\tFROM [EDW].[DIM_MKTNG_SUB_SOURCE_MAPPING] Where MappingInd='UNMAP' and SourceCode<>'0' and SourceCode is not null\n\tAND Division!='CTA'\n)\nUpdate [EDW].[DIM_MKTNG_SUB_SOURCE_MAPPING] set \n       TX_Channel\t\t\t\t= RF.TX_Channel\n       ,TX_Sourcegroup\t\t\t= RF.TX_Sourcegroup\n       ,TX_SourceCode\t\t\t= RF.TX_SourceCode\n\t   ,ACU_AccountCode         = RF.ACU_AccountCode\n\t   ,ACU_MarketingAccountID  = RF.ACU_MarketingAccountID\n\t   ,ACU_MarketingAccount    = RF.ACU_MarketingAccount\n       ,MappingInd\t\t\t\t= (CASE WHEN (T1.TX_SourceCode IS NOT NULL AND ( T1.TX_Channel != RF.TX_Channel OR T1.TX_Sourcegroup != RF.TX_Sourcegroup OR T1.TX_SourceCode != RF.TX_SourceCode)) THEN 'REMAP' ELSE 'MAP' END)\n       ,LastUpdatedTS\t\t\t= Getdate()\n\t   from [EDW].[DIM_MKTNG_SUB_SOURCE_MAPPING] T1\n\t\t\tJoin  LVL2_1 T2  on T1.Division=T2.Division and T1.LeadSubSourceID=T2.LeadSubSourceID\n\t\t\tJoin (SELECT DISTINCT TX_SOURCEGROUP,TX_SOURCECODE,TX_CHANNEL,ACU_AccountCode,ACU_MarketingAccountID,ACU_MarketingAccount FROM RDM.REF_MKTNG_SOURCE_GROUP) RF on T2.CAL_Sourcecode= RF.TX_SourceCode \n\t  Where   T1.MappingInd='UNMAP' and T1.Division=T2.Division and T1.LeadSubSourceID=T2.LeadSubSourceID \n\t  and T2.CAL_SourceCode is not NULL   ;\n\t  \n\t  \n\t  \n\t  \n---*************    Closet America  **********************\n\n\n\nWith LVL2_2 AS \n(\n\tSELECT Distinct\n\tDivision,\n\tLeadSubsourceID,\n\tSourceGroup,\n\tSourceCode,\n\tTX_SourceCode,\n\tCASE \n\t\tWHEN SourceCode LIKE '%Radio%'    \t\tTHEN 'Broadcast Radio'\n\t\tWHEN SourceCode LIKE '%Canvas%'    AND ( LeadSubSource NOT LIKE '%JB Canvas%' AND Leadsubsource NOT LIKE '%DP Canvass%') THEN 'Canvass'\n\t\tWHEN SourceCode LIKE '%Cust Referral%'    \tTHEN 'Consumer Referral'\n\t\tWHEN SourceCode LIKE '%Direct Mail%'    \tTHEN 'Direct Mail'\n\t\tWHEN SourceCode LIKE '%Directories%'    \tTHEN 'Directories'\n\t\tWHEN SourceCode LIKE '%Email%'    \t\t\tTHEN 'Email'\n\t\tWHEN SourceCode LIKE '%Emp Referral%'    \tTHEN 'Employee Referral'\n\t\tWHEN SourceCode LIKE '%Event%' OR SourceCode LIKE '%Events%' OR SourceCode LIKE '%Home Show%'  OR SourceCode LIKE '%Show or Event%'  OR SourceCode LIKE '%Showroom%' THEN 'Events'\n\t\t\n\t\tWHEN SourceCode LIKE '%Manufacturer%'    \tTHEN 'Manufacturer'\n\t\tWHEN SourceCode LIKE '%Native%'    \t\t\tTHEN 'Native'\n\t\tWHEN SourceCode LIKE '%Newspaper%' OR SourceCode LIKE '%Print%'   THEN 'Newspapers/Magazines'\n\t\tWHEN SourceCode LIKE '%Out of Home%'    THEN 'Out of Home'\n\t\tWHEN SourceCode LIKE '%Paid Search%' AND UPPER(LeadSubSource) NOT LIKE '%YOUTUBE%'  THEN 'Paid Search'\n\t\tWHEN SourceCode LIKE '%Paid Social%'    THEN 'Paid Social'\n\t\tWHEN SourceCode LIKE '%Rehash%'    THEN 'Consumer Referral'\n\t\tWHEN SourceCode LIKE '%SelfGen%'     \tTHEN 'Employee Referral'\n\t\tWHEN SourceCode LIKE '%Shared Mail%'    THEN 'Shared Mail'\n\t\tWHEN SourceCode LIKE '%Sign%'    \t\tTHEN 'Out of Home'\n\t\tWHEN SourceCode LIKE '%Social%'    \t\tTHEN 'Paid Social'\n\t\tWHEN SourceCode LIKE '%Native%'    \t\tTHEN 'Native'\n\t\tWHEN SourceCode LIKE '%Television%'    \t\t\tTHEN 'Broadcast TV'\n\t\tWHEN SourceCode LIKE '%website%'    \t\t\tTHEN 'Paid Search'\n\t\tWHEN SourceCode LIKE '%Yellow Pages%'    \t\tTHEN 'Directories'\n\t\tWHEN SourceCode LIKE '%Branded Digital%'    \t\tTHEN 'Branded Partner'\n\t\tWHEN SourceCode LIKE '%Organic/SEO%'    \t\tTHEN 'Organic/SEO'\n\t\tWHEN SourceCode LIKE '%Prev Customer%'    \t\tTHEN 'Consumer Referral'\n\t\tWHEN SourceCode LIKE '%Programmatic%'and LeadSubSource LIKE '%Display%' THEN 'Programmatic'-- added for New source (TD)\n\t\tWHEN LeadSubSource LIKE '%Leads.IO%' or LeadSubSource like '%Social Blue%'  THEN 'Branded Partner' --- Level 3 Match for All Div\n\t\tWHEN SourceCode LIKE '%Leads.IO%' or SourceCode like '%Social Blue%'  THEN 'Branded Partner' \n\t\tWhen ( SourceCode LIKE '%Paid Search%' or SourceCode LIKE '%Website%' ) and LeadSubSource like '%Keyword Connect%' then 'Paid Search'\n\t\twhen  LeadSubSource like '%Guru Digital%' then 'Paid Social'\n\t\tELSE NULL END AS CAL_SourceCode\n\tFROM [EDW].[DIM_MKTNG_SUB_SOURCE_MAPPING] Where MappingInd='UNMAP' and SourceCode<>'0' and SourceCode is not null\n\tAND Division='CTA'\n)\nUpdate [EDW].[DIM_MKTNG_SUB_SOURCE_MAPPING] set \n       TX_Channel\t\t\t\t= RF.TX_Channel\n       ,TX_Sourcegroup\t\t\t= RF.TX_Sourcegroup\n       ,TX_SourceCode\t\t\t= RF.TX_SourceCode\n\t   ,ACU_AccountCode         = RF.ACU_AccountCode\n\t   ,ACU_MarketingAccountID  = RF.ACU_MarketingAccountID\n\t   ,ACU_MarketingAccount    = RF.ACU_MarketingAccount\n       ,MappingInd\t\t\t\t= (CASE WHEN (T1.TX_SourceCode IS NOT NULL AND ( T1.TX_Channel != RF.TX_Channel OR T1.TX_Sourcegroup != RF.TX_Sourcegroup OR T1.TX_SourceCode != RF.TX_SourceCode)) THEN 'REMAP' ELSE 'MAP' END)\n       ,LastUpdatedTS\t\t\t= Getdate()\n\t   from [EDW].[DIM_MKTNG_SUB_SOURCE_MAPPING] T1\n\t\t\tJoin  LVL2_2 T2  on T1.Division=T2.Division and T1.LeadSubSourceID=T2.LeadSubSourceID\n\t\t\tJoin (SELECT DISTINCT TX_SOURCEGROUP,TX_SOURCECODE,TX_CHANNEL,ACU_AccountCode,ACU_MarketingAccountID,ACU_MarketingAccount FROM RDM.REF_MKTNG_SOURCE_GROUP) RF on T2.CAL_Sourcecode= RF.TX_SourceCode \n\t  Where   T1.MappingInd='UNMAP' and T1.Division=T2.Division and T1.LeadSubSourceID=T2.LeadSubSourceID \n\t  and T2.CAL_SourceCode is not NULL   ;"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Mapping by one-one without div match",
+				"description": "Mapping the unmapped sub sources using\none to one without division matches\n",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Mapping by one-one match",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "\n----------------------------------------------Without Division (Level1 and Level2 Direct Match)\n\n\nWith WD_1 AS\n(\n\tSELECT \tSourceGroup,SourceCode,Count(1) AS Count\n\tFROM\n\t(\n\t\tSELECT \n\t\t\tDISTINCT\n\t\t\tSourceGroup,\n\t\t\tCOALESCE(SourceCode,'NA') AS SourceCode,\n\t\t\tTX_SourceGroup,\n\t\t\tTX_SourceCode \n\t\t\tFROM\n\t\t\tRDM.REF_MKTNG_SOURCE_GROUP\n\t\t\t) M1\n\tGROUP BY SourceGroup,SourceCode\n\tHAVING Count(1)=1\n),\nWD_2 AS\n(\n\tSELECT \n\t\tDISTINCT \n\t\tCOALESCE(A.SourceGroup,'NA') AS SourceGroup, \n\t\tCOALESCE(A.SourceCode,'NA') AS SourceCode,\n\t\tB.TX_SourceGroup,\n\t\tB.TX_SourceCode,\n\t\tB.TX_Channel,\n\t\tB.ACU_AccountCode,\n\t\tB.ACU_MarketingAccountID ,\n\t\tB.ACU_MarketingAccount   \n\t\tFROM WD_1 A\n\t\tJOIN RDM.REF_MKTNG_SOURCE_GROUP B \n\t\tON COALESCE(A.SourceGroup,'NA') = COALESCE(B.SourceGroup,'NA')\n\t\tAND COALESCE(A.SourceCode,'NA') = COALESCE(B.SourceCode,'NA')\n)\n\nUpdate [EDW].[DIM_MKTNG_SUB_SOURCE_MAPPING] set \nTX_Channel\t\t\t\t\t= RF.TX_Channel\n,TX_Sourcegroup\t\t\t\t= RF.TX_Sourcegroup\n,TX_SourceCode\t\t\t\t= RF.TX_SourceCode\n,ACU_AccountCode\t\t\t= RF.ACU_AccountCode\n,ACU_MarketingAccountID\t\t= RF.ACU_MarketingAccountID\n,ACU_MarketingAccount\t\t= RF.ACU_MarketingAccount\n,MappingInd\t\t\t\t\t= (CASE WHEN (SM.TX_SourceCode IS NOT NULL AND ( SM.TX_Channel != RF.TX_Channel OR SM.TX_Sourcegroup != RF.TX_Sourcegroup OR SM.TX_SourceCode != RF.TX_SourceCode)) THEN 'REMAP' ELSE 'MAP' END)\n,LastUpdatedTS\t\t\t\t= Getdate()\nfrom [EDW].[DIM_MKTNG_SUB_SOURCE_MAPPING] SM \nJoin WD_2 RF on \n (SM.Sourcegroup= RF.Sourcegroup or SM.Sourcegroup= RF.TX_Sourcegroup )\nand (SM.Sourcecode= RF.SourceCode or  SM.Sourcecode= RF.TX_SourceCode)\nwhere  SM.MappingInd='UNMAP'  ;"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Mapping by one-one match",
+				"description": "Mapping the unmapped sub sources using\none to one matches",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Mapping by Level3 fuzzy Match",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "-------------------------------------------Division,Level1 and Leve2 Direct Match\nUpdate [EDW].[DIM_MKTNG_SUB_SOURCE_MAPPING] set \nTX_Channel\t\t\t\t = RF.TX_Channel\n,TX_Sourcegroup\t\t\t = RF.TX_Sourcegroup\n,TX_SourceCode\t\t\t = RF.TX_SourceCode\n,ACU_AccountCode         = RF.ACU_AccountCode\n,ACU_MarketingAccountID  = RF.ACU_MarketingAccountID\n,ACU_MarketingAccount    = RF.ACU_MarketingAccount\n,MappingInd\t\t\t\t = (CASE WHEN (SM.TX_SourceCode IS NOT NULL AND ( SM.TX_Channel != RF.TX_Channel OR SM.TX_Sourcegroup != RF.TX_Sourcegroup OR SM.TX_SourceCode != RF.TX_SourceCode)) THEN 'REMAP' ELSE 'MAP' END)\n,LastUpdatedTS\t\t\t = Getdate()\nfrom [EDW].[DIM_MKTNG_SUB_SOURCE_MAPPING] SM \nJoin RDM.REF_MKTNG_SOURCE_GROUP RF on SM.Division=RF.Division \nand (SM.Sourcegroup= RF.Sourcegroup or SM.Sourcegroup= RF.TX_Sourcegroup )\nand (SM.Sourcecode= RF.SourceCode or  SM.Sourcecode= RF.TX_SourceCode)\nwhere  SM.MappingInd='UNMAP' ;\n"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Mapping by Level3 fuzzy Match",
+				"description": "Mapping the unmapped sub sources using\nlevel3 fuzzy matches",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Mapping by Level2 Keywords Match",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "--------------------------------------------------------Level3 Keywords Match\n\n------------------------------------------------------------------------FHI\n\nWITH T_FHI AS\n(\nSELECT \n\tDivision,\n    LeadSubSourceID,\n    SourceGroup,\n    SourceCode,\n    LeadSubSource,\n    TX_SourceCode,\n    CASE \n\t\tWHEN ( UPPER(LeadSubSource) LIKE '%RADIO%' \tOR UPPER(LeadSubSource) LIKE '% FM' OR UPPER(LeadSubSource) LIKE '% FM %' OR UPPER(LeadSubSource) LIKE 'FM %' OR UPPER(LeadSubSource) LIKE '%-FM %' OR UPPER(LeadSubSource) LIKE '% FM-%'\n\t\t\t\t\t\t\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '% AM' OR UPPER(LeadSubSource) LIKE '% AM %' OR UPPER(LeadSubSource) LIKE 'AM %' OR UPPER(LeadSubSource) LIKE '%-AM %' OR UPPER(LeadSubSource) LIKE '% AM-%'\n\t\t\t\t\t\t\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'iHeart%' \n\t\t\t\t\t\t\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%ESPN%'\n\t\t\t\t\t\t\t\t\t\t\t\t\t)\tAND UPPER(LeadSubSource) NOT LIKE '%NEWS%' AND UPPER(LeadSubSource) NOT LIKE '%TOUR%'  THEN 'Broadcast Radio'\n\t\t\n\t\tWHEN (UPPER(LeadSubSource) LIKE '%TV%' OR UPPER(LeadSubSource) LIKE '%TELEVISION%' \n\t\t\t\t\t\t\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'PROMEDIA%'\n\t\t\t\t\t\t\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%RSR%'\t\n\t\t\t\t\t\t\t\t\t\t\t\t\tOR (UPPER(SourceCode) LIKE '%RON SHERMAN%')\n\t\t\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\t\t) AND UPPER(LeadSubSource) NOT LIKE '%BCI-WIT%' THEN 'Broadcast TV'\n\t\t\n\t\tWHEN (\tUPPER(LeadSubSource) LIKE '%DIRECT MAIL%' OR UPPER(LeadSubSource) LIKE '%MAILER%' OR  UPPER(LeadSubSource) LIKE  '%MAY - BATH%')\n\t\t\t\t\t\t\t\t\tAND (UPPER(LeadSubSource) NOT LIKE '%VELPAK%' AND UPPER(LeadSubSource) NOT LIKE '%VEL PAK%' AND UPPER(LeadSubSource)  NOT LIKE '%DIRECT MAIL - RENUITY%') THEN 'Direct Mail'\n        \n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%FACEBOOK%'\n\t\t\t\t\t\tOR (UPPER(LeadSubSource) LIKE '%META%' and UPPER(Leadsubsource) not Like '%F2F%')\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%PINTEREST%' THEN 'Paid Social'\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n        WHEN UPPER(LeadSubSource) LIKE '%YELP%' THEN 'Directories'\n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%YOUTUBE%' THEN 'YouTube' \n\t\t\n        WHEN (UPPER(LeadSubSource) LIKE '%GOOGLE%' \n\t\t\t\t\t\t--OR UPPER(LeadSubSource) LIKE '%YOUTUBE%' \n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%YAHOO%' \n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%PPC%' \n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%PERFORMANCE MAX%' \n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%PAID SEARCH%'\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%BING – RENUITY%'\n\t\t\t\t\t\t\n\t\t\t\t\t\t) \n\t\t\t\t\t\tAND (UPPER(LeadSubSource) NOT LIKE '%ORGANIC%' AND UPPER(LeadSubSource) NOT LIKE '%LOCAL%' AND UPPER(LeadSubSource) NOT LIKE '%TV%'  ) THEN 'Paid Search'\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n        WHEN (UPPER(LeadSubSource) LIKE '%ORGANIC%' OR UPPER(LeadSubSource) LIKE '%SEO%' ) AND UPPER(LeadSubSource) NOT LIKE '%CUSTOMER REFERRAL%' THEN 'Organic/SEO'\n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%EMAIL%' AND UPPER(LeadSubSource) NOT LIKE '%CONQUEST%' AND UPPER(LeadSubSource) NOT LIKE '%ADAPTIVE%' THEN 'Email'\n\t\t\n        WHEN ( (UPPER(LeadSubSource) LIKE '%GANNETT%' AND SourceGroup LIKE '%Print%') OR UPPER(LeadSubSource) LIKE '%NEWSPAPER%' OR UPPER(LeadSubSource) LIKE '%MAGAZINE%' OR UPPER(LeadSubSource) LIKE '%JOURNAL%' ) THEN 'Newspapers/Magazines'\n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%VALPAK%' OR UPPER(LeadSubSource) LIKE '%VAL PAK%' \n\t\t\t\t\t\t\t\t\t\t\t\t  OR UPPER(LeadSubSource) LIKE '%REDPLUM%' \n\t\t\t\t\t\t\t\t\t\t\t\t  OR UPPER(LeadSubSource) LIKE '%RSVP%'\n\t\t\t\t\t\t\t\t\t\t\t\t  OR UPPER(LeadSubSource) LIKE '%REDPLUM%'\n\t\t\t\t\t\t\t\t\t\t\t\t  THEN 'Shared Mail'\n\t\t\t\t\t\t\t\t\t\t\t\t  \n\t\tWHEN UPPER(LeadSubSource) LIKE '%NATIVE ADS%'  THEN 'Native'\n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%MALL%' \n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'SAM%'  \n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%HOME DEPOT%'\n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%BRANDSMART%'\n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%IME- BJs%'\n\t\t\t\t\tTHEN 'Retail'\n\t\t\t\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%CANVAS%' AND (UPPER(LeadSubSource) NOT LIKE '%JB CANVAS%' AND UPPER(LeadSubSource) NOT LIKE '%DP CANVASS%')  THEN 'Canvass'\n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%WALK-IN%'  OR (UPPER(LeadSubSource) LIKE '%CUSTOMER REFERRAL%' AND UPPER(LeadSubSource) NOT LIKE '%ORGANIC%') THEN 'Consumer Referral'\n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%LAVIN MEDIA%' OR UPPER(LeadSubSource) LIKE '%SOCIAL BLUE%'   THEN 'Branded Partner'\n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%YARD%' THEN 'Out of Home'\n\n\t\tWHEN UPPER(LeadSubSource) LIKE '%DP Canvass%' THEN 'Agents Referral'\n\t\t\n        ELSE NULL \n    END AS CAL_SourceCode \nfrom [EDW].[DIM_MKTNG_SUB_SOURCE_MAPPING] \nWHERE Division = 'FHI' and MappingInd='UNMAP' \n)\nUpdate [EDW].[DIM_MKTNG_SUB_SOURCE_MAPPING] set \n       TX_Channel        \t\t= RF.TX_Channel\n       ,TX_Sourcegroup   \t\t= RF.TX_Sourcegroup\n       ,TX_SourceCode    \t\t= RF.TX_SourceCode\n\t   ,ACU_AccountCode         = RF.ACU_AccountCode\n\t   ,ACU_MarketingAccountID  = RF.ACU_MarketingAccountID\n\t   ,ACU_MarketingAccount    = RF.ACU_MarketingAccount\n       ,MappingInd       \t\t= (CASE WHEN (T.TX_SourceCode IS NOT NULL AND ( T.TX_Channel != RF.TX_Channel OR T.TX_Sourcegroup != RF.TX_Sourcegroup OR T.TX_SourceCode != RF.TX_SourceCode)) THEN 'REMAP_FUZZ' ELSE 'MAP_FUZZ' END)\n       ,LastUpdatedTS    \t\t= Getdate()\nfrom [EDW].[DIM_MKTNG_SUB_SOURCE_MAPPING] T\nJoin T_FHI SM  on T.Division=SM.Division and T.LeadSubSourceID=SM.LeadSubSourceID\nLeft Join (SELECT DISTINCT TX_SOURCEGROUP,TX_SOURCECODE,TX_CHANNEL,ACU_AccountCode,ACU_MarketingAccountID,ACU_MarketingAccount FROM RDM.REF_MKTNG_SOURCE_GROUP)  RF on SM.CAL_Sourcecode= RF.TX_SourceCode\nWhere T.Division = 'FHI' and  T.MappingInd='UNMAP' and  T.LeadSubSourceID=SM.LeadSubSourceID and SM.CAL_SourceCode is not NULL ;\n\n------------------------------------------------------------------------------------------HSI\n\nWITH T_HSI AS \n(\n\nSELECT \n\tDivision,\n    LeadSubSourceID,\n    SourceGroup,\n    SourceCode,\n    LeadSubSource,\n    TX_SourceCode,\n    CASE \n\t\tWHEN ( UPPER(LeadSubSource) LIKE '%RADIO%' \tOR UPPER(LeadSubSource) LIKE '% FM' OR UPPER(LeadSubSource) LIKE '% FM %' OR UPPER(LeadSubSource) LIKE 'FM %' OR UPPER(LeadSubSource) LIKE '%-FM %' OR UPPER(LeadSubSource) LIKE '% FM-%'\n\t\t\t\t\t\t\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '% AM' OR UPPER(LeadSubSource) LIKE '% AM %' OR UPPER(LeadSubSource) LIKE 'AM %' OR UPPER(LeadSubSource) LIKE '%-AM %' OR UPPER(LeadSubSource) LIKE '% AM-%'\n\t\t\t\t\t\t\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'iHeart%' \n\t\t\t\t\t\t\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%ESPN%'\n\t\t\t\t\t\t\t\t\t\t\t\t\t)\tAND UPPER(LeadSubSource) NOT LIKE '%NEWS%' AND UPPER(LeadSubSource) NOT LIKE '%TOUR%' THEN 'Broadcast Radio'\n\t\t\n\t\tWHEN (UPPER(LeadSubSource) LIKE 'TV' OR UPPER(LeadSubSource) LIKE '% TV' OR UPPER(LeadSubSource) LIKE '% TV %' OR UPPER(LeadSubSource) LIKE 'TV %' OR UPPER(LeadSubSource) LIKE '%TELEVISION%' \n\t\t\t\t\t\t\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'PROMEDIA%'\n\t\t\t\t\t\t\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%RSR%'\t\n\t\t\t\t\t\t\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%WKMG%'\n\t\t\t\t\t\t\t\t\t\t\t\t\t) AND UPPER(LeadSubSource) NOT LIKE '%BCI-WIT%' THEN 'Broadcast TV'\n\t\t\n\t\tWHEN (\tUPPER(LeadSubSource) LIKE '%DIRECT MAIL%' OR UPPER(LeadSubSource) LIKE '%MAILER%' OR  UPPER(LeadSubSource) LIKE  '%MAY - BATH%')\n\t\t\t\t\t\t\t\t\tAND (UPPER(LeadSubSource) NOT LIKE '%VELPAK%' AND UPPER(LeadSubSource) NOT LIKE '%VEL PAK%' AND UPPER(LeadSubSource)  NOT LIKE '%DIRECT MAIL - RENUITY%') THEN 'Direct Mail'\n        \n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%FACEBOOK%' \n\t\t\t\t\t\tOR (UPPER(LeadSubSource) LIKE '%META%' and UPPER(Leadsubsource) not Like '%F2F%')\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%PINTEREST%' THEN 'Paid Social'\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n        WHEN UPPER(LeadSubSource) LIKE '%YELP%' THEN 'Directories'\n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%YOUTUBE%' THEN 'YouTube' \n\t\t\n        WHEN (UPPER(LeadSubSource) LIKE '%GOOGLE%' \n\t\t\t\t\t\t--OR UPPER(LeadSubSource) LIKE '%YOUTUBE%' \n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%YAHOO%' \n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%PPC%' \n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%PERFORMANCE MAX%' \n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%PAID SEARCH%'\t\t\t\t\t\t\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%BING – RENUITY%'\n\t\t\t\t\t\t) \n\t\t\t\t\t\tAND (UPPER(LeadSubSource) NOT LIKE '%ORGANIC%' AND UPPER(LeadSubSource) NOT LIKE '%LOCAL%' AND UPPER(LeadSubSource) NOT LIKE '%TV%'  ) THEN 'Paid Search'\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n        WHEN (UPPER(LeadSubSource) LIKE '%ORGANIC%' OR UPPER(LeadSubSource) LIKE '%SEO%' )  AND UPPER(LeadSubSource) NOT LIKE '%CUSTOMER REFERRAL%' THEN 'Organic/SEO'\n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%EMAIL%' AND UPPER(LeadSubSource) NOT LIKE '%CONQUEST%' AND UPPER(LeadSubSource) NOT LIKE '%ADAPTIVE%' THEN 'Email'\n\t\t\n        WHEN ( (UPPER(LeadSubSource) LIKE '%GANNETT%' AND SourceGroup LIKE '%Print%') \n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%NEWSPAPER%' \n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%MAGAZINE%' \n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%JOURNAL%'\n\t\t\t\t\tOR (UPPER(LeadSubSource) LIKE '%KOHLER%' AND UPPER(SourceCode) LIKE  '%LOCAL%')\t\t\t\t\t\n\t\t\t\t\t\t)\n\t\t\t\t\n\t\t\t\t\tTHEN 'Newspapers/Magazines'\n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%VALPAK%' THEN 'Shared Mail'\n\t\t\t\t\t\t\t\t\t\t\t\t  \n\t\tWHEN UPPER(LeadSubSource) LIKE '%NATIVE ADS%'  THEN 'Native'\n\t\t\n\t\t/* -- HSI Don't have Retail & Canvass\n\t\tWHEN UPPER(LeadSubSource) LIKE '%MALL%' \n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'SAM%'  \n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%HOME DEPOT%'\n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%BRANDSMART%'\n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%IME- BJs%'\n\t\t\t\t\tTHEN 'Retail'\n\t\t\t\t\t\n\t\t\t\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%CANVAS%' AND UPPER(LeadSubSource) NOT LIKE 'JB CANVASS%'  THEN 'Canvass'\n\t\t\n\t\t\t\t\t*/\n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%WALK-IN%'  OR (UPPER(LeadSubSource) LIKE '%REFERRAL%' AND UPPER(LeadSubSource) NOT LIKE '%ORGANIC%' AND UPPER(LeadSubSource) NOT LIKE '%KOHLER%') THEN 'Consumer Referral'\n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%LAVIN%'  THEN 'Branded Partner'\n\t\t\n\t\t-- Donet have Out Of Home\n\t\t--WHEN UPPER(LeadSubSource) LIKE '%YARD%' THEN 'Out of Home'\n\t\t\n        ELSE NULL \n    END AS CAL_SourceCode\nFROM [EDW].[DIM_MKTNG_SUB_SOURCE_MAPPING]\nWHERE Division = 'HSI' AND MAPPINGIND='UNMAP'\n)\nUpdate [EDW].[DIM_MKTNG_SUB_SOURCE_MAPPING] set \n       TX_Channel        \t\t= RF.TX_Channel\n       ,TX_Sourcegroup   \t\t= RF.TX_Sourcegroup\n       ,TX_SourceCode    \t\t= RF.TX_SourceCode\n\t   ,ACU_AccountCode         = RF.ACU_AccountCode\n\t   ,ACU_MarketingAccountID  = RF.ACU_MarketingAccountID\n\t   ,ACU_MarketingAccount    = RF.ACU_MarketingAccount\n       ,MappingInd       \t\t= (CASE WHEN (T.TX_SourceCode IS NOT NULL AND ( T.TX_Channel != RF.TX_Channel OR T.TX_Sourcegroup != RF.TX_Sourcegroup OR T.TX_SourceCode != RF.TX_SourceCode)) THEN 'REMAP_FUZZ' ELSE 'MAP_FUZZ' END)\n       ,LastUpdatedTS    \t\t= Getdate()\nfrom [EDW].[DIM_MKTNG_SUB_SOURCE_MAPPING] T\nJoin T_HSI SM  on T.Division=SM.Division and T.LeadSubSourceID=SM.LeadSubSourceID\nLeft Join (SELECT DISTINCT TX_SOURCEGROUP,TX_SOURCECODE,TX_CHANNEL,ACU_AccountCode,ACU_MarketingAccountID,ACU_MarketingAccount FROM RDM.REF_MKTNG_SOURCE_GROUP)  RF on SM.CAL_Sourcecode= RF.TX_SourceCode\nWhere  T.Division = 'HSI' and  T.MappingInd='UNMAP' and  T.LeadSubSourceID=SM.LeadSubSourceID and SM.CAL_SourceCode is not NULL ;\n\n------------------------------------------------------------------------------------ MAC---------\n\nWITH T_MAC AS \n(\n\n\nSELECT \n\tDivision,\n    LeadSubSourceID,\n    SourceGroup,\n    SourceCode,\n    LeadSubSource,\n    TX_SourceCode,\n    CASE \n\t\tWHEN ( UPPER(LeadSubSource) LIKE '%RADIO%' \tOR UPPER(LeadSubSource) LIKE '% FM' OR UPPER(LeadSubSource) LIKE '% FM %' OR UPPER(LeadSubSource) LIKE 'FM %' OR UPPER(LeadSubSource) LIKE '%-FM %' OR UPPER(LeadSubSource) LIKE '% FM-%'\n\t\t\t\t\t\t\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '% AM' OR UPPER(LeadSubSource) LIKE '% AM %' OR UPPER(LeadSubSource) LIKE 'AM %' OR UPPER(LeadSubSource) LIKE '%-AM %' OR UPPER(LeadSubSource) LIKE '% AM-%'\n\t\t\t\t\t\t\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'iHeart%' \n\t\t\t\t\t\t\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%ESPN%'\n\t\t\t\t\t\t\t\t\t\t\t\t\t)\tAND UPPER(LeadSubSource) NOT LIKE '%NEWS%' AND UPPER(LeadSubSource) NOT LIKE '%TOUR%' THEN 'Broadcast Radio'\n\t\t\n\t\tWHEN (UPPER(LeadSubSource) LIKE 'TV' OR UPPER(LeadSubSource) LIKE '% TV' OR UPPER(LeadSubSource) LIKE '% TV %' OR UPPER(LeadSubSource) LIKE 'TV %' OR UPPER(LeadSubSource) LIKE '%TELEVISION%' \n\t\t\t\t\t\t\t\t\t\t\t  OR (UPPER(SourceCode) LIKE '%TELEVISION%'\n\t\t\t\t\t\t\t\t\t\t\t\t\tAND \n\t\t\t\t\t\t\t\t\t\t\t\t\t\t(\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tUPPER(LeadSubSource) LIKE 'CABLE %' \n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tOR  UPPER(LeadSubSource) LIKE 'CEDAR %'\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tOR  UPPER(LeadSubSource) LIKE 'DES %'\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tOR  UPPER(LeadSubSource) LIKE 'GB %'\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tOR  UPPER(LeadSubSource) LIKE 'LCEAU %'\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tOR  UPPER(LeadSubSource) LIKE 'MAD %'\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tOR  UPPER(LeadSubSource) LIKE 'MADISON %'\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tOR  UPPER(LeadSubSource) LIKE 'MANK %'\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tOR  UPPER(LeadSubSource) LIKE 'MKE %'\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tOR  UPPER(LeadSubSource) LIKE 'MN %'\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tOR  UPPER(LeadSubSource) LIKE 'MN-%'\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tOR  UPPER(LeadSubSource) LIKE 'PER %'\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tOR  UPPER(LeadSubSource) LIKE 'QUAD %'\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tOR  UPPER(LeadSubSource) LIKE 'ROCH %'\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tOR  UPPER(LeadSubSource) LIKE 'ROCK %'\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tOR  UPPER(LeadSubSource) LIKE 'WAU %'\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t)\n\t\t\t\t\t\t\t\t\t\t\t\t\t)\n\t\t\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t) AND UPPER(LeadSubSource) NOT LIKE '%BCI-WIT%' THEN 'Broadcast TV'\n\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\n\t\t\n\t\tWHEN (\tUPPER(LeadSubSource) LIKE '%DIRECT MAIL%' OR UPPER(LeadSubSource) LIKE '%MAILER%' OR  UPPER(LeadSubSource) LIKE  '%MAY - BATH%')\n\t\t\t\t\t\t\t\t\tAND (UPPER(LeadSubSource) NOT LIKE '%VELPAK%' AND UPPER(LeadSubSource) NOT LIKE '%VEL PAK%' AND UPPER(LeadSubSource)  NOT LIKE '%DIRECT MAIL - RENUITY%') THEN 'Direct Mail'\n        \n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%FACEBOOK%'\n\t\t\t\t\t\tOR (UPPER(LeadSubSource) LIKE '%META%' and UPPER(Leadsubsource) not Like '%F2F%')\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%PINTEREST%'\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%INSTAGRAM%'\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%BING – RENUITY%'\t\t\t\t\t\t\n\t\t\t\t\t\tTHEN 'Paid Social'\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n        WHEN UPPER(LeadSubSource) LIKE '%YELP%' THEN 'Directories'\n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%YOUTUBE%' THEN 'YouTube'  \n\t\t\n        WHEN (UPPER(LeadSubSource) LIKE '%GOOGLE%' \n\t\t\t\t\t\t--OR UPPER(LeadSubSource) LIKE '%YOUTUBE%' \n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%YAHOO%' \n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%PPC%' \n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%PERFORMANCE MAX%' \n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%PAID SEARCH%'\n\t\t\t\t\t\t) \n\t\t\t\t\t\tAND (UPPER(LeadSubSource) NOT LIKE '%ORGANIC%' AND UPPER(LeadSubSource) NOT LIKE '%LOCAL%' AND UPPER(LeadSubSource) NOT LIKE '%TV%'  ) THEN 'Paid Search'\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n        WHEN (UPPER(LeadSubSource) LIKE '%ORGANIC%' OR UPPER(LeadSubSource) LIKE '%SEO%' )  \n\t\t\t\t\t\tAND UPPER(LeadSubSource) NOT LIKE '%CUSTOMER REFERRAL%' \n\t\t\t\t\t\tAND UPPER(LeadSubSource) NOT LIKE '%BCI Organic%'\n\t\t\t\t\t\tAND UPPER(LeadSubSource) NOT LIKE '%TV%'\n\t\t\t\t\t\tTHEN 'Organic/SEO'\n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%EMAIL%' AND UPPER(LeadSubSource) NOT LIKE '%CONQUEST%' AND UPPER(LeadSubSource) NOT LIKE '%ADAPTIVE%' THEN 'Email'\n\t\t\n        WHEN ( (UPPER(LeadSubSource) LIKE '%GANNETT%' AND SourceGroup LIKE '%Print%') \n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%NEWSPAPER%' \n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%MAGAZINE%' \n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%JOURNAL%'\t\t\t\n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'WPA %'\n\t\t\t\t\t\t)\n\t\t\t\t\tTHEN 'Newspapers/Magazines'\n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%VALPAK%' THEN 'Shared Mail'\n\t\t\t\t\t\t\t\t\t\t\t\t  \n\t\tWHEN UPPER(LeadSubSource) LIKE '%NATIVE ADS%'  THEN 'Native'\n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%MALL%' \n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'SAM%'  \n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%HOME DEPOT%'\n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'MHR%'\n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%WALMART%'\n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'WI-%'\n\t\t\t\t\tTHEN 'Retail'\n\t\t\t\t\t\n\t\t\t\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%CANVAS%' AND UPPER(LeadSubSource) NOT LIKE 'JB CANVASS%'  THEN 'Canvass'\n\t\t\n\t\t\t\t\t\n\t\t-- No Definite Pattern MAC\n\t\t--WHEN (UPPER(LeadSubSource) LIKE '%REFERRAL%' AND UPPER(LeadSubSource) NOT LIKE '%ORGANIC%' AND UPPER(LeadSubSource) NOT LIKE '%KOHLER%') THEN 'Consumer Referral'\n\t\t\n\t\t-- No Definite Pattern MAC\n\t\t--WHEN UPPER(LeadSubSource) LIKE '%LAVIN%' OR UPPER(LeadSubSource) LIKE '%DOLEAD%'   THEN 'Branded Partner'\n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%YARD%' THEN 'Out of Home'\n\t\t\n        ELSE NULL \n    END AS CAL_SourceCode\nFROM [EDW].[DIM_MKTNG_SUB_SOURCE_MAPPING]\nWHERE Division = 'MAC' AND MAPPINGIND='UNMAP'\n)\nUpdate [EDW].[DIM_MKTNG_SUB_SOURCE_MAPPING] set \n       TX_Channel        \t\t= RF.TX_Channel\n       ,TX_Sourcegroup   \t\t= RF.TX_Sourcegroup\n       ,TX_SourceCode    \t\t= RF.TX_SourceCode\n\t   ,ACU_AccountCode         = RF.ACU_AccountCode\n\t   ,ACU_MarketingAccountID  = RF.ACU_MarketingAccountID\n\t   ,ACU_MarketingAccount    = RF.ACU_MarketingAccount\n       ,MappingInd       \t\t= (CASE WHEN (T.TX_SourceCode IS NOT NULL AND ( T.TX_Channel != RF.TX_Channel OR T.TX_Sourcegroup != RF.TX_Sourcegroup OR T.TX_SourceCode != RF.TX_SourceCode)) THEN 'REMAP_FUZZ' ELSE 'MAP_FUZZ' END)\n       ,LastUpdatedTS    \t\t= Getdate()\nfrom [EDW].[DIM_MKTNG_SUB_SOURCE_MAPPING] T\nJoin T_MAC SM  on T.Division=SM.Division and T.LeadSubSourceID=SM.LeadSubSourceID\nLeft Join (SELECT DISTINCT TX_SOURCEGROUP,TX_SOURCECODE,TX_CHANNEL,ACU_AccountCode,ACU_MarketingAccountID,ACU_MarketingAccount FROM RDM.REF_MKTNG_SOURCE_GROUP)  RF on SM.CAL_Sourcecode= RF.TX_SourceCode\nWhere  T.Division = 'MAC' and  T.MappingInd='UNMAP' and  T.LeadSubSourceID=SM.LeadSubSourceID and SM.CAL_SourceCode is not NULL ;\n\n\n------------------------------------------------------------------------------------ MXH---------\n\nWITH T_MXH AS \n(\n\nSELECT \n\tDivision,\n    LeadSubSourceID,\n    SourceGroup,\n    SourceCode,\n    LeadSubSource,\n    TX_SourceCode,\n    CASE \n\t\tWHEN ( UPPER(LeadSubSource) LIKE '%RADIO%' \tOR UPPER(LeadSubSource) LIKE '% FM' OR UPPER(LeadSubSource) LIKE '% FM %' OR UPPER(LeadSubSource) LIKE 'FM %' OR UPPER(LeadSubSource) LIKE '%-FM %' OR UPPER(LeadSubSource) LIKE '% FM-%'\n\t\t\t\t\t\t\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '% AM' OR UPPER(LeadSubSource) LIKE '% AM %' OR UPPER(LeadSubSource) LIKE 'AM %' OR UPPER(LeadSubSource) LIKE '%-AM %' OR UPPER(LeadSubSource) LIKE '% AM-%'\n\t\t\t\t\t\t\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'iHeart%' \n\t\t\t\t\t\t\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%ESPN%'\n\t\t\t\t\t\t\t\t\t\t\t\t\t)\tAND UPPER(LeadSubSource) NOT LIKE '%NEWS%' AND UPPER(LeadSubSource) NOT LIKE '%TOUR%'\n\t\t\t\t\t\t\t\t\t\t\t\t\t\tAND UPPER(SourceCode) NOT LIKE '%LINERS DIRECT%' THEN 'Broadcast Radio'\n\t\t\n\t\t-- Fuzzy logic not working for TV - MXH\n\t\t--WHEN (UPPER(LeadSubSource) LIKE '%TV%' OR UPPER(LeadSubSource) LIKE '%TELEVISION%' ) AND UPPER(SourceGroup) NOT LIKE '%MEDIA%' THEN 'Broadcast TV'\n\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\n\t\t\n\t\tWHEN (\tUPPER(LeadSubSource) LIKE '%DIRECT MAIL%' OR UPPER(LeadSubSource) LIKE '%MAILER%' OR  UPPER(LeadSubSource) LIKE  '%MAY - BATH%')\n\t\t\t\t\t\t\t\t\tAND (UPPER(LeadSubSource) NOT LIKE '%VELPAK%' AND UPPER(LeadSubSource) NOT LIKE '%VEL PAK%' \n\t\t\t\t\t\t\t\t\tAND UPPER(LeadSubSource)  NOT LIKE '%DIRECT MAIL - RENUITY%' AND UPPER(SourceCode) NOT LIKE '%LINERS DIRECT%' ) THEN 'Direct Mail'\n        \n\t\t\n\t\tWHEN (UPPER(LeadSubSource) LIKE '%FACEBOOK%'\n\t\t\t\t\t\tOR (UPPER(LeadSubSource) LIKE '%META%' and UPPER(Leadsubsource) not Like '%F2F%')\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%PINTEREST%'\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%INSTAGRAM%'\n\t\t\t\t\t\t) AND UPPER(SourceCode) NOT LIKE '%MANUFACTURER%' AND UPPER(SourceCode) NOT LIKE '%LINERS DIRECT%'\n\t\t\t\t\t\tTHEN 'Paid Social'\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n        WHEN UPPER(LeadSubSource) LIKE '%YELP%' THEN 'Directories'\n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%YOUTUBE%' THEN 'YouTube' \n\t\t\n        WHEN (UPPER(LeadSubSource) LIKE '%GOOGLE%' \n\t\t\t\t\t\t--OR UPPER(LeadSubSource) LIKE '%YOUTUBE%' \n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%YAHOO%' \n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%PPC%' \n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%PERFORMANCE MAX%' \n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%PAID SEARCH%'\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%BING – RENUITY%'\n\t\t\t\t\t\t) \n\t\t\t\t\t\tAND (UPPER(LeadSubSource) NOT LIKE '%ORGANIC%' AND UPPER(LeadSubSource) NOT LIKE '%LOCAL%'  AND UPPER(SourceCode) NOT LIKE '%MANUFACTURER%' AND UPPER(SourceCode) NOT LIKE '%LINERS DIRECT%') THEN 'Paid Search'\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n        WHEN (UPPER(LeadSubSource) LIKE '%ORGANIC%' OR UPPER(LeadSubSource) LIKE '%SEO%' )  \n\t\t\t\t\t\tAND UPPER(LeadSubSource) NOT LIKE '%CUSTOMER REFERRAL%' \n\t\t\t\t\t\tAND UPPER(LeadSubSource) NOT LIKE '%BCI Organic%'\n\t\t\t\t\t\tAND UPPER(LeadSubSource) NOT LIKE '%TV%'\n\t\t\t\t\t\tTHEN 'Organic/SEO'\n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%EMAIL%' \n\t\t\t\tAND UPPER(LeadSubSource) NOT LIKE '%CONQUEST%' AND UPPER(LeadSubSource) NOT LIKE '%ADAPTIVE%'\n\t\t\t\tAND UPPER(SourceCode) NOT LIKE '%MANUFACTURER%' AND UPPER(SourceCode) NOT LIKE '%LINERS DIRECT%' THEN 'Email'\n\t\t\n        WHEN ( (UPPER(LeadSubSource) LIKE '%GANNETT%' AND SourceGroup LIKE '%Print%') \n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%NEWSPAPER%' \n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%MAGAZINE%' \n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%JOURNAL%'\t\t\t\n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'WPA %'\n\t\t\t\t\t\t) AND UPPER(SourceCode) NOT LIKE '%LINERS DIRECT%'\n\t\t\t\t\tTHEN 'Newspapers/Magazines'\n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%VALPAK%' AND UPPER(SourceCode) NOT LIKE '%LINERS DIRECT%' THEN 'Shared Mail'\n\t\t\t\t\t\t\t\t\t\t\t\t  \n\t\tWHEN UPPER(LeadSubSource) LIKE '%NATIVE ADS%'  THEN 'Native'\n\t\t\n\t\tWHEN (UPPER(LeadSubSource) LIKE '%MALL%' \n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'SAM%'  \n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%HOME DEPOT%'\n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'MHR%'\n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%WALMART%'\n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'WI-%'\n\t\t\t\t\t) AND  UPPER(SourceCode) NOT IN ('DIGITAL','NEWSPAPER')\n\t\t\t\t\tTHEN 'Retail'\n\t\t\t\t\t\n\t\t\t\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%CANVAS%' AND UPPER(LeadSubSource) NOT LIKE 'JB CANVASS%'  THEN 'Canvass'\n\t\t\n\t\t\t\t\t\n\t\t-- No Definite Pattern MAC\n\t\t--WHEN (UPPER(LeadSubSource) LIKE '%REFERRAL%' AND UPPER(LeadSubSource) NOT LIKE '%ORGANIC%' AND UPPER(LeadSubSource) NOT LIKE '%KOHLER%') THEN 'Consumer Referral'\n\t\t\n\t\tWHEN (UPPER(LeadSubSource) LIKE '%LAVIN%' OR UPPER(LeadSubSource) LIKE '%GURU DIGITAL%') THEN 'Branded Partner'  \n\t\t\n\t\tWHEN (UPPER(SourceCode) LIKE '%TRUCK%' OR SOURCECODE like '%SIGN%') THEN 'Out of Home'\n\t\t\n        ELSE NULL \n    END AS CAL_SourceCode\nFROM [EDW].[DIM_MKTNG_SUB_SOURCE_MAPPING]\nWHERE Division = 'MXH' AND MAPPINGIND='UNMAP'\n\n)\nUpdate [EDW].[DIM_MKTNG_SUB_SOURCE_MAPPING] set \n       TX_Channel        \t\t= RF.TX_Channel\n       ,TX_Sourcegroup   \t\t= RF.TX_Sourcegroup\n       ,TX_SourceCode    \t\t= RF.TX_SourceCode\n\t   ,ACU_AccountCode         = RF.ACU_AccountCode\n\t   ,ACU_MarketingAccountID  = RF.ACU_MarketingAccountID\n\t   ,ACU_MarketingAccount    = RF.ACU_MarketingAccount\n       ,MappingInd       \t\t= (CASE WHEN (T.TX_SourceCode IS NOT NULL AND ( T.TX_Channel != RF.TX_Channel OR T.TX_Sourcegroup != RF.TX_Sourcegroup OR T.TX_SourceCode != RF.TX_SourceCode)) THEN 'REMAP_FUZZ' ELSE 'MAP_FUZZ' END)\n       ,LastUpdatedTS    \t\t= Getdate()\nfrom [EDW].[DIM_MKTNG_SUB_SOURCE_MAPPING] T\nJoin T_MXH SM  on T.Division=SM.Division and T.LeadSubSourceID=SM.LeadSubSourceID\nLeft Join (SELECT DISTINCT TX_SOURCEGROUP,TX_SOURCECODE,TX_CHANNEL,ACU_AccountCode,ACU_MarketingAccountID,ACU_MarketingAccount FROM RDM.REF_MKTNG_SOURCE_GROUP)  RF on SM.CAL_Sourcecode= RF.TX_SourceCode\nWhere  T.Division = 'MXH' and  T.MappingInd='UNMAP' and  T.LeadSubSourceID=SM.LeadSubSourceID and SM.CAL_SourceCode is not NULL ;\n\n\n\n\n------------------------------------------------------------------------------------ PBC---------\n\nWITH T_PBC AS \n(\n\nSELECT \n\tDivision,\n    LeadSubSourceID,\n    SourceGroup,\n    SourceCode,\n    LeadSubSource,\n    TX_SourceCode,\n    CASE \n\t\tWHEN ( UPPER(LeadSubSource) LIKE '%RADIO%' \tOR UPPER(LeadSubSource) LIKE 'iHeart%' \n\t\t\t\t\t\t\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%ESPN%'\n\t\t\t\t\t\t\t\t\t\t\t\t\t)\tAND UPPER(LeadSubSource) NOT LIKE '%NEWS%' AND UPPER(LeadSubSource) NOT LIKE '%TOUR%' THEN 'Broadcast Radio'\n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE 'TV' OR UPPER(LeadSubSource) LIKE '% TV' OR UPPER(LeadSubSource) LIKE '% TV %' OR UPPER(LeadSubSource) LIKE 'TV %'\n\t\t\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%TELEVISION%' \n\t\t\t\t\t\t\t\t\tOR UPPER(SourceCode) LIKE '%Ron TV%'\n\t\t\t\t\t\t\t\t\tOR UPPER(SourceCode) LIKE '%KPTV%'\n\t\t\t\t\t\t\t\t\tOR UPPER(SourceCode) LIKE '%Ron Sherman TV%'\n\t\t\t\t\t\t\t\t\tTHEN 'Broadcast TV'\n\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\n\t\t\n\t\tWHEN (\tUPPER(LeadSubSource) LIKE '%DIRECT MAIL%' OR UPPER(LeadSubSource) LIKE '%MAILER%' OR  UPPER(LeadSubSource) LIKE  '%MAY - BATH%')\n\t\t\t\t\t\t\t\t\tAND (UPPER(LeadSubSource) NOT LIKE '%VELPAK%' AND UPPER(LeadSubSource) NOT LIKE '%VEL PAK%' AND UPPER(LeadSubSource)  NOT LIKE '%DIRECT MAIL - RENUITY%') THEN 'Direct Mail'\n        \n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%FACEBOOK%'\n\t\t\t\t\t\tOR (UPPER(LeadSubSource) LIKE '%META%' and UPPER(Leadsubsource) not Like '%F2F%')\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%PINTEREST%'\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%INSTAGRAM%'\n\t\t\t\t\t\tOR (UPPER(LeadSubSource) LIKE  'SOCIAL MEDIA' AND SourceCode!='Organic')\n\t\t\t\t\t\tTHEN 'Paid Social'\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n        WHEN UPPER(LeadSubSource) LIKE '%YELP%' THEN 'Directories'\n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%YOUTUBE%' THEN 'YouTube' \n\t\t\n        WHEN (UPPER(LeadSubSource) LIKE '%GOOGLE%' \n\t\t\t\t\t\t--OR UPPER(LeadSubSource) LIKE '%YOUTUBE%' \n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%YAHOO%' \n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%PPC%' \n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%PERFORMANCE MAX%' \n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%PAID SEARCH%'\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%BING – RENUITY%'\n\t\t\t\t\t\t) \n\t\t\t\t\t\tAND  (UPPER(LeadSubSource) NOT LIKE '%ORGANIC%' AND UPPER(LeadSubSource) NOT LIKE '%Google My Business%' AND UPPER(LeadSubSource) NOT LIKE '%TV%') THEN 'Paid Search'\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n        WHEN UPPER(LeadSubSource) LIKE '%ORGANIC%' AND  UPPER(LeadSubSource) NOT LIKE '%YELP%' THEN 'Organic/SEO'\n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%EMAIL%' AND UPPER(LeadSubSource) NOT LIKE '%CONQUEST%' AND UPPER(LeadSubSource) NOT LIKE '%ADAPTIVE%' AND UPPER(LeadSubSource) NOT LIKE '%TIMES%' THEN 'Email'\n\t\t\n        WHEN  (((UPPER(LeadSubSource) LIKE '%GANNETT%' AND SourceGroup LIKE '%Newspaper/Mag%') )\n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%NEWSPAPER%' \n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%MAGAZINE%' \n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%JOURNAL%'\t\t\t\n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'WPA %'\n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'TRIBUNE %'\n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'NEWS %'\n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'SEATTLE TIMES%'\n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'SPOKESMAN%'\n\t\t\t\t\t) AND SourceCode!='Manufacturer'\n\t\t\t\t\tTHEN 'Newspapers/Magazines'\n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%VALPAK%'\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%RSVP Postcard%' \n\t\t\t\t\t\tTHEN 'Shared Mail'\n\t\t\t\t\t\t\t\t\t\t\t\t  \n\t\tWHEN UPPER(LeadSubSource) LIKE '%NATIVE ADS%'  THEN 'Native'\n\t\t\n\t\t\n\t\t-- No Definite Pattern Available\n\t\t/*\n\t\tWHEN UPPER(LeadSubSource) LIKE '%MALL%' \n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'SAM%'  \n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%HOME DEPOT%'\n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'MHR%'\n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%WALMART%'\n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'WI-%'\n\t\t\t\t\tTHEN 'Retail'\n\t\t\t\t\t*/\n\t\t\t\t\t\n\t\t\t\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%CANVAS%' AND UPPER(LeadSubSource) NOT LIKE 'JB CANVASS%'  THEN 'Canvass'\n\t\t\n\t\t\t\t\t\n\t\t-- No Definite Pattern \n\t\t--WHEN (UPPER(LeadSubSource) LIKE '%REFERRAL%' AND UPPER(LeadSubSource) NOT LIKE '%ORGANIC%' AND UPPER(LeadSubSource) NOT LIKE '%KOHLER%') THEN 'Consumer Referral'\n\t\t\n\t\t-- No Definite Pattern\n\t\t--WHEN UPPER(LeadSubSource) LIKE '%LAVIN%' OR UPPER(LeadSubSource) LIKE '%DOLEAD%'   THEN 'Branded Partner'\n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%YARD%' THEN 'Out of Home'\n\t\t\n        ELSE NULL \n    END AS CAL_SourceCode\n\nFROM [EDW].[DIM_MKTNG_SUB_SOURCE_MAPPING]\nWHERE Division = 'PBC' AND MAPPINGIND='UNMAP'\n\n)\nUpdate [EDW].[DIM_MKTNG_SUB_SOURCE_MAPPING] set \n       TX_Channel        \t\t= RF.TX_Channel\n       ,TX_Sourcegroup   \t\t= RF.TX_Sourcegroup\n       ,TX_SourceCode    \t\t= RF.TX_SourceCode\n\t   ,ACU_AccountCode         = RF.ACU_AccountCode\n\t   ,ACU_MarketingAccountID  = RF.ACU_MarketingAccountID\n\t   ,ACU_MarketingAccount    = RF.ACU_MarketingAccount\n       ,MappingInd       \t\t= (CASE WHEN (T.TX_SourceCode IS NOT NULL AND ( T.TX_Channel != RF.TX_Channel OR T.TX_Sourcegroup != RF.TX_Sourcegroup OR T.TX_SourceCode != RF.TX_SourceCode)) THEN 'REMAP_FUZZ' ELSE 'MAP_FUZZ' END)\n       ,LastUpdatedTS    \t\t= Getdate()\nfrom [EDW].[DIM_MKTNG_SUB_SOURCE_MAPPING] T\nJoin T_PBC SM  on T.Division=SM.Division and T.LeadSubSourceID=SM.LeadSubSourceID\nLeft Join (SELECT DISTINCT TX_SOURCEGROUP,TX_SOURCECODE,TX_CHANNEL,ACU_AccountCode,ACU_MarketingAccountID,ACU_MarketingAccount FROM RDM.REF_MKTNG_SOURCE_GROUP)  RF on SM.CAL_Sourcecode= RF.TX_SourceCode\nWhere  T.Division = 'PBC' and  T.MappingInd='UNMAP' and  T.LeadSubSourceID=SM.LeadSubSourceID and SM.CAL_SourceCode is not NULL ;\n\n\n------------------------------------------------------------------------------------ PHI---------\n\nWITH T_PHI AS \n(\n\n\nSELECT \n\tDivision,\n    LeadSubSourceID,\n    SourceGroup,\n    SourceCode,\n    LeadSubSource,\n    TX_SourceCode,\n    CASE \n\t\tWHEN ( UPPER(LeadSubSource) LIKE '%RADIO%' \tOR UPPER(LeadSubSource) LIKE 'iHeart%' \n\t\t\t\t\t\t\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%ESPN%'\n\t\t\t\t\t\t\t\t\t\t\t\t\t)\tAND UPPER(LeadSubSource) NOT LIKE '%NEWS%' AND UPPER(LeadSubSource) NOT LIKE '%TOUR%' THEN 'Broadcast Radio'\n\t\t\n\t\tWHEN (UPPER(LeadSubSource) LIKE '% TV %' OR UPPER(LeadSubSource) LIKE 'TV %' OR UPPER(LeadSubSource) LIKE '% TV' OR UPPER(LeadSubSource) LIKE '%TELEVISION%' \n\t\t\t\t\t\t\t\t\t)  THEN 'Broadcast TV'\n\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\n\t\tWHEN (\tUPPER(LeadSubSource) LIKE '%DIRECT MAIL%' OR UPPER(LeadSubSource) LIKE '%MAILER%' OR  UPPER(LeadSubSource) LIKE  '%MAY - BATH%')\n\t\t\t\t\t\t\t\t\tAND (UPPER(LeadSubSource) NOT LIKE '%VELPAK%' AND UPPER(LeadSubSource) NOT LIKE '%VEL PAK%' AND UPPER(LeadSubSource)  NOT LIKE '%DIRECT MAIL - RENUITY%') THEN 'Direct Mail'\n        \n\t\t\n\t\tWHEN \n\t\t\t(UPPER(LeadSubSource) LIKE '%FACEBOOK%'\n\t\t\t\t\t\tOR (UPPER(LeadSubSource) LIKE '%META%' and UPPER(Leadsubsource) not Like '%F2F%')\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%PINTEREST%'\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%INSTAGRAM%'\n\t\t\t\t\t\t) AND UPPER(LeadSubSource) NOT LIKE '%Renuity - Meta%'\n\t\t\t\t\t\tTHEN 'Paid Social'\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n        WHEN UPPER(LeadSubSource) LIKE '%YELP%' THEN 'Directories'\n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%YOUTUBE%' THEN 'YouTube' \n\t\t\n        WHEN (UPPER(LeadSubSource) LIKE '%GOOGLE%' \n\t\t\t\t\t\t--OR UPPER(LeadSubSource) LIKE '%YOUTUBE%' \n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%YAHOO%' \n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%PPC%' \n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%PERFORMANCE MAX%' \n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%PAID SEARCH%'\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%BING – RENUITY%'\n\t\t\t\t\t\t) \n\t\t\t\t\t\tAND (UPPER(LeadSubSource) NOT LIKE '%ORGANIC%' AND UPPER(LeadSubSource) NOT LIKE '%LOCAL%' AND UPPER(LeadSubSource) NOT LIKE '%TV%'  ) THEN 'Paid Search'\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n        WHEN (UPPER(LeadSubSource) LIKE '%ORGANIC%' OR UPPER(LeadSubSource) LIKE '%SEO%' )  \n\t\t\t\t\t\tAND UPPER(LeadSubSource) NOT LIKE '%CUSTOMER REFERRAL%' \n\t\t\t\t\t\tAND UPPER(LeadSubSource) NOT LIKE '%BCI Organic%'\n\t\t\t\t\t\tAND UPPER(LeadSubSource) NOT LIKE '%TV%'\n\t\t\t\t\t\tTHEN 'Organic/SEO'\n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%EMAIL%' AND UPPER(LeadSubSource) NOT LIKE '%CONQUEST%' AND UPPER(LeadSubSource) NOT LIKE '%ADAPTIVE%' THEN 'Email'\n\t\t\n        WHEN UPPER(LeadSubSource) LIKE '%NEWSPAPER%' \n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%MAGAZINE%' \n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%JOURNAL%'\t\t\t\n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'WPA %'\n\t\t\t\t\tOR (SourceCode ='Gannett' AND (UPPER(LeadSubSource) LIKE 'SC %' OR UPPER(LeadSubSource) LIKE 'NC %') )\n\t\t\t\t\tOR (SourceCode ='Magazine'  AND UPPER(LeadSubSource) LIKE 'Clipper %' )\n\t\t\t\t\tTHEN 'Newspapers/Magazines'\n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%VALPAK%' OR  UPPER(LeadSubSource) LIKE 'MSPARK%' THEN 'Shared Mail'\n\t\t\t\t\t\t\t\t\t\t\t\t  \n\t\tWHEN UPPER(LeadSubSource) LIKE '%NATIVE ADS%'  THEN 'Native'\n\t\t\n\t\tWHEN  UPPER(LeadSubSource) LIKE 'SAM%'  \n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%HOME DEPOT%'\n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%BJ%'\n\t\t\t\t\tTHEN 'Retail'\n\t\t\t\t\t\n\t\t\t\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%CANVAS%' AND UPPER(LeadSubSource) NOT LIKE 'JB CANVASS%'  THEN 'Canvass'\n\t\t\n\t\t\t\t\t\n\t\t-- No Definite Pattern MAC\n\t\t--WHEN (UPPER(LeadSubSource) LIKE '%REFERRAL%' AND UPPER(LeadSubSource) NOT LIKE '%ORGANIC%' AND UPPER(LeadSubSource) NOT LIKE '%KOHLER%') THEN 'Consumer Referral'\n\t\t\n\t\t-- No Definite Pattern MAC\n\t\t--WHEN UPPER(LeadSubSource) LIKE '%LAVIN%' OR UPPER(LeadSubSource) LIKE '%DOLEAD%'   THEN 'Branded Partner'\n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%YARD%' THEN 'Out of Home'\n\t\t\n        ELSE NULL \n    END AS CAL_SourceCode\n\nFROM [EDW].[DIM_MKTNG_SUB_SOURCE_MAPPING]\nWHERE Division = 'PHI' AND MAPPINGIND='UNMAP'\n\n)\nUpdate [EDW].[DIM_MKTNG_SUB_SOURCE_MAPPING] set \n       TX_Channel        \t\t= RF.TX_Channel\n       ,TX_Sourcegroup   \t\t= RF.TX_Sourcegroup\n       ,TX_SourceCode    \t\t= RF.TX_SourceCode\n\t   ,ACU_AccountCode         = RF.ACU_AccountCode\n\t   ,ACU_MarketingAccountID  = RF.ACU_MarketingAccountID\n\t   ,ACU_MarketingAccount    = RF.ACU_MarketingAccount\n       ,MappingInd       \t\t= (CASE WHEN (T.TX_SourceCode IS NOT NULL AND ( T.TX_Channel != RF.TX_Channel OR T.TX_Sourcegroup != RF.TX_Sourcegroup OR T.TX_SourceCode != RF.TX_SourceCode)) THEN 'REMAP_FUZZ' ELSE 'MAP_FUZZ' END)\n       ,LastUpdatedTS    \t\t= Getdate()\nfrom [EDW].[DIM_MKTNG_SUB_SOURCE_MAPPING] T\nJoin T_PHI SM  on T.Division=SM.Division and T.LeadSubSourceID=SM.LeadSubSourceID\nLeft Join (SELECT DISTINCT TX_SOURCEGROUP,TX_SOURCECODE,TX_CHANNEL,ACU_AccountCode,ACU_MarketingAccountID,ACU_MarketingAccount FROM RDM.REF_MKTNG_SOURCE_GROUP)  RF on SM.CAL_Sourcecode= RF.TX_SourceCode\nWhere  T.Division = 'PHI' and  T.MappingInd='UNMAP' and  T.LeadSubSourceID=SM.LeadSubSourceID and SM.CAL_SourceCode is not NULL ;\n\n\n------------------------------------------------------------------------------------ RTW---------\n\nWITH T_RTW AS \n(\n\n\nSELECT \n\tDivision,\n    LeadSubSourceID,\n    SourceGroup,\n    SourceCode,\n    LeadSubSource,\n    TX_SourceCode,\n    CASE \n\t\tWHEN ( UPPER(LeadSubSource) LIKE '%RADIO%' \tOR UPPER(LeadSubSource) LIKE '% FM' OR UPPER(LeadSubSource) LIKE '% FM %' OR UPPER(LeadSubSource) LIKE 'FM %' OR UPPER(LeadSubSource) LIKE '%-FM %' OR UPPER(LeadSubSource) LIKE '% FM-%'\n\t\t\t\t\t\t\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '% AM' OR UPPER(LeadSubSource) LIKE '% AM %' OR UPPER(LeadSubSource) LIKE 'AM %' OR UPPER(LeadSubSource) LIKE '%-AM %' OR UPPER(LeadSubSource) LIKE '% AM-%'\n\t\t\t\t\t\t\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'iHeart%' \n\t\t\t\t\t\t\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%ESPN%'\n\t\t\t\t\t\t\t\t\t\t\t\t\t)\tAND UPPER(LeadSubSource) NOT LIKE '%NEWS%' AND UPPER(LeadSubSource) NOT LIKE '%TOUR%' THEN 'Broadcast Radio'\n\t\t\n\t\tWHEN (UPPER(LeadSubSource) LIKE 'TV' OR UPPER(LeadSubSource) LIKE '% TV' OR UPPER(LeadSubSource) LIKE '% TV %' OR UPPER(LeadSubSource) LIKE 'TV %' OR UPPER(LeadSubSource) LIKE '%TELEVISION%' \n\t\t\t\t\t\t\t\t\t\t\t  ) THEN 'Broadcast TV'\n\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\n\t\t\n\t\tWHEN (\tUPPER(LeadSubSource) LIKE '%DIRECT MAIL%' OR (UPPER(LeadSubSource) LIKE '%GANNETT%' AND   SourceCode LIKE '%Direct Mail%' ) )\n\t\t\t\t\t\t\t\t\tTHEN 'Direct Mail'\n        \n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%FACEBOOK%' \n\t\t\t\t\t\tOR (UPPER(LeadSubSource) LIKE '%META%' and UPPER(Leadsubsource) not Like '%F2F%')\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%PINTEREST%'\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%INSTAGRAM%'\n\t\t\t\t\t\tTHEN 'Paid Social'\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n        WHEN UPPER(LeadSubSource) LIKE '%YELP%' THEN 'Directories'\n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%YOUTUBE%' THEN 'YouTube' \n\t\t\n        WHEN (UPPER(LeadSubSource) LIKE '%GOOGLE%' \n\t\t\t\t\t\t--OR UPPER(LeadSubSource) LIKE '%YOUTUBE%' \n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%YAHOO%' \n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%PPC%' \n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%PERFORMANCE MAX%' \n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%PAID SEARCH%'\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%BING – RENUITY%'\n\t\t\t\t\t\t) \n\t\t\t\t\t\tTHEN 'Paid Search'\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n        WHEN (UPPER(LeadSubSource) LIKE '%ORGANIC%' OR UPPER(LeadSubSource) LIKE '%SEO%' )  \n\t\t\t\t\t\tAND UPPER(LeadSubSource) NOT LIKE '%CUSTOMER REFERRAL%' \n\t\t\t\t\t\tAND UPPER(LeadSubSource) NOT LIKE '%BCI Organic%'\n\t\t\t\t\t\tAND UPPER(LeadSubSource) NOT LIKE '%TV%'\n\t\t\t\t\t\tTHEN 'Organic/SEO'\n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%EMAIL%' AND UPPER(LeadSubSource) NOT LIKE '%CONQUEST%' AND UPPER(LeadSubSource) NOT LIKE '%ADAPTIVE%' THEN 'Email'\n\t\t\n        WHEN ( (UPPER(LeadSubSource) LIKE '%GANNETT%' AND SourceGroup LIKE '%Print%') \n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%NEWSPAPER%' \n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%MAGAZINE%' \n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%JOURNAL%'\t\t\t\n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'WPA %'\n\t\t\t\t\t\t)\n\t\t\t\t\tTHEN 'Newspapers/Magazines'\n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%VALPAK%' THEN 'Shared Mail'\n\t\t\t\t\t\t\t\t\t\t\t\t  \n\t\tWHEN UPPER(LeadSubSource) LIKE '%NATIVE ADS%'  THEN 'Native'\n\t\t\n\t\t\n\t\t/*-- Not existing in RTW\n\t\tWHEN UPPER(LeadSubSource) LIKE '%MALL%' \n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'SAM%'  \n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%HOME DEPOT%'\n\t\t\t\t\tTHEN 'Retail'\n\t\t\t\t\t*/\n\t\t\t\t\t\n\t\t\t\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%CANVAS%' AND UPPER(LeadSubSource) NOT LIKE 'JB CANVASS%'  THEN 'Canvass'\n\t\t\n\t\t\t\t\t\n\t\t-- No Definite Pattern MAC\n\t\t--WHEN (UPPER(LeadSubSource) LIKE '%REFERRAL%' AND UPPER(LeadSubSource) NOT LIKE '%ORGANIC%' AND UPPER(LeadSubSource) NOT LIKE '%KOHLER%') THEN 'Consumer Referral'\n\t\t\n\t\t-- No Definite Pattern MAC\n\t\t--WHEN UPPER(LeadSubSource) LIKE '%LAVIN%' OR UPPER(LeadSubSource) LIKE '%DOLEAD%'   THEN 'Branded Partner'\n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%YARD%' THEN 'Out of Home'\n\t\t\n        ELSE NULL \n    END AS CAL_SourceCode\n\n\nFROM [EDW].[DIM_MKTNG_SUB_SOURCE_MAPPING]\nWHERE Division = 'RTW' AND MAPPINGIND='UNMAP'\n\n)\nUpdate [EDW].[DIM_MKTNG_SUB_SOURCE_MAPPING] set \n       TX_Channel        \t\t= RF.TX_Channel\n       ,TX_Sourcegroup   \t\t= RF.TX_Sourcegroup\n       ,TX_SourceCode    \t\t= RF.TX_SourceCode\n\t   ,ACU_AccountCode         = RF.ACU_AccountCode\n\t   ,ACU_MarketingAccountID  = RF.ACU_MarketingAccountID\n\t   ,ACU_MarketingAccount    = RF.ACU_MarketingAccount\n       ,MappingInd       \t\t= (CASE WHEN (T.TX_SourceCode IS NOT NULL AND ( T.TX_Channel != RF.TX_Channel OR T.TX_Sourcegroup != RF.TX_Sourcegroup OR T.TX_SourceCode != RF.TX_SourceCode)) THEN 'REMAP_FUZZ' ELSE 'MAP_FUZZ' END)\n       ,LastUpdatedTS    \t\t= Getdate()\nfrom [EDW].[DIM_MKTNG_SUB_SOURCE_MAPPING] T\nJoin T_RTW SM  on T.Division=SM.Division and T.LeadSubSourceID=SM.LeadSubSourceID\nLeft Join (SELECT DISTINCT TX_SOURCEGROUP,TX_SOURCECODE,TX_CHANNEL,ACU_AccountCode,ACU_MarketingAccountID,ACU_MarketingAccount FROM RDM.REF_MKTNG_SOURCE_GROUP)  RF on SM.CAL_Sourcecode= RF.TX_SourceCode\nWhere  T.Division = 'RTW' and  T.MappingInd='UNMAP' and  T.LeadSubSourceID=SM.LeadSubSourceID and SM.CAL_SourceCode is not NULL ;\n\n\n\n\n------------------------------------------------------------------------------------ SWR---------\n\nWITH T_SWR AS \n(\n\n\n\nSELECT \n\tDivision,\n    LeadSubSourceID,\n    SourceGroup,\n    SourceCode,\n    LeadSubSource,\n    TX_SourceCode,\n    CASE \n\t\tWHEN ( UPPER(LeadSubSource) LIKE '%RADIO%' \tOR UPPER(LeadSubSource) LIKE '% FM' OR UPPER(LeadSubSource) LIKE '% FM %' OR UPPER(LeadSubSource) LIKE 'FM %' OR UPPER(LeadSubSource) LIKE '%-FM %' OR UPPER(LeadSubSource) LIKE '% FM-%'\n\t\t\t\t\t\t\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '% AM' OR UPPER(LeadSubSource) LIKE '% AM %' OR UPPER(LeadSubSource) LIKE 'AM %' OR UPPER(LeadSubSource) LIKE '%-AM %' OR UPPER(LeadSubSource) LIKE '% AM-%'\n\t\t\t\t\t\t\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'iHeart%' \n\t\t\t\t\t\t\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%ESPN%'\n\t\t\t\t\t\t\t\t\t\t\t\t\t)\tAND UPPER(LeadSubSource) NOT LIKE '%NEWS%' AND UPPER(LeadSubSource) NOT LIKE '%TOUR%' THEN 'Broadcast Radio'\n\t\t\n\t\tWHEN (UPPER(LeadSubSource) LIKE 'TV' \n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '% TV' \n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '% TV %' \n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'TV %' \n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%TELEVISION%' \n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%RSA%'\n\t\t\t\t\t\t\t\t\t\t\t  \n\t\t\t\t\t\t\t\t\t\t\t  ) AND  UPPER(LeadSubSource) NOT LIKE '%BCI TV%' THEN 'Broadcast TV'\n\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\n\t\t\n\t\tWHEN (\tUPPER(LeadSubSource) LIKE '%DIRECT MAIL%' OR (UPPER(LeadSubSource) LIKE '%GANNETT%' AND   SourceCode LIKE '%Direct Mail%' ) )\n\t\t\t\t\t\t\t\t\tAND UPPER(LeadSubSource) NOT LIKE '%Direct Mail - Renuity%'\n\t\t\t\t\t\t\t\t\tAND UPPER(LeadSubSource) NOT LIKE '%Renuity%'\n\t\t\t\t\t\t\t\t\tTHEN 'Direct Mail'\n        \n\t\t\n\t\tWHEN \n\t\t\t(UPPER(LeadSubSource) LIKE '%FACEBOOK%'\n\t\t\t\t\t\tOR (UPPER(LeadSubSource) LIKE '%META%' and UPPER(Leadsubsource) not Like '%F2F%')\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%PINTEREST%'\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%INSTAGRAM%'\n\t\t\t\t\t\t)\n\t\t\t\t\t\tTHEN 'Paid Social'\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n        WHEN UPPER(LeadSubSource) LIKE '%YELP%' THEN 'Directories'\n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%YOUTUBE%' THEN 'YouTube' \n\t\t\n        WHEN (UPPER(LeadSubSource) LIKE '%GOOGLE%' \n\t\t\t\t\t\t--OR UPPER(LeadSubSource) LIKE '%YOUTUBE%' \n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%YAHOO%' \n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%PPC%' \n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%PERFORMANCE MAX%' \n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%PAID SEARCH%'\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%PAID SEARCH%'\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'SEM%'\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%BING – RENUITY%'\n\t\t\t\t\t\t) \n\t\t\t\t\t\tTHEN 'Paid Search'\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n        WHEN (UPPER(LeadSubSource) LIKE '%ORGANIC%' OR UPPER(LeadSubSource) LIKE '%SEO%' )  \n\t\t\t\t\t\tAND UPPER(LeadSubSource) NOT LIKE '%CUSTOMER REFERRAL%' \n\t\t\t\t\t\tAND UPPER(LeadSubSource) NOT LIKE '%BCI Organic%'\n\t\t\t\t\t\tAND UPPER(LeadSubSource) NOT LIKE '%TV%'\n\t\t\t\t\t\tTHEN 'Organic/SEO'\n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%EMAIL%' AND UPPER(LeadSubSource) NOT LIKE '%CONQUEST%' AND UPPER(LeadSubSource) NOT LIKE '%ADAPTIVE%' THEN 'Email'\n\t\t\n        WHEN ( (UPPER(LeadSubSource) LIKE '%GANNETT%' AND SourceGroup LIKE '%Print%') \n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%NEWSPAPER%' \n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%MAGAZINE%' \n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%JOURNAL%'\t\t\t\n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'Dallas Morning %'\n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'SA Express %'\n\t\t\t\t\t\t)\n\t\t\t\t\tTHEN 'Newspapers/Magazines'\n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%VALPAK%' \n\t\t\tOR (SourceCode='Shared Mail' AND \n\t\t\t\t\t\t\t(\tUPPER(LeadSubSource) LIKE 'MSPARK%' \n\t\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'RED PLUM%' \n\t\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'REDPLUM%' \n\t\t\t\t\t\t\t\t)\n\t\t\t\t\t)\n\t\t\tTHEN 'Shared Mail'\n\t\t\t\t\t\t\t\t\t\t\t\t  \n\t\tWHEN UPPER(LeadSubSource) LIKE '%NATIVE ADS%'  THEN 'Native'\n\t\t\n\t\t\n\t\t/*-- Not existing in RTW\n\t\tWHEN UPPER(LeadSubSource) LIKE '%MALL%' \n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'SAM%'  \n\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%HOME DEPOT%'\n\t\t\t\t\tTHEN 'Retail'\n\t\t\t\t\t*/\n\t\t\t\t\t\n\t\t\t\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%CANVAS%' AND UPPER(LeadSubSource) NOT LIKE 'JB CANVASS%'  THEN 'Canvass'\n\t\t\n\t\t\t\t\t\n\t\t-- No Definite Pattern MAC\n\t\t--WHEN (UPPER(LeadSubSource) LIKE '%REFERRAL%' AND UPPER(LeadSubSource) NOT LIKE '%ORGANIC%' AND UPPER(LeadSubSource) NOT LIKE '%KOHLER%') THEN 'Consumer Referral'\n\t\t\n\t\t-- No Definite Pattern MAC\n\t\t--WHEN UPPER(LeadSubSource) LIKE '%LAVIN%' OR UPPER(LeadSubSource) LIKE '%DOLEAD%'   THEN 'Branded Partner'\n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%YARD%' THEN 'Out of Home'\n\t\t\n        ELSE NULL \n    END AS CAL_SourceCode\n\nFROM [EDW].[DIM_MKTNG_SUB_SOURCE_MAPPING]\nWHERE Division = 'SWR' AND MAPPINGIND='UNMAP'\n\n)\nUpdate [EDW].[DIM_MKTNG_SUB_SOURCE_MAPPING] set \n       TX_Channel        \t\t= RF.TX_Channel\n       ,TX_Sourcegroup   \t\t= RF.TX_Sourcegroup\n       ,TX_SourceCode    \t\t= RF.TX_SourceCode\n\t   ,ACU_AccountCode         = RF.ACU_AccountCode\n\t   ,ACU_MarketingAccountID  = RF.ACU_MarketingAccountID\n\t   ,ACU_MarketingAccount    = RF.ACU_MarketingAccount\n       ,MappingInd       \t\t= (CASE WHEN (T.TX_SourceCode IS NOT NULL AND ( T.TX_Channel != RF.TX_Channel OR T.TX_Sourcegroup != RF.TX_Sourcegroup OR T.TX_SourceCode != RF.TX_SourceCode)) THEN 'REMAP_FUZZ' ELSE 'MAP_FUZZ' END)\n       ,LastUpdatedTS    \t\t= Getdate()\nfrom [EDW].[DIM_MKTNG_SUB_SOURCE_MAPPING] T\nJoin T_SWR SM  on T.Division=SM.Division and T.LeadSubSourceID=SM.LeadSubSourceID\nLeft Join (SELECT DISTINCT TX_SOURCEGROUP,TX_SOURCECODE,TX_CHANNEL,ACU_AccountCode,ACU_MarketingAccountID,ACU_MarketingAccount FROM RDM.REF_MKTNG_SOURCE_GROUP)  RF on SM.CAL_Sourcecode= RF.TX_SourceCode\nWhere  T.Division = 'SWR' and  T.MappingInd='UNMAP' and  T.LeadSubSourceID=SM.LeadSubSourceID and SM.CAL_SourceCode is not NULL ;\n\n\n\n\n\n\n\n\n\n\n\n------------------------------------------------------------------------------------ CTA---------\n\nWITH T_CTA AS \n(\n\n\n\nSELECT \n\tDivision,\n    LeadSubSourceID,\n    SourceGroup,\n    SourceCode,\n    LeadSubSource,\n    TX_SourceCode,\n    CASE \n\t\tWHEN ( UPPER(LeadSubSource) LIKE '%RADIO%' \tOR UPPER(LeadSubSource) LIKE '% FM' OR UPPER(LeadSubSource) LIKE '% FM %' OR UPPER(LeadSubSource) LIKE 'FM %' OR UPPER(LeadSubSource) LIKE '%-FM %' OR UPPER(LeadSubSource) LIKE '% FM-%'\n\t\t\t\t\t\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '% AM' OR UPPER(LeadSubSource) LIKE '% AM %' OR UPPER(LeadSubSource) LIKE 'AM %' OR UPPER(LeadSubSource) LIKE '%-AM %' OR UPPER(LeadSubSource) LIKE '% AM-%'\n\t\t\t\t\t\t\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'iHeart%' \n\t\t\t\t\t\t\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%ESPN%'\n\t\t\t\t\t\t\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%WMAL%' OR UPPER(LeadSubSource) LIKE '%Radio%' OR UPPER(LeadSubSource) LIKE '%WBAL%' OR UPPER(LeadSubSource) LIKE '%WTOP%'\n\t\t\t\t\t\t\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%WIHT%'\n\t\t\t\t\t\t\t\t\t\t\t\t\t)\tAND UPPER(LeadSubSource) NOT LIKE '%NEWS%' AND UPPER(LeadSubSource) NOT LIKE '%TOUR%'  THEN 'Broadcast Radio'\n\t\t-- BroadCast is not a part of CTA as of now\n\t\t--WHEN (UPPER(LeadSubSource) LIKE '%TV%' OR UPPER(LeadSubSource) LIKE '%TELEVISION%' \n\t\t--\t\t\t\t\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'PROMEDIA%'\n\t\t--\t\t\t\t\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%RSR%'\t\n\t\t--\t\t\t\t\t\t\t\t\t\t\tOR (UPPER(SourceCode) LIKE '%RON SHERMAN%')\n\t\t\t\t\t\t\t\t\t\t\t\t\t\n\t\t--\t\t\t\t\t\t\t\t\t\t\t) AND UPPER(LeadSubSource) NOT LIKE '%BCI-WIT%' THEN 'Broadcast TV'\n\t\t\n\t\tWHEN (\tUPPER(LeadSubSource) LIKE '%DIRECT MAIL%' OR UPPER(LeadSubSource) LIKE '%MAILER%')\n\t\t\t\t\t\t\t\t\tAND (UPPER(LeadSubSource) NOT LIKE '%VELPAK%' AND UPPER(LeadSubSource) NOT LIKE '%VEL PAK%' AND UPPER(LeadSubSource)  NOT LIKE '%DIRECT MAIL - RENUITY%') THEN 'Direct Mail'\n        \n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%FACEBOOK%'\n\t\t\t\t\t\tOR (UPPER(LeadSubSource) LIKE '%META%' and UPPER(Leadsubsource) not Like '%F2F%')\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%PINTEREST%' THEN 'Paid Social'\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n        WHEN UPPER(LeadSubSource) LIKE '%YELP%' THEN 'Directories'\n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%YOUTUBE%' THEN 'YouTube' \n\t\t\n        WHEN (UPPER(LeadSubSource) LIKE '%GOOGLE%' \n\t\t\t\t\t\t--OR UPPER(LeadSubSource) LIKE '%YOUTUBE%' \n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%YAHOO%' \n\t\t\t\t\t\tOR (UPPER(LeadSubSource) LIKE '%PPC%' AND SourceCode NOT LIKE '%Internet%')-- Causing overwrite with Organic/SEO\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%PERFORMANCE MAX%' \n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%PAID SEARCH%'\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%BING – RENUITY%'\n\t\t\t\t\t\t-- new '%%' \n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%BING%'\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%AdWords%'\n\t\t\t\t\t\t--OR UPPER(LeadSubSource) LIKE '%GDN PPC%'\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%Renuity - Display%'\n\t\t\t\t\t\t) \n\t\t\t\t\t\tAND (UPPER(LeadSubSource) NOT LIKE '%ORGANIC%' AND UPPER(LeadSubSource) NOT LIKE '%LOCAL%' AND UPPER(LeadSubSource) NOT LIKE '%TV%'  ) THEN 'Paid Search'\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n        WHEN (UPPER(LeadSubSource) LIKE '%ORGANIC%' OR UPPER(LeadSubSource) LIKE '%SEO%' ) AND UPPER(LeadSubSource) NOT LIKE '%CUSTOMER REFERRAL%' THEN 'Organic/SEO'\n\t\t\n\t\t--WHEN UPPER(LeadSubSource) LIKE '%EMAIL%' AND UPPER(LeadSubSource) NOT LIKE '%CONQUEST%' AND UPPER(LeadSubSource) NOT LIKE '%ADAPTIVE%' THEN 'Email'\n\t\t\n        WHEN ( (UPPER(LeadSubSource) LIKE '%GANNETT%' AND SourceGroup LIKE '%Print%') OR UPPER(LeadSubSource) LIKE '%NEWSPAPER%' OR UPPER(LeadSubSource) LIKE '%MAGAZINE%' OR UPPER(LeadSubSource) LIKE '%JOURNAL%' ) THEN 'Newspapers/Magazines'\n\t\t\n\t\t--WHEN UPPER(LeadSubSource) LIKE '%VALPAK%' OR UPPER(LeadSubSource) LIKE '%VAL PAK%' \n\t\t--\t\t\t\t\t\t\t\t\t\t  OR UPPER(LeadSubSource) LIKE '%REDPLUM%' \n\t\t--\t\t\t\t\t\t\t\t\t\t  OR UPPER(LeadSubSource) LIKE '%RSVP%'\n\t\t--\t\t\t\t\t\t\t\t\t\t  OR UPPER(LeadSubSource) LIKE '%REDPLUM%'\n\t\t--\t\t\t\t\t\t\t\t\t\t  THEN 'Shared Mail'\n\t\t\t\t\t\t\t\t\t\t\t\t  \n\t\tWHEN UPPER(LeadSubSource) LIKE '%NATIVE ADS%'  THEN 'Native'\n\t\t\n\t\t--WHEN UPPER(LeadSubSource) LIKE '%MALL%' \n\t\t--\t\t\tOR UPPER(LeadSubSource) LIKE 'SAM%'  \n\t\t--\t\t\tOR UPPER(LeadSubSource) LIKE '%HOME DEPOT%'\n\t\t--\t\t\tOR UPPER(LeadSubSource) LIKE '%BRANDSMART%'\n\t\t--\t\t\tOR UPPER(LeadSubSource) LIKE '%IME- BJs%'\n\t\t--\t\t\tTHEN 'Retail'\n\t\t\t\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%CANVAS%' AND (UPPER(LeadSubSource) NOT LIKE '%JB CANVAS%' AND UPPER(LeadSubSource) NOT LIKE '%DP CANVASS%')  THEN 'Canvass'\n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%WALK-IN%'  OR (UPPER(LeadSubSource) LIKE '%CUSTOMER REFERRAL%' AND UPPER(LeadSubSource) NOT LIKE '%ORGANIC%') THEN 'Consumer Referral'\n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%LAVIN MEDIA%' OR UPPER(LeadSubSource) LIKE '%SOCIAL BLUE%'   THEN 'Branded Partner'\n\t\t\n\t\tWHEN UPPER(LeadSubSource) LIKE '%YARD%' THEN 'Out of Home'\n\n\t\t--WHEN UPPER(LeadSubSource) LIKE '%DP Canvass%' THEN 'Agents Referral'\n\t\t\n        ELSE NULL \n    END AS CAL_SourceCode \n\nFROM [EDW].[DIM_MKTNG_SUB_SOURCE_MAPPING]\nWHERE Division = 'CTA' AND MAPPINGIND='UNMAP'\n\n)\nUpdate [EDW].[DIM_MKTNG_SUB_SOURCE_MAPPING] set \n       TX_Channel        \t\t= RF.TX_Channel\n       ,TX_Sourcegroup   \t\t= RF.TX_Sourcegroup\n       ,TX_SourceCode    \t\t= RF.TX_SourceCode\n\t   ,ACU_AccountCode         = RF.ACU_AccountCode\n\t   ,ACU_MarketingAccountID  = RF.ACU_MarketingAccountID\n\t   ,ACU_MarketingAccount    = RF.ACU_MarketingAccount\n       ,MappingInd       \t\t= (CASE WHEN (T.TX_SourceCode IS NOT NULL AND ( T.TX_Channel != RF.TX_Channel OR T.TX_Sourcegroup != RF.TX_Sourcegroup OR T.TX_SourceCode != RF.TX_SourceCode)) THEN 'REMAP_FUZZ' ELSE 'MAP_FUZZ' END)\n       ,LastUpdatedTS    \t\t= Getdate()\nfrom [EDW].[DIM_MKTNG_SUB_SOURCE_MAPPING] T\nJoin T_CTA SM  on T.Division=SM.Division and T.LeadSubSourceID=SM.LeadSubSourceID\nLeft Join (SELECT DISTINCT TX_SOURCEGROUP,TX_SOURCECODE,TX_CHANNEL,ACU_AccountCode,ACU_MarketingAccountID,ACU_MarketingAccount FROM RDM.REF_MKTNG_SOURCE_GROUP)  RF on SM.CAL_Sourcecode= RF.TX_SourceCode\nWhere  T.Division = 'CTA' and  T.MappingInd='UNMAP' and  T.LeadSubSourceID=SM.LeadSubSourceID and SM.CAL_SourceCode is not NULL ;"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "UpdateEntryDate",
+				"description": "Update Latest Lead Entrydate for every subsourceids",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Mapping by one-one without div match",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "Update EDW.DIM_MKTNG_SUB_SOURCE_MAPPING \r\nSET EntryDate=T2.EntryDate\r\nFrom\r\nEDW.DIM_MKTNG_SUB_SOURCE_MAPPING T1 Join \r\n(\r\n\tselect \r\n\tss.Division,\r\n\tss.LeadSubSourceID,\r\n\tss.EntryDate\r\n\tfrom \r\n\t\t( select \r\n\t\t  a.division,\r\n\t\t  a.leadsubsourceid,\r\n\t\t  max(b.entrydate) as entrydate\r\n\t\t  from edw.dim_lead_sub_source a\r\n\t\t  join edw.fact_lead b on a.leadsubsourceid = b.leadsubsourceid\r\n\t\t  group by  a.division,\r\n\t\t\t\t  a.leadsubsourceid\r\n\t\t) ss\r\n\twhere entrydate>='2022-01-01'\r\n) T2 \r\n On T1.division=T2.division and T1.leadsubsourceid=T2.leadsubsourceid\r\n Where  T1.division is NOT NULL and T1.leadsubsourceid is NOT NULL"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Update LP data Changes - REMAP",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "batch_load_DIM_MKTNG_SUB_SOURCE_MAPPING",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "\nWITH M1 AS \n(\n\t\tSELECT \n\t\tsrc.LeadSubSourceID,\n\t\tsrc.SourceGroup AS SourceGroup_SRC,\n\t\tsrc.sourcecode AS sourcecode_SRC,\n\t\tsrc.LeadSubSource AS LeadSubSource_SRC,\n\t\tsm.SourceGroup AS SourceGroup_TGT,\n\t\tsm.sourcecode AS sourcecode_TGT,\n\t\tsm.LeadSubSource AS LeadSubSource_TGT,\n\t\t'UNMAP' AS MappingInd\n\t\tFROM \n\t\t(\n\t\tselect \n\t\tss.Division,\n\t\tsg.LeadSourceGroupID,\n\t\ts.LeadSourceID,\n\t\tss.LeadSubSourceID,\n\t\tsg.SourceGroup,\n\t\tss.SourceCode,\n\t\tss.LeadSubSource,\n\t\tss.Active,\n\t\tss.EntryDate,\n\t\t'UNMAP' as MappingInd,\n\t\tgetdate() as CreatedTS,\n\t\tgetdate() as LastUpdatedTS\n\t\tfrom \n\t\t( select \n\t\ta.division,\n\t\ta.leadsubsourceid,\n\t\ta.leadsourceid,\n\t\ta.sourcecode,\n\t\ta.leadsubsource,\n\t\ta.active,\n\t\tmax(b.entrydate) as entrydate\n\t\t\tfrom edw.dim_lead_sub_source a\n\t\t\tjoin edw.fact_lead b on a.leadsubsourceid = b.leadsubsourceid\n\t\t\tgroup by  a.division,\n\t\t\t\t\ta.leadsubsourceid,\n\t\t\t\t\ta.leadsourceid,\n\t\t\t\t\ta.sourcecode,\n\t\t\t\t\ta.leadsubsource,\n\t\t\t\t\ta.active) ss\n\t\t\t\t\tleft join edw.dim_lead_source s on s.leadsourceid=ss.leadsourceid\n\t\t\t\t\tleft join edw.dim_lead_source_group sg on s.sourcegroupid=sg.leadsourcegroupid\n\t\t\t\t\twhere entrydate>='2022-01-01'\n\t\t\t\t\t) src join [edw].[dim_mktng_sub_source_mapping]  sm \n\t\t\t\t\ton src.division=sm.division \n\t\t\t\t\tand src.leadsubsourceid=sm.leadsubsourceid\n\t\tWHERE ((sm.SourceGroup!=src.SourceGroup) OR (sm.sourcecode != src.sourcecode) OR (sm.LeadSubSource != src.LeadSubSource))\n\t\tAND sm.MappingInd NOT IN ('HIST','FILE_OVERRIDE','UNMAP')-- removed the filter to update the source 1,2,3 values for all records if its updated--revoked\n\t\t\n\t\t\n\t\t)\n\nUPDATE T1 \nSET T1.SourceGroup  = M1.SourceGroup_SRC\n,T1.SourceCode\t\t= M1.Sourcecode_SRC\n,T1.LeadSubSource   = M1.LeadSubSource_SRC\n,T1.MappingInd\t    = M1.MappingInd\n,T1.LastUpdatedTS\t= GETDATE()\n FROM M1 JOIN  [edw].[dim_mktng_sub_source_mapping] T1\n ON T1.leadsubsourceid = M1.leadsubsourceid"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "EXEC_Five9_Taxonomy_Upd",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "UpdateEntryDate",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_Five9_SubSource_Mapping",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "UpdaetVendorInfo",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "UpdateEntryDate",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "WITH MX AS \n(\n\nSELECT * FROM \n\t\n\t(\n\t\tSELECT \n\t\t\tLeadSubsourceID \t, \n\t\t\tDivision\t\t\t,\n\t\t\tSourcegroup\t\t\t,\n\t\t\tSourceCode\t\t\t, \n\t\t\tLeadsubsource\t\t,\n\t\t\tTX_channel\t\t\t, \n\t\t\tTX_sourcegroup\t\t,\n\t\t\tTX_sourceCode\t\t,\n\t\t\tCASE \n\t\t\tWHEN TX_SOURCECODE='Retail' THEN\n\t\t\t\t(\n\t\t\t\t\tCASE \n\t\t\t\t\t\tWHEN SOURCECODE IN ('Home Depot','Home Depot Bath','SWR_HD DLS','SWR-Home Depot') OR SOURCECODE LIKE 'HD %' \t\t\t\tTHEN 'Home Depot'\n\t\t\t\t\t\tWHEN SOURCECODE IN ('Malls/Walmart','Walmart','WALMART DLS') \t\t \t\t\t\t\t\t\t\t\t\t\t\t\t\tTHEN 'MHR - Walmart'\n\t\t\t\t\t\tWHEN SOURCECODE IN ('BJs','BJs Clubs','WALMART DLS','IME - BJs Onl') \t\t\t\t\t\t\t\t\t\t\t\t\t\tTHEN  'BJs'\n\t\t\t\t\t\tWHEN UPPER(SOURCECODE) LIKE 'SAMS %' OR UPPER(SOURCECODE) LIKE 'IME - SAMS%' OR UPPER(SOURCECODE)='SWR-SAMS CLUB (ALL)' \tTHEN 'Sams Club'\n\t\t\t\t\t\tWHEN SOURCECODE IN ('Costco') \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tTHEN 'Costco'\n\t\t\t\t\t\tWHEN SOURCECODE IN ('HEB Austin','HEB Houston') \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tTHEN 'HEB'\n\t\t\t\t\tEND\n\t\t\t\t\t)\n\t\t\t\n\t\t\tWHEN TX_SOURCECODE='Manufacturer' THEN \n\t\t\t\t(\t\n\t\t\t\t\tCASE WHEN SourceCode IN ('KOHLER','KOHLER SHOWER','KOHLER SHOWERS') \t\tTHEN 'Kohler'\n\t\t\t\t\t\tWHEN SourceCode IN ('Liners Direct') \t\t\t\t\t\t\t\t\tTHEN 'Jacuzzi'\n\t\t\t\t\t\tWHEN SourceCode IN ('BCI') \t\t\t\t\t\t\t\t\t\t\t\tTHEN 'BCI'\n\t\t\t\t\tEND\n\t\t\t\t\t)\n\t\t\t\t\t\n\t\t\tWHEN TX_SOURCECODE='Agents Referral' THEN \n\t\t\t\t(\t\n\t\t\t\t\tCASE WHEN SOURCECODE IN ('Home Works HES','Home Works','Home Works CC') \tTHEN 'Home Works'\n\t\t\t\t\t\tWHEN SOURCECODE IN ('Revise Energy') \t\t\t\t\t\t\t\t\tTHEN 'Revise'\n\t\t\t\t\t\tWHEN SOURCECODE IN ('RemoPro') \t\t\t\t\t\t\t\t\t\t\tTHEN 'RemoPro'\n\t\t\t\t\t\tWHEN SOURCECODE IN ('Weathervane') \t\t\t\t\t\t\t\t\t\tTHEN 'Weathervane'\n\t\t\t\t\tEND\n\t\t\t\t\t)\n\t\t\t\n\t\t\tWHEN TX_SOURCECODE='Broadcast TV' THEN \n\t\t\t\t(\t\n\t\t\t\t\tCASE WHEN SOURCECODE IN ('Ron Sherman') \t\t\t\t\t\t\t\t\tTHEN 'Ron Sherman'\n\t\t\t\t\tEND\n\t\t\t\t\t)\n\t\t\t\t\t\n\t\t\tWHEN TX_SOURCECODE='NewspaperGANNET' THEN \n\t\t\t\t(\t\n\t\t\t\t\tCASE WHEN SOURCECODE IN ('Gannett') \t\t\t\t\t\t\t\t\t\tTHEN 'Gannett'\n\t\t\t\t\tEND\n\t\t\t\t\t)\n\t\t\t\t\n\t\t\tWHEN DIVISION='SWR' \t\t\t\tTHEN \n\t\t\t\t(\n\t\t\t\t\tCASE WHEN SOURCEGROUP ='SWR-Sams Club (ALL)' \t\t\t\t\t\t\t\tTHEN\t'Sams Club'\n\t\t\t\t\t\tWHEN SOURCEGROUP ='SWR-Home Depot' \t\t\t\t\t\t\t\t\t\tTHEN \t'Home Depot' \n\t\t\t\t\tEND\n\t\t\t\t\t)\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\tEND AS Vendor_N\n\t\t\t\n\t\t\tFROM EDW.DIM_MKTNG_SUB_SOURCE_MAPPING \n\t\t\tWHERE MappingInd<>'UNMAP'\n\t\t\tAND Vendor IS NULL\n\t\t\t\n\t\t\t) M1\n\t\t\t\n\tWHERE Vendor_N IS NOT NULL\n\t\n\t)\n\n\n\nUPDATE EDW.DIM_MKTNG_SUB_SOURCE_MAPPING \nSET Vendor=MX.Vendor_N\nFROM\nEDW.DIM_MKTNG_SUB_SOURCE_MAPPING T1 JOIN MX\nON T1.LeadSubsourceID = MX.LeadSubsourceID"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Update LP values for source 1 2 3",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "UpdaetVendorInfo",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "With LP_SourceUpdates as \r\n(\r\nSelect  SS.Division,SS.LeadSubsourceID, SG.SourceGroup,SS.SourceCode,SS.LeadSubsource\r\n--M.TX_Channel,M.TX_SourceGroup,M.TX_sourceCode\r\nfrom EDW.DIM_Lead_Sub_SOURCE SS  \r\nLeft Join EDW.DIM_Lead_source S on SS.LeadSourceID=S.LeadSourceID\r\nLeft join EDW.DIM_Lead_Source_Group SG on S.SourceGroupId=SG.LeadSourceGroupID\r\n--Left join EDW.DIM_MKTNG_Sub_Source_mapping M on SS.LeadsubsourceID=M.LeadsubsourceID\r\n)\r\nUpdate M set LP_SourceGroup=L.SourceGroup , LP_SourceCode=L.Sourcecode, LP_SubSource=L.Leadsubsource\r\n--Select M.*, L.SourceGroup, L.SourceCode, L.Leadsubsource\r\nfrom EDW.DIM_MKTNG_Sub_Source_mapping M   join LP_SourceUpdates L on M.LeadsubsourceId=L.LeadsubsourceId\r\nwhere 1=1--M.Leadsubsource<>L.Leadsubsource\r\n"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "batch_load_DIM_MKTNG_SUB_SOURCE_MAPPING",
+				"description": "Loads LP data which is not exists in DIM MKTNG SUB SOURCE table",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"additionalColumns": [
+							{
+								"name": "Vendor",
+								"value": ""
+							}
+						],
+						"sqlReaderQuery": "select src.* from \n(\nselect \nss.Division,\nsg.LeadSourceGroupID,\ns.LeadSourceID,\nss.LeadSubSourceID,\nsg.SourceGroup,\nss.SourceCode,\nss.LeadSubSource,\nss.Active,\nss.EntryDate,\nnull as TX_Channel,\nnull as TX_SourceGroup,\nnull as TX_SourceCode,\nnull as ACU_AccountCode,\nnull as ACU_MarketingAccountID,\nnull as ACU_MarketingAccount,\n'UNMAP' as MappingInd,\ngetdate() as CreatedTS,\ngetdate() as LastUpdatedTS,\nNULL as LP_SourceGroup,------new fields added to capture the updated LP values\nNull as LP_SourceCode, \nNull as LP_Subsource,\nNull as AgencyFee,\nNull as AgencyVendorName,\nNull as ACU_AgencyVendorId,\nNULL AS TX_LeadSubSource\nfrom \n( select \na.division,\na.leadsubsourceid,\na.leadsourceid,\na.sourcecode,\na.leadsubsource,\na.active,\nmax(b.entrydate) as entrydate\n\tfrom edw.dim_lead_sub_source a\n\tjoin edw.fact_lead b on a.leadsubsourceid = b.leadsubsourceid\n\tgroup by  a.division,\n\t\t\t  a.leadsubsourceid,\n\t\t\t  a.leadsourceid,\n\t\t\t  a.sourcecode,\n\t\t\t  a.leadsubsource,\n\t\t\t  a.active) ss\n\t\t\tleft join edw.dim_lead_source s on s.leadsourceid=ss.leadsourceid\n\t\t\tleft join edw.dim_lead_source_group sg on s.sourcegroupid=sg.leadsourcegroupid\n\t\t\twhere entrydate>='2022-01-01'\n\t\t\t) src\tleft join [edw].[dim_mktng_sub_source_mapping]  sm \n\t\t\ton src.division=sm.division and src.leadsubsourceid=sm.leadsubsourceid\nwhere sm.division is null and sm.leadsubsourceid is null ",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadSourceGroupID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "LeadSourceGroupID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadSourceID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "LeadSourceID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadSubSourceID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "LeadSubSourceID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SourceGroup",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "SourceGroup",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SourceCode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "SourceCode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadSubSource",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "LeadSubSource",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Active",
+									"type": "Boolean",
+									"physicalType": "bit"
+								},
+								"sink": {
+									"name": "Active",
+									"type": "Boolean",
+									"physicalType": "bit"
+								}
+							},
+							{
+								"source": {
+									"name": "EntryDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "EntryDate",
+									"type": "Date",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "TX_Channel",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "TX_Channel",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "TX_SourceGroup",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "TX_SourceGroup",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "TX_SourceCode",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "TX_SourceCode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "MappingInd",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "MappingInd",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CreatedTS",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "CreatedTS",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "ACU_AccountCode",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "ACU_AccountCode",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ACU_MarketingAccountID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "ACU_MarketingAccountID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ACU_MarketingAccount",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "ACU_MarketingAccount",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Vendor",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Vendor",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_SourceGroup",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "LP_SourceGroup",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_SourceCode",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "LP_SourceCode",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_Subsource",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "LP_Subsource",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AgencyFee",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "AgencyFee",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 5,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "AgencyVendorName",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "AgencyVendorName",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ACU_AgencyVendorId",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "ACU_AgencyVendorID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "TX_LeadSubSource",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "TX_LeadSubSource",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_DIM_LEAD_SOURCE",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_CTA_TEST_DYN_DIM_CUSTOMER",
+						"type": "DatasetReference",
+						"parameters": {
+							"SchemaName": "EDW",
+							"TableName": "DIM_MKTNG_SUB_SOURCE_MAPPING"
+						}
+					}
+				]
+			},
+			{
+				"name": "UPD_TX_LeadSubSource",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Update LP values for source 1 2 3",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "\nUPDATE EDW.DIM_MKTNG_SUB_SOURCE_MAPPING\nSET TX_LeadSubSource = \n\t\t\t\t(\n\t\t\t\t\tCASE \n\t\t\t\t\tWHEN LeadSubSource LIKE '%Angi%' OR LeadSubSource LIKE '%Home Adv%' \t\t\tTHEN 'Angi / Home Advisor'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%AARP%'\t\t\t\t\t\t\t\t\t\t\t\tTHEN 'AARP'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%5 Mile%' \t\t\t\t\t\t\t\t\t\t\t\tTHEN '5 Mile Media'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%Apex%' \t\t\t\t\t\t\t\t\t\t\t\tTHEN 'Apex'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%Auditor%' \t\t\t\t\t\t\t\t\t\t\tTHEN 'Auditor'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%Best Pick%' \t\t\t\t\t\t\t\t\t\t\tTHEN 'Best Pick Reports'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%Bing%' \t\t\t\t\t\t\t\t\t\t\t\tTHEN 'Bing'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%Bird Dog%' \t\t\t\t\t\t\t\t\t\t\tTHEN 'Bird Dog Media'\n\t\t\t\t\tWHEN LeadSubSource LIKE 'Club%' \t\t\t\t\t\t\t\t\t\t\t\tTHEN 'BJ''s Club Retail'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%BJ%' AND LeadSubSource LIKE '%Onl%'\t\t\t\t\tTHEN 'BJ''s Online'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%IME- BJ''s F2F%' \t\t\t\t\t\t\t\t\t\tTHEN 'BJ''s Retail'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%BlueFire%' OR LeadSubSource LIKE '%Blue Fire%'\t\tTHEN 'Blue Fire'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%Buku%' \t\t\t\t\t\t\t\t\t\t\t\tTHEN 'Buku'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%Buyer Link%' OR  LeadSubSource LIKE '%BuyerLink%'\t\tTHEN 'BuyerLink'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%Canvas%'\t\t\t\t\t\t\t\t\t\t\t\tTHEN 'Canvass'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%Clean Energy%' \t\t\t\t\t\t\t\t\t\tTHEN 'Clean Energy'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%BRW%' \t\t\t\t\t\t\t\t\t\t\t\tTHEN 'Community Events - BRW'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%Consumer Affair%'\t\t\t\t\t\t\t\t\t\tTHEN 'Consumer Affairs'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%Contractor App%' \t\t\t\t\t\t\t\t\t\tTHEN 'Contractor Appointments'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%Costco%' OR LeadSubSource LIKE '#% - % - %'\t\t\tTHEN 'Costco'\n\t\t\t\t\tWHEN \n\t\t\t\t\t\t\tUPPER(LeadSubSource) LIKE '%BELARDI%'\n\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%VALPAK%'\n\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'VALPAK INSERT%'\n\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'GANNETT%'\n\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'INC INSERT%'\n\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'INFINITY DIRECT REGIONAL%'\n\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'CLIENT NEIGHBOR MAILER%'\n\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'HD BROCHURE%'\n\t\t\t\t\t\t\tOR TX_SourceCode LIKE '%Direct Mail%'\t\t\t\t\t\t\t\t\tTHEN 'Direct Mail' --** CHeck\n\t\t\t\t\t\t\t\n\t\t\t\t\tWHEN  \t\tUPPER(LeadSubSource) LIKE '%DMS EMAIL%'\n\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%DIABLO EMAIL%'\n\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%BRANDED EMAIL%'\n\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'RENUITY CHAT%'\n\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%Moengage%'\n\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%Email%'\t\t\t\t\t\t\t\t\tTHEN 'Email Campaign' --** CHeck\n\t\t\t\t\t\n\t\t\t\t\tWHEN UPPER(LeadSubSource) LIKE '%Exact Customer%'\t\t\t\t\t\t\t\tTHEN 'Exact Customer'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%Fetchapro%' \t\t\t\t\t\t\t\t\t\t\tTHEN 'Fetchapro'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%Getable%' \t\t\t\t\t\t\t\t\t\t\tTHEN 'Getable'\n\t\t\t\t\tWHEN LeadSubSource LIKE 'Google%' \t\t\t\t\t\t\t\t\t\t\t\tTHEN 'Google'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%Guru%' \t\t\t\t\t\t\t\t\t\t\t\tTHEN 'Guru Digital'\n\t\t\t\t\t\n\t\t\t\t\tWHEN LeadSubSource LIKE 'HD %' \n\t\t\t\t\t\tOR (LeadSubSource LIKE '%Depot%' AND LeadSubSource LIKE '%Home%')\t\t\tTHEN 'Guru Digital'\n\t\t\t\t\t\t\n\t\t\t\t\tWHEN LeadSubSource LIKE '[0-9][0-9][0-9][0-9] GB %'\n\t\t\t\t\t\tOR LeadSubSource LIKE '[0-9][0-9][0-9][0-9] LOU %'\n\t\t\t\t\t\tOR LeadSubSource LIKE '[0-9][0-9][0-9][0-9] PITT %'\n\t\t\t\t\t\tOR LeadSubSource LIKE '[0-9][0-9][0-9][0-9] ALB/ROCH %'\n\t\t\t\t\t\tOR LeadSubSource LIKE '[0-9][0-9][0-9][0-9] CLT/RAL %'\n\t\t\t\t\t\tOR LeadSubSource LIKE '[0-9][0-9][0-9][0-9] IA %'\n\t\t\t\t\t\tOR LeadSubSource LIKE '[0-9][0-9][0-9][0-9] INDY %'\n\t\t\t\t\t\tOR LeadSubSource LIKE '[0-9][0-9][0-9][0-9] KC %'\n\t\t\t\t\t\tOR LeadSubSource LIKE '[0-9][0-9][0-9][0-9] LCEAU %'\n\t\t\t\t\t\tOR LeadSubSource LIKE '[0-9][0-9][0-9][0-9] MKE %'\n\t\t\t\t\t\tOR LeadSubSource LIKE '[0-9][0-9][0-9][0-9] MAD %'\n\t\t\t\t\t\tOR LeadSubSource LIKE '[0-9][0-9][0-9][0-9] MN %'\n\t\t\t\t\t\tOR LeadSubSource LIKE '[0-9][0-9][0-9][0-9] ND/SD %'\n\t\t\t\t\t\tOR LeadSubSource LIKE '[0-9][0-9][0-9][0-9] OHIO %'\n\t\t\t\t\t\tOR LeadSubSource LIKE '[0-9][0-9][0-9][0-9] OMLIN %'\n\t\t\t\t\t\tOR LeadSubSource LIKE '[0-9][0-9][0-9][0-9] PCOLA %'\n\t\t\t\t\t\tOR LeadSubSource LIKE '[0-9][0-9][0-9][0-9] STL %'\n\t\t\t\t\t\tOR LeadSubSource LIKE '[0-9][0-9][0-9][0-9] TX %'\n\t\t\t\t\t\tOR LeadSubSource LIKE '[0-9][0-9][0-9][0-9] WAU %'\n\t\t\t\t\t\tOR LeadSubSource LIKE '[0-9][0-9][0-9][0-9] TX %'\n\t\t\t\t\t\tOR LeadSubSource LIKE '[0-9][0-9][0-9][0-9] TX %'\n\t\t\t\t\t\t\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%Remodeling Show%'\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%Merry Market%'\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%Spring Fling%'\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%Winter Fair%'\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%Lifestyle Show%'\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%Home Expo%'\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%Farm Show%'\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%Grand Place%'\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%Festival%'\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%Flea Market%'\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%Home Show%'\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE  '%County Fair%'\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE  '%Fall Fest%'\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE  '%Spring Market%' \n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE  '%Garden Show%'   \n\t\t\t\t\t\t\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'ECCS%'\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'ACS%'\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'EMINC%'\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'NOLA%'\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'PCOLA%'\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'TAUSA%'\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'SWFL%'\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'CROA%'\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'FFLLC%'\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'FMBCC%'\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'GCDP%'\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'EEG%'\n\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'EM - %'\t\t\t\t\t\t\t\t\t\tTHEN 'Home Show / Event'  -- ** Fix for pending\n\t\t\t\t\t\n\t\t\t\t\t\n\t\t\t\t\tWHEN LeadSubSource LIKE '%Inbound%' \n\t\t\t\t\t\tAND (LeadSubSource NOT LIKE '%Key Word%' AND LeadSubSource NOT LIKE '%KeyWord%')\t\tTHEN 'Inbound'\n\t\t\t\t\t\t\n\t\t\t\t\tWHEN LeadSubSource LIKE '%Intelhouse%' \t\t\t\t\t\t\t\t\t\t\tTHEN 'Intelhouse'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%Key Word%' OR LeadSubSource LIKE '%KeyWord%'\t\t\tTHEN 'Keyword Connect'\n\t\t\t\t\tWHEN LeadSubSource LIKE 'Kohler%' OR LeadSubSource LIKE 'Luxstone%' \t\t\tTHEN 'Kohler'\n\t\t\t\t\t\n\t\t\t\t\tWHEN LeadSubSource LIKE '%Lavin%'\t\t\t\t\t\t\t\t\t\t\t\tTHEN 'Kohler'\n\t\t\t\t\t\n\t\t\t\t\tWHEN LeadSubSource LIKE '%Lead Guru%'\t\t\t\t\t\t\t\t\t\t\tTHEN 'Lead Gurus'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%Lead Vision%' \t\t\t\t\t\t\t\t\t\tTHEN 'Lead Vision'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%Leadzmania%' \t\t\t\t\t\t\t\t\t\t\tTHEN 'Leadzmania'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%Lightfire%' \t\t\t\t\t\t\t\t\t\t\tTHEN 'Lightfire'\n\t\t\t\t\tWHEN LeadSubSource LIKE 'LOG%'\t\t\t\t\t\t\t\t\t\t\t\t\tTHEN 'LOG'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%LUXURY BATH%'\t\t\t\t\t\t\t\t\t\t\tTHEN 'Luxury Bath'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%Manna%' \t\t\t\t\t\t\t\t\t\t\t\tTHEN 'Manna'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%Media Resource Group%' \t\t\t\t\t\t\t\tTHEN 'Media Resource Group'\n\t\t\t\t\tWHEN LeadSubSource LIKE 'Meta %' OR LeadSubSource LIKE '% Meta'\t\t\t\t\tTHEN 'Meta'\n\t\t\t\t\tWHEN LeadSubSource LIKE 'Mod%' \t\t\t\t\t\t\t\t\t\t\t\t\tTHEN 'Modernize'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%Home Pros%' OR LeadSubSource LIKE '%HomePros%'\t\tTHEN 'MyHomePros'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%Native%'\t\t\t\t\t\t\t\t\t\t\t\tTHEN 'Native'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%Newspap%'\t\t\t\t\t\t\t\t\t\t\t\tTHEN 'Newspaper'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%Performance%' AND LeadSubSource LIKE '%Max%'\t\t\tTHEN 'Performance Max'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%Point2Web%' \t\t\t\t\t\t\t\t\t\t\tTHEN 'Point2Web'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%Porch%' \t\t\t\t\t\t\t\t\t\t\t\tTHEN 'Porch'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%Cust%' \n\t\t\t\t\t\tAND \n\t\t\t\t\t\t\t( LeadSubSource LIKE '%Past%' \n\t\t\t\t\t\t\t\tOR  LeadSubSource LIKE '%Prev%' \n\t\t\t\t\t\t\t\tOR LeadSubSource LIKE '%Repeat%') \t\t\t\t\t\t\t\t\tTHEN 'Previous Customer'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%ProMedia%' \t\t\t\t\t\t\t\t\t\t\tTHEN 'ProMedia'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%Quin%' \t\t\t\t\t\t\t\t\t\t\t\tTHEN 'Quinstreet'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%RAINMAKER%' \t\t\t\t\t\t\t\t\t\t\tTHEN 'RAINMAKER'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%Remodel Now%' \t\t\t\t\t\t\t\t\t\tTHEN 'Remodel Now'\n\t\t\t\t\tWHEN LeadSubSource LIKE 'IME- Sam''s F2F%' \t\t\t\t\t\t\t\t\t\tTHEN 'Sam''s Club IME'\n\t\t\t\t\tWHEN LeadSubSource LIKE 'Sams Club IME%'  \t\t\t\t\t\t\t\t\t\tTHEN 'Sam''s Club Retail'\n\t\t\t\t\tWHEN LeadSubSource LIKE 'IME- Sams  Onl%' \t\t\t\t\t\t\t\t\t\tTHEN 'Sam''s Club Online'\n\t\t\t\t\tWHEN LeadSubSource LIKE 'PPC %' OR LeadSubSource LIKE 'SEM%'\t\t\t\t\tTHEN 'SEM'\n\t\t\t\t\t\n\t\t\t\t\tWHEN LeadSubSource LIKE '%Siren%'\t\t\t\t\t\t\t\t\t\t\t\tTHEN 'Siren'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%Stone Canyon%'\t\t\t\t\t\t\t\t\t\tTHEN 'Stone Canyon'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%Swish%'\t\t\t\t\t\t\t\t\t\t\t\tTHEN 'Swish'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%Thinx%'\t\t\t\t\t\t\t\t\t\t\t\tTHEN 'Thinx'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%Three Ship%'\t\t\t\t\t\t\t\t\t\t\tTHEN 'Three Ships'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%Top 10%' OR LeadSubSource LIKE '%Top10%'\t\t\t\tTHEN 'Top 10'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%True Bath%'\t\t\t\t\t\t\t\t\t\t\tTHEN 'True Bath'\n\t\t\t\t\t\n\t\t\t\t\tWHEN (UPPER(LeadSubSource) LIKE '%TV%' \n\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%TELEVISION%' \n\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'PROMEDIA%'\n\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%RSR%'\t\n\t\t\t\t\t\t\tOR (UPPER(SourceCode) LIKE '%RON SHERMAN%')\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t) AND UPPER(LeadSubSource) NOT LIKE '%BCI-WIT%' \t\t\t\t\t\tTHEN 'TV / Radio'\n\t\t\t\t\t\t\n\t\t\t\t\tWHEN ( \n\t\t\t\t\t\t\tUPPER(LeadSubSource) LIKE '%RADIO%' \t\n\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '% FM' \n\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '% FM %' \n\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'FM %' \n\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%-FM %' \n\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '% FM-%'\n\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '% AM' \n\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '% AM %' \n\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'AM %' \n\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%-AM %' \n\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '% AM-%'\n\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE 'iHeart%' \n\t\t\t\t\t\t\tOR UPPER(LeadSubSource) LIKE '%ESPN%'\n\t\t\t\t\t\t\t\t)\t\n\t\t\t\t\t\t\t\tAND UPPER(LeadSubSource) NOT LIKE '%NEWS%' \n\t\t\t\t\t\t\t\tAND UPPER(LeadSubSource) NOT LIKE '%TOUR%' \t\t\t\t\t\t\tTHEN 'TV / Radio'\n\t\t\t\t\t\n\t\t\t\t\tWHEN LeadSubSource LIKE 'MHR%'\t OR LeadSubSource LIKE 'Walmart%'\t\t\t\tTHEN 'Walmart MHR'\n\t\t\t\t\t\n\t\t\t\t\tWHEN (UPPER(LeadSubSource) LIKE '%ORGANIC%' OR UPPER(LeadSubSource) LIKE '%SEO%' OR UPPER(LeadSubSource) LIKE '%Website%' ) AND UPPER(LeadSubSource) NOT LIKE '%CUSTOMER REFERRAL%' THEN 'Website / Organic'\n\t\t\t\t\t\n\t\t\t\t\tWHEN LeadSubSource LIKE '%Yellow Pages%'\t\t\t\t\t\t\t\t\t\tTHEN 'Yellow Pages'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%Yelp%'\t\t\t\t\t\t\t\t\t\t\t\tTHEN 'Yelp'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%Yext%'\t\t\t\t\t\t\t\t\t\t\t\tTHEN 'Yext'\n\t\t\t\t\tWHEN LeadSubSource LIKE '%Youtube%'\t\t\t\t\t\t\t\t\t\t\t\tTHEN 'Youtube'\n\t\t\t\t\tELSE NULL END\n\t\t\t\t\t\n\t\t\t\t\t)\n\nWHERE TX_LeadSubSource IS NULL;"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/DIMENSIONS/TAXONOMY"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-04-27T08:27:47Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

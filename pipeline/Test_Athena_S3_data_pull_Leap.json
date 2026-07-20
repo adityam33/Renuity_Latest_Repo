@@ -1,0 +1,510 @@
+{
+	"name": "Test_Athena_S3_data_pull_Leap",
+	"properties": {
+		"activities": [
+			{
+				"name": "Leap_DV_Lead_Results",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ParquetSource",
+						"storeSettings": {
+							"type": "AmazonS3CompatibleReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "ParquetReadSettings"
+						}
+					},
+					"sink": {
+						"type": "ParquetSink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings",
+							"copyBehavior": "FlattenHierarchy"
+						},
+						"formatSettings": {
+							"type": "ParquetWriteSettings"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "src_Parquet1_Leap_DV_Leap_Files",
+						"type": "DatasetReference",
+						"parameters": {
+							"file_directory": "lead_results/",
+							"file_name": "lead_results.parquet"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "tgt_Parquet1_ADLS_DV_Lead_Files",
+						"type": "DatasetReference",
+						"parameters": {
+							"directory": "lead_results",
+							"filename": "lead_results"
+						}
+					}
+				]
+			},
+			{
+				"name": "Leap_DV_Lead_Customer",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Leap_DV_Lead_Results",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ParquetSource",
+						"storeSettings": {
+							"type": "AmazonS3CompatibleReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "ParquetReadSettings"
+						}
+					},
+					"sink": {
+						"type": "ParquetSink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings",
+							"copyBehavior": "FlattenHierarchy"
+						},
+						"formatSettings": {
+							"type": "ParquetWriteSettings"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "src_Parquet1_Leap_DV_Leap_Files",
+						"type": "DatasetReference",
+						"parameters": {
+							"file_directory": "customer/",
+							"file_name": "customer.parquet"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "tgt_Parquet1_ADLS_DV_Lead_Files",
+						"type": "DatasetReference",
+						"parameters": {
+							"directory": "customer",
+							"filename": "customer"
+						}
+					}
+				]
+			},
+			{
+				"name": "Leap_DV_Lead_credit_applications",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Leap_DV_Lead_Customer",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ParquetSource",
+						"storeSettings": {
+							"type": "AmazonS3CompatibleReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "ParquetReadSettings"
+						}
+					},
+					"sink": {
+						"type": "ParquetSink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings",
+							"copyBehavior": "FlattenHierarchy"
+						},
+						"formatSettings": {
+							"type": "ParquetWriteSettings"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "src_Parquet1_Leap_DV_Leap_Files",
+						"type": "DatasetReference",
+						"parameters": {
+							"file_directory": "credit_applications/",
+							"file_name": "credit_applications.parquet"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "tgt_Parquet1_ADLS_DV_Lead_Files",
+						"type": "DatasetReference",
+						"parameters": {
+							"directory": "credit_applications",
+							"filename": "credit_applications"
+						}
+					}
+				]
+			},
+			{
+				"name": "Leap_DV_Lead_Estimate",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Leap_DV_Lead_credit_applications",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ParquetSource",
+						"storeSettings": {
+							"type": "AmazonS3CompatibleReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "ParquetReadSettings"
+						}
+					},
+					"sink": {
+						"type": "ParquetSink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings",
+							"copyBehavior": "FlattenHierarchy"
+						},
+						"formatSettings": {
+							"type": "ParquetWriteSettings"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "src_Parquet1_Leap_DV_Leap_Files",
+						"type": "DatasetReference",
+						"parameters": {
+							"file_directory": "estimate/",
+							"file_name": "estimate.parquet"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "tgt_Parquet1_ADLS_DV_Lead_Files",
+						"type": "DatasetReference",
+						"parameters": {
+							"directory": "estimate",
+							"filename": "estimate"
+						}
+					}
+				]
+			},
+			{
+				"name": "Leap_DV_Lead_measure_sheet",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Leap_DV_Lead_Estimate",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ParquetSource",
+						"storeSettings": {
+							"type": "AmazonS3CompatibleReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "ParquetReadSettings"
+						}
+					},
+					"sink": {
+						"type": "ParquetSink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings",
+							"copyBehavior": "FlattenHierarchy"
+						},
+						"formatSettings": {
+							"type": "ParquetWriteSettings"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "src_Parquet1_Leap_DV_Leap_Files",
+						"type": "DatasetReference",
+						"parameters": {
+							"file_directory": "measure_sheet/",
+							"file_name": "measure_sheet.parquet"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "tgt_Parquet1_ADLS_DV_Lead_Files",
+						"type": "DatasetReference",
+						"parameters": {
+							"directory": "measure_sheet",
+							"filename": "measure_sheet"
+						}
+					}
+				]
+			},
+			{
+				"name": "Leap_DV_Lead_payments",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Leap_DV_Lead_measure_sheet",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ParquetSource",
+						"storeSettings": {
+							"type": "AmazonS3CompatibleReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "ParquetReadSettings"
+						}
+					},
+					"sink": {
+						"type": "ParquetSink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings",
+							"copyBehavior": "FlattenHierarchy"
+						},
+						"formatSettings": {
+							"type": "ParquetWriteSettings"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "src_Parquet1_Leap_DV_Leap_Files",
+						"type": "DatasetReference",
+						"parameters": {
+							"file_directory": "payments/",
+							"file_name": "payments.parquet"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "tgt_Parquet1_ADLS_DV_Lead_Files",
+						"type": "DatasetReference",
+						"parameters": {
+							"directory": "payments",
+							"filename": "payments"
+						}
+					}
+				]
+			},
+			{
+				"name": "Leap_DV_Lead_user_activity",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Leap_DV_Lead_payments",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ParquetSource",
+						"storeSettings": {
+							"type": "AmazonS3CompatibleReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "ParquetReadSettings"
+						}
+					},
+					"sink": {
+						"type": "ParquetSink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings",
+							"copyBehavior": "FlattenHierarchy"
+						},
+						"formatSettings": {
+							"type": "ParquetWriteSettings"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "src_Parquet1_Leap_DV_Leap_Files",
+						"type": "DatasetReference",
+						"parameters": {
+							"file_directory": "user_activity/",
+							"file_name": "user_activity.parquet"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "tgt_Parquet1_ADLS_DV_Lead_Files",
+						"type": "DatasetReference",
+						"parameters": {
+							"directory": "user_activity",
+							"filename": "user_activity"
+						}
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "Temp/Abbas"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-02-23T19:46:30Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

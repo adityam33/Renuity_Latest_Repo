@@ -1,0 +1,125 @@
+{
+	"name": "cpy_ERP_ACCOUNT_MASTER",
+	"properties": {
+		"activities": [
+			{
+				"name": "ERP to ODS - Account Master",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ODataSource",
+						"httpRequestTimeout": "00:05:00"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.ERP_ACCOUNT_MASTER')  IS NOT NULL TRUNCATE TABLE ODS.ERP_ACCOUNT_MASTER;",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"tableOption": "autoCreate",
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Account",
+									"type": "String"
+								},
+								"sink": {
+									"name": "AccountCode"
+								}
+							},
+							{
+								"source": {
+									"name": "AccountID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "AccountID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "AccountClass",
+									"type": "String"
+								},
+								"sink": {
+									"name": "AccountClass",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Description",
+									"type": "String"
+								},
+								"sink": {
+									"name": "AccountDescription"
+								}
+							},
+							{
+								"source": {
+									"name": "Active",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "Active",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "Type",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Type",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CashAccount",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "IsCashAccount"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_ERP_ACCOUNT_MASTER",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_ERP_ACCOUNT_MASTER",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "SRC_to_ODS/ERP/Acumatica/MASTER DATA"
+		},
+		"annotations": [],
+		"lastPublishTime": "2022-06-01T01:35:26Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

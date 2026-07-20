@@ -1,0 +1,144 @@
+{
+	"name": "Pipeline 31",
+	"properties": {
+		"activities": [
+			{
+				"name": "Cpy ERP to ODS - CA Transaction",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ODataSource",
+						"httpRequestTimeout": "00:05:00"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Upsert",
+						"upsertSettings": {
+							"keys": [
+								"BatchNumber",
+								"DocumentNumber"
+							],
+							"interimSchemaName": ""
+						},
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"parallelCopies": 4,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "BatchNumber",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BatchNumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "BegBal",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "BegBal",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "BusinessAccount",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "BusinessAccount",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Module",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Module",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "TranAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "TranAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "DocDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "DocDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "DocumentNumber",
+									"type": "Int64"
+								},
+								"sink": {
+									"name": "DocumentNumber",
+									"type": "Int64"
+								}
+							},
+							{
+								"source": {
+									"name": "CashAccount",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CashAccount",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_ERP_CA_TRAN",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_ERP_CA_TRAN_TEMP",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "Temp/Sameen"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-10-16T20:23:33Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

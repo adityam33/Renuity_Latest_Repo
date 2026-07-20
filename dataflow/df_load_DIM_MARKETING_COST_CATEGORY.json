@@ -1,0 +1,268 @@
+{
+	"name": "df_load_DIM_MARKETING_COST_CATEGORY",
+	"properties": {
+		"folder": {
+			"name": "ODS_to_EDW/DIMENSIONS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_FHI_MarketingCostCategories",
+						"type": "DatasetReference"
+					},
+					"name": "FHI",
+					"description": "Import data from SRC_ODS_LP_FHI_mcd_MarketingCostDetail"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_PBC_MarketingCostCategories",
+						"type": "DatasetReference"
+					},
+					"name": "PBC",
+					"description": "Import data from SRC_ODS_LP_PBC_mcd_MarketingCostDetail"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_RTW_MarketingCostCategories",
+						"type": "DatasetReference"
+					},
+					"name": "RTW",
+					"description": "Import data from SRC_ODS_LP_RTW_mcd_MarketingCostDetail"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_MAC_MarketingCostCategories",
+						"type": "DatasetReference"
+					},
+					"name": "MAC",
+					"description": "Import data from SRC_ODS_LP_MAC_mcd_MarketingCostDetail"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_SWR_MarketingCostCategories",
+						"type": "DatasetReference"
+					},
+					"name": "SWR",
+					"description": "Import data from SRC_ODS_LP_SWR_mcd_MarketingCostDetail"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_HSI_MarketingCostCategories",
+						"type": "DatasetReference"
+					},
+					"name": "HSI",
+					"description": "Import data from SRC_ODS_LP_HSI_mcd_MarketingCostDetail"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_MXH_MarketingCostCategories",
+						"type": "DatasetReference"
+					},
+					"name": "MXH",
+					"description": "Import data from SRC_ODS_LP_MXH_mcd_MarketingCostDetail"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_CTA_MarketingCostCategories",
+						"type": "DatasetReference"
+					},
+					"name": "CTA",
+					"description": "Import data from SRC_ODS_LP_CTA_mcd_MarketingCostDetail"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_DIM_MARKETING_COST_CATEGORY",
+						"type": "DatasetReference"
+					},
+					"name": "targetFact",
+					"description": "Export data to FACT_MARKETING_COST_DETAIL",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "addOpCoNameFHI"
+				},
+				{
+					"name": "addOpCoNamePBC"
+				},
+				{
+					"name": "addOpCoNameRTW"
+				},
+				{
+					"name": "addOpCoNameMAC"
+				},
+				{
+					"name": "addOpCoNameSWR"
+				},
+				{
+					"name": "addOpCoNameHSI"
+				},
+				{
+					"name": "unionAllOpCos"
+				},
+				{
+					"name": "selectRenameColumns"
+				},
+				{
+					"name": "derivedColumns"
+				},
+				{
+					"name": "addOpCoNameMXH"
+				},
+				{
+					"name": "addOpCoNameCTA"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          id as integer,",
+				"          Descr as string,",
+				"          Active as boolean,",
+				"          SortOrder as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> FHI",
+				"source(output(",
+				"          id as integer,",
+				"          Descr as string,",
+				"          Active as boolean,",
+				"          SortOrder as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> PBC",
+				"source(output(",
+				"          id as integer,",
+				"          Descr as string,",
+				"          Active as boolean,",
+				"          SortOrder as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> RTW",
+				"source(output(",
+				"          id as integer,",
+				"          Descr as string,",
+				"          Active as boolean,",
+				"          SortOrder as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> MAC",
+				"source(output(",
+				"          id as integer,",
+				"          Descr as string,",
+				"          Active as boolean,",
+				"          SortOrder as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> SWR",
+				"source(output(",
+				"          id as integer,",
+				"          Descr as string,",
+				"          Active as boolean,",
+				"          SortOrder as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> HSI",
+				"source(output(",
+				"          id as integer,",
+				"          Descr as string,",
+				"          Active as boolean,",
+				"          SortOrder as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> MXH",
+				"source(output(",
+				"          id as integer,",
+				"          Descr as string,",
+				"          Active as boolean,",
+				"          SortOrder as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> CTA",
+				"FHI derive(Division = 'FHI') ~> addOpCoNameFHI",
+				"PBC derive(Division = 'PBC') ~> addOpCoNamePBC",
+				"RTW derive(Division = 'RTW') ~> addOpCoNameRTW",
+				"MAC derive(Division = 'MAC') ~> addOpCoNameMAC",
+				"SWR derive(Division = 'SWR') ~> addOpCoNameSWR",
+				"HSI derive(Division = 'HSI') ~> addOpCoNameHSI",
+				"addOpCoNameFHI, addOpCoNamePBC, addOpCoNameRTW, addOpCoNameMAC, addOpCoNameSWR, addOpCoNameHSI, addOpCoNameMXH, addOpCoNameCTA union(byName: true)~> unionAllOpCos",
+				"unionAllOpCos select(mapColumn(",
+				"          LP_MarketingCostCategoryId = id,",
+				"          Description = Descr,",
+				"          Active,",
+				"          SortOrder,",
+				"          Division",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectRenameColumns",
+				"selectRenameColumns derive(LastUpdateTS = currentTimestamp(),",
+				"          MarketingCostCategoryID = concat(Division,'-',toString(LP_MarketingCostCategoryId))) ~> derivedColumns",
+				"MXH derive(Division = 'MXH') ~> addOpCoNameMXH",
+				"CTA derive(Division = 'CTA') ~> addOpCoNameCTA",
+				"derivedColumns sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          MarketingCostCategoryId as string,",
+				"          Description as string,",
+				"          Active as integer,",
+				"          SortOrder as integer,",
+				"          LP_MarketingCostCategoryId as integer,",
+				"          Division as string,",
+				"          LastUpdateTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     truncate:true,",
+				"     format: 'table',",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          MarketingCostCategoryId = MarketingCostCategoryID,",
+				"          Description,",
+				"          Active,",
+				"          SortOrder,",
+				"          LP_MarketingCostCategoryId,",
+				"          Division,",
+				"          LastUpdateTS",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> targetFact"
+			]
+		}
+	}
+}

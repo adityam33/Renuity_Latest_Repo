@@ -1,0 +1,174 @@
+{
+	"name": "cpy_GuildQuality_Response_Rate",
+	"properties": {
+		"activities": [
+			{
+				"name": "cpy_Medallia_Response_Rate",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.1:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "WITH Response_Data AS (\r\n    SELECT \r\n        CAST(B.CreationDate AS DATE) AS ResponseDate, \r\n        B.Division, \r\n        COUNT(B.Survey_ID) AS Total_Response_Count\r\n    FROM EDW.FACT_Medallia_Customer_survey B\r\n    WHERE B.ActiveInd = 1\r\n    GROUP BY CAST(B.CreationDate AS DATE), B.Division\r\n),\r\n\r\nInvite_Data AS (\r\n    SELECT \r\n        CAST(A.CreationDate AS DATE) AS ResponseDate, \r\n        A.Division, \r\n        COUNT(A.Survey_ID) AS Total_Survey_Sent_Count \r\n    FROM (\r\n        SELECT \r\n            CAST(Creation_Date AS DATE) AS CreationDate, \r\n            Division, \r\n            Survey_ID \r\n        FROM EDW.FACT_Medallia_Customer_survey_invitations \r\n        WHERE Active_Ind = 1 \r\n        AND Survey_ID NOT IN (\r\n            SELECT Survey_ID FROM EDW.FACT_Medallia_Customer_survey WHERE ActiveInd = 1\r\n        )\r\n\r\n        UNION ALL\r\n\r\n        SELECT \r\n            CAST(CreationDate AS DATE) AS ResponseDate, \r\n            Division, \r\n            Survey_ID \r\n        FROM EDW.FACT_Medallia_Customer_survey \r\n        WHERE ActiveInd = 1\r\n    ) A\r\n    GROUP BY A.CreationDate, A.Division\r\n)\r\n\r\nSELECT \r\n    COALESCE(A.ResponseDate, B.ResponseDate) AS Survey_Month, \r\n    COALESCE(A.Division, B.Division) AS Division, \r\n    COALESCE(A.Total_Response_Count, 0) AS Total_Response_Count, \r\n    COALESCE(B.Total_Survey_Sent_Count, 0) AS Total_Survey_Sent_Count, \r\n    0 AS Survey_Sent_Count_Medallia, \r\n    0 AS Survey_Sent_Count_Guild, \r\n    0 AS Response_Count_Medallia, \r\n    0 AS Response_Count_Guild, \r\n    CAST(\r\n        (COALESCE(A.Total_Response_Count, 0) * 100.0) / NULLIF(COALESCE(B.Total_Survey_Sent_Count, 0), 0) \r\n        AS DECIMAL(8,2)\r\n    ) AS Response_Rate \r\nFROM Invite_Data B\r\nFULL OUTER JOIN Response_Data A \r\n    ON B.ResponseDate = A.ResponseDate \r\n    AND B.Division = A.Division\r\nORDER BY Survey_Month, Division;\r\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "Truncate table OUT.MEDALLIA_INSTALL_INVITE_RESPONSE_SUMMARY",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Survey_Month",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "MonthDate",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								}
+							},
+							{
+								"source": {
+									"name": "Survey_Sent_Count_Medallia",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Survey_Sent_Count_Medallia",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Survey_Sent_Count_Guild",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Survey_Sent_Count_Guild",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Total_Survey_Sent_Count",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Total_Survey_Sent_Count",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Response_Count_Medallia",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Response_Count_Medallia",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Response_Count_Guild",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Response_Count_Guild",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Total_Response_Count",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Total_Response_Count",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Response_Rate",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 8
+								},
+								"sink": {
+									"name": "Response_Rate",
+									"type": "Double",
+									"physicalType": "float"
+								}
+							},
+							{
+								"source": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_FACT_MEDALLIA_CUSTOMER_SURVEY",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "OUT_MEDALLIA_INSTALL_INVITE_RESPONSE_SUMMARY",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/FACTS/GuildQuality"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-04-04T13:46:55Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

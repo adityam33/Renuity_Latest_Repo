@@ -1,0 +1,17 @@
+{
+	"name": "Bloomreach - Extract and Clean All Emails",
+	"properties": {
+		"content": {
+			"query": "SELECT\ndivision\n,prospect_id\n,Email as email_id\n,lower(\n    case \n    when CHARINDEX(',',cleansedEmail) = 0 then cleansedEmail\n    else LEFT(cleansedEmail,CHARINDEX(',',cleansedEmail)-1)\n    end\n) as Email\nFROM \n(\nselect\nlower([Division]) as division\n,lower([CustomerID]) as prospect_id\n,Email\n,replace(\nreplace(\nreplace(\n    [Email],\n    '@,','@'),\n    ',com','.com'),\n    '.prod','')\ncleansedEmail\nfrom\n[EDW].[DIM_CUSTOMER]\nwhere\nDivision = 'FHI'\nand Email is not null\nand len([Email]) > 4\nand Email like '%@%'\n) cleansedEmails\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

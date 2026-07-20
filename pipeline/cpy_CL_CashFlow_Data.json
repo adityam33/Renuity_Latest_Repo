@@ -1,0 +1,525 @@
+{
+	"name": "cpy_CL_CashFlow_Data",
+	"properties": {
+		"activities": [
+			{
+				"name": "cp_cashflow_data",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "-- ? Extended Cashflow Forecast with Job, Milestone, Aging, and Rolling Balances\r\n\r\n-- 1. Branch-Division Mapping\r\nWITH Division_Mapping AS (\r\n     SELECT '00' AS BranchPrefix, 2 AS PrefixLength, 'Renuity LLC' AS Division UNION ALL\r\n\tSELECT 'Re', 2, 'Renuity LLC' UNION ALL\r\n\tSELECT '01', 2, 'Home Org' UNION ALL\r\n    SELECT '03', 2, 'Home Org' UNION ALL\r\n    SELECT '1',  1, 'Rite Window' UNION ALL\r\n    SELECT '2',  1, 'FHIA' UNION ALL\r\n    SELECT '3',  1, 'Statewide' UNION ALL\r\n    SELECT '4',  1, 'Mad City' UNION ALL\r\n    SELECT '5',  1, 'Home Org' UNION ALL\r\n    SELECT '6',  1, 'Rite Window' UNION ALL\r\n    SELECT '7',  1, 'Max Home' UNION ALL\r\n    SELECT '8',  1, 'Pacific Bath' UNION ALL\r\n    SELECT '9',  1, 'Bylte'\r\n),\r\n\r\n-- 2. AR Summary\r\nAR_Summary AS (\r\n    SELECT\r\n        CAST(p.PaymentDate AS DATE) AS SnapshotDate,\r\n        --inv.Branch AS Branch,\r\n        dm.Division,\r\n        SUM(adj.AdjAmount) AS TotalCustomerReceipts\r\n    FROM ODS.ERP_AR_INVOICE inv\r\n    JOIN ODS.ERP_AR_ADJUST adj ON inv.ReferenceNbr = adj.Invoice_Tran_ReferenceNbr AND inv.Type = adj.Invoice_Tran_type\r\n    JOIN ODS.ERP_AR_PAYMENT p ON adj.Payment_SOAdjust_ReferenceNbr = p.ReferenceNbr AND adj.Payment_SOAdjust_type = p.Type\r\n    LEFT JOIN Division_Mapping dm \r\n        ON (dm.PrefixLength = 2 AND LEFT(inv.Branch, 2) = dm.BranchPrefix)\r\n        OR (dm.PrefixLength = 1 AND LEFT(inv.Branch, 1) = dm.BranchPrefix)\r\n    WHERE CAST(p.PaymentDate as DATE) >= DATEADD(MONTH, -24, CAST(GETDATE() as DATE)) and CAST(p.PaymentDate as DATE) <= CAST(GETDATE() as DATE)\r\n      --AND dm.Division = 'FHI'\r\n    GROUP BY CAST(p.PaymentDate AS DATE), --inv.Branch, \r\n\tdm.Division\r\n),\r\n\r\n-- 3. AP Summary\r\nAP_Summary AS (\r\n    SELECT\r\n        CAST(p.PaymentDate AS DATE) AS SnapshotDate,\r\n        --p.Branch AS Branch,\r\n        dm.Division,\r\n        SUM(bpl.CurrentAdjustAmt) AS TotalVendorPayments\r\n    FROM ODS.ERP_AP_INVOICE i\r\n    JOIN ODS.ERP_BILLS_PAYMENTS_LINK bpl ON i.ReferenceNbr = bpl.InvoiceRefNbr\r\n    JOIN ODS.ERP_AP_PAYMENT p ON bpl.PaymentRefNbr = p.ReferenceNbr\r\n    LEFT JOIN Division_Mapping dm \r\n        ON (dm.PrefixLength = 2 AND LEFT(p.Branch, 2) = dm.BranchPrefix)\r\n        OR (dm.PrefixLength = 1 AND LEFT(p.Branch, 1) = dm.BranchPrefix)\r\n    WHERE CAST(p.PaymentDate as DATE) >= DATEADD(MONTH, -24, CAST(GETDATE() as DATE)) and CAST(p.PaymentDate as DATE) <= CAST(GETDATE() as DATE)\r\n      --AND dm.Division = 'FHI'\r\n    GROUP BY CAST(p.PaymentDate AS DATE), --p.Branch, \r\n\tdm.Division\r\n),\r\n\r\n-- 4. GL Summary\r\nGL_Summary AS (\r\n    SELECT\r\n        CAST(g.TransactionDate AS DATE) AS SnapshotDate,\r\n        --g.BranchCode AS Branch,\r\n        dm.Division,\r\n        SUM(g.DebitAmount) AS TotalDebit,\r\n        SUM(g.CreditAmount) AS TotalCredit\r\n    FROM EDW.FACT_ERP_GL_TRANSACTION g\r\n    LEFT JOIN EDW.DIM_ERP_ACCOUNT a ON g.AccountCode = a.AccountCode\r\n    LEFT JOIN Division_Mapping dm \r\n        ON (dm.PrefixLength = 2 AND LEFT(g.BranchCode, 2) = dm.BranchPrefix)\r\n        OR (dm.PrefixLength = 1 AND LEFT(g.BranchCode, 1) = dm.BranchPrefix)\r\n    WHERE CAST(g.TransactionDate as DATE) >= DATEADD(MONTH, -24, CAST(GETDATE() as DATE)) and CAST(g.TransactionDate as DATE) <= CAST(GETDATE() as DATE)\r\n      --AND dm.Division = 'FHI'\r\n    GROUP BY CAST(g.TransactionDate AS DATE), --g.BranchCode, \r\n\tdm.Division\r\n),\r\n\r\n-- 5. Payroll Summary\r\nPayroll_Summary AS (\r\n    SELECT\r\n        PayDate AS SnapshotDate,\r\n        CASE WHEN Division='CTA' THEN 'Home Org'\r\n\t\tWHEN Division='MXH' THEN 'Max Home'\r\n\t\tWHEN Division='MAC' THEN 'Mad City'\r\n\t\tWHEN Division='PBC' THEN 'Pacific Bath'\r\n\t\tWHEN Division IN ('RTW','HSI') THEN 'Rite Window'\r\n\t\tWHEN Division='SWR' THEN 'Statewide'\r\n\t\tWHEN Division='REN' THEN 'Renuity LLC'\r\n\t\tWHEN Division='FHI' THEN 'FHIA' END as Division,\r\n        SUM(GrossPay) AS TotalGrossPay,\r\n        SUM(TotalEarnings) AS TotalEarnings\r\n    FROM EDW.FACT_HR_EMPLOYEE_WAGES\r\n    WHERE CAST(PayDate as DATE) >= DATEADD(MONTH, -24, CAST(GETDATE() as DATE)) and CAST(PayDate as DATE) <= CAST(GETDATE() as DATE)\r\n      --AND Division = 'FHI'\r\n    GROUP BY PayDate, CASE WHEN Division='CTA' THEN 'Home Org'\r\n\t\tWHEN Division='MXH' THEN 'Max Home'\r\n\t\tWHEN Division='MAC' THEN 'Mad City'\r\n\t\tWHEN Division='PBC' THEN 'Pacific Bath'\r\n\t\tWHEN Division IN ('RTW','HSI') THEN 'Rite Window'\r\n\t\tWHEN Division='SWR' THEN 'Statewide'\r\n\t\tWHEN Division='REN' THEN 'Renuity LLC'\r\n\t\tWHEN Division='FHI' THEN 'FHIA' END \r\n),\r\n\r\n-- 6. AR Aging Summary\r\nAR_Aging_Summary AS (\r\n    SELECT\r\n        AgedOnDate AS SnapshotDate,\r\n        --LEFT(ar.BranchName,4) AS Branch,\r\n        dm.Division,\r\n        SUM(Balance) AS AR_TotalBalance\r\n    FROM EDW.FACT_AR_AGED_PERIOD_DETAIL ar\r\n    LEFT JOIN Division_Mapping dm \r\n        ON (dm.PrefixLength = 2 AND LEFT(ar.BranchName, 2) = dm.BranchPrefix)\r\n        OR (dm.PrefixLength = 1 AND LEFT(ar.BranchName, 1) = dm.BranchPrefix)\r\n    --WHERE dm.Division = 'FHI'\r\n    GROUP BY AgedOnDate, --LEFT(ar.BranchName,4), \r\n\tdm.Division\r\n),\r\n\r\n-- 7. AP Aging Summary\r\nAP_Aging_Summary AS (\r\n    SELECT\r\n        AgedOnDate AS SnapshotDate,\r\n        --a.BranchCode AS Branch,\r\n        dm.Division,\r\n        SUM(Balance) AS AP_TotalBalance\r\n    FROM EDW.FACT_AP_AGED_PERIOD a\r\n    LEFT JOIN Division_Mapping dm \r\n        ON (dm.PrefixLength = 2 AND LEFT(a.BranchCode, 2) = dm.BranchPrefix)\r\n        OR (dm.PrefixLength = 1 AND LEFT(a.BranchCode, 1) = dm.BranchPrefix)\r\n    --WHERE dm.Division = 'FHI'\r\n    GROUP BY AgedOnDate, --a.BranchCode, \r\n\tdm.Division\r\n),\r\n\r\n-- 8. Job Info and Milestones\r\nJob_Milestone_Summary AS (\r\n    SELECT\r\n        CAST(J.ContractDate AS DATE) AS SnapshotDate,\r\n        --B.ACU_ID AS Branch,\r\n        CASE WHEN J.Division='CTA' THEN 'Home Org'\r\n\t\tWHEN J.Division='MXH' THEN 'Max Home'\r\n\t\tWHEN J.Division='MAC' THEN 'Mad City'\r\n\t\tWHEN J.Division='PBC' THEN 'Pacific Bath'\r\n\t\tWHEN J.Division='RTW' THEN 'Rite Window'\r\n\t\tWHEN J.Division='SWR' THEN 'Statewide'\r\n\t\tWHEN J.Division='FHI' THEN 'FHIA' END as Division,\r\n        COUNT(DISTINCT J.JobID) AS TotalJobs,\r\n        SUM(ISNULL(J.GrossAmount, 0)) AS TotalGrossAmount\r\n        --MIN(m.ActualDate) AS FirstStartDate,\r\n        --MAX(m2.ActualDate) AS LastCompletionDate\r\n    FROM EDW.FACT_JOB J\r\n    LEFT JOIN EDW_DUN.DIM_BRANCH_EXTN B ON B.BranchID = J.ProductionBranchID\r\n    LEFT JOIN Division_Mapping dm ON (dm.PrefixLength = 2 AND LEFT(B.ACU_ID, 2) = dm.BranchPrefix)\r\n        OR (dm.PrefixLength = 1 AND LEFT(B.BranchID, 1) = dm.BranchPrefix)\r\n    --LEFT JOIN EDW.FACT_MILESTONE_DETAIL m ON m.JobID = J.JobID AND m.MilestoneDateTypeID LIKE '%-S'\r\n    --LEFT JOIN EDW.FACT_MILESTONE_DETAIL m2 ON m2.JobID = J.JobID AND m2.MilestoneDateTypeID LIKE '%-C'\r\n    WHERE CAST(J.ContractDate as DATE) >= DATEADD(MONTH, -24, CAST(GETDATE() as DATE)) and CAST(J.ContractDate as DATE) <= CAST(GETDATE() as DATE)\r\n      --AND dm.Division = 'FHI'\r\n    GROUP BY CAST(J.ContractDate AS DATE), --B.ACU_ID, \r\n\tCASE WHEN J.Division='CTA' THEN 'Home Org'\r\n\t\tWHEN J.Division='MXH' THEN 'Max Home'\r\n\t\tWHEN J.Division='MAC' THEN 'Mad City'\r\n\t\tWHEN J.Division='PBC' THEN 'Pacific Bath'\r\n\t\tWHEN J.Division='RTW' THEN 'Rite Window'\r\n\t\tWHEN J.Division='SWR' THEN 'Statewide'\r\n\t\tWHEN J.Division='FHI' THEN 'FHIA' END\r\n),\r\n\r\n-- 9. Final Output\r\nFinal_Data AS (\r\nSELECT\r\n    COALESCE(ar.SnapshotDate, ap.SnapshotDate, gl.SnapshotDate, pr.SnapshotDate, ara.SnapshotDate, apa.SnapshotDate, jm.SnapshotDate) AS SnapshotDate,\r\n    --COALESCE(ar.Branch, ap.Branch, gl.Branch, ara.Branch, apa.Branch, jm.Branch) AS Branch,\r\n    COALESCE(ar.Division, ap.Division, gl.Division, pr.Division, ara.Division, apa.Division, jm.Division) AS Division,\r\n\r\n    -- Cashflow Metrics\r\n    ISNULL(ar.TotalCustomerReceipts, 0) AS TotalCustomerReceipts,\r\n    ISNULL(ap.TotalVendorPayments, 0) AS TotalVendorPayments,\r\n    ISNULL(gl.TotalDebit, 0) AS TotalDebitGL,\r\n    ISNULL(gl.TotalCredit, 0) AS TotalCreditGL,\r\n    ISNULL(pr.TotalGrossPay, 0) AS GrossPayroll,\r\n    ISNULL(pr.TotalEarnings, 0) AS TotalPayrollEarnings,\r\n\r\n    -- Aging Balances\r\n    ISNULL(ara.AR_TotalBalance, 0) AS AR_Balance,\r\n    ISNULL(apa.AP_TotalBalance, 0) AS AP_Balance,\r\n\r\n    -- Projection\r\n    ISNULL(ar.TotalCustomerReceipts, 0)\r\n    - ISNULL(ap.TotalVendorPayments, 0)\r\n    - ISNULL(pr.TotalGrossPay, 0) AS ProjectedNetCashflow,\r\n\r\n    -- Job & Milestone\r\n    ISNULL(jm.TotalJobs, 0) AS TotalJobs,\r\n    ISNULL(jm.TotalGrossAmount, 0) AS TotalJobGrossAmount\r\n    --jm.FirstStartDate,\r\n    --jm.LastCompletionDate\r\nFROM AR_Summary ar\r\nFULL OUTER JOIN AP_Summary ap ON ar.SnapshotDate = ap.SnapshotDate AND ar.Division = ap.Division --AND ar.Branch = ap.Branch\r\nFULL OUTER JOIN GL_Summary gl ON COALESCE(ar.SnapshotDate, ap.SnapshotDate) = gl.SnapshotDate AND COALESCE(ar.Division, ap.Division) = gl.Division --AND COALESCE(ar.Branch, ap.Branch) = gl.Branch\r\nFULL OUTER JOIN Payroll_Summary pr ON COALESCE(ar.SnapshotDate, ap.SnapshotDate, gl.SnapshotDate) = pr.SnapshotDate AND COALESCE(ar.Division, ap.Division, gl.Division) = pr.Division\r\nFULL OUTER JOIN AR_Aging_Summary ara ON COALESCE(ar.SnapshotDate, ap.SnapshotDate, gl.SnapshotDate, pr.SnapshotDate) = ara.SnapshotDate AND COALESCE(ar.Division, ap.Division, gl.Division,pr.Division)=ara.Division--AND COALESCE(ar.Branch, ap.Branch, gl.Branch) = ara.Branch\r\nFULL OUTER JOIN AP_Aging_Summary apa ON COALESCE(ar.SnapshotDate, ap.SnapshotDate, gl.SnapshotDate, pr.SnapshotDate,ara.SnapshotDate) = apa.SnapshotDate AND COALESCE(ar.Division, ap.Division, gl.Division,pr.Division,ara.Division)=apa.Division--AND COALESCE(ar.Branch, ap.Branch, gl.Branch) = apa.Branch\r\nFULL OUTER JOIN Job_Milestone_Summary jm ON COALESCE(ar.SnapshotDate, ap.SnapshotDate, gl.SnapshotDate, pr.SnapshotDate,ara.SnapshotDate,apa.SnapshotDate) = jm.SnapshotDate AND COALESCE(ar.Division, ap.Division, gl.Division,pr.Division,ara.Division,apa.Division)=jm.Division--AND COALESCE(ar.Branch, ap.Branch, gl.Branch) = jm.Branch\r\n)\r\n\r\n-- 10. Add Rolling Cashflow\r\nSELECT *,\r\n    SUM(ProjectedNetCashflow) OVER (PARTITION BY Division ORDER BY SnapshotDate ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS CumulativeCashFlow\r\nFROM Final_Data\r\nORDER BY SnapshotDate, Division;\r\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "Truncate table OUT.CF_Cashflow_6M_View",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "SnapshotDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "SnapshotDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "TotalCustomerReceipts",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 38
+								},
+								"sink": {
+									"name": "TotalCustomerReceipts",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 18
+								}
+							},
+							{
+								"source": {
+									"name": "TotalVendorPayments",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 38
+								},
+								"sink": {
+									"name": "TotalVendorPayments",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 18
+								}
+							},
+							{
+								"source": {
+									"name": "TotalDebitGL",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								},
+								"sink": {
+									"name": "TotalDebitGL",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 18
+								}
+							},
+							{
+								"source": {
+									"name": "TotalCreditGL",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								},
+								"sink": {
+									"name": "TotalCreditGL",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 18
+								}
+							},
+							{
+								"source": {
+									"name": "GrossPayroll",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 38
+								},
+								"sink": {
+									"name": "GrossPayroll",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 18
+								}
+							},
+							{
+								"source": {
+									"name": "TotalPayrollEarnings",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 38
+								},
+								"sink": {
+									"name": "TotalPayrollEarnings",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 18
+								}
+							},
+							{
+								"source": {
+									"name": "AR_Balance",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								},
+								"sink": {
+									"name": "AR_Balance",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 18
+								}
+							},
+							{
+								"source": {
+									"name": "AP_Balance",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								},
+								"sink": {
+									"name": "AP_Balance",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 18
+								}
+							},
+							{
+								"source": {
+									"name": "ProjectedNetCashflow",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 38
+								},
+								"sink": {
+									"name": "ProjectedNetCashflow",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 18
+								}
+							},
+							{
+								"source": {
+									"name": "TotalJobs",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "TotalJobs",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "TotalJobGrossAmount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 4,
+									"precision": 38
+								},
+								"sink": {
+									"name": "TotalJobGrossAmount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 18
+								}
+							},
+							{
+								"source": {
+									"name": "CumulativeCashFlow",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 38
+								},
+								"sink": {
+									"name": "CumulativeCashFlow",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 18
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ODS_ERP_AP_INVOICE",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "OUT_CL_CASHFLOW_DATA",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "cp_migrate_cashflowdata_to_blob",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "cp_cashflow_data",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "SnapshotDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "SnapshotDate",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "TotalCustomerReceipts",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 18
+								},
+								"sink": {
+									"name": "TotalCustomerReceipts",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "TotalVendorPayments",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 18
+								},
+								"sink": {
+									"name": "TotalVendorPayments",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "TotalDebitGL",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 18
+								},
+								"sink": {
+									"name": "TotalDebitGL",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "TotalCreditGL",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 18
+								},
+								"sink": {
+									"name": "TotalCreditGL",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "GrossPayroll",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 18
+								},
+								"sink": {
+									"name": "GrossPayroll",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "TotalPayrollEarnings",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 18
+								},
+								"sink": {
+									"name": "TotalPayrollEarnings",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "AR_Balance",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 18
+								},
+								"sink": {
+									"name": "AR_Balance",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "AP_Balance",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 18
+								},
+								"sink": {
+									"name": "AP_Balance",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ProjectedNetCashflow",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 18
+								},
+								"sink": {
+									"name": "ProjectedNetCashflow",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "TotalJobs",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "TotalJobs",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "TotalJobGrossAmount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 18
+								},
+								"sink": {
+									"name": "TotalJobGrossAmount",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CumulativeCashFlow",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 18
+								},
+								"sink": {
+									"name": "CumulativeCashFlow",
+									"type": "String",
+									"physicalType": "String"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "OUT_CL_CASHFLOW_DATA",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "cash_flow_Summary_data",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "Temp/Akshay"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-07-14T15:09:21Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

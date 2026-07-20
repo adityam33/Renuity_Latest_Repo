@@ -1,0 +1,285 @@
+{
+	"name": "batch_post_Phoneno_to_API_8Divs",
+	"properties": {
+		"activities": [
+			{
+				"name": "Pass PhoneNo as Variables",
+				"description": "This task passes the pipe separated PhoneNo to variable in subsequent task",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "Get PhoneNo",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.1:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_AP_Phoneno_Zipcodes_toPass",
+						"type": "DataFlowReference",
+						"parameters": {
+							"SchemaName": "'ODS'",
+							"TableName": "'ACTIVEPROSPECT_PHONENO'"
+						}
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "None"
+				}
+			},
+			{
+				"name": "ForEach1",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Create a List in API",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@range(1,activity('Pass PhoneNo as Variables').output.runStatus.output.sink1.count)",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "Post Phoneno to API",
+							"type": "WebActivity",
+							"dependsOn": [
+								{
+									"activity": "Set variable Phoneno",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.1:00:00",
+								"retry": 1,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"method": "POST",
+								"headers": {
+									"Content-Type": "application/json"
+								},
+								"url": {
+									"value": "@concat('https://app.suppressionlist.com/lists/',pipeline().parameters.ListURLName,'/items')",
+									"type": "Expression"
+								},
+								"connectVia": {
+									"referenceName": "RDC-SelfHostedIntegrationRunTime",
+									"type": "IntegrationRuntimeReference"
+								},
+								"body": {
+									"value": "@variables('P_Phoneno')",
+									"type": "Expression"
+								},
+								"authentication": {
+									"type": "Basic",
+									"username": "API",
+									"password": {
+										"type": "AzureKeyVaultSecret",
+										"store": {
+											"referenceName": "AzureKeyVaultDataCore",
+											"type": "LinkedServiceReference"
+										},
+										"secretName": "api"
+									}
+								}
+							}
+						},
+						{
+							"name": "Set variable Phoneno",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "P_Phoneno",
+								"value": {
+									"value": "@activity('Pass PhoneNo as Variables').output.runStatus.output.sink1.value[sub(item(),1)].PHONENO",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Get PhoneNo",
+				"type": "Script",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.01:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "DECLARE @PageSize INT = 5000;  \r\nDECLARE @PageNumber INT = 1;\r\nDECLARE @TotalRecordCount INT = (SELECT count(distinct Phone) FROM EDW.DIM_CUSTOMER where Division<>'CTA' and Phone <>''\r\n and Phone is NOT NULL and (Cast(LP_Dateadded as date)>=Dateadd(d,-30,getdate()) or Cast(LP_LastChanged as Date)>=Dateadd(d,-30,getdate()) )\r\n and Phone  not like '%[a-zA-Z]%' \r\n );\r\n\t\t\t\t\t\t\r\nIF OBJECT_ID('ODS.ACTIVEPROSPECT_PHONENO') IS NOT NULL\r\nDROP TABLE ODS.ACTIVEPROSPECT_PHONENO;\r\n\r\nCREATE TABLE ODS.ACTIVEPROSPECT_PHONENO (PHONENO VARCHAR(Max))\r\nWITH\r\n(\r\n\tDISTRIBUTION = ROUND_ROBIN,\r\n\tHEAP\r\n)\r\n;\r\n\r\nWHILE EXISTS (SELECT 1 FROM EDW.DIM_BRANCH_ZIP WHERE @PageNumber * @PageSize <> @TotalRecordCount and @PageNumber  <=round(@TotalRecordCount/@PageSize,0)+1)\r\nBEGIN\r\n  WITH T_PHONENO AS (\r\n        SELECT \r\n             Ltrim(Phone,'\t') As Phone,\r\n\t\t\tROW_NUMBER() OVER (ORDER BY  Phone) AS RowNum\r\n        FROM (SELECT distinct Phone FROM EDW.DIM_CUSTOMER where Division<>'CTA' AND Division<>'MXH' and Phone <>'' and Phone is NOT NULL \r\n        and (Cast(LP_Dateadded as date)>=Dateadd(d,-30,getdate()) or Cast(LP_LastChanged as Date)>=Dateadd(d,-30,getdate())  )\r\n        and Phone  not like '%[a-zA-Z]%' \r\n        ) A\r\n    )\r\n    INSERT INTO ODS.ACTIVEPROSPECT_PHONENO (PHONENO)\r\n    SELECT Cast(concat('{\"values\":\"',string_AGG(Cast(PHONE as nvarchar(max)),'|'),'\"}') as varchar(max))  AS PHONENO \r\n    FROM T_PHONENO\r\n    WHERE RowNum BETWEEN (@PageNumber - 1) * @PageSize + 1 AND @PageNumber * @PageSize; \r\n    SET @PageNumber += 1;\r\n\r\nEND\r\n\r\n;"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Drop ACTIVEPROSPECT_PhoneNO",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "ForEach1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.01:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "IF OBJECT_ID('ODS.ACTIVEPROSPECT_PHONENO') IS NOT NULL\r\nDROP TABLE ODS.ACTIVEPROSPECT_PHONENO"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Delete list in API",
+				"description": "To delete the existing suppression list in Active prospect API",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Pass PhoneNo as Variables",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "batch_delete_API_list",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"APIUserName": "API",
+						"ListURLName": {
+							"value": "@pipeline().parameters.ListURLName",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "Create a List in API",
+				"description": "Create Phoneno suppression list in API",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Delete list in API",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "batch_ToCreate_API_List",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"APIUserName": "API",
+						"Listname": {
+							"value": "@pipeline().parameters.ListName",
+							"type": "Expression"
+						},
+						"ListURLName": {
+							"value": "@pipeline().parameters.ListURLName",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"ListURLName": {
+				"type": "string",
+				"defaultValue": "renuity__last_30_days__phone"
+			},
+			"ListName": {
+				"type": "string",
+				"defaultValue": "renuity__last_30_days__phone"
+			}
+		},
+		"variables": {
+			"P_Phoneno": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "RDC_to_ActiveProspect"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-01-11T17:31:19Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

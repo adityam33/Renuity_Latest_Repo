@@ -1,0 +1,398 @@
+{
+	"name": "batch_load_Facts_Dims_SummFacts_BiHourly",
+	"properties": {
+		"activities": [
+			{
+				"name": "batch_load_Facts_ODStoEDW",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "starttime",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "batch_load_Facts_ODStoEDW",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "batch_load_Dimensions_ODStoEDW",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "starttime",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "batch_load_Dimensions_ODStoEDW",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "starttime",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "starttime",
+					"value": {
+						"value": "@utcnow()",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "endtime",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Update Credit Ratings DIM_CUSTOMER",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "endtime",
+					"value": {
+						"value": "@utcnow()",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "timedifference",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "endtime",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "Timedifference",
+					"value": {
+						"value": "@string(div(sub(ticks(formatDateTime(variables('endtime'))),ticks(formatDateTime(variables('starttime')))),600000000))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "RunPBI_Refresh",
+				"description": "Run PBI Refresh Only if the pipeline completed in 65 min, Since PBI refresh takes another 45 min.",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Execute Pipeline Healthcore Stats",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@less(int(variables('Timedifference')),80)",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "PBI_Refresh_DSO_Dataset",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "PBI_Refresh_DSO_Dataset",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Update Credit Ratings DIM_CUSTOMER",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "batch_load_Summary_FactsOnly",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "batch_load_Summary_Facts_Dim",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "UPDATE A\nSET A.CreditRating = B.CreditScore\nFROM  edw.Dim_Customer A\nJOIN \n\t(SELECT \n\t\tCustomerID,\n\t\tCreditScore\n\t\tFROM\n\t\t(\n\t\t\tSELECT RR.CustomerID,RR.CreditScore,LD.EntryDate,\n\t\t\tROW_NUMBER() OVER (PARTITION BY RR.CustomerID ORDER BY LD.EntryDate DESC) AS RW\n\t\t\tFROM [EDW].[DIM_RENUITYRATINGS] RR \n\t\t\t LEFT JOIN EDW.FACT_LEAD LD ON RR.LeadID = LD.LeadID\n\t\t\t) M1\n\t\tWHERE RW=1\n\t\t) B\n\tON A.CustomerID = B.CustomerID\n\n\n\tUPDATE X\nSET X.ExperianCreditRating = B.Experian_CreditRating\nFROM  edw.Dim_Customer X\nJOIN \n\t(SELECT \n\t\tCustomerID,\n\t\tExperian_CreditRating\n\t\tFROM\n\t\t(\n\t\t\tSELECT RR.CustomerID,RR.Experian_CreditRating,LD.EntryDate,\n\t\t\tROW_NUMBER() OVER (PARTITION BY RR.CustomerID ORDER BY LD.EntryDate DESC) AS RW\n\t\t\tFROM [EDW].[DIM_RENUITYRATINGS] RR \n\t\t\t LEFT JOIN EDW.FACT_LEAD LD ON RR.LeadID = LD.LeadID\n\t\t\t Where CAST(CreatedDate as Date)>='2024-09-16'\n\t\t\t) M1\n\t\tWHERE RW=1\n\t\t) B\n\tON X.CustomerID = B.CustomerID"
+						}
+					]
+				}
+			},
+			{
+				"name": "batch_load_Dimensions_ODStoEDW_Unification",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "starttime",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "batch_load_Dimensions_ODStoEDW_Unification",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Execute Pipeline Healthcore Stats",
+				"type": "ExecutePipeline",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "timedifference",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "batch_load_healthcore_daily_stats",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "batch_load_Summary_FactsOnly",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "batch_load_Facts_ODStoEDW",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "batch_load_Summary_FactsOnly",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "batch_load_Summary_Facts_Dim",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "batch_load_Dimensions_ODStoEDW",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "batch_load_Dimensions_UNI_Upd_Scripts",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "batch_load_Facts_ODStoEDW",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "batch_load_Summary_FactsDim",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "batch_load_Dimensions_UNI_Upd_Scripts",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "batch_load_Dimensions_ODStoEDW_Unification",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "batch_load_Dimensions_UNI_Upd_Scripts",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "batch_load_UNI_TABLE_METRIC_COUNT",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "batch_load_Dimensions_UNI_Upd_Scripts",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "batch_load_Dimensions_ODStoEDW",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "batch_load_Facts_ODStoEDW",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "UNI_TABLE_METRIC_COUNT",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Execute Pipeline KPI Sharepoint",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "timedifference",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "batch_load_JSON_KPIs",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"variables": {
+			"starttime": {
+				"type": "String"
+			},
+			"endtime": {
+				"type": "String"
+			},
+			"Timedifference": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "ODS_to_EDW/FACTS/LP"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-01-12T21:57:37Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

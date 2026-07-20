@@ -1,0 +1,1190 @@
+{
+	"name": "cpy_ERP_CA_BANKING_test",
+	"properties": {
+		"activities": [
+			{
+				"name": "Cpy ERP to ODS - CA Cash Adjustment",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ODataSource",
+						"httpRequestTimeout": "00:05:00"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.ERP_CA_CASH_ADJUSTMENT')  IS NOT NULL TRUNCATE TABLE ODS.ERP_CA_CASH_ADJUSTMENT;",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "TranType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "TranType",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ReferenceNbr",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ReferenceNbr",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Branch",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Branch",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchName",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BranchName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CashAccount",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CashAccount",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Status",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Status",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "TranDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "TranDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "FinPeriod",
+									"type": "String"
+								},
+								"sink": {
+									"name": "FinPeriod",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Description",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Description",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DocumentRef",
+									"type": "String"
+								},
+								"sink": {
+									"name": "DocumentRef",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Amount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "Amount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "Currency",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Currency",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Description_2",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Description_2",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "EntryType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "EntryType",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DisbursementReceipt",
+									"type": "String"
+								},
+								"sink": {
+									"name": "DisbursementReceipt",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "TaxTotal",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "TaxTotal",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "CreatedBy",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CreatedBy",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CreatedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "CreatedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "LastModifiedBy",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LastModifiedBy",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LastModifiedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastModifiedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "Selected",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "Selected",
+									"type": "Boolean"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_ERP_CA_CASH_ADJUSTMENTS",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_ERP_CA_CASH_ADJUSTMENT",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Cpy ERP to ODS - CA Transaction",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Cpy ERP to ODS - CA Cash Adjustment",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ODataSource",
+						"httpRequestTimeout": "00:05:00"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.ERP_CA_TRAN')  IS NOT NULL TRUNCATE TABLE ODS.ERP_CA_TRAN;",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "BatchNumber",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BatchNumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "BegBal",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "BegBal",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "BusinessAccount",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "BusinessAccount",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Module",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Module",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "TranAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "TranAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "DocDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "DocDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "DocumentNumber",
+									"type": "Int64"
+								},
+								"sink": {
+									"name": "DocumentNumber",
+									"type": "Int64"
+								}
+							},
+							{
+								"source": {
+									"name": "CashAccount",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CashAccount",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_ERP_CA_TRAN",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_ERP_CA_TRAN",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Cpy ERP to ODS - CA Transfer",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ODataSource",
+						"httpRequestTimeout": "00:05:00"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.ERP_CA_TRANSFER')  IS NOT NULL TRUNCATE TABLE ODS.ERP_CA_TRANSFER;",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "TransferNumber",
+									"type": "String"
+								},
+								"sink": {
+									"name": "TransferNumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Description",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Description",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CashAccount",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CashAccount",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Description_2",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Description_2",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "TransferDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "TransferDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "SourceAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "SourceAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "SourceCurrency",
+									"type": "String"
+								},
+								"sink": {
+									"name": "SourceCurrency",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DocumentRef",
+									"type": "String"
+								},
+								"sink": {
+									"name": "DocumentRef",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DestinationAccount",
+									"type": "String"
+								},
+								"sink": {
+									"name": "DestinationAccount",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Description_3",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Description_3",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ReceiptDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "ReceiptDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "DestinationAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "DestinationAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "DestinationCurrency",
+									"type": "String"
+								},
+								"sink": {
+									"name": "DestinationCurrency",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DocumentRef_2",
+									"type": "String"
+								},
+								"sink": {
+									"name": "DocumentRef_2",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CATransfer_tranIDIn",
+									"type": "Int64"
+								},
+								"sink": {
+									"name": "CATransfer_tranIDIn",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "CreatedBy",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CreatedBy",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CreatedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "CreatedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "LastModifiedBy",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LastModifiedBy",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LastModifiedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastModifiedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "CATransfer_tranIDOut",
+									"type": "Int64"
+								},
+								"sink": {
+									"name": "CATransfer_tranIDOut",
+									"type": "Int32"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_ERP_CA_TRANSFER",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_ERP_CA_TRANSFER",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Cpy ERP to ODS - CA Deposit",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Cpy ERP to ODS - CA Transfer",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ODataSource",
+						"httpRequestTimeout": "00:05:00"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.ERP_CA_DEPOSIT')  IS NOT NULL TRUNCATE TABLE ODS.ERP_CA_DEPOSIT;",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "TranType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "TranType",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ReferenceNbr",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ReferenceNbr",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DepositDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "DepositDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "FinPeriod",
+									"type": "String"
+								},
+								"sink": {
+									"name": "FinPeriod",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DocumentRef",
+									"type": "String"
+								},
+								"sink": {
+									"name": "DocumentRef",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CashAccount",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CashAccount",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Status",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Status",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Description",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Description",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Description_2",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Description_2",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "TotalAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "TotalAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "Currency",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Currency",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CashDropAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "CashDropAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "CashDropAccount",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CashDropAccount",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ChargeTotal",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "ChargeTotal",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "CADeposit_tranID",
+									"type": "Int64"
+								},
+								"sink": {
+									"name": "CADepositTranID",
+									"type": "Int64"
+								}
+							},
+							{
+								"source": {
+									"name": "CreatedBy",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CreatedBy",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CreatedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "CreatedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "LastModifiedBy",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LastModifiedBy",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LastModifiedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastModifiedOn",
+									"type": "DateTime"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_ERP_CA_DEPOSIT",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_ERP_CA_DEPOSIT",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Cpy ERP to ODS - CA GL Batch",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Cpy ERP to ODS - CA Transaction",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ODataSource",
+						"httpRequestTimeout": "00:05:00"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Upsert",
+						"upsertSettings": {
+							"keys": [
+								"BatchNumber"
+							],
+							"interimSchemaName": ""
+						},
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "BatchNumber",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BatchNumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Type",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Type",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Branch",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Branch",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Status",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Status",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "GLBatch_tranPeriodID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "GLBatchTranPeriodID",
+									"type": "Int64"
+								}
+							},
+							{
+								"source": {
+									"name": "Module",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Module",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_ERP_CA_GLBatch",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_ERP_CA_GLBATCH",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Cpy ERP to ODS - CA GLTranDoc",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Cpy ERP to ODS - CA Deposit",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ODataSource",
+						"httpRequestTimeout": "00:05:00"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.ERP_CA_GLTRANDOC')  IS NOT NULL TRUNCATE TABLE ODS.ERP_CA_GLTRANDOC;",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "RefNumber",
+									"type": "String"
+								},
+								"sink": {
+									"name": "RefNumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Type",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Type",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CustomerVendor",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CustomerVendor",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Branch",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Branch",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchName",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BranchName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "GLTranDoc_tranTotal",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "GLTranDocTranTotal",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "CreatedBy",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CreatedBy",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "GLTranDoc_createdDateTime",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "GLTranDocCreatedDateTime",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "LastModifiedBy",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LastModifiedBy",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "GLTranDoc_lastModifiedDateTime",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "GLTranDocLastModifiedDateTime",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchModule",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BatchModule",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchNumber",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BatchNumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LineNbr",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "LineNbr",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Released",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "Released",
+									"type": "Boolean"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_ERP_CA_GLTranDoc",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_ERP_CA_GLTRANDOC",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "SRC_to_ODS/ERP/Acumatica/TRANSACTIONS"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-10-20T09:45:35Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

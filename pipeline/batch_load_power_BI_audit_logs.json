@@ -1,0 +1,822 @@
+{
+	"name": "batch_load_power_BI_audit_logs",
+	"properties": {
+		"activities": [
+			{
+				"name": "ODS",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": false,
+							"wildcardFileName": "PBI_Audit_Log_*.csv",
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "TRUNCATE TABLE ODS.POWERBI_AUDIT_LOGS",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "RecordId",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "RecordID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CreationDate",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "CreationDate",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "RecordType",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "RecordType",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Operation",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Operation",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "UserId",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "UserId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AuditData",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "AuditData",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AssociatedAdminUnits",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "AssociatedAdminUnits",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AssociatedAdminUnitsNames",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "AssociatedAdminUnitsNames",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_POWERBI_AUDITLOG_CSV",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_POWER_BI_AUDIT_LOGS",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "EDW",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "ODS",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"sqlReaderQuery": "Select Distinct\r\nJSON_VALUE(AuditData, '$.Id') \t\t\t\t\t\t\tAS RecordId ,\r\nJSON_VALUE(AuditData, '$.RecordType') \t\t\t\t\tAS RecordType,\r\nJSON_VALUE(AuditData, '$.CreationTime')\t\t\t\t\tAS CreationTime,  \r\nJSON_VALUE(AuditData, '$.Operation') \t\t\t\t\tAS Operation,\r\nJSON_VALUE(AuditData, '$.OrganizationId') \t\t\t\tAS OrganizationId,\r\nJSON_VALUE(AuditData, '$.UserType')\t\t\t\t\t\tAS UserType , \r\nJSON_VALUE(AuditData, '$.UserKey') \t\t\t\t\t\tAS UserKey ,\r\nJSON_VALUE(AuditData, '$.Workload') \t\t\t\t\tAS Workload,\r\nJSON_VALUE(AuditData, '$.UserId')\t\t\t\t\t\tAS UserId,  \r\nJSON_VALUE(AuditData, '$.ClientIP') \t\t\t\t\tAS ClientIP,\r\nJSON_VALUE(AuditData, '$.UserAgent') \t\t\t\t\tAS UserAgent,\r\nJSON_VALUE(AuditData, '$.Activity')\t\t\t\t\t\tAS Activity , \r\nJSON_VALUE(AuditData, '$.ItemName') \t\t\t\t\tAS ItemName ,\r\nJSON_VALUE(AuditData, '$.WorkSpaceName') \t\t\t\tAS WorkSpaceName,\r\nJSON_VALUE(AuditData, '$.DatasetName')\t\t\t\t\tAS DatasetName,  \r\nJSON_VALUE(AuditData, '$.ReportName') \t\t\t\t\tAS ReportName,\r\nJSON_VALUE(AuditData, '$.CapacityId') \t\t\t\t\tAS CapacityId,\r\nJSON_VALUE(AuditData, '$.CapacityName')\t\t\t\t\tAS CapacityName , \r\nJSON_VALUE(AuditData, '$.WorkspaceId') \t\t\t\t\tAS WorkspaceId ,\r\nJSON_VALUE(AuditData, '$.ObjectId') \t\t\t\t\tAS ObjectId,\r\nJSON_VALUE(AuditData, '$.DatasetId')\t\t\t\t\tAS DatasetId,  \r\nJSON_VALUE(AuditData, '$.ReportId') \t\t\t\t\tAS ReportId,\r\nJSON_VALUE(AuditData, '$.ArtifactId') \t\t\t\t\tAS ArtifactId,\r\nJSON_VALUE(AuditData, '$.ArtifactName')\t\t\t\t\tAS ArtifactName , \r\nJSON_VALUE(AuditData, '$.IsSuccess') \t\t\t\t\tAS IsSuccess,\r\nJSON_VALUE(AuditData, '$.ReportType') \t\t\t\t\tAS ReportType,\r\nJSON_VALUE(AuditData, '$.RequestId')\t\t\t\t\tAS RequestId , \r\nJSON_VALUE(AuditData, '$.ActivityId') \t\t\t\t\tAS ActivityId,\r\nJSON_VALUE(AuditData, '$.DistributionMethod') \t\t\tAS DistributionMethod,\r\nJSON_VALUE(AuditData, '$.ConsumptionMethod')\t\t\tAS ConsumptionMethod , \r\nJSON_VALUE(AuditData, '$.ArtifactKind') \t\t\t\tAS ArtifactKind,\r\nJSON_VALUE(AuditData, '$.RefreshEnforcementPolicy') \tAS RefreshEnforcementPolicy,\r\nGetdate() \t\t\t\t\t\t\t\t\t\t\t\tAS LastUpdatedTS\r\n\r\n\tfrom ODS.POWERBI_AUDIT_LOGS",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "DELETE FROM EDW.FACT_POWERBI_AUDIT_LOGS\nWHERE CAST(CREATIONTIME AS DATE) IN \n(SELECT DISTINCT CAST(JSON_VALUE(AuditData, '$.CreationTime')  AS DATE) FROM ODS.POWERBI_AUDIT_LOGS)",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "RecordId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "RecordId",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "RecordType",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "RecordType",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "CreationTime",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CreationTime",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "Operation",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Operation",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "OrganizationId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "OrganizationId",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "UserType",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "UserType",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "UserKey",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "UserKey",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Workload",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Workload",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "UserId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "UserId",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ClientIP",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ClientIP",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "UserAgent",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "UserAgent",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Activity",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Activity",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ItemName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ItemName",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "WorkSpaceName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "WorkSpaceName",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DatasetName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "DatasetName",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ReportName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ReportName",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CapacityId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CapacityId",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CapacityName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CapacityName",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "WorkspaceId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "WorkspaceId",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ObjectId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ObjectId",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DatasetId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "DatasetId",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ReportId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ReportId",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ArtifactId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ArtifactId",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ArtifactName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ArtifactName",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "IsSuccess",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "IsSuccess",
+									"type": "Boolean",
+									"physicalType": "bit"
+								}
+							},
+							{
+								"source": {
+									"name": "ReportType",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ReportType",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "RequestId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "RequestId",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ActivityId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ActivityId",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DistributionMethod",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "DistributionMethod",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ConsumptionMethod",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ConsumptionMethod",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ArtifactKind",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ArtifactKind",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "RefreshEnforcementPolicy",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "RefreshEnforcementPolicy",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ODS_POWER_BI_AUDIT_LOGS",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_POWER_BI_AUDIT_LOGS",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Archive SRC file",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "EDW",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": false,
+							"wildcardFileName": "PBI_Audit_Log_*.csv",
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".csv"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "RecordId",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "RecordId",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CreationDate",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "CreationDate",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "RecordType",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "RecordType",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Operation",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Operation",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UserId",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "UserId",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "AuditData",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "AuditData",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "AssociatedAdminUnits",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "AssociatedAdminUnits",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "AssociatedAdminUnitsNames",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "AssociatedAdminUnitsNames",
+									"type": "String",
+									"physicalType": "String"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_POWERBI_AUDITLOG_CSV",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ARCHIVE_POWERBI_AUDITLOG",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Delete Src file",
+				"type": "Delete",
+				"dependsOn": [
+					{
+						"activity": "Archive SRC file",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "SRC_POWERBI_AUDITLOG_CSV",
+						"type": "DatasetReference"
+					},
+					"logStorageSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "power-bi-audit-logs/logging"
+					},
+					"enableLogging": true,
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": false,
+						"wildcardFileName": "PBI_Audit_Log_*.csv",
+						"enablePartitionDiscovery": false
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"folder": {
+			"name": "ODS_to_EDW/FACTS/POWERBI"
+		},
+		"annotations": [],
+		"lastPublishTime": "2024-05-23T13:45:10Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

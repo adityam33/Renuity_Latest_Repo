@@ -1,0 +1,131 @@
+{
+	"name": "df_load_FACT_EVENT_HOURS_ZML",
+	"properties": {
+		"folder": {
+			"name": "ODS_to_EDW/FACTS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ODS_DYN_TGT_TBL",
+						"type": "DatasetReference"
+					},
+					"name": "FHI"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_FACT_EVENT_HOURS_ZML",
+						"type": "DatasetReference"
+					},
+					"name": "targetFact",
+					"description": "Export data to EDW_FACT_JOB_PERMIT",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "addDivNameFHI"
+				},
+				{
+					"name": "unionAllOpCos"
+				},
+				{
+					"name": "selectRenameColumns"
+				},
+				{
+					"name": "derivedColumns"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          id as integer,",
+				"          Sdate as timestamp,",
+				"          srs_id as integer,",
+				"          emp_id as integer,",
+				"          hours as decimal(19,4),",
+				"          exhours as decimal(19,4),",
+				"          enteredby as integer,",
+				"          enteredon as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> FHI",
+				"FHI derive(Division = 'FHI') ~> addDivNameFHI",
+				"addDivNameFHI union(byName: true)~> unionAllOpCos",
+				"unionAllOpCos select(mapColumn(",
+				"          LP_EventId = id,",
+				"          Startdate = Sdate,",
+				"          LP_LeadSubsourceId = srs_id,",
+				"          LP_EmployeeId = emp_id,",
+				"          RegularHours = hours,",
+				"          ExcludedHours = exhours,",
+				"          LP_Enteredby = enteredby,",
+				"          Enteredon = enteredon,",
+				"          Division",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectRenameColumns",
+				"selectRenameColumns derive(LastUpdateTS = currentTimestamp(),",
+				"          EventId = concat(Division,'-',toString(LP_EventId)),",
+				"          LeadSubSourceID = concat(Division,'-',toString(LP_LeadSubsourceId)),",
+				"          EmployeeID = concat(Division,'-',toString(LP_EmployeeId)),",
+				"          EnteredBy = concat(Division,'-',toString(LP_Enteredby))) ~> derivedColumns",
+				"derivedColumns sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          EventId as string,",
+				"          StartDate as timestamp,",
+				"          LeadSubSourceId as string,",
+				"          EmployeeId as string,",
+				"          RegularHours as decimal(38,18),",
+				"          ExcludedHours as decimal(38,18),",
+				"          EnteredBy as string,",
+				"          EnteredOn as timestamp,",
+				"          LP_EventId as string,",
+				"          LP_LeadSubSourceId as string,",
+				"          LP_EmployeeId as string,",
+				"          LP_EnteredBy as string,",
+				"          Division as string,",
+				"          LastUpdateTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     truncate:true,",
+				"     format: 'table',",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          EventId,",
+				"          StartDate = Startdate,",
+				"          LeadSubSourceId = LeadSubSourceID,",
+				"          EmployeeId = EmployeeID,",
+				"          RegularHours,",
+				"          ExcludedHours,",
+				"          EnteredBy,",
+				"          EnteredOn = Enteredon,",
+				"          LP_EventId,",
+				"          LP_LeadSubSourceId = LP_LeadSubsourceId,",
+				"          LP_EmployeeId,",
+				"          LP_EnteredBy = LP_Enteredby,",
+				"          Division,",
+				"          LastUpdateTS",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> targetFact"
+			]
+		}
+	}
+}

@@ -1,0 +1,200 @@
+{
+	"name": "df_load_REF_PRODUCT_ZIP_CODES_WIT",
+	"properties": {
+		"folder": {
+			"name": "SRC_to_RDM"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "REF_ZIP_CODES_BATH_FHI",
+						"type": "DatasetReference"
+					},
+					"name": "FHI"
+				},
+				{
+					"dataset": {
+						"referenceName": "REF_ZIP_CODES_BATH_PHI",
+						"type": "DatasetReference"
+					},
+					"name": "PHI"
+				},
+				{
+					"dataset": {
+						"referenceName": "REF_ZIP_CODES_BATH_MXH",
+						"type": "DatasetReference"
+					},
+					"name": "MXH"
+				},
+				{
+					"dataset": {
+						"referenceName": "REF_ZIP_CODES_BATH_MAC",
+						"type": "DatasetReference"
+					},
+					"name": "MAC"
+				},
+				{
+					"dataset": {
+						"referenceName": "REF_ZIP_CODES_BATH_PBC",
+						"type": "DatasetReference"
+					},
+					"name": "PBC"
+				},
+				{
+					"dataset": {
+						"referenceName": "REF_ZIP_CODES_BATH_HSI",
+						"type": "DatasetReference"
+					},
+					"name": "HSI"
+				},
+				{
+					"dataset": {
+						"referenceName": "REF_ZIP_CODES_BATH_RTW",
+						"type": "DatasetReference"
+					},
+					"name": "RTW"
+				},
+				{
+					"dataset": {
+						"referenceName": "REF_ZIP_CODES_BATH_SWR",
+						"type": "DatasetReference"
+					},
+					"name": "SWR"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "RDM_REF_PRODUCT_ZIP_CODES",
+						"type": "DatasetReference"
+					},
+					"name": "REFPRODUCTZIPCODES",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "addDivisionFHI"
+				},
+				{
+					"name": "unionAllDivisions"
+				},
+				{
+					"name": "addDivisionPHI"
+				},
+				{
+					"name": "addDivisionMXH"
+				},
+				{
+					"name": "addDivisionMAC"
+				},
+				{
+					"name": "addDivisionPBC"
+				},
+				{
+					"name": "addDivisionHSI"
+				},
+				{
+					"name": "addDivisionRTW"
+				},
+				{
+					"name": "addDivisionSWR"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          ZipCode as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> FHI",
+				"source(output(",
+				"          ZipCode as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> PHI",
+				"source(output(",
+				"          ZipCode as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> MXH",
+				"source(output(",
+				"          ZipCode as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> MAC",
+				"source(output(",
+				"          ZipCode as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> PBC",
+				"source(output(",
+				"          ZipCode as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> HSI",
+				"source(output(",
+				"          ZipCode as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> RTW",
+				"source(output(",
+				"          ZipCode as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> SWR",
+				"FHI derive(Division = 'FHI',",
+				"          Product = 'WIT') ~> addDivisionFHI",
+				"addDivisionFHI, addDivisionPHI, addDivisionMXH, addDivisionMAC, addDivisionPBC, addDivisionHSI, addDivisionRTW, addDivisionSWR union(byName: true)~> unionAllDivisions",
+				"PHI derive(Division = 'PHI',",
+				"          Product = 'WIT') ~> addDivisionPHI",
+				"MXH derive(Division = 'MXH',",
+				"          Product = 'WIT') ~> addDivisionMXH",
+				"MAC derive(Division = 'MAC',",
+				"          Product = 'WIT') ~> addDivisionMAC",
+				"PBC derive(Division = 'PBC',",
+				"          Product = 'WIT') ~> addDivisionPBC",
+				"HSI derive(Division = 'HSI',",
+				"          Product = 'WIT') ~> addDivisionHSI",
+				"RTW derive(Division = 'RTW',",
+				"          Product = 'WIT') ~> addDivisionRTW",
+				"SWR derive(Division = 'SWR',",
+				"          Product = 'WIT') ~> addDivisionSWR",
+				"unionAllDivisions sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          Division as string,",
+				"          Product as string,",
+				"          ZipCode as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     staged: true,",
+				"     allowCopyCommand: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          Division,",
+				"          Product,",
+				"          ZipCode",
+				"     )) ~> REFPRODUCTZIPCODES"
+			]
+		}
+	}
+}

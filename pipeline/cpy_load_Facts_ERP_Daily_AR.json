@@ -1,0 +1,1332 @@
+{
+	"name": "cpy_load_Facts_ERP_Daily_AR",
+	"properties": {
+		"activities": [
+			{
+				"name": "df_load_FACT_ACCOUNTS_RECEIVABLE",
+				"type": "ExecuteDataFlow",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.0:30:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_FACT_ACCOUNTS_RECEIVABLE",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "staging"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Coarse"
+				}
+			},
+			{
+				"name": "cpy_load_Report_InvoiceMemo",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "load_FACT_ACCOUNT_REVEIVABLLE",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.0:30:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "select Distinct\nar.DocumentType, ar.referencenumber, ar.ReasonforCredit, ar.status, ar.Documentdate, ar.postperiod, ar.customerID,c.customername,ar.Invoicedescription,\nar.customerordernumber,ar.OriginalDocumentAmount,ar.Currency,ar.OriginalReferenceNumber, ar.InvoiceprojectID,p1.ProjectDesc,\nar.Invoice_createdon,ar.Invoice_createdby,ar.Invoice_lastmodifiedby,ar.Invoice_lastmodifiedon,\nar.duedate,ar.DocumentBalance,ar.batchnumber,ar.branchcode, b.branchname,ar.cashdiscount,NULL as CorrectionInvoice,ar.taxtotal,ar.ISretainagedocument,ar.Application_ReferenceNumber,ar.Application_Type,ar.amountpaid\nfrom edw.fact_accounts_receivable ar \nleft join edw.DIm_ERP_customer c on ar.customerid=c.customerid\nleft join edw.dim_erp_project p on ar.Paymentprojectid =p.projectid\nleft join edw.dim_erp_project p1 on ar.Invoiceprojectid =p1.projectid\nleft join edw.dim_Erp_branch b on ar.branchcode=b.branchcode\nwhere ar.DocumentType in ('Credit Memo','Invoice','Credit WO','Debit Memo') and ( ar.Invoice_source<>'SO' or Invoice_released ='1')",
+						"queryTimeout": "00:30:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "TRUNCATE TABLE [EDW].[REPORT_ERP_AR_INVOICE_MEMO]",
+						"allowCopyCommand": true
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "DocumentType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "DocumentType",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "referencenumber",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ReferenceNumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ReasonforCredit",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ReasonForCredit",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "status",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Status",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Documentdate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "InvoiceDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "postperiod",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PostingPeriod",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "customerID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CustomerID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "customername",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CustomerName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Invoicedescription",
+									"type": "String"
+								},
+								"sink": {
+									"name": "InvoiceDescription",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "customerordernumber",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CustomerOrderNumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "OriginalDocumentAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "Amount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "Currency",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Currency",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "OriginalReferenceNumber",
+									"type": "String"
+								},
+								"sink": {
+									"name": "OriginalReferenceNumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "InvoiceprojectID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ProjectID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ProjectDesc",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ProjectDescription",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Invoice_createdon",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "CreatedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "DocumentBalance",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "Balance",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "batchnumber",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BatchNumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "branchcode",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BranchCode",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "branchname",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BranchName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "cashdiscount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "CashDiscount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "CorrectionInvoice",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "CorrectionInvoice",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Invoice_createdby",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CreatedBy",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "duedate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "DueDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "Invoice_lastmodifiedby",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LastModifiedBy",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Invoice_lastmodifiedon",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastModifiedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "taxtotal",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "TaxTotal",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "ISretainagedocument",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Selected",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "Application_ReferenceNumber",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Application_ReferenceNumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Application_Type",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Application_Type",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_FACT_ACCOUNTS_RECEIVABLE",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_REPORT_ERP_AR_INVOICE_MEMO",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "cpy_load_Report_PaymentApplications",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "cpy_load_Report_InvoiceMemo",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.0:30:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "select Distinct  ar.DocumentType,ar.Referencenumber,ar.status,ar.PaymentDate,ar.paymentperiod,ar.customerid,\nc.customername,ar.documentDescription,ar.paymentReference,ar.originalDocumentAmount,ar.currency,\nar.Paymentcashaccount,ar.paymentmethod,ar.accountcode,a.accountdescription,\nar.lp_jobnumber,ar.lp_paymenttype,ar.paymentprojectID,ar.documentbalance,ar.batchNumber,ar.branchCode,b.branchname,ar.Payment_Selected,\nar.Payment_createdon,ar.Payment_createdby,ar.Payment_lastmodifiedby,ar.Payment_lastmodifiedon\nfrom edw.fact_Accounts_receivable ar \nleft join edw.DIm_ERP_customer c on ar.customerid=c.customerid\nleft join edw.dim_erp_Account a on ar.accountcode=a.accountcode\nleft join edw.dim_Erp_branch b on ar.branchcode=b.branchcode\nwhere ar.DocumentType in ('Payment','Prepayment','Voided Payment','Voided Refund','Customer Refund','Credit Memo','Balance WO')",
+						"queryTimeout": "00:30:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "TRUNCATE TABLE [EDW].[REPORT_ERP_AR_PAYMENT_APPLICATIONS]",
+						"allowCopyCommand": true
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "DocumentType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "DocumentType",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Referencenumber",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ReferenceNumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "status",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Status",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PaymentDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "PaymentDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "paymentperiod",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PaymentPeriod",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "customerid",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CustomerID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "customername",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CustomeName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "documentDescription",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PaymentDescription",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "paymentReference",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PaymentReference",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "originalDocumentAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "PaymentAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "currency",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Currency",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Paymentcashaccount",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PaymentCashAccount",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "paymentmethod",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PaymentMethod",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Payment_createdon",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "CreatedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "accountcode",
+									"type": "String"
+								},
+								"sink": {
+									"name": "AccountCode",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "accountdescription",
+									"type": "String"
+								},
+								"sink": {
+									"name": "AccountDescription",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "lp_jobnumber",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LP_JobNumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "lp_paymenttype",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LP_PaymentType",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Payment_createdby",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CreatedBy",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "paymentprojectID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ProjectID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "documentbalance",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "Balance",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "batchNumber",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BatchNumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "branchCode",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BranchCode",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "branchname",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BranchName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Payment_lastmodifiedby",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LastModifiedBy",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Payment_lastmodifiedon",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastModifiedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "Payment_Selected",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Selected",
+									"type": "Boolean"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_FACT_ACCOUNTS_RECEIVABLE",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_REPORT_ERP_AR_PAYMENT_APPLICATIONS",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "load_FACT_ACCOUNT_REVEIVABLLE",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "df_load_FACT_ACCOUNTS_RECEIVABLE",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT \nM1.type \t\t\t\tAS DocumentType\n,M1.referencenbr \t\tAS ReferenceNumber\t\n,M1.ARAccount\t\t\tAS AccountID\n,M1.customer\t\t\tAS CustomerID\n,M1.branch\t\t\t\tAS BranchCode\n,M1.customerordernbr \tAS CustomerOrderNumber\n,M1.date\t\t\t\tAS DocumentDate\n,M1.closeddate\t\t\tAS ClosedDate\n,M1.duedate\t\t\t\tAS\tDueDate\n,M1.paymentdate\t\t\tAS\tPaymentDate\n,M1.postperiod\t\t\tAS\tPostPeriod\n,M1.InvoiceDate\t\t\tAS\tInvoiceDate\n,M1.arregister_tranperiodid\tAS\tRegister_TranPeriodID\n,M1.paymentperiod\t\t\tAS\tPaymentPeriod\n,M1.arregister_approved\t\tAS\tRegister_Approved\n,M1.arregister_rejected\t\tAS\tRegister_Rejected\n,M1.arregister_released\t\tAS\tRegister_Released\n,M1.status\t\t\t\t\tAS\tStatus\n,M1.arregister_voided\t\tAS\tRegister_Voided\n,M1.arregister_docbal\t\tAS\tRegister_DocumentBalance\n,M1.arregister_origDocamt\tAS\tRegister_OriginalDocumentAmount\n,M1.paymentmethod\t\t\tAS\tPaymentMethod\n,M1.reasonforcredit\t\t\tAS\tReasonForCredit\n,M1.description\t\t\t\tAS\tInvoice_Description\n,M1.description_2\t\t\tAS\tPayment_Description\n,M1.payment_currency\t\tAS\tPayment_Currency\n,M1.Invoice_currency\t\tAS\tInvoice_Currency\n,M1.origrefnbr\t\t\t\tAS\tOriginalReferenceNumbber\n,M1.Invoice_ProjectiD\t\tAS\tInvoice_ProjectID\n,M1.Payment_projectID\t\tAS\tPayment_ProjectID\n,M1.Invoice_batchNbr\t\tAS\tInvoice_BatchNumber\n,M1.Payment_BatchNbr\t\tAS\tPayment_BatchNumber\n,M1.cashdiscount\t\t\tAS\tCashDiscount\n,M1.taxtotal\t\t\t\tAS\tTaxTotal\n,M1.retainageDocument\t\tAS\tRetainageDocument\n,M1.paymentref\t\t\t\tAS\tPaymentReference\n,M1.cashaccount\t\t\t\tAS\tCashAccount\n,M1.selected\t\t\t\tAS\tselected\n,M1.lpjob\t\t\t\t\tAS\tLplob\n,M1.lppmttype\t\t\t\tAS\tLpPmtType\n,M1.ARPayment_origDocAmt\tAS\tARPayment_OrigDocAmt\n,M1.Balance\t\t\t\t\tAS\tBalance\n,M1.AdjAmount\t\t\t\tAS\tAdjAmount\n,M1.Application_ReferenceNumber\tAS\tApplication_ReferenceNumber\n,M1.Application_Type\t\t\tAS\tApplication_Type\n,M1.Invoice_createdby\t\t\tAS\tInvoice_CreatedBy\n,M1.Invoice_Createdon\t\t\tAS\tInvoice_Createdon\n,M1.Invoice_lastModifiedby\t\tAS\tInvoice_LastModifiedBy\n,M1.Invoice_lastmodfiedOn\t\tAS\tInvoice_lastmodifiedOn\n,M1.Payment_createdby\t\t\tAS\tPayment_Createdby\n,M1.Payment_createdon\t\t\tAS\tPayment_Createdon\n,M1.Payment_Lastmodifiedby\t\tAS\tPayment_Lastmodifiedby\n,M1.Payment_lastModifiedon\t\tAS\tPayment_lastModifiedon\n,M1.Source\t\t\t\t\t\tAS\tSource\n,M1.ARInvoice_released\t\t\tAS\tARInvoice_released\n,COALESCE(M1.Payment_Currency,M1.Invoice_Currency)\tAS Currency\n,COALESCE(M1.Payment_BatchNbr,M1.Invoice_batchNbr) AS BatchNumber\n,BM.BranchCode\n,BM.BranchID\n,BM.Active\n,BM.BranchAccountID\n,BM.BranchName\n,BM.CompanyID\n\nFROM \n(\t\t\n\t\tselect \n\t\tr.type,r.referencenbr,r.ARAccount,r.customer,r.branch,i.customerordernbr,r.date,r.closeddate,r.duedate,p.paymentdate,\n\t\tr.postperiod,i.date  as InvoiceDate,r.arregister_tranperiodid,p.paymentperiod,r.arregister_approved,r.arregister_rejected,r.arregister_released,r.status,r.arregister_voided,\n\t\tr.arregister_docbal,r.arregister_origDocamt,p.paymentmethod,i.reasonforcredit,i.description, p.description_2,\n\t\tp.currency as payment_currency,i.currency as Invoice_currency,i.origrefnbr,i.projectid as Invoice_ProjectID,p.project as Payment_projectID,i.batchnbr as Invoice_batchNbr,p.batchnbr as Payment_BatchNbr,\n\t\ti.cashdiscount,i.taxtotal,i.retainageDocument,p.paymentref,p.cashaccount,p.selected,p.lpjob,p.lppmttype,\n\t\tp.ARPayment_origDocAmt, p.Balance,a.AdjAmount,\n\t\ta.Payment_SOAdjust_ReferenceNbr as Application_ReferenceNumber,a.Payment_SOAdjust_type as Application_Type,\n\t\ti.createdby as Invoice_createdby,i.createdon as Invoice_Createdon,i.lastmodifiedby as Invoice_lastModifiedby,i.lastmodifiedon as Invoice_lastmodfiedOn,\n\t\tp.createdby as Payment_createdby,p.createdon as Payment_createdon,p.lastmodifiedby as Payment_Lastmodifiedby,p.lastmodifiedon as Payment_lastModifiedon,\n\t\ti.Source,i.ARInvoice_released\n\t\tfrom ods.erp_ar_register r \n\t\tjoin ods.erp_ar_adjust a on  r.referencenbr=a.Invoice_Tran_ReferenceNbr and r.type=a.Invoice_Tran_type\n\t\tleft join ods.erp_ar_invoice i on i.referencenbr=r.referencenbr and i.type=r.Type\n\t\tleft join ods.erp_Ar_payment p on p.referencenbr=a.Payment_SOAdjust_ReferenceNbr and p.type=a.Payment_SOAdjust_type\n\t\t\n\t\t\n\t\t\n\t\tUnion all\n\t\t\n\t\tselect \n\t\tr.type,r.referencenbr,r.ARAccount,r.customer,r.branch,i.customerordernbr,r.date,r.closeddate,r.duedate,p.paymentdate,\n\t\tr.postperiod,i.date as InvoiceDate,r.arregister_tranperiodid,p.paymentperiod,r.arregister_approved,r.arregister_rejected,r.arregister_released,r.status,r.arregister_voided,\n\t\tr.arregister_docbal,r.arregister_origDocamt,p.paymentmethod,i.reasonforcredit,i.description, \n\t\tp.description_2,p.currency as payment_currency,\n\t\ti.currency as Invoice_currency,i.origrefnbr,\n\t\ti.projectid as Invoice_ProjectID,p.project as Payment_projectID,i.batchnbr as Invoice_batchNbr,p.batchnbr as Payment_BatchNbr,\n\t\ti.cashdiscount,i.taxtotal,i.retainageDocument,p.paymentref,p.cashaccount,p.selected,p.lpjob,p.lppmttype,\n\t\ti.ARInvoice_origDocamt,i.ARInvoice_Docbal,a1.AdjAmount,\n\t\ta1.Invoice_Tran_ReferenceNbr as Application_ReferenceNumber,a1.Invoice_Tran_type as Application_Type,\n\t\ti.createdby as Invoice_createdby,i.createdon as Invoice_Createdon,i.lastmodifiedby as Invoice_lastModifiedby,i.lastmodifiedon as Invoice_lastmodfiedOn,\n\t\tp.createdby as Payment_createdby,p.createdon as Payment_createdon,p.lastmodifiedby as Payment_Lastmodifiedby,p.lastmodifiedon as Payment_lastModifiedon,\n\t\ti.Source,i.ARInvoice_released\n\t\tfrom ods.erp_ar_register r \n\t\tjoin ods.erp_ar_adjust a1 on  r.referencenbr = a1.Payment_SOAdjust_ReferenceNbr and r.type = a1.Payment_SOAdjust_type \n\t\tleft join ods.erp_Ar_payment p on r.referencenbr=p.referencenbr and r.type=p.type\n\t\tleft join ods.erp_ar_invoice i on i.referencenbr=a1.Invoice_Tran_ReferenceNbr and i.type=a1.Invoice_Tran_Type\n\t\t\n\t\tUnion all\n\t\t\n\t\tselect r.type,r.referencenbr,r.ARAccount,r.customer,r.branch,i.customerordernbr,r.date,r.closeddate,r.duedate,p.paymentdate,\n\t\tr.postperiod,i.date as InvoiceDate,r.arregister_tranperiodid,p.paymentperiod,r.arregister_approved,r.arregister_rejected,r.arregister_released,r.status,r.arregister_voided,\n\t\tr.arregister_docbal,r.arregister_origDocamt,p.paymentmethod,i.reasonforcredit,i.description, \n\t\tp.description_2,p.currency as payment_currency,\n\t\ti.currency as Invoice_currency,i.origrefnbr,\n\t\ti.projectid as Invoice_ProjectID,p.project as Payment_projectID,i.batchnbr as Invoice_batchNbr,p.batchnbr as Payment_BatchNbr,\n\t\ti.cashdiscount,i.taxtotal,i.retainageDocument,p.paymentref,p.cashaccount,p.selected,p.lpjob,p.lppmttype,\n\t\tNULL as ARInvoice_origDocamt,NULL as ARInvoice_Docbal,Null as AdjAmount,\n\t\tNULL as Application_ReferenceNumber,NULL as Application_Type,\n\t\ti.createdby as Invoice_createdby,i.createdon as Invoice_Createdon,i.lastmodifiedby as Invoice_lastModifiedby,i.lastmodifiedon as Invoice_lastmodfiedOn,\n\t\tp.createdby as Payment_createdby,p.createdon as Payment_createdon,p.lastmodifiedby as Payment_Lastmodifiedby,p.lastmodifiedon as Payment_lastModifiedon,\n\t\ti.Source,i.ARInvoice_released\n\t\tfrom ods.erp_ar_register r \n\t\tleft join ods.erp_ar_adjust a on  r.referencenbr=a.Invoice_Tran_ReferenceNbr and r.type=a.Invoice_Tran_type\n\t\tleft join ods.erp_ar_adjust a1 on  r.referencenbr = a1.Payment_SOAdjust_ReferenceNbr and r.type = a1.Payment_SOAdjust_type \n\t\tleft join ods.erp_ar_invoice i on r.referencenbr=i.referencenbr and r.type=i.type\n\t\tleft join ods.erp_ar_payment p on r.referencenbr=p.referencenbr and r.type=p.type\n\t\twhere   a.Invoice_Tran_ReferenceNbr is  null and  a1.Payment_SOAdjust_ReferenceNbr is  null\n\t\t\n\t\t\n\t\t\n\t\t) M1\n\t\t\n\t\tLEFT JOIN ODS.ERP_BRANCH_MASTER BM \n\t\tON M1.branch  = BM.BranchCode",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE [EDW].[FACT_ACCOUNTS_RECEIVABLE]",
+						"allowCopyCommand": true,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging"
+					},
+					"parallelCopies": 2,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "DocumentType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "DocumentType",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ReferenceNumber",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ReferenceNumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "AccountID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "AccountCode",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CustomerID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CustomerID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchCode",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BranchCode",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CompanyID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CompanyID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CustomerOrderNumber",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CustomerOrderNumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DocumentDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "DocumentDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "ClosedDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "ClosedDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "DueDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "DueDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "PaymentDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "PaymentDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "InvoiceDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "InvoiceDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "PostPeriod",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PostPeriod",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Register_TranPeriodID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "TransactionPeriodID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PaymentPeriod",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PaymentPeriod",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Register_Approved",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "Approved",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "Register_Rejected",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "Rejected",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "Register_Released",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "Released",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "Status",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Status",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Register_Voided",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "Voided",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "Register_DocumentBalance",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "DocumentBalance",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "Register_OriginalDocumentAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "OriginalDocumentAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "PaymentMethod",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PaymentMethod",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Payment_Description",
+									"type": "String"
+								},
+								"sink": {
+									"name": "DocumentDescription",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Invoice_Description",
+									"type": "String"
+								},
+								"sink": {
+									"name": "InvoiceDescription",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Currency",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Currency",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchNumber",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BatchNumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "OriginalReferenceNumbber",
+									"type": "String"
+								},
+								"sink": {
+									"name": "OriginalReferenceNumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Payment_ProjectID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PaymentProjectID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Invoice_ProjectID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "InvoiceProjectID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CashDiscount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "CashDiscount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "TaxTotal",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "TaxTotal",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "RetainageDocument",
+									"type": "String"
+								},
+								"sink": {
+									"name": "IsRetainageDocument",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ReasonForCredit",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ReasonForCredit",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PaymentReference",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PaymentReference",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CashAccount",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PaymentCashAccount",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "selected",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Payment_Selected",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Lplob",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Lp_JobNumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LpPmtType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LP_PaymentType",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Invoice_CreatedBy",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Invoice_CreatedBy",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Invoice_Createdon",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "Invoice_CreatedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "Invoice_LastModifiedBy",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Invoice_LastModifiedBy",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Invoice_lastmodifiedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "Invoice_LastModifiedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "Payment_Createdby",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Payment_CreatedBy",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Payment_Createdon",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "Payment_CreatedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "Payment_Lastmodifiedby",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Payment_LastModifiedBy",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Payment_lastModifiedon",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "Payment_LastModifiedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "Source",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Invoice_Source",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ARInvoice_released",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "Invoice_Released",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "ARPayment_OrigDocAmt",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "Payment_Amount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "Balance",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "Payment_Balance",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "AdjAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "AmountPaid",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "Application_ReferenceNumber",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Application_ReferenceNumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Application_Type",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Application_Type",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ODS_ERP_AR_REGISTER",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_FACT_ACCOUNTS_RECEIVABLE",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/FACTS/ERP"
+		},
+		"annotations": [],
+		"lastPublishTime": "2024-12-16T12:03:29Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

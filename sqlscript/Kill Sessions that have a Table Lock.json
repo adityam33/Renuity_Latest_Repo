@@ -1,0 +1,20 @@
+{
+	"name": "Kill Sessions that have a Table Lock",
+	"properties": {
+		"folder": {
+			"name": "Security and Helper SQL"
+		},
+		"content": {
+			"query": "-- Get All Active Sessions\n\n SELECT * FROM sys.dm_pdw_exec_sessions \n where \n --login_name = 'JuGarcia' and \n  [status] not in ('Closed', 'Terminated') --and not sql_spid = @@SPID\n order by\n login_time desc\n GO\n\n-- Find if a table has a lock on it\n\n select * from sys.dm_pdw_lock_waits where object_name = 'EDW.FACT_ERP_GL_TRANSACTION'\n and session_id in ( SELECT session_id FROM sys.dm_pdw_exec_sessions \n where \n --login_name = 'JuGarcia' and \n  [status] not in ('Closed', 'Terminated'))\n\n-- Kill a session\n\nKILL 'SID12040793'\nKILL 'SID12040792'\nKILL 'SID12040791'\nKILL 'SID12040790'\nKILL 'SID12040789'\nKILL 'SID12040788'\nKILL 'SID12040787'\nKILL 'SID12040786'\nKILL 'SID12040785'\nKILL 'SID12040784'\nKILL 'SID12040623'\nKILL 'SID12040622'\nKILL 'SID12040621'\nKILL 'SID12040620'\nKILL 'SID12040619'\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

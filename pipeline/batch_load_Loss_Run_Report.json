@@ -1,0 +1,2250 @@
+{
+	"name": "batch_load_Loss_Run_Report",
+	"properties": {
+		"activities": [
+			{
+				"name": "Check file Name",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.6:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "SRC_LossRunReport",
+						"type": "DatasetReference"
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "DelimitedTextReadSettings"
+					}
+				}
+			},
+			{
+				"name": "If Condition File exist",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Filter_Lastest_File",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@greater(length(activity('Filter_Lastest_File').output.value), 0)",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "Archive files",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "cpy_ODS_LossRunReport",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": false,
+										"wildcardFolderPath": "in",
+										"wildcardFileName": "*Loss Run*.csv",
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "SRC_LossRunReport",
+									"type": "DatasetReference"
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "Loss_Run_Report_Archive",
+									"type": "DatasetReference",
+									"parameters": {
+										"FileName": {
+											"value": "@concat(\n  'Loss_Run_Report_',\n  formatDateTime(activity('Get Last Updated Date').output.lastModified, 'yyyyMMdd_HHmmss')\n)\n",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "Delete",
+							"type": "Delete",
+							"dependsOn": [
+								{
+									"activity": "Archive files",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "SRC_LossRunReport",
+									"type": "DatasetReference"
+								},
+								"enableLogging": false,
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": false,
+									"wildcardFileName": "*Loss Run*.csv",
+									"enablePartitionDiscovery": false
+								}
+							}
+						},
+						{
+							"name": "Get Last Updated Date",
+							"type": "GetMetadata",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.6:00:00",
+								"retry": 1,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "SRC_LossRunReport",
+									"type": "DatasetReference"
+								},
+								"fieldList": [
+									"lastModified"
+								],
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							}
+						},
+						{
+							"name": "cpy_ODS_LossRunReport",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "Get Last Updated Date",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 1,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": true,
+										"wildcardFolderPath": "in",
+										"wildcardFileName": "*Loss Run*.csv",
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
+								},
+								"sink": {
+									"type": "SqlDWSink",
+									"preCopyScript": "TRUNCATE TABLE [ODS].[CLAIMS_REPORTING];",
+									"allowCopyCommand": true,
+									"disableMetricsCollection": false
+								},
+								"enableStaging": true,
+								"stagingSettings": {
+									"linkedServiceName": {
+										"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+										"type": "LinkedServiceReference"
+									},
+									"path": "staging"
+								},
+								"translator": {
+									"type": "TabularTranslator",
+									"mappings": [
+										{
+											"source": {
+												"name": "Policy",
+												"type": "String"
+											},
+											"sink": {
+												"name": "CarrierPolicyNumber",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Claim Number",
+												"type": "String"
+											},
+											"sink": {
+												"name": "ClaimNumber",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Claimant",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Claimant",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Age",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Age",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Loss Date",
+												"type": "String"
+											},
+											"sink": {
+												"name": "LossDate",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Loss Time",
+												"type": "String"
+											},
+											"sink": {
+												"name": "LossTime",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Length Of Service",
+												"type": "String"
+											},
+											"sink": {
+												"name": "LengthOfService",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Loss Day Of Week",
+												"type": "String"
+											},
+											"sink": {
+												"name": "LossDayOfWeek",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Hire Date",
+												"type": "String"
+											},
+											"sink": {
+												"name": "HireDate",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Carrier Notification Date",
+												"type": "String"
+											},
+											"sink": {
+												"name": "CarrierNotificationDate",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Birth Date",
+												"type": "String"
+											},
+											"sink": {
+												"name": "BirthDate",
+												"type": "DateTime"
+											}
+										},
+										{
+											"source": {
+												"name": "Carrier Policy Effective Date"
+											},
+											"sink": {
+												"name": "PolicyEffectiveDate",
+												"type": "DateTime"
+											}
+										},
+										{
+											"source": {
+												"name": "Date Comp Decision Made",
+												"type": "String"
+											},
+											"sink": {
+												"name": "DateCompDecisionMade",
+												"type": "DateTime"
+											}
+										},
+										{
+											"source": {
+												"name": "Employer Report Date",
+												"type": "String"
+											},
+											"sink": {
+												"name": "EmployerReportDate",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Last Close Date",
+												"type": "String"
+											},
+											"sink": {
+												"name": "LastCloseDate",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Status",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Status",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "How Reported",
+												"type": "String"
+											},
+											"sink": {
+												"name": "InjuryReported_HOW",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Injury on Premises",
+												"type": "String"
+											},
+											"sink": {
+												"name": "InjuryOnPremise",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Report Lag",
+												"type": "String"
+											},
+											"sink": {
+												"name": "ReportLag",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Department Name",
+												"type": "String"
+											},
+											"sink": {
+												"name": "DepartmentName",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Compensability Decision",
+												"type": "String"
+											},
+											"sink": {
+												"name": "CompensabilityDecision",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Detail Cause",
+												"type": "String"
+											},
+											"sink": {
+												"name": "DetailCause",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Average Weekly Wage",
+												"type": "String"
+											},
+											"sink": {
+												"name": "AverageWeeklyWage",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Employment Status",
+												"type": "String"
+											},
+											"sink": {
+												"name": "EmploymentStatus",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Gender",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Gender",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Coverage",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Coverage",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Last Reopen Date",
+												"type": "String"
+											},
+											"sink": {
+												"name": "LastReopenDate",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Occupation",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Occupation",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Class Code",
+												"type": "String"
+											},
+											"sink": {
+												"name": "ClassCode",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Claim Type",
+												"type": "String"
+											},
+											"sink": {
+												"name": "ClaimType",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Jurisdiction State",
+												"type": "String"
+											},
+											"sink": {
+												"name": "JurisdictionState",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Lawsuit Filed",
+												"type": "String"
+											},
+											"sink": {
+												"name": "LawsuitFiled",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Location",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Location",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Employment Address",
+												"type": "String"
+											},
+											"sink": {
+												"name": "EmploymentAddress",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Employment Location City",
+												"type": "String"
+											},
+											"sink": {
+												"name": "EmploymentLocationCity",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Employment Location State",
+												"type": "String"
+											},
+											"sink": {
+												"name": "EmploymentLocationState",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Employment Location Postal Code",
+												"type": "String"
+											},
+											"sink": {
+												"name": "EmploymentLocationPostalCode",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Location Number",
+												"type": "String"
+											},
+											"sink": {
+												"name": "LocationNumber",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Cause Code",
+												"type": "String"
+											},
+											"sink": {
+												"name": "CauseCode",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Cause",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Cause",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Body Part Code",
+												"type": "String"
+											},
+											"sink": {
+												"name": "BodyPartCode",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Body Part",
+												"type": "String"
+											},
+											"sink": {
+												"name": "BodyPart",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Nature Code",
+												"type": "String"
+											},
+											"sink": {
+												"name": "NatureCode",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Nature",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Nature",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Loss Description",
+												"type": "String"
+											},
+											"sink": {
+												"name": "LossDescription",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Adjuster",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Adjuster",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Adjuster Phone",
+												"type": "String"
+											},
+											"sink": {
+												"name": "AdjusterPhone",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Adjuster Email",
+												"type": "String"
+											},
+											"sink": {
+												"name": "AdjusterEmail",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Paid Medical",
+												"type": "String"
+											},
+											"sink": {
+												"name": "PaidMedical",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "O/S Medical",
+												"type": "String"
+											},
+											"sink": {
+												"name": "OSMedical",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Inc. Medical",
+												"type": "String"
+											},
+											"sink": {
+												"name": "IncMedical",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Paid Indemnity",
+												"type": "String"
+											},
+											"sink": {
+												"name": "PaidIndemnity",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "O/S Indemnity",
+												"type": "String"
+											},
+											"sink": {
+												"name": "OSIndemnity",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Inc. Indemnity",
+												"type": "String"
+											},
+											"sink": {
+												"name": "IncIndemnity",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Paid Legal/Expense",
+												"type": "String"
+											},
+											"sink": {
+												"name": "PaidLegalExpense",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "O/S Legal/Expense",
+												"type": "String"
+											},
+											"sink": {
+												"name": "OSLegalExpense",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Inc. Legal/Expense",
+												"type": "String"
+											},
+											"sink": {
+												"name": "IncLegalExpense",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Inc. Recovery",
+												"type": "String"
+											},
+											"sink": {
+												"name": "IncRecovery",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Total Paid",
+												"type": "String"
+											},
+											"sink": {
+												"name": "TotalPaid",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Total Outstanding",
+												"type": "String"
+											},
+											"sink": {
+												"name": "TotalOutstanding",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Total Incurred",
+												"type": "String"
+											},
+											"sink": {
+												"name": "TotalIncurred",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "OSHA Recordable",
+												"type": "String"
+											},
+											"sink": {
+												"name": "OSHA_Recordable",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "OSHA Code",
+												"type": "String"
+											},
+											"sink": {
+												"name": "OSHA_Code",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "OSHA Privacy Case",
+												"type": "String"
+											},
+											"sink": {
+												"name": "OSHA_PrivacyCase",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Event Location",
+												"type": "String"
+											},
+											"sink": {
+												"name": "EventLocation",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Lost Days",
+												"type": "String"
+											},
+											"sink": {
+												"name": "LostDays",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Restricted Days",
+												"type": "String"
+											},
+											"sink": {
+												"name": "RestrictedDays",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "OSHA Status",
+												"type": "String"
+											},
+											"sink": {
+												"name": "OSHAStatus",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Subrogation",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Subrogation",
+												"type": "String"
+											}
+										}
+									]
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "SRC_LossRunReport",
+									"type": "DatasetReference"
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ODS_CLAIMS_REPORTING",
+									"type": "DatasetReference"
+								}
+							]
+						},
+						{
+							"name": "cpy_EDW_Loss_Run_Report",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "Delete",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 1,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlDWSource",
+									"additionalColumns": [
+										{
+											"name": "CreatedTS",
+											"value": {
+												"value": "@utcNow()",
+												"type": "Expression"
+											}
+										},
+										{
+											"name": "LastUpdatedTS",
+											"value": {
+												"value": "@utcNow()",
+												"type": "Expression"
+											}
+										},
+										{
+											"name": "Source",
+											"value": "United"
+										},
+										{
+											"name": "SubStatus",
+											"value": ""
+										},
+										{
+											"name": "TTD_Paid",
+											"value": "0.00"
+										},
+										{
+											"name": "TPD_Paid",
+											"value": "0.00"
+										},
+										{
+											"name": "PD_Paid",
+											"value": "0.00"
+										},
+										{
+											"name": "VocRehab_TotalInc",
+											"value": "0.00"
+										},
+										{
+											"name": "VocRehab_RemainingRsv",
+											"value": "0.00"
+										},
+										{
+											"name": "VocRehab_Paid",
+											"value": "0.00"
+										},
+										{
+											"name": "LP_EmployeeID_REF",
+											"value": ""
+										}
+									],
+									"sqlReaderQuery": "Select CASE WHEN Location like 'MAD%' THEN 'MAC'\nWHEN Location like 'FHIA%' THEN 'FHI'\nWHEN Location like 'MAX%' THEN 'FHI'\nWHEN Location like 'RITE%' OR Location like 'HOME SMART%' THEN 'RTW'\nWHEN Location like 'STATEWIDE%' THEN 'SWR'\nWHEN Location like 'CLOSET%' OR Location like 'RENUITY%' THEN 'CTA'\nWHEN Location like 'PACIFIC%' OR Location like 'WEST%' THEN 'PBC'\nWHEN Location like 'Unknown%' THEN 'NA'\nWHEN Location like 'BYLTE%' THEN 'Bylte' END AS UnifiedLocation,CONVERT(VARCHAR(5), CAST(LossTime AS TIME), 108) AS LossTime_N,*,NULL as UNI_Occupation,NULL as UNI_InjuryCauseDesc\nfrom ODS.CLAIMS_REPORTING",
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"sink": {
+									"type": "SqlPoolSink",
+									"writeBehavior": "Upsert",
+									"upsertSettings": {
+										"keys": [
+											"ClaimNumber",
+											"Source"
+										],
+										"interimSchemaName": ""
+									},
+									"sqlWriterUseTableLock": false
+								},
+								"enableStaging": true,
+								"stagingSettings": {
+									"linkedServiceName": {
+										"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+										"type": "LinkedServiceReference"
+									},
+									"path": "staging"
+								},
+								"translator": {
+									"type": "TabularTranslator",
+									"mappings": [
+										{
+											"source": {
+												"name": "CarrierPolicyNumber",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "PolicyNumber",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "ClaimNumber",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "ClaimNumber",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Claimant",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "Name",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Age",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "Age",
+												"type": "Int32",
+												"physicalType": "int"
+											}
+										},
+										{
+											"source": {
+												"name": "LossDate",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "DateOfInjury",
+												"type": "DateTime",
+												"physicalType": "date"
+											}
+										},
+										{
+											"source": {
+												"name": "LossTime_N",
+												"type": "String",
+												"physicalType": "varchar"
+											},
+											"sink": {
+												"name": "TimeOfInjury",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "LengthOfService",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "LengthOfService",
+												"type": "Decimal",
+												"physicalType": "decimal",
+												"scale": 2,
+												"precision": 16
+											}
+										},
+										{
+											"source": {
+												"name": "LossDayOfWeek",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "DayOfWeek",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "HireDate",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "HireDate",
+												"type": "DateTime",
+												"physicalType": "date"
+											}
+										},
+										{
+											"source": {
+												"name": "CarrierNotificationDate",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "NotificationDate",
+												"type": "DateTime",
+												"physicalType": "date"
+											}
+										},
+										{
+											"source": {
+												"name": "BirthDate",
+												"type": "DateTime",
+												"physicalType": "date"
+											},
+											"sink": {
+												"name": "BirthDate",
+												"type": "DateTime",
+												"physicalType": "date"
+											}
+										},
+										{
+											"source": {
+												"name": "PolicyEffectiveDate",
+												"type": "DateTime",
+												"physicalType": "date"
+											},
+											"sink": {
+												"name": "PolicyEffectiveDate",
+												"type": "DateTime",
+												"physicalType": "date"
+											}
+										},
+										{
+											"source": {
+												"name": "DateCompDecisionMade",
+												"type": "DateTime",
+												"physicalType": "date"
+											},
+											"sink": {
+												"name": "DateCompDecisionMade",
+												"type": "DateTime",
+												"physicalType": "date"
+											}
+										},
+										{
+											"source": {
+												"name": "EmployerReportDate",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "EmployerReportDate",
+												"type": "DateTime",
+												"physicalType": "date"
+											}
+										},
+										{
+											"source": {
+												"name": "LastCloseDate",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "CloseDate",
+												"type": "DateTime",
+												"physicalType": "date"
+											}
+										},
+										{
+											"source": {
+												"name": "LastReopenDate",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "ReopenDate",
+												"type": "DateTime",
+												"physicalType": "date"
+											}
+										},
+										{
+											"source": {
+												"name": "Status",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "Status",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "InjuryReported_HOW",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "InjuryReported_HOW",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "InjuryOnPremise",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "InjuryOnPremise",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "ReportLag",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "ReportLag",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "DepartmentName",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "DepartmentName",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "CompensabilityDecision",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "CompensabilityDecision",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "DetailCause",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "DetailCause",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "AverageWeeklyWage",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "AverageWeeklyWage",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "EmploymentStatus",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "EmploymentStatus",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Gender",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "Gender",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Coverage",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "Coverage",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Occupation",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "Occupation",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "ClassCode",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "ClassCode",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "ClaimType",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "ClaimType",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "JurisdictionState",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "JurisdictionState",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "SubStatus",
+												"type": "String"
+											},
+											"sink": {
+												"name": "SubStatus",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "LawsuitFiled",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "LawSuitFiled",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Location",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "EmploymentLocation",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "EmploymentAddress",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "EmploymentAddress",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "EmploymentLocationCity",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "EmploymentCity",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "EmploymentLocationState",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "EmploymentState",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "EmploymentLocationPostalCode",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "EmploymentPostalCode",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "LocationNumber",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "EmploymentLocationNum",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "CauseCode",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "InjuryCauseCode",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Cause",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "InjuryCauseDesc",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "BodyPartCode",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "BodyPartCode",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "BodyPart",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "BodyPartDesc",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "NatureCode",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "InjuryNatureCode",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Nature",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "InjuryNatureDesc",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "LossDescription",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "AccidentDesc",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Adjuster",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "Adjuster",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "AdjusterPhone",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "AdjustmerPhone",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "AdjusterEmail",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "AdjusterEmail",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "PaidMedical",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "Medical_Paid",
+												"type": "Decimal",
+												"physicalType": "decimal",
+												"scale": 2,
+												"precision": 16
+											}
+										},
+										{
+											"source": {
+												"name": "OSMedical",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "Medical_OS",
+												"type": "Decimal",
+												"physicalType": "decimal",
+												"scale": 2,
+												"precision": 16
+											}
+										},
+										{
+											"source": {
+												"name": "IncMedical",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "Medical_Inc",
+												"type": "Decimal",
+												"physicalType": "decimal",
+												"scale": 2,
+												"precision": 16
+											}
+										},
+										{
+											"source": {
+												"name": "TTD_Paid",
+												"type": "String"
+											},
+											"sink": {
+												"name": "TTD_Paid",
+												"type": "Decimal",
+												"physicalType": "decimal",
+												"scale": 2,
+												"precision": 16
+											}
+										},
+										{
+											"source": {
+												"name": "TPD_Paid",
+												"type": "String"
+											},
+											"sink": {
+												"name": "TPD_Paid",
+												"type": "Decimal",
+												"physicalType": "decimal",
+												"scale": 2,
+												"precision": 16
+											}
+										},
+										{
+											"source": {
+												"name": "PD_Paid",
+												"type": "String"
+											},
+											"sink": {
+												"name": "PD_Paid",
+												"type": "Decimal",
+												"physicalType": "decimal",
+												"scale": 2,
+												"precision": 16
+											}
+										},
+										{
+											"source": {
+												"name": "PaidIndemnity",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "Indemnity_Paid",
+												"type": "Decimal",
+												"physicalType": "decimal",
+												"scale": 2,
+												"precision": 16
+											}
+										},
+										{
+											"source": {
+												"name": "OSIndemnity",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "Indemnity_OS",
+												"type": "Decimal",
+												"physicalType": "decimal",
+												"scale": 2,
+												"precision": 16
+											}
+										},
+										{
+											"source": {
+												"name": "IncIndemnity",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "Indemnity_Inc",
+												"type": "Decimal",
+												"physicalType": "decimal",
+												"scale": 2,
+												"precision": 16
+											}
+										},
+										{
+											"source": {
+												"name": "VocRehab_TotalInc",
+												"type": "String"
+											},
+											"sink": {
+												"name": "VocRehab_TotalInc",
+												"type": "Decimal",
+												"physicalType": "decimal",
+												"scale": 2,
+												"precision": 16
+											}
+										},
+										{
+											"source": {
+												"name": "VocRehab_RemainingRsv",
+												"type": "String"
+											},
+											"sink": {
+												"name": "VocRehab_RemainingRsvs",
+												"type": "Decimal",
+												"physicalType": "decimal",
+												"scale": 2,
+												"precision": 16
+											}
+										},
+										{
+											"source": {
+												"name": "VocRehab_Paid",
+												"type": "String"
+											},
+											"sink": {
+												"name": "VocRehab_Paid",
+												"type": "Decimal",
+												"physicalType": "decimal",
+												"scale": 2,
+												"precision": 16
+											}
+										},
+										{
+											"source": {
+												"name": "PaidLegalExpense",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "LegalExpense_Paid",
+												"type": "Decimal",
+												"physicalType": "decimal",
+												"scale": 2,
+												"precision": 16
+											}
+										},
+										{
+											"source": {
+												"name": "OSLegalExpense",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "LegalExpense_OS",
+												"type": "Decimal",
+												"physicalType": "decimal",
+												"scale": 2,
+												"precision": 16
+											}
+										},
+										{
+											"source": {
+												"name": "IncLegalExpense",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "LegalExpense_Inc",
+												"type": "Decimal",
+												"physicalType": "decimal",
+												"scale": 2,
+												"precision": 16
+											}
+										},
+										{
+											"source": {
+												"name": "IncRecovery",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "Recovery_Inc",
+												"type": "Decimal",
+												"physicalType": "decimal",
+												"scale": 2,
+												"precision": 16
+											}
+										},
+										{
+											"source": {
+												"name": "TotalPaid",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "Total_Paid",
+												"type": "Decimal",
+												"physicalType": "decimal",
+												"scale": 2,
+												"precision": 16
+											}
+										},
+										{
+											"source": {
+												"name": "TotalOutstanding",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "Total_Outstanding",
+												"type": "Decimal",
+												"physicalType": "decimal",
+												"scale": 2,
+												"precision": 16
+											}
+										},
+										{
+											"source": {
+												"name": "TotalIncurred",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "Total_Incurred",
+												"type": "Decimal",
+												"physicalType": "decimal",
+												"scale": 2,
+												"precision": 16
+											}
+										},
+										{
+											"source": {
+												"name": "OSHA_Recordable",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "OSHA_Recordable",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "OSHA_Code",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "OSHA_Code",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "OSHA_PrivacyCase",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "OSHA_PrivacyCase",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "EventLocation",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "EventLocation",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "LostDays",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "LostDays",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "RestrictedDays",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "RestrictedDays",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "OSHAStatus",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "OSHAStatus",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Subrogation",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "Subrogation",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Source",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Source",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "LP_EmployeeID_REF",
+												"type": "String"
+											},
+											"sink": {
+												"name": "LP_EmployeeID_REF",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "CreatedTS",
+												"type": "String"
+											},
+											"sink": {
+												"name": "CreatedTS",
+												"type": "DateTime",
+												"physicalType": "datetime"
+											}
+										},
+										{
+											"source": {
+												"name": "LastUpdatedTS",
+												"type": "String"
+											},
+											"sink": {
+												"name": "LastUpdatedTS",
+												"type": "DateTime",
+												"physicalType": "datetime"
+											}
+										},
+										{
+											"source": {
+												"name": "UNI_Occupation",
+												"type": "Int32",
+												"physicalType": "int"
+											},
+											"sink": {
+												"name": "UNI_Occupation",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "UNI_InjuryCauseDesc",
+												"type": "Int32",
+												"physicalType": "int"
+											},
+											"sink": {
+												"name": "UNI_InjuryCauseDesc",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										}
+									],
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "ODS_CLAIMS_REPORTING",
+									"type": "DatasetReference"
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "EDW_FACT_CLAIMS_REPORTING",
+									"type": "DatasetReference"
+								}
+							]
+						},
+						{
+							"name": "Update UNI Fields",
+							"type": "Script",
+							"dependsOn": [
+								{
+									"activity": "cpy_EDW_Loss_Run_Report",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"linkedServiceName": {
+								"referenceName": "RDC",
+								"type": "LinkedServiceReference"
+							},
+							"typeProperties": {
+								"scripts": [
+									{
+										"type": "Query",
+										"text": "UPDATE EDW.FACT_CLAIMS_REPORTING\r\nSET \r\n  UNI_Occupation = CASE \r\n    WHEN Source = 'United' AND UPPER(Occupation) LIKE 'ADMINISTRATIVE%' THEN 'Administrative'\r\n    WHEN Source = 'United' AND UPPER(Occupation) LIKE 'ASSEMBLER%' THEN 'Installer'\r\n    WHEN Source = 'United' AND UPPER(Occupation) LIKE 'BATH%' THEN 'Installer'\r\n    WHEN Source = 'United' AND UPPER(Occupation) LIKE 'CANVAS%' THEN 'Canvas'\r\n    WHEN Source = 'United' AND UPPER(Occupation) LIKE 'CARPENTER%' THEN 'Installer'\r\n    WHEN Source = 'United' AND UPPER(Occupation) LIKE 'CLERK%' THEN 'Clerk'\r\n    WHEN Source = 'United' AND UPPER(Occupation) LIKE 'CONTRACTOR%' THEN 'Contractor'\r\n    WHEN Source = 'United' AND UPPER(Occupation) LIKE 'COURIER%' THEN 'Courier'\r\n    WHEN Source = 'United' AND UPPER(Occupation) LIKE 'CUSTOMER%' THEN 'Customer Service Agent'\r\n    WHEN Source = 'United' AND UPPER(Occupation) LIKE 'DECORATOR%' THEN 'Decorator'\r\n    WHEN Source = 'United' AND UPPER(Occupation) LIKE 'DESIGN%' THEN 'Sales'\r\n    WHEN Source = 'United' AND UPPER(Occupation) LIKE 'ESTIMATOR%' THEN 'Estimator'\r\n    WHEN Source = 'United' AND UPPER(Occupation) LIKE 'FIELD%' THEN 'Supervisor/Manager'\r\n    WHEN Source = 'United' AND UPPER(Occupation) LIKE 'FLOATING%' THEN 'Warehouse'\r\n    WHEN Source = 'United' AND UPPER(Occupation) LIKE 'GLAZIER%' THEN 'Glazier'\r\n    WHEN Source = 'United' AND UPPER(Occupation) LIKE 'GROUP%' THEN 'Supervisor/Manager'\r\n    WHEN Source = 'United' AND UPPER(Occupation) LIKE 'HOUSEHOLD%' THEN 'Installer'\r\n    WHEN Source = 'United' AND UPPER(Occupation) LIKE 'INSPECTOR%' THEN 'Inspector'\r\n    WHEN Source = 'United' AND UPPER(Occupation) LIKE 'INSTALLER%' THEN 'Installer'\r\n    WHEN Source = 'United' AND UPPER(Occupation) LIKE 'JOURNEYMAN%' THEN 'Plumber'\r\n    WHEN Source = 'United' AND UPPER(Occupation) LIKE 'KITCHEN%' THEN 'Installer'\r\n    WHEN Source = 'United' AND UPPER(Occupation) LIKE 'LABOR%' THEN 'Laborer'\r\n    WHEN Source = 'United' AND UPPER(Occupation) LIKE 'LEAD%' THEN 'Installer'\r\n    WHEN Source = 'United' AND UPPER(Occupation) LIKE 'MAINTENANCE%' THEN 'Maintenance'\r\n    WHEN Source = 'United' AND UPPER(Occupation) LIKE 'MANAGER%' THEN 'Supervisor/Manager'\r\n    WHEN Source = 'United' AND UPPER(Occupation) LIKE 'MARKET%' THEN 'Market Researcher'\r\n    WHEN Source = 'United' AND UPPER(Occupation) LIKE 'MEASURE%' THEN 'Measure Tech'\r\n    WHEN Source = 'United' AND UPPER(Occupation) LIKE 'OFFICE%' THEN 'Clerk'\r\n    WHEN Source = 'United' AND UPPER(Occupation) LIKE 'PLUMBER%' THEN 'Plumber'\r\n    WHEN Source = 'United' AND UPPER(Occupation) LIKE 'PRODUCTION%' THEN 'Supervisor/Manager'\r\n    WHEN Source = 'United' AND UPPER(Occupation) LIKE 'PROMOTER%' THEN 'F2F'\r\n    WHEN Source = 'United' AND UPPER(Occupation) LIKE 'REGIONAL%' THEN 'F2F Manager'\r\n    WHEN Source = 'United' AND UPPER(Occupation) LIKE 'RETAIL%' THEN 'F2F'\r\n    WHEN Source = 'United' AND UPPER(Occupation) LIKE 'SALES%' THEN 'Sales'\r\n    WHEN Source = 'United' AND UPPER(Occupation) LIKE 'SCHEDULER%' THEN 'Scheduler'\r\n    WHEN Source = 'United' AND UPPER(Occupation) LIKE 'SERVICE%' THEN 'Service'\r\n    WHEN Source = 'United' AND UPPER(Occupation) LIKE 'TA%' THEN 'TA'\r\n    WHEN Source = 'United' AND UPPER(Occupation) LIKE 'TECHNICAL%' THEN 'Technical'\r\n    WHEN Source = 'United' AND UPPER(Occupation) LIKE 'TELEPHONE%' THEN 'Operator'\r\n    WHEN Source = 'United' AND UPPER(Occupation) LIKE 'TILE%' THEN 'Installer'\r\n    WHEN Source = 'United' AND UPPER(Occupation) LIKE 'TRAINING%' THEN 'Trainer'\r\n    WHEN Source = 'United' AND UPPER(Occupation) LIKE 'TRUCK%' THEN 'Driver'\r\n    WHEN Source = 'United' AND UPPER(Occupation) LIKE 'WAREHOUSE%' THEN 'Warehouse'\r\n    WHEN Source = 'United' AND UPPER(Occupation) LIKE 'WINDOW%' THEN 'Installer'\r\n    WHEN Source = 'ICW' AND UPPER(Occupation) LIKE 'ADMINISTRATIVE%' THEN 'Administrative'\r\n    WHEN Source = 'ICW' AND UPPER(Occupation) LIKE 'ASSEMBLE%' THEN 'Installer'\r\n    WHEN Source = 'ICW' AND UPPER(Occupation) LIKE 'CANVAS%' THEN 'Canvas'\r\n    WHEN Source = 'ICW' AND UPPER(Occupation) LIKE 'CARPENTER%' THEN 'Installer'\r\n    WHEN Source = 'ICW' AND UPPER(Occupation) LIKE 'CLERK%' THEN 'Clerk'\r\n    WHEN Source = 'ICW' AND UPPER(Occupation) LIKE 'CONTRACTOR%' THEN 'Contractor'\r\n    WHEN Source = 'ICW' AND UPPER(Occupation) LIKE 'COURIER%' THEN 'Courier'\r\n    WHEN Source = 'ICW' AND UPPER(Occupation) LIKE 'CUSTOMER%' THEN 'Customer Service'\r\n    WHEN Source = 'ICW' AND UPPER(Occupation) LIKE 'DECORATOR%' THEN 'Sales'\r\n    WHEN Source = 'ICW' AND UPPER(Occupation) LIKE 'ESTIMATOR%' THEN 'Estimator'\r\n    WHEN Source = 'ICW' AND UPPER(Occupation) LIKE 'GLAZIER%' THEN 'Installer'\r\n    WHEN Source = 'ICW' AND UPPER(Occupation) LIKE 'GROUP%' THEN 'Supervisor/Manager'\r\n    WHEN Source = 'ICW' AND UPPER(Occupation) LIKE 'HOUSEHOLD%' THEN 'Installer'\r\n    WHEN Source = 'ICW' AND UPPER(Occupation) LIKE 'INSPECTOR%' THEN 'Inspector'\r\n    WHEN Source = 'ICW' AND UPPER(Occupation) LIKE 'INTERVIEWER%' THEN 'Interviewer'\r\n    WHEN Source = 'ICW' AND UPPER(Occupation) LIKE 'LABORER%' THEN 'Installer'\r\n    WHEN Source = 'ICW' AND UPPER(Occupation) LIKE 'MAINTENANCE%' THEN 'Maintenance'\r\n    WHEN Source = 'ICW' AND UPPER(Occupation) LIKE 'MANAGER%' THEN 'Supervisor/Manager'\r\n    WHEN Source = 'ICW' AND UPPER(Occupation) LIKE 'MARKET%' THEN 'Analyst'\r\n    WHEN Source = 'ICW' AND UPPER(Occupation) LIKE 'OFFICE%' THEN 'Clerk'\r\n    WHEN Source = 'ICW' AND UPPER(Occupation) LIKE 'PLUMBER%' THEN 'Plumber'\r\n    WHEN Source = 'ICW' AND UPPER(Occupation) LIKE 'SALES%' THEN 'Sales'\r\n    WHEN Source = 'ICW' AND UPPER(Occupation) LIKE 'SCHEDULER%' THEN 'Scheduler'\r\n    WHEN Source = 'ICW' AND UPPER(Occupation) LIKE 'SERVICE%' THEN 'Service'\r\n    WHEN Source = 'ICW' AND UPPER(Occupation) LIKE 'TECHNICAL%' THEN 'Technical Illustrator'\r\n    WHEN Source = 'ICW' AND UPPER(Occupation) LIKE 'TELEPHONE%' THEN 'Operator'\r\n    WHEN Source = 'ICW' AND UPPER(Occupation) LIKE 'TILE%' THEN 'Installer'\r\n    WHEN Source = 'ICW' AND UPPER(Occupation) LIKE 'TRUCK%' THEN 'Driver'\r\n    WHEN Source = 'ICW' AND UPPER(Occupation) LIKE 'WAREHOUSE%' THEN 'Warehouse'\r\n    WHEN Source = 'ICW' AND UPPER(Occupation) LIKE 'WINDOW%' THEN 'Installer'\r\n  END,\r\n  \r\n  UNI_InjuryCauseDesc = CASE \r\n    WHEN Source='United' AND UPPER(InjuryCauseDesc) LIKE 'ANIMAL%' THEN 'Animal/Insect'\r\n    WHEN Source='United' AND UPPER(InjuryCauseDesc) LIKE 'BRN%' THEN 'Brn/Scld'\r\n    WHEN Source='United' AND (UPPER(InjuryCauseDesc) LIKE 'CAUGHT%' OR UPPER(InjuryCauseDesc) LIKE 'CGHT%') THEN 'Caught In/Under/Between'\r\n    WHEN Source='United' AND UPPER(InjuryCauseDesc) LIKE 'CUT%' THEN 'Cut/Puncture/Scrape'\r\n    WHEN Source='United' AND (UPPER(InjuryCauseDesc) LIKE 'FALL%' OR UPPER(InjuryCauseDesc) LIKE 'SLIP%') THEN 'Fall/Slip/Trip'\r\n    WHEN Source='United' AND UPPER(InjuryCauseDesc) LIKE 'FOREIGN%' THEN 'Foreign Body in Eye'\r\n    WHEN Source='United' AND UPPER(InjuryCauseDesc) LIKE 'MANUAL%' THEN 'Manual Material Handling'\r\n    WHEN Source='United' AND UPPER(InjuryCauseDesc) LIKE 'MISC%' THEN 'Misc:Other/Miscellaneous'\r\n    WHEN Source='United' AND (UPPER(InjuryCauseDesc) LIKE 'MOTOR%' OR UPPER(InjuryCauseDesc) LIKE 'MTR%') THEN 'Motor Vehicle Incident'\r\n    WHEN Source='United' AND UPPER(InjuryCauseDesc) LIKE 'STRAIN%' THEN 'Strain'\r\n    WHEN Source='United' AND UPPER(InjuryCauseDesc) LIKE 'SPRAIN%' THEN 'Sprain'\r\n    WHEN Source='United' AND UPPER(InjuryCauseDesc) LIKE 'STRK%' THEN 'Struck/Step On'\r\n    WHEN Source='United' AND UPPER(InjuryCauseDesc) = 'STRUCK BY ANIMAL OR INSECT' THEN 'Struck By Animal Or Insect'\r\n    WHEN Source='United' AND (UPPER(InjuryCauseDesc) LIKE 'STRUCK%' AND UPPER(InjuryCauseDesc) != 'STRUCK BY ANIMAL OR INSECT') THEN 'Struck By'\r\n    WHEN Source='United' AND UPPER(InjuryCauseDesc) LIKE 'TEMPERATURE%' THEN 'Temperature Extremes'\r\n    WHEN Source = 'ICW' AND UPPER(InjuryCauseDesc) LIKE 'BRN%' THEN 'Burn/Scold'\r\n    WHEN Source = 'ICW' AND UPPER(InjuryCauseDesc) LIKE 'CGHT%' THEN 'Cght In/Btwn/Under'\r\n    WHEN Source = 'ICW' AND UPPER(InjuryCauseDesc) LIKE 'CUT%' THEN 'Cut/Puncture/Scrape'\r\n    WHEN Source = 'ICW' AND UPPER(InjuryCauseDesc) LIKE 'FALL%' THEN 'Fall/Slip/Trip'\r\n    WHEN Source = 'ICW' AND UPPER(InjuryCauseDesc) LIKE 'MISC%' THEN 'Miscellaneous/Other'\r\n    WHEN Source = 'ICW' AND UPPER(InjuryCauseDesc) LIKE 'MTR%' THEN 'Motor Vehicle'\r\n    WHEN Source = 'ICW' AND UPPER(InjuryCauseDesc) LIKE 'STRAIN%' THEN 'Strain'\r\n    WHEN Source = 'ICW' AND UPPER(InjuryCauseDesc) LIKE 'STRK%' THEN 'Struck/Strep'\r\n    WHEN Source = 'ICW' AND UPPER(InjuryCauseDesc) = 'STRUCK BY ANIMAL OR INSECT' THEN 'Struck By Animal Or Insect'\r\n    WHEN Source = 'ICW' AND (UPPER(InjuryCauseDesc) LIKE 'STRUCK%' AND UPPER(InjuryCauseDesc) != 'STRUCK BY ANIMAL OR INSECT') THEN 'Struck By'\r\n    WHEN Source = 'ICW' AND UPPER(InjuryCauseDesc) LIKE 'SPRAIN%' THEN 'Sprain'\r\n  END\r\nWHERE UNI_Occupation IS NULL OR UNI_InjuryCauseDesc IS NULL;\r\n"
+									}
+								],
+								"scriptBlockExecutionTimeout": "02:00:00"
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "EMployeeID_UPD",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "If Condition File exist",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "UPDATE  [EDW].[FACT_CLAIMS_REPORTING] \nSET LP_EmployeeID_REF=NULL;\n\nUPDATE A \nSET A.LP_EmployeeID_REF = B.EmployeeId\nFROM\n[EDW].[FACT_CLAIMS_REPORTING] A \nJOIN\n(\t\n\t\tSELECT * \n\t\t\tFROM \n\t\t\t\t(\n\t\t\t\t\tSELECT ROW_NUMBER() OVER (PARTITION BY CONCAT(Ltrim(Rtrim(E.FirstName)),' ',Ltrim(Rtrim(E.LastName))),Division  ORDER BY Active DESC,Email DESC) AS RW, \n\t\t\t\t\tFirstname,LastName,CONCAT(Ltrim(Rtrim(E.FirstName)),' ',Ltrim(Rtrim(E.LastName)))as Fullname, EmployeeId, Division, Email, Zip, Active\n\t\t\t\t\tFROM EDW.DIM_EMPLOYEE E\n\t\t\t\t\tWHERE Active=1\n\t\t\t\t\tAND LEFT(FirstName, 1) != '_'\n\t\t\t\t\t) EX\n\t\t\tWHERE RW=1\n\t\t\n\t\t) B\n\nON  LTRIM(RTRIM(LEFT(A.Name, CHARINDEX(',', A.Name) - 1))) \t\t\t\t= B.LastName\nAND LTRIM(RTRIM(RIGHT(A.Name, LEN(A.Name) - CHARINDEX(',', A.Name)))) \t= B.FirstName\nWHERE A.LP_EmployeeID_REF IS NULL;\n\n\n\nUPDATE A \nSET A.LP_EmployeeID_REF = B.EmployeeId\nFROM\n[EDW].[FACT_CLAIMS_REPORTING] A \nJOIN\n(\t\n\t\tSELECT * \n\t\t\tFROM \n\t\t\t\t(\n\t\t\t\t\tSELECT ROW_NUMBER() OVER (PARTITION BY CONCAT(Ltrim(Rtrim(E.FirstName)),' ',Ltrim(Rtrim(E.LastName))),Division  ORDER BY Active DESC,Email DESC) AS RW, \n\t\t\t\t\tFirstname,LastName,CONCAT(Ltrim(Rtrim(E.FirstName)),' ',Ltrim(Rtrim(E.LastName)))as Fullname, EmployeeId, Division, Email, Zip, Active\n\t\t\t\t\tFROM EDW.DIM_EMPLOYEE E\n\t\t\t\t\tWHERE Active=1\n\t\t\t\t\tAND LEFT(FirstName, 1) != '_'\n\t\t\t\t\t) EX\n\t\t\tWHERE RW=1\n\t\t\n\t\t) B\n\nON  LTRIM(RTRIM(LEFT(A.Name, CHARINDEX(',', A.Name) - 1))) \t\t\t\t= B.LastName\nAND LTRIM(RTRIM(RIGHT(A.Name, LEN(A.Name) - CHARINDEX(',', A.Name)))) \tLIKE '%' + B.FirstName + '%'\nWHERE A.LP_EmployeeID_REF IS NULL;\n\n\n\n\n\n\n\nUPDATE A \nSET A.LP_EmployeeID_REF = B.EmployeeId\nFROM\n[EDW].[FACT_CLAIMS_REPORTING] A \nJOIN\n(\t\n\t\tSELECT * \n\t\t\tFROM \n\t\t\t\t(\n\t\t\t\t\tSELECT ROW_NUMBER() OVER (PARTITION BY CONCAT(Ltrim(Rtrim(E.FirstName)),' ',Ltrim(Rtrim(E.LastName))),Division  ORDER BY Active DESC,Email DESC) AS RW, \n\t\t\t\t\tFirstname,LastName,CONCAT(Ltrim(Rtrim(E.FirstName)),' ',Ltrim(Rtrim(E.LastName)))as Fullname, EmployeeId, Division, Email, Zip, Active\n\t\t\t\t\tFROM EDW.DIM_EMPLOYEE E\n\t\t\t\t\tWHERE Active=1\n\t\t\t\t\tAND LEFT(FirstName, 1) != '_'\n\t\t\t\t\t) EX\n\t\t\tWHERE RW=1\n\t\t\n\t\t) B\n\nON  LTRIM(RTRIM(LEFT(A.Name, CHARINDEX(',', A.Name) - 1))) \t\t\t\tLIKE '%' + B.LastName + '%'\nAND LTRIM(RTRIM(RIGHT(A.Name, LEN(A.Name) - CHARINDEX(',', A.Name))))   = B.FirstName \nWHERE A.LP_EmployeeID_REF IS NULL;\n\n\n\n\n-- Mask BirthDate\nUPDATE  [EDW].[FACT_CLAIMS_REPORTING]\nSET BirthDate=NULL;"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Filter_Lastest_File",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "Check file Name",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Check file Name').output.childItems",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@and(\n  equals(item().type, 'File'),\n  contains(item().name, 'Loss Run')\n)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Set variable_FileName",
+				"type": "SetVariable",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "FileName",
+					"value": {
+						"value": "@activity('Filter_Lastest_File').output.value[0].name",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Check File Exist",
+				"type": "GetMetadata",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Set variable_FileName",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "BinaryDataSource_File",
+						"type": "DatasetReference",
+						"parameters": {
+							"Container": "loss-run-report",
+							"Directory": "in",
+							"filename": {
+								"value": "@variables('FileName')",
+								"type": "Expression"
+							}
+						}
+					},
+					"fieldList": [
+						"exists"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "BinaryReadSettings"
+					}
+				}
+			}
+		],
+		"variables": {
+			"FileName": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "ODS_to_EDW/FACTS/LossRun"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-01-13T09:33:51Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

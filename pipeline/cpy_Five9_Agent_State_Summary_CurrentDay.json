@@ -1,0 +1,854 @@
+{
+	"name": "cpy_Five9_Agent_State_Summary_CurrentDay",
+	"properties": {
+		"activities": [
+			{
+				"name": "cpy_Agent_State_Summary",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.6:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"additionalColumns": [
+							{
+								"name": "FileIdentifier",
+								"value": "ALL_DIVISION"
+							}
+						],
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE [ODS].[FIVE9_AGENT_STATE_SUMMARY] ;",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "AGENT GROUP",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "AGENT_GROUP",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AGENT",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "AGENT",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AGENT FIRST NAME",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "AGENT_FIRST_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AGENT LAST NAME",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "AGENT_LAST_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DATE",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "DATE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AFTER CALL WORK TIME",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "AFTER_CALL_WORK",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LOGIN TIME",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "LOGIN",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "NOT READY TIME",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "NOT_READY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ON CALL TIME",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "ON_CALL",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PREVIEW TIME",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "ON_PREVIEW",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ON VOICEMAIL TIME",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "ON_VOICEMAIL",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "READY TIME",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "READY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "RINGING TIME",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "RINGING",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "UTILIZATION (LOGIN LESS WAIT AND NOT READY)",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "UTILIZATION",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "OCCUPANCY (LOGIN LESS WAIT)",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "OCCUPANCY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "FileIdentifier",
+									"type": "String"
+								},
+								"sink": {
+									"name": "FILE_IDENTIFIER",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_Agent_State_Summary_CurrentDay",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_FIVE9_AGENT_STATE_SUMMARY",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "cpy_Agent_State_Summary_MAC",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "cpy_Agent_State_Summary",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.6:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"additionalColumns": [
+							{
+								"name": "FileIdentifier",
+								"value": "MAC"
+							}
+						],
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "AGENT GROUP",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "AGENT_GROUP",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AGENT",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "AGENT",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AGENT FIRST NAME",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "AGENT_FIRST_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AGENT LAST NAME",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "AGENT_LAST_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DATE",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "DATE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AFTER CALL WORK TIME",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "AFTER_CALL_WORK",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LOGIN TIME",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "LOGIN",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "NOT READY TIME",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "NOT_READY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ON CALL TIME",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "ON_CALL",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PREVIEW TIME",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "ON_PREVIEW",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ON VOICEMAIL TIME",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "ON_VOICEMAIL",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "READY TIME",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "READY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "RINGING TIME",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "RINGING",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "UTILIZATION (LOGIN LESS WAIT AND NOT READY)",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "UTILIZATION",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "OCCUPANCY (LOGIN LESS WAIT)",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "OCCUPANCY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "FileIdentifier",
+									"type": "String"
+								},
+								"sink": {
+									"name": "FILE_IDENTIFIER",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_Agent_State_Summary_MAC_CurrentDay",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_FIVE9_AGENT_STATE_SUMMARY",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "cpy_FACT_Agent_State_Summary",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "cpy_Agent_State_Summary_MAC",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.6:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "WITH M1 AS \n(\n\t\tSELECT \n\t\t\tCASE WHEN DIVISION='NA' THEN \n\t\t\t\t( CASE \n\t\t\t\t\tWHEN Email_Extn='madcitywindows.com' THEN 'MAC'\n\t\t\t\t\tWHEN Email_Extn='fhiaremodeling.com' THEN 'FHI'\n\t\t\t\t\tWHEN Email_Extn='pacificbath.com' THEN 'PBC'\n\t\t\t\t\tWHEN Email_Extn='closetamerica.com' THEN 'CTA'\n\t\t\t\t\tELSE 'NA' END\n\t\t\t\t\t)\n\t\t\t\tELSE DIVISION END AS DIVISION,\n\t\t\t\tCONCAT(CONCAT(AGENT_FIRST_NAME,' '),AGENT_LAST_NAME) AS AGENT_NAME,\n\t\t\t\tAGENT,\n\t\t\t\tDATE,\n\t\t\t\tAFTER_CALL_WORK ,\n\t\t\t\tLOGIN\t\t\t,\n\t\t\t\tNOT_READY\t\t,\n\t\t\t\tON_CALL\t\t\t,\n\t\t\t\tON_PREVIEW\t\t,\n\t\t\t\tON_VOICEMAIL\t,\n\t\t\t\tREADY\t\t\t,\n\t\t\t\tRINGING\t\t\t,\n\t\t\t\tFILE_IDENTIFIER AS DATA_IDENTIFIER,\n\t\t\t\t[UTILIZATION],\n\t\t\t\t[OCCUPANCY],\n\t\t\t\tCAST(GETDATE() AS DATE) AS LAST_UPDATED_TS\n\t\t\t\t\n\t\t\t\t\tFROM\n\t\t\t\t\t(\n\t\t\t\t\t\tSELECT \n\t\t\t\t\t\tCASE \n\t\t\t\t\t\t\tWHEN FILE_IDENTIFIER='ALL_DIVISION' AND UPPER(AGENT_GROUP) = 'RIT GROUP' THEN 'RTW'\n\t\t\t\t\t\t\tWHEN FILE_IDENTIFIER='ALL_DIVISION' AND UPPER(AGENT_GROUP) = 'FHI GROUP' THEN 'FHI'\n\t\t\t\t\t\t\tWHEN FILE_IDENTIFIER='ALL_DIVISION' AND UPPER(AGENT_GROUP) = 'MCW GROUP' THEN 'MAC'\n\t\t\t\t\t\t\tWHEN FILE_IDENTIFIER='ALL_DIVISION' AND UPPER(AGENT_GROUP) = 'PHI GROUP' THEN 'PHI'\n\t\t\t\t\t\t\tWHEN FILE_IDENTIFIER='ALL_DIVISION' AND UPPER(AGENT_GROUP) = 'PBC GROUP' THEN 'PBC'\n\t\t\t\t\t\t\tWHEN FILE_IDENTIFIER='ALL_DIVISION' AND UPPER(AGENT_GROUP) = 'SWR GROUP' THEN 'SWR'\n\t\t\t\t\t\t\tWHEN FILE_IDENTIFIER='ALL_DIVISION' AND UPPER(AGENT_GROUP) = 'HSI GROUP' THEN 'HSI'\n\t\t\t\t\t\t\tWHEN FILE_IDENTIFIER='ALL_DIVISION' AND UPPER(AGENT_GROUP) = 'MAX GROUP' THEN 'MXH'\n\t\t\t\t\t\t\tWHEN FILE_IDENTIFIER='ALL_DIVISION' AND UPPER(AGENT_GROUP) = 'HOME ORG'  THEN 'CTA'\n\t\t\t\t\t\t\tWHEN FILE_IDENTIFIER='MAC' THEN 'MAC'\n\t\t\t\t\t\t\tELSE 'NA' END AS DIVISION,\n\t\t\t\t\t\t\tSUBSTRING(Agent, CHARINDEX('@', Agent) + 1, LEN(Agent) - CHARINDEX('@', Agent)) AS Email_Extn,\n\t\t\t\t\t\t\t*\n\t\t\t\t\t\tFROM [ODS].[FIVE9_AGENT_STATE_SUMMARY]\n\t\t\n\t\t\t) A\n\t\t\t\n\t)\n\t\n\t\nSELECT DISTINCT\nCASE \nWHEN DIVISION='PHI' THEN 'CTA' \nWHEN DIVISION='HSI' THEN 'RTW' \nELSE DIVISION END AS DIVISION,\nAGENT_NAME,\nAGENT,\nDATE,\nAFTER_CALL_WORK ,\nLOGIN\t\t\t,\nNOT_READY\t\t,\t\nON_CALL\t\t\t,\t\nON_PREVIEW\t\t,\t\nON_VOICEMAIL\t,\t\nREADY\t\t\t,\t\nRINGING\t\t\t,\t\nDATA_IDENTIFIER ,\nDIVISION AS DIVISION_ORIG,\nUTILIZATION,\nOCCUPANCY,\nLAST_UPDATED_TS\n\nFROM M1\t",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "DELETE FROM [EDW].[FACT_FIVE9_AGENT_STATE_SUMMARY]\nWHERE CAST(DATE AS DATE) IN ( SELECT DISTINCT CAST((CASE WHEN ISDate(date)=1 THEN DATE ELSE '2099-01-01' END ) AS DATE) FROM [ODS].[FIVE9_AGENT_STATE_SUMMARY] WHERE FILE_IDENTIFIER='ALL_DIVISION' )\nAND DATA_IDENTIFIER ='ALL_DIVISION';\n\nDELETE FROM [EDW].[FACT_FIVE9_AGENT_STATE_SUMMARY]\nWHERE CAST(DATE AS DATE) IN ( SELECT DISTINCT CAST((CASE WHEN ISDate(date)=1 THEN DATE ELSE '2099-01-01' END ) AS DATE) FROM [ODS].[FIVE9_AGENT_STATE_SUMMARY] WHERE FILE_IDENTIFIER='MAC' )\nAND DATA_IDENTIFIER ='MAC';",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "DIVISION",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "DIVISION",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AGENT_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "AGENT_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AGENT",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "AGENT",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DATE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "DATE",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								}
+							},
+							{
+								"source": {
+									"name": "AFTER_CALL_WORK",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "AFTER_CALL_WORK",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LOGIN",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "LOGIN",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "NOT_READY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "NOT_READY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ON_CALL",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ON_CALL",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ON_PREVIEW",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ON_PREVIEW",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ON_VOICEMAIL",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ON_VOICEMAIL",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "READY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "READY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "RINGING",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "RINGING",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "UTILIZATION",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "UTILIZATION",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "OCCUPANCY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "OCCUPANCY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DATA_IDENTIFIER",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "DATA_IDENTIFIER",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DIVISION_ORIG",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "DIVISION_ORIG",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LAST_UPDATED_TS",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "LAST_UPDATED_TS",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ODS_FIVE9_AGENT_STATE_SUMMARY",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_FIVE9_AGENT_STATE_SUMMARY",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "UPD_Division",
+				"type": "Script",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "cpy_FACT_Agent_State_Summary",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "WITH M1 AS \n(\nSELECT \nAGENT_NAME,\nDIVISION\nFROM \n(\n\tSELECT \n\tAGENT_NAME,\n\tDIVISION,\n\tROW_NUMBER() OVER (PARTITION BY AGENT_NAME ORDER BY CNT DESC) AS RW\n\tFROM\n\t(\n\t\t\tSELECT AGENT_NAME,DIVISION,COUNT(1) as CNT\n\t\t\tFROM EDW.FACT_FIVE9_CALL_LOG_ALL \n\t\t\tWHERE AGENT_NAME IS NOT NULL\n\t\t\tAND DIVISION!='NA'\n\t\t\tGROUP BY AGENT_NAME,DIvision\n\t\n\t\t\t) A1\n\t\t) A2\n\tWHERE RW=1\n\t)\n\n\nUPDATE TGT \nSET TGT.DIVISION = M1.DIVISION,\nTGT.DIVISION_ORIG = M1.DIVISION\nFROM M1\nJOIN  [EDW].[FACT_FIVE9_AGENT_STATE_SUMMARY] TGT\nON M1.AGENT_NAME = TGT.AGENT_NAME\nWHERE TGT.DATA_IDENTIFIER='ALL_DIVISION';\n\n\nUPDATE [EDW].[FACT_FIVE9_AGENT_STATE_SUMMARY] SET DIVISION='CTA' WHERE DIVISION='PHI';\nUPDATE [EDW].[FACT_FIVE9_AGENT_STATE_SUMMARY] SET DIVISION='RTW' WHERE DIVISION='HSI';\nUPDATE [EDW].[FACT_FIVE9_AGENT_STATE_SUMMARY] SET DIVISION='MAC' WHERE DATA_IDENTIFIER!='ALL_DIVISION';"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "UPD_Division_MRLN",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "cpy_FACT_Agent_State_Summary",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "WITH M1 AS \n(\nSELECT \nAGENT_NAME,\nDIVISION\nFROM \n(\n\tSELECT \n\tAGENT_NAME,\n\tDIVISION,\n\tROW_NUMBER() OVER (PARTITION BY AGENT_NAME ORDER BY CNT DESC) AS RW\n\tFROM\n\t(\n\t\t\tSELECT AGENT_NAME,DIVISION,COUNT(1) as CNT\n\t\t\tFROM EDW.FACT_FIVE9_CALL_LOG_ALL \n\t\t\tWHERE AGENT_NAME IS NOT NULL\n\t\t\tAND DIVISION!='NA'\n\t\t\tAND DIVISION!='MXH'\n\t\t\tGROUP BY AGENT_NAME,DIvision\n\t\n\t\t\t) A1\n\t\t) A2\n\tWHERE RW=1\n\t)\n\n\nUPDATE TGT \nSET TGT.DIVISION = M1.DIVISION,\nTGT.DIVISION_ORIG = M1.DIVISION\nFROM M1\nJOIN  [EDW].[FACT_FIVE9_AGENT_STATE_SUMMARY] TGT\nON M1.AGENT_NAME = TGT.AGENT_NAME\nWHERE TGT.DATA_IDENTIFIER='ALL_DIVISION'\nAND ( TGT.DIVISION ='NA' OR TGT.DIVISION ='' OR TGT.DIVISION IS NULL );\n\n\nUPDATE [EDW].[FACT_FIVE9_AGENT_STATE_SUMMARY] SET DIVISION='CTA' WHERE DIVISION='PHI';\nUPDATE [EDW].[FACT_FIVE9_AGENT_STATE_SUMMARY] SET DIVISION='RTW' WHERE DIVISION='HSI';\nUPDATE [EDW].[FACT_FIVE9_AGENT_STATE_SUMMARY] SET DIVISION='MAC' WHERE DATA_IDENTIFIER!='ALL_DIVISION';\nUPDATE [EDW].[FACT_FIVE9_AGENT_STATE_SUMMARY] SET DIVISION='FHI' WHERE DIVISION='MXH' AND CAST(DATE AS DATE) >='2026-01-12' AND DATA_IDENTIFIER='ALL_DIVISION';"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			}
+		],
+		"folder": {
+			"name": "Five9_to_EDW/Current Day Load"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-01-12T19:38:24Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

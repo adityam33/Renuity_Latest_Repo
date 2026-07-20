@@ -1,0 +1,268 @@
+{
+	"name": "Kohler_API_Local_Files_Loading",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy Notes File to Table",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "TRUNCATE kohler_jobs_notes Table_copy1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "JsonSource",
+						"storeSettings": {
+							"type": "AzureBlobStorageReadSettings",
+							"recursive": true,
+							"wildcardFolderPath": "jobsNotes/in",
+							"wildcardFileName": "*.json",
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "JsonReadSettings"
+						}
+					},
+					"sink": {
+						"type": "SqlServerSink",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "$['id']"
+								},
+								"sink": {
+									"name": "NoteId",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['note']"
+								},
+								"sink": {
+									"name": "Note",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['user_id']"
+								},
+								"sink": {
+									"name": "UserId",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['noteable_id']"
+								},
+								"sink": {
+									"name": "JobID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['created_at']"
+								},
+								"sink": {
+									"name": "CreatedAt",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"path": "$['updated_at']"
+								},
+								"sink": {
+									"name": "UpdatedAt",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"path": "$['user']"
+								},
+								"sink": {
+									"name": "UserName",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "Kohler_Jobs_Notes_JsonFiles",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "Kohler_SqlServerTables",
+						"type": "DatasetReference",
+						"parameters": {
+							"TableName": "kohler_jobs_notes",
+							"SchemaName": "dbo"
+						}
+					}
+				]
+			},
+			{
+				"name": "TRUNCATE kohler_jobs_notes Table_copy1",
+				"type": "Script",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "LP_Kohler",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "TRUNCATE TABLE dbo.kohler_jobs_notes"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Move Notes File in to out",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Copy Notes File to Table",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "JsonSource",
+						"storeSettings": {
+							"type": "AzureBlobStorageReadSettings",
+							"recursive": true,
+							"wildcardFolderPath": "jobsNotes/in",
+							"wildcardFileName": "*.json",
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "JsonReadSettings"
+						}
+					},
+					"sink": {
+						"type": "JsonSink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings"
+						},
+						"formatSettings": {
+							"type": "JsonWriteSettings"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "Kohler_Jobs_Notes_JsonFiles",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "Kohler_JOb_Notes_JsonFile_out",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Delete1",
+				"type": "Delete",
+				"dependsOn": [
+					{
+						"activity": "Move Notes File in to out",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "Kohler_Jobs_Notes_JsonFiles",
+						"type": "DatasetReference"
+					},
+					"enableLogging": false,
+					"storeSettings": {
+						"type": "AzureBlobStorageReadSettings",
+						"recursive": true,
+						"wildcardFileName": "*.json",
+						"enablePartitionDiscovery": false
+					}
+				}
+			}
+		],
+		"variables": {
+			"access_token": {
+				"type": "String",
+				"defaultValue": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImpTTGt5ZEZxeC1xVWpCLTdINEZkXyJ9.eyJpc3MiOiJodHRwczovL2F1dGguMWFuZGZ1bmQuY29tLyIsInN1YiI6Indmc1lUYktKYTRObGNQdlV5d3FwVlZveUhKOGNZeEFrQGNsaWVudHMiLCJhdWQiOiJodHRwczovL2FwaS5vbmVjbGlja2NvbnRyYWN0b3IuY29tIiwiaWF0IjoxNzcxNTI5MzAwLCJleHAiOjE3NzE2MTU3MDAsImd0eSI6ImNsaWVudC1jcmVkZW50aWFscyIsImF6cCI6Indmc1lUYktKYTRObGNQdlV5d3FwVlZveUhKOGNZeEFrIn0.PHgHqbnMniUDwnKCX4qyQ-sjpXgy1vgLyXVxaeL31l7RwfswWn1Td30PZFR7Ru28uIJxMxtEEIylkJ9vBVIzSKFyb7qSykXYy3DKLviUJp1IODFfEgWaQlPTTK3dQMGdKBhK1ANDccZujvF-aoFgjksA23TXGsTuzTZigerSFmaumfnRiJ9kNlkZ8Jk60P9-PdHK8D51NmxDiSm0og-7OXU3qk0oNWCoNFf1_-GENvRN1y910vwTbUPr0IQKBGlKAVLWFwplw3y0d147jcGsr65bCks9O-bUX3ZQX_F2ccNQ7GoOrIgIllhoAzeC6DdgkN5K-hoFw_R0P2BMpVb9yg"
+			},
+			"apiCallCounter_prev": {
+				"type": "Integer",
+				"defaultValue": 0
+			},
+			"apiCallCounter_current": {
+				"type": "Integer",
+				"defaultValue": 0
+			}
+		},
+		"folder": {
+			"name": "Temp/Sameen"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-02-24T22:01:22Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

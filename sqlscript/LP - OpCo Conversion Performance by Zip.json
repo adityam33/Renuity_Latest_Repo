@@ -1,0 +1,20 @@
+{
+	"name": "LP - OpCo Conversion Performance by Zip",
+	"properties": {
+		"folder": {
+			"name": "DMLs/LP Data"
+		},
+		"content": {
+			"query": "SELECT\ncst.Zip as CustomerZip\n--,prd.LongDescr as Product\n--,src.SourceGroup\n--,srs.SourceCode\n--,srs.Descr as SubSource\n,lds.[Sold]\n,count(lds.[id]) as LeadCount\n,SUM(lds.[GSA]) as TotalGrossSalesAmount\nFROM \n[ODS].[LP_FHI_Lds_Leads] lds\nleft join [ODS].[LP_FHI_srs_SourceSubs] srs\non lds.srs_id = srs.id\nleft join [ODS].[LP_FHI_src_SourceCodes] src\non srs.SourceCode = src.SourceCode\nleft join [ODS].[LP_FHI_prd_Products] prd\non lds.Productid = prd.Productid\nleft join [ODS].[LP_FHI_cst_Customers] cst\non lds.cst_id = cst.id\nWHERE\nlds.[EntryDate] >= '2020-01-01'\ngroup BY\ncst.Zip\n,lds.[Sold]\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

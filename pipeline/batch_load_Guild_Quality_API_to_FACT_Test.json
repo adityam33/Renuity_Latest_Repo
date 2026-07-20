@@ -1,0 +1,98 @@
+{
+	"name": "batch_load_Guild_Quality_API_to_FACT_Test",
+	"properties": {
+		"activities": [
+			{
+				"name": "API to ODS By Created Date",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "batch_load_Guild_Quality_APIresponse_toODS_BycreatedDate_Page_Test",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Fact Load",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "API to ODS By Created Date",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "batch_load_Fact_Guild_Quality_CustomerSurvey_Pagination_test",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "API to ODS by Updated At",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Fact Load",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "batch_load_Guild_Quality_APIresponse_toODS_ByupdateDate_Page_Test",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Fact Load_copy1",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "API to ODS by Updated At",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "batch_load_Fact_Guild_Quality_CustomerSurvey_Pagination_test",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"folder": {
+			"name": "Temp/Akshay"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-05-30T15:05:11Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

@@ -1,0 +1,399 @@
+{
+	"name": "Guru spend validation",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy data Ad Performance ODSToEDW_copy1",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:30:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"additionalColumns": [
+							{
+								"name": "LP_LeadSubsourceID",
+								"value": ""
+							},
+							{
+								"name": "LP_productID",
+								"value": ""
+							}
+						],
+						"sqlReaderQuery": "WITH FUNNEL_CAMPAIGNS_WITH_DIVISION AS \n( \nSelect Date,Data_Source_type,Currency,Cost, CLicks, Impressions,Conversions, \n\t\tAccount, Ad, Ad_Group, Campaign, Media_type,Paid__Organic,Traffic_source,\n\t\tData_Source_name,Data_Source, Data_source_type_name,\n\t\tDay_of_week, Month, week,Year,Week_number,\n\t\tCampaignId,AdGroupId,AdID,\n\t\tCase when (Data_source_name like '%Closet%' Or Data_source_name='187673395') then case when Campaign like '%Coat%' then 'CTA-GS' else 'CTA' end\n\t\t\t\twhen (Data_source_name like '%FHIA%'   or  Data_source_name like '%Florida%')  then 'FHI'\n\t\t\t\twhen  Data_source_name like '%Mad City%' or Data_source_name='IHM | WIT | WalkinTubs.com' then 'MAC'\n\t\t\t\twhen  Data_source_name like '%Max%' then case when Campaign like '%SWR%' then 'SWR' else 'FHI' end \n\t\t\t\twhen  Data_source_name like '%Statewide%' then 'SWR'\n\t\t\t\twhen (Data_source_name like '%Rite%' or Data_source_name like '%Home Smart%') then 'RTW'\n\t\t\t\twhen (Data_source_name like '%Pacific%' Or Data_source_Name='Walk-in Bath Swish' or Data_source_name like '%Home Forever Bath%' )  then 'PBC'\n\t\t\t\twhen  Data_source_name like '%Coating%'  then 'CTA-GS'\n\t\t\t\twhen  Data_Source_name like '%Ren%' then Coalesce(Case When (Campaign like '%Garage%' or Campaign like '%Coat%' or Campaign like '%Storage%') then 'CTA-GS'\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   When (Campaign like '%Closet%' or Campaign like '%PHI%' or Campaign like '%ca-%' or Campaign like '%Home Org%') then 'CTA'\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   when (Campaign like '%FHI%' or Campaign like '%East%' ) then 'FHI'\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   When (Campaign like '%PBC%' or Campaign like '%pacific%' or Campaign like '%West%' or Campaign like 'PB %' or Campaign like 'RH %') then 'PBC'\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   When (Campaign like '%SWR%' or Campaign like '%Statewide%') then 'SWR'\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   When (Campaign like '%RTW%' or Campaign like '%HSI%')  then 'RTW'\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   When (Campaign like '%MXH%' or Campaign like '%MAX%' or Campaign like '%East%') then 'FHI'\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t   When (Campaign like '%MAC%' or Campaign like '%MCW%') then 'MAC' end, 'REN') \n\t\t\tend  as Division,\n\t\tReplace(Replace(Market,',',''),'.','') as Market  \nfrom ODS.FUNNEL_AD_PERFORMANCE_METRICS\nWhere Campaign is not null  --and Traffic_source in ('Bing','Google','Facebook')  and Eomonth(Date)>='2024-01-31'\n\n),\n\nFUNNEL_CAMPAIGNS_WITH_LPMARKET AS \n(\nSelect\tDate,Data_Source_type,Currency,cast(Cost as Float(5)) as Cost, CLicks, Impressions,Conversions, \n\t\tA.Account, Ad, Ad_Group, Campaign, Media_type,Paid__Organic,Traffic_source,\n\t\tData_Source_name,Data_Source, Data_source_type_name,\n\t\tDay_of_week, Month, week,Year,Week_number,\n\t\tCampaignId,AdGroupId,AdID,\n\t\tCase when A.Division='CTA-GS' then 'CTA' else A.Division end AS Division ,\n\t\tA.Division as Division_GS,\n\t\tA.Market,B.DMAREGION,\n\t\tISNULL(B.LP_Market , 'zNo Market' ) as LP_Market\n\t\tFrom \n\t\t\t\n\t\tFUNNEL_CAMPAIGNS_WITH_DIVISION A\n\t\t\t\n\t\tLeft join  RDM.REF_FUNNEL_AD_MARKET B \n\t\ton  A.Traffic_source=B.TrafficSource and A.Division=B.Division and A.Account=B.Account and A.Market = B.DMAREGION \n\nWHERE A.Traffic_source in ('Bing','Google','Facebook','Pinterest') \n\n),\n\nREF_MARKET AS \n(\nSelect Division, BranchID, ShortName, MediumName,BranchName, \ncase when (BranchID like  Division +'-GS' +'%' ) then BranchName else UNI_market end as Market\nfrom EDW_DUN.DIM_BRANCH_EXTN\nWhere UNI_Market!='zNo Market' and  ShortName<>'For Budget'  and ShortName not in ('For GQ','For EBITDA')\n)\n,\n\nFUNNEL_CAMPAIGNS_WITH_LPBRANCH AS \n(\nSelect \n\t Date,Data_Source_type,Currency,Cost,Clicks,Impressions,Conversions,Account,Ad,Ad_Group,\n\t Campaign,Media_type,Paid__Organic,Traffic_source,\n\t Data_Source_name,Data_Source,Data_Source_type_name,Day_of_week,Month,Week,Year,Week_number,\n\t CampaignID, AdGroupID, AdID, T1.Division,T1.Market, LP_Market, \n\t max( Case when T1.Division='CTA' then\n\t\t\t\t\t\t\t\tcase when T1.Division_GS='CTA-GS' then ISNULL(T2.BranchID,'CTA-GS') \n\t\t\t\t\t\t\t\t\t else ISNULL(T2.BranchID,'CTA-') end \n\t\t\t\telse COALESCE(T2.BranchID,Concat(T1.Division,'-')) end ) as BranchID\n\t from \n\t \n\t FUNNEL_CAMPAIGNS_WITH_LPMARKET T1 Left Join  REF_MARKET T2  On T1.Division=T2.Division and T1.LP_Market=T2.Market\n\t\n\t\n \n\n\t Group by Date,Data_Source_type,Currency,Cost,Clicks,Impressions,Account,Ad,Ad_Group,\n\t\t\t   Campaign,Media_type,Paid__Organic,Traffic_source,\n\t\t\t   Data_Source_name,Data_Source,Data_Source_type_name,Day_of_week,Month,Week,Year,Week_number,\n\t\t\t   conversions, CampaignID, AdGroupID, AdID, T1.Division,T1.Market, LP_Market\n\n\n\n)\n\n\n--Select Distinct Traffic_Source,Division,Account, Data_source_Name, Market, LP_market, BranchID from ( \n\nSELECT\nDate\n,Data_Source_type\n,Currency\n,Cost\n,Clicks\n,Impressions\n,Account\n,Ad\n,Ad_Group\n,Campaign\n,Media_type\n,Paid__Organic\n,Traffic_source\n,Data_Source_name\n,Data_Source\n,Data_Source_type_name\n,Day_of_week\n,Month\n,Week\n,Year\n,Cast(Week_number as Int)  as Week_number\n,Conversions\n,CampaignID\n,AdGroupID\n,AdID\n,Division\n,Market\n,BranchID\n,LP_Market \n,Getdate() as CreatedTS\n,Getdate() as LastUpdateTS\nFROM \n(\n\tSELECT *,\n\tROW_NUMBER() OVER (PARTITION BY Date,Data_Source_type,Currency,Cost,Clicks,Impressions,Account,Ad,Ad_Group,\n\tCampaign,Media_type,Paid__Organic,Traffic_source\n\t,Data_Source_name,Data_Source_type_name,Day_of_week,Month,Week,Year,Cast(Week_number as Int),\n\tConversions,CampaignID,AdGroupID,AdID,Division,Market,LP_Market,BranchID\n\tORDER BY Data_Source ) AS RW\n\tFROM \n\t(\n\tSelect * from FUNNEL_CAMPAIGNS_WITH_LPBRANCH\n\t\n\tUnion All \n\t\n\tSelect Date,Data_Source_type,Currency,Cost,Clicks,Impressions,Conversions,\n\t\tAccount,Ad,Ad_Group,Campaign,Media_type,Paid__Organic,Traffic_source,\n\t\tData_Source_name,Data_Source,Data_Source_type_name,\n\t\tDay_of_week,Month,Week,Year,Week_number,\n\t\tCampaignID,AdGroupID,AdID,\n\t\tCase when Division='CTA-GS' then 'CTA' else Division end AS Division,Market, NULL as LP_MarketID, NULL as BranchID from FUNNEL_CAMPAIGNS_WITH_DIVISION \n\t\twhere Traffic_source not in ('Google' ,'Facebook','Bing','Pinterest')\n\t\n\t) A1\n) A\n\nWHERE RW=1  \n--)A2 where LP_market not like '%Zno Market%' Order by 1,2,4,3,5",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "Delete  T1\n--Select Distinct T1.TrafficSource, Eomonth(T1.PerformanceDate) \nfrom EDW.FACT_AD_PERFORMANCE_METRICS T1\n join \n(\n\tSelect TrafficSource,PerformanceDate from \n\t(Select Distinct TrafficSource, EOMONTH(PERFORMANCEDATE) as PerformanceDate from EDW.FACT_AD_PERFORMANCE_METRICS ) F\n\tLeft join \n\t(SELECT Distinct Traffic_source ,EOMONTH(DATE) Date FROM ODS.FUNNEL_AD_PERFORMANCE_METRICS) O \n\tOn F.TrafficSource=O.Traffic_source and F.PerformanceDate =O.Date\n\tWhere O.Traffic_Source is not null and O.Date is not null --Order by 1,2\n\t\n)T2  on T1.TrafficSource=T2.Trafficsource and Eomonth(T1.PerformanceDate) =T2.PerformanceDate",
+						"allowCopyCommand": true,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "staging"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Date",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PerformanceDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "Traffic_source",
+									"type": "String"
+								},
+								"sink": {
+									"name": "TrafficSource",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Account",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Account",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Campaign",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Campaign",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Ad_Group",
+									"type": "String"
+								},
+								"sink": {
+									"name": "AdGroup",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Ad",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Ad",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Media_type",
+									"type": "String"
+								},
+								"sink": {
+									"name": "MediaType",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Paid__Organic",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PaidOrOrganic",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Currency",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Currency",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Cost",
+									"type": "Single"
+								},
+								"sink": {
+									"name": "Cost",
+									"type": "Double"
+								}
+							},
+							{
+								"source": {
+									"name": "Clicks",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Clicks",
+									"type": "Double"
+								}
+							},
+							{
+								"source": {
+									"name": "Impressions",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Impressions",
+									"type": "Double"
+								}
+							},
+							{
+								"source": {
+									"name": "Conversions",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Conversions",
+									"type": "Double"
+								}
+							},
+							{
+								"source": {
+									"name": "Year",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PerformanceYear",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Month",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PerformanceMonth",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Week",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PerformanceWeek",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Week_number",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PerformanceWeekNumber",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Day_of_week",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PerformanceDayOfWeek",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Data_Source",
+									"type": "String"
+								},
+								"sink": {
+									"name": "DataSourceID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Data_Source_name",
+									"type": "String"
+								},
+								"sink": {
+									"name": "DataSourceName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Data_Source_type",
+									"type": "String"
+								},
+								"sink": {
+									"name": "DataSourceType",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CampaignID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CampaignID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "AdGroupID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "AdGroupID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "AdID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "AdID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Market",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Market",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Division",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_Market",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LP_Market",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LP_BranchID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_LeadSubsourceID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LP_LeadSubSourceID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_productID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LP_ProductID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CreatedTS",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "CreatedTS",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "LastUpdateTS",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastUpdateTS",
+									"type": "DateTime"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ODS_FUNNEL_AD_PERFORMANCE_METRICS",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_CTA_TEST_DYN_DIM_CUSTOMER",
+						"type": "DatasetReference",
+						"parameters": {
+							"SchemaName": "EDW",
+							"TableName": "FACT_AD_PERFORMANCE_METRICS"
+						}
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "Temp/Anandan"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-01-27T06:26:08Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

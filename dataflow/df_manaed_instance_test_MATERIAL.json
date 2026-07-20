@@ -1,0 +1,211 @@
+{
+	"name": "df_manaed_instance_test_MATERIAL",
+	"properties": {
+		"folder": {
+			"name": "ODS_to_EDW/DIMENSIONS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "LP_FHI_ManagedInstance_Material",
+						"type": "DatasetReference"
+					},
+					"name": "FHI"
+				},
+				{
+					"dataset": {
+						"referenceName": "LP_MAC_ManagedInstance_Material",
+						"type": "DatasetReference"
+					},
+					"name": "MAC"
+				},
+				{
+					"dataset": {
+						"referenceName": "LP_SWR_ManagedInstance_Material",
+						"type": "DatasetReference"
+					},
+					"name": "SWR"
+				},
+				{
+					"dataset": {
+						"referenceName": "LP_RTW_ManagedInstance_Material",
+						"type": "DatasetReference"
+					},
+					"name": "RTW"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_Managed_Instance_Test_MATERIAL",
+						"type": "DatasetReference"
+					},
+					"name": "targetDim",
+					"description": "Export data to EDW_DIM_MATERIAL",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "addOpCoNameFHI"
+				},
+				{
+					"name": "addOpCoNameMAC"
+				},
+				{
+					"name": "addOpCoNameSWR"
+				},
+				{
+					"name": "unionAllOpCos"
+				},
+				{
+					"name": "derivedColumns"
+				},
+				{
+					"name": "addOpCoNameRTW"
+				},
+				{
+					"name": "selectRenameColumns"
+				},
+				{
+					"name": "AlterRow"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          Id as integer,",
+				"          Descr as string,",
+				"          UOM as string,",
+				"          CommFlag as boolean,",
+				"          DiscFlag as boolean,",
+				"          Cost as decimal(19,4),",
+				"          ListPrice as decimal(19,4),",
+				"          jcc_id as integer,",
+				"          Active as boolean,",
+				"          SortOrder as integer,",
+				"          org as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> FHI",
+				"source(output(",
+				"          Id as integer,",
+				"          Descr as string,",
+				"          UOM as string,",
+				"          CommFlag as boolean,",
+				"          DiscFlag as boolean,",
+				"          Cost as decimal(19,4),",
+				"          ListPrice as decimal(19,4),",
+				"          jcc_id as integer,",
+				"          Active as boolean,",
+				"          SortOrder as integer,",
+				"          org as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> MAC",
+				"source(output(",
+				"          Id as integer,",
+				"          Descr as string,",
+				"          UOM as string,",
+				"          CommFlag as boolean,",
+				"          DiscFlag as boolean,",
+				"          Cost as decimal(19,4),",
+				"          ListPrice as decimal(19,4),",
+				"          jcc_id as integer,",
+				"          Active as boolean,",
+				"          SortOrder as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> SWR",
+				"source(output(",
+				"          Id as integer,",
+				"          Descr as string,",
+				"          UOM as string,",
+				"          CommFlag as boolean,",
+				"          DiscFlag as boolean,",
+				"          Cost as decimal(19,4),",
+				"          ListPrice as decimal(19,4),",
+				"          jcc_id as integer,",
+				"          Active as boolean,",
+				"          SortOrder as integer,",
+				"          org as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> RTW",
+				"FHI derive(Division = 'FHI') ~> addOpCoNameFHI",
+				"MAC derive(Division = 'MAC') ~> addOpCoNameMAC",
+				"SWR derive(Division = 'SWR') ~> addOpCoNameSWR",
+				"addOpCoNameFHI, addOpCoNameMAC, addOpCoNameSWR, addOpCoNameRTW union(byName: true)~> unionAllOpCos",
+				"selectRenameColumns derive(LastUpdateTS = currentTimestamp(),",
+				"          MaterialID = concat(Division,'-',toString(LP_MaterialID)),",
+				"          JobCostCategoryID = concat(Division,'-',toString(LP_JobCostCategoryID))) ~> derivedColumns",
+				"RTW derive(Division = 'RTW') ~> addOpCoNameRTW",
+				"unionAllOpCos select(mapColumn(",
+				"          LP_MaterialID = Id,",
+				"          Material = Descr,",
+				"          UnitOfMeasure = UOM,",
+				"          Cost,",
+				"          ListPrice,",
+				"          LP_JobCostCategoryID = jcc_id,",
+				"          Active,",
+				"          Division",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectRenameColumns",
+				"derivedColumns alterRow(upsertIf(true())) ~> AlterRow",
+				"AlterRow sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          MaterialID as string,",
+				"          JobCostCategoryID as string,",
+				"          Material as string,",
+				"          UnitOfMeasure as string,",
+				"          Cost as decimal(19,4),",
+				"          ListPrice as decimal(19,4),",
+				"          Active as boolean,",
+				"          LP_MaterialID as integer,",
+				"          LP_JobCostCategoryID as integer,",
+				"          Division as string,",
+				"          LastUpdateTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['MaterialID'],",
+				"     format: 'table',",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          LP_MaterialID,",
+				"          Material,",
+				"          UnitOfMeasure,",
+				"          Cost,",
+				"          ListPrice,",
+				"          LP_JobCostCategoryID,",
+				"          Active,",
+				"          Division,",
+				"          LastUpdateTS,",
+				"          MaterialID,",
+				"          JobCostCategoryID",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> targetDim"
+			]
+		}
+	}
+}

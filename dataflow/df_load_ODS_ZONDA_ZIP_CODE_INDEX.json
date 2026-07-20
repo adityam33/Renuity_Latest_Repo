@@ -1,0 +1,239 @@
+{
+	"name": "df_load_ODS_ZONDA_ZIP_CODE_INDEX",
+	"properties": {
+		"folder": {
+			"name": "SRC_to_ODS/MKTDATA/ZONDA"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "SRC_ZONDA_RRI_ZIP_CODE",
+						"type": "DatasetReference"
+					},
+					"name": "NationalRRI"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ZONDA_RRI_BATHS_ZIP_CODE",
+						"type": "DatasetReference"
+					},
+					"name": "NationalBathsRRI"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ZONDA_RRI_WINDOWS_ZIP_CODE",
+						"type": "DatasetReference"
+					},
+					"name": "NationalWindowsRRI"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ODS_MKTDATA_ZONDA_ZIP_CODE_INDEX",
+						"type": "DatasetReference"
+					},
+					"name": "ODSZondaZipCodeIndex"
+				}
+			],
+			"transformations": [
+				{
+					"name": "joinWithBath"
+				},
+				{
+					"name": "joinWithWindows"
+				},
+				{
+					"name": "selectBathCols"
+				},
+				{
+					"name": "selectWindowsCols"
+				},
+				{
+					"name": "renameSelectCols"
+				},
+				{
+					"name": "filterNULLZipsRRI"
+				},
+				{
+					"name": "filterNULLZipsBath"
+				},
+				{
+					"name": "filterNULLZipsWindows"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          MSA as string,",
+				"          State as string,",
+				"          County as string,",
+				"          {Zip Code} as string,",
+				"          City as string,",
+				"          {Overall Remodeling Activity Index} as string,",
+				"          {Total Households} as string,",
+				"          {% Households       Entry Level} as string,",
+				"          {% Households Feature                      & Location} as string,",
+				"          {% Households    Simple Life} as string,",
+				"          {% Households    Family Life} as string,",
+				"          {% Households        Elite} as string,",
+				"          {% Households           AA Entry Level} as string,",
+				"          {% Households          AA Feature & Location} as string,",
+				"          {% Households        AA Elite} as string,",
+				"          {% Households Renters} as string,",
+				"          {Median              Home Price} as string,",
+				"          {Median               Year Built} as string,",
+				"          {Overall Remodeling Composite Ranking Index} as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> NationalRRI",
+				"source(output(",
+				"          MSA as string,",
+				"          State as string,",
+				"          County as string,",
+				"          {Zip Code} as string,",
+				"          City as string,",
+				"          {Baths Activity Index} as string,",
+				"          {Total Households} as string,",
+				"          {% Households       Entry Level} as string,",
+				"          {% Households Feature                      & Location} as string,",
+				"          {% Households    Simple Life} as string,",
+				"          {% Households    Family Life} as string,",
+				"          {% Households        Elite} as string,",
+				"          {% Households           AA Entry Level} as string,",
+				"          {% Households          AA Feature & Location} as string,",
+				"          {% Households        AA Elite} as string,",
+				"          {% Households Renters} as string,",
+				"          {Median              Home Price} as string,",
+				"          {Median               Year Built} as string,",
+				"          {Baths         Composite Ranking Index} as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> NationalBathsRRI",
+				"source(output(",
+				"          MSA as string,",
+				"          State as string,",
+				"          County as string,",
+				"          {Zip Code} as string,",
+				"          City as string,",
+				"          {Windows Activity Index} as string,",
+				"          {Total Households} as string,",
+				"          {% Households       Entry Level} as string,",
+				"          {% Households Feature                      & Location} as string,",
+				"          {% Households    Simple Life} as string,",
+				"          {% Households    Family Life} as string,",
+				"          {% Households        Elite} as string,",
+				"          {% Households           AA Entry Level} as string,",
+				"          {% Households          AA Feature & Location} as string,",
+				"          {% Households        AA Elite} as string,",
+				"          {% Households Renters} as string,",
+				"          {Median              Home Price} as string,",
+				"          {Median               Year Built} as string,",
+				"          {Windows Composite Ranking Index} as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> NationalWindowsRRI",
+				"filterNULLZipsRRI, selectBathCols join(NationalRRI@{Zip Code} == selectBathCols@{Zip Code}",
+				"     && NationalRRI@MSA == selectBathCols@MSA,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> joinWithBath",
+				"joinWithBath, selectWindowsCols join(NationalRRI@{Zip Code} == selectWindowsCols@{Zip Code}",
+				"     && NationalRRI@MSA == selectWindowsCols@MSA,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> joinWithWindows",
+				"filterNULLZipsBath select(mapColumn(",
+				"          {Zip Code},",
+				"          {Baths Activity Index},",
+				"          {Baths         Composite Ranking Index},",
+				"          MSA",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectBathCols",
+				"filterNULLZipsWindows select(mapColumn(",
+				"          {Zip Code},",
+				"          {Windows Activity Index},",
+				"          {Windows Composite Ranking Index},",
+				"          MSA",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectWindowsCols",
+				"joinWithWindows select(mapColumn(",
+				"          ZipCode = NationalRRI@{Zip Code},",
+				"          MSA = NationalRRI@MSA,",
+				"          State,",
+				"          County,",
+				"          City,",
+				"          Total_Households = {Total Households},",
+				"          Pct_Households_Entry_Level = {% Households       Entry Level},",
+				"          Pct_Households_Feature_And_Location = {% Households Feature                      & Location},",
+				"          Pct_Households_Simple_Life = {% Households    Simple Life},",
+				"          Pct_Households_Family_Life = {% Households    Family Life},",
+				"          Pct_Households_Elite = {% Households        Elite},",
+				"          Pct_Households_AA_Entry_Level = {% Households           AA Entry Level},",
+				"          Pct_Households_AA_Feature_And_Location = {% Households          AA Feature & Location},",
+				"          Pct_Households_AA_Elite = {% Households        AA Elite},",
+				"          Pct_Households_Renters = {% Households Renters},",
+				"          Median_Home_Price = {Median              Home Price},",
+				"          Median_Year_Built = {Median               Year Built},",
+				"          Overall_Remodeling_Activity_Index = {Overall Remodeling Activity Index},",
+				"          Overall_Remodeling_Composite_Ranking_Index = {Overall Remodeling Composite Ranking Index},",
+				"          Baths_Activity_Index = {Baths Activity Index},",
+				"          Baths_Composite_Ranking_Index = {Baths         Composite Ranking Index},",
+				"          Windows_Activity_Index = {Windows Activity Index},",
+				"          Windows_Composite_Ranking_Index = {Windows Composite Ranking Index}",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> renameSelectCols",
+				"NationalRRI filter(!isNull({Zip Code})) ~> filterNULLZipsRRI",
+				"NationalBathsRRI filter(!isNull({Zip Code})) ~> filterNULLZipsBath",
+				"NationalWindowsRRI filter(!isNull({Zip Code})) ~> filterNULLZipsWindows",
+				"renameSelectCols sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     recreate:true,",
+				"     format: 'table',",
+				"     staged: true,",
+				"     allowCopyCommand: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          ZipCode,",
+				"          MSA,",
+				"          State,",
+				"          County,",
+				"          City,",
+				"          Total_Households,",
+				"          Pct_Households_Entry_Level,",
+				"          Pct_Households_Feature_And_Location,",
+				"          Pct_Households_Simple_Life,",
+				"          Pct_Households_Family_Life,",
+				"          Pct_Households_Elite,",
+				"          Pct_Households_AA_Entry_Level,",
+				"          Pct_Households_AA_Feature_And_Location,",
+				"          Pct_Households_AA_Elite,",
+				"          Pct_Households_Renters,",
+				"          Median_Home_Price,",
+				"          Median_Year_Built,",
+				"          Overall_Remodeling_Activity_Index,",
+				"          Overall_Remodeling_Composite_Ranking_Index,",
+				"          Baths_Activity_Index,",
+				"          Baths_Composite_Ranking_Index,",
+				"          Windows_Activity_Index,",
+				"          Windows_Composite_Ranking_Index",
+				"     )) ~> ODSZondaZipCodeIndex"
+			]
+		}
+	}
+}

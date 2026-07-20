@@ -1,0 +1,105 @@
+{
+	"name": "batch_load_Dimensions_FIVE9_UNI_Upd_Scripts_ZML",
+	"properties": {
+		"activities": [
+			{
+				"name": "UNI_DIM_FIVE9_CALL_RESULT_DISPOSITION",
+				"type": "Script",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "--DIM_FIVE9_CALL_RESULT_DISPOSITION\n\nUPDATE TGT\nSET TGT.UNI_CallResult = REF.UnifiedValue\nFROM  [ZML].[DIM_FIVE9_CALL_RESULT_DISPOSITION] TGT\nJOIN [EDW_DUN].[UNI_REF_MAPPING] REF\nON TGT.CallResult = REF.TableColumnValue\nAND REF.TableName = 'DIM_FIVE9_CALL_RESULT_DISPOSITION'\nAND REF.Division = TGT.Division\nJOIN [EDW_DUN].[UNI_TABLE_METADATA] MT\nON REF.UNI_MetaID = MT.UNI_MetaID\nWHERE MT.TableName='DIM_FIVE9_CALL_RESULT_DISPOSITION' \nAND MT.SourceSystem='FIVE9'\nAND MT.TableColumnName='CallResult'\nAND REF.MappingInd!='UNMAPPED';"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "UNI_DIM_FIVE9_PRODUCT",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "UNI_DIM_FIVE9_CALL_RESULT_DISPOSITION",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "--DIM_FIVE9_PRODUCT\n\nUPDATE TGT\nSET TGT.UNI_ProductName = REF.UnifiedValue\nFROM  [ZML].[DIM_FIVE9_PRODUCT] TGT\nJOIN [EDW_DUN].[UNI_REF_MAPPING] REF\nON TGT.ProductName = REF.TableColumnValue\nAND REF.TableName = 'DIM_FIVE9_PRODUCT'\nAND REF.Division = TGT.Division\nJOIN [EDW_DUN].[UNI_TABLE_METADATA] MT\nON REF.UNI_MetaID = MT.UNI_MetaID\nWHERE MT.TableName='DIM_FIVE9_PRODUCT' \nAND MT.SourceSystem='FIVE9'\nAND MT.TableColumnName='ProductName'\nAND REF.MappingInd!='UNMAPPED';\n\n\n\nUPDATE P\nSET P.UNI_ProductName = UN_PR.UNI_ProductName\nFROM ZML.DIM_FIVE9_PRODUCT P\nLEFT JOIN \n(SELECT DISTINCT Division,ProductName,UNI_ProductName \n\tFROM  [ZML].[DIM_PRODUCT] \n\tWHERE UNI_ProductName IS NOT NULL AND ProductName IS NOT NULL AND ProductName!='') UN_PR\nON P.ProductName = UN_PR.ProductName\nAND P.Division = UN_PR.Division\nWHERE UN_PR.UNI_ProductName IS NOT NULL;"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "UNI_DIM_FIVE9_MARKET",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "UNI_DIM_FIVE9_PRODUCT",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "--In sync with LP\n\nUPDATE TGT\nSET TGT.UNI_Market = BR_LP.UNI_Market,\nTGT.UNI_MarketGroup = BR_LP.UNI_MarketGroup\nFROM  [ZML].[DIM_FIVE9_MARKET] TGT\nJOIN\n(\nSELECT DISTINCT Division,LP_BRanchID,ShortName,UNI_Market,UNI_MarketGroup \nFROM ZML.DIM_BRANCH\nWHERE ShortName IS NOT NULL AND ShortName!=''\n) BR_LP\nON  TGT.Market = BR_LP.LP_BRanchID\nAND TGT.Division = BR_LP.Division\nWHERE BR_LP.UNI_Market IS NOT NULL;\n"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			}
+		],
+		"folder": {
+			"name": "Temp/Anuj/ZML/Five9"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-12-10T12:48:24Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

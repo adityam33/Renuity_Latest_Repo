@@ -1,0 +1,442 @@
+{
+	"name": "cpy_SWR_Complete_Discrepant_Jobs",
+	"properties": {
+		"activities": [
+			{
+				"name": "cpy_SWR_CompletedJobs",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT \r\nA.LP_JobID AS JobID,\r\nA.ContractID,\r\nA.GrossAmount,\r\nA.LP_JobStatusID,\r\n\r\nCASE \r\n    WHEN E.FirstName   IS NULL     AND E.LastName     IS NOT NULL THEN E.LastName\r\n    WHEN E.LastName    IS NULL     AND E.FirstName    IS NOT NULL THEN E.FirstName\r\n    WHEN E.FirstName   IS NOT NULL AND E.LastName     IS NOT NULL THEN CONCAT(E.FirstName,' ',E.LastName)\r\n    ELSE NULL END AS SalesRepName,\r\n\r\nCASE \r\n    WHEN E1.FirstName   IS NULL     AND E1.LastName     IS NOT NULL THEN E1.LastName\r\n    WHEN E1.LastName    IS NULL     AND E1.FirstName    IS NOT NULL THEN E1.FirstName\r\n    WHEN E1.FirstName   IS NOT NULL AND E1.LastName     IS NOT NULL THEN CONCAT(E1.FirstName,' ',E1.LastName)\r\n    ELSE NULL END AS InstallerName,\r\nA.ContractDate,\r\nB.ACtualDate  AS CompletionDate,\r\nA.LP_ProductionBranchID AS BranchID,\r\nBR.LongName \tAS BranchName,\r\nBR.UNI_Market \tAS UnifiedMarket,\r\nPR.LongDescription AS ProductName,\r\nGETDATE() AS LastUpdatedTS\r\nFROM EDW.FACT_JOB A\r\nJOIN [EDW].[FACT_MILESTONE_DETAIL] B\r\nON A.JobID = B.JobID\r\n\r\nLEFT JOIN EDW.DIM_PRODUCT PR\r\nON A.ProductID = PR.ProductID\r\n\r\nLEFT JOIN EDW.DIM_EMPLOYEE E\r\nON A.SalesRep1_EmployeeID = E.EmployeeID\r\nLEFT JOIN EDW.DIM_EMPLOYEE E1\r\nON A.InstallerID_1 = E1.EmployeeID\r\n\r\nLEFT JOIN EDW.DIM_BRANCH BR\r\nON A.ProductionBranchID = BR.BranchID\r\n\r\nWHERE B.LP_MilestoneDateTypeID ='C' \r\nAND B.ActualDate IS NOT NULL\r\nAND A.Division='SWR'\r\nAND B.ACtualDate >= '2025-01-01' \r\nAND B.ACtualDate <= GETDATE();",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "TRUNCATE TABLE [Data_Enrichment].[SWR_COMPLETED_JOBS];",
+						"allowCopyCommand": true
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "staging"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "JobID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "JobID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "ContractID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ContractID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "GrossAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "GrossAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_JobStatusID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LP_JobStatusID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "SalesRepName",
+									"type": "String"
+								},
+								"sink": {
+									"name": "SalesRepName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "InstallerName",
+									"type": "String"
+								},
+								"sink": {
+									"name": "InstallerName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ContractDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "ContractDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "CompletionDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "CompletionDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BranchID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchName",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BranchName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UnifiedMarket",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UnifiedMarket",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ProductName",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ProductName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_FACT_JOB",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_SWR_COMPLETED_JOBS",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "cpy_SWR_Discrepant_Jobs",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "cpy_SWR_CompletedJobs",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT \nJobID,\nContractID,\nNew_JobStatusID,\nOld_JobStatusID,\nDateChanged,\nCompletionDate,\nEmployeeName,\nSalesRepName,\nInstallerName,\nOld_GrossAmount,\nNew_GrossAmount,\t\nHelper_Gross,\nBranchID,\nBranchName,\nUnifiedMarket,\nDiscrepancyCount,\nProductName,\nContractDate,\nLastUpdatedTS\nFROM\n(\n\tSELECT \n\t\t\tLP_JObID AS JobID,\n\t\t\tContractID,\n\t\t\tLP_New_JobStatusID AS New_JobStatusID,\n\t\t\tLP_Old_JobStatusID AS Old_JobStatusID,\n\t\t\tDateChanged,\n\t\t\tCompletionDate,\n\t\t\tEmployeeName,\n\t\t\tSalesRepName,\n\t\t\tInstallerName,\n\t\t\tOld_GrossAmount,\n\t\t\tNew_GrossAmount,\n\t\t\tCASE WHEN RW=1 THEN New_GrossAmount ELSE 0 END AS Helper_Gross,\n\t\t\tBranchID,\n\t\t\tBranchName,\n\t\t\tUnifiedMarket,\n\t\t\tCOUNT(1) OVER (PARTITION BY LP_JObID) AS DiscrepancyCount,\n\t\t\tGETDATE() AS LastUpdatedTS,\n\t\t\tProductName,\n\t\t\tContractDate\n\t\t\tFROM\n\t\t\t(\n\t\t\t\n\t\t\t\tSELECT \n\t\t\t\t\tA.LP_JObID,\n\t\t\t\t\tB.ContractID,\n\t\t\t\t\tA.LP_New_JobStatusID,\n\t\t\t\t\tA.LP_Old_JobStatusID,\n\t\t\t\t\tA.DateChanged,\n\t\t\t\t\tMLD.ACtualDate AS CompletionDate,\n\t\t\t\t\n\t\t\t\tCASE \n\t\t\t\t\tWHEN E1.FirstName   IS NULL     AND E1.LastName     IS NOT NULL THEN E1.LastName\n\t\t\t\t\tWHEN E1.LastName    IS NULL     AND E1.FirstName    IS NOT NULL THEN E1.FirstName\n\t\t\t\t\tWHEN E1.FirstName   IS NOT NULL AND E1.LastName     IS NOT NULL THEN CONCAT(E1.FirstName,' ',E1.LastName)\n\t\t\t\t\tELSE NULL END AS InstallerName,\n\t\t\t\t\n\t\t\t\tCASE \n\t\t\t\t\tWHEN E.FirstName   IS NULL     AND E.LastName     IS NOT NULL THEN E.LastName\n\t\t\t\t\tWHEN E.LastName    IS NULL     AND E.FirstName    IS NOT NULL THEN E.FirstName\n\t\t\t\t\tWHEN E.FirstName   IS NOT NULL AND E.LastName     IS NOT NULL THEN CONCAT(E.FirstName,' ',E.LastName)\n\t\t\t\t\tELSE NULL END AS SalesRepName,\n\t\t\t\t\n\t\t\t\tCASE \n\t\t\t\t\tWHEN E2.FirstName   IS NULL     AND E2.LastName     IS NOT NULL THEN E2.LastName\n\t\t\t\t\tWHEN E2.LastName    IS NULL     AND E2.FirstName    IS NOT NULL THEN E2.FirstName\n\t\t\t\t\tWHEN E2.FirstName   IS NOT NULL AND E2.LastName     IS NOT NULL THEN CONCAT(E2.FirstName,' ',E2.LastName)\n\t\t\t\t\tELSE NULL END AS EmployeeName,\n\t\t\t\t\n\t\t\t\t\tA.Old_GrossAmount,\n\t\t\t\t\tA.New_GrossAmount,\n\t\t\t\t\tB.LP_ProductionBranchID \tAS BranchID,\n\t\t\t\t\tBR.LongName \tAS BranchName,\n\t\t\t\t\tBR.UNI_Market \tAS UnifiedMarket,\n\t\t\t\t\tROW_NUMBER() OVER (PARTITION BY A.LP_JObID ORDER BY DateChanged DESC) AS RW,\n\t\t\t\t\tPR.LongDescription AS ProductName,\n\t\t\t\t\tB.ContractDate\n\t\t\t\t\tFROM [EDW].[FACT_JOB_STATUS_LOG] A\n\t\t\t\t\tJOIN EDW.FACT_JOB B\n\t\t\t\t\tON A.JobID = B.JObID\n\n\t\t\t\t\tLEFT JOIN EDW.DIM_PRODUCT PR\n\t\t\t\t\tON B.ProductID = PR.ProductID\n\n\t\t\t\t\tJOIN [EDW].[FACT_MILESTONE_DETAIL] MLD\n\t\t\t\t\tON B.JobID = MLD.JobID\n\t\t\t\t\t\n\t\t\t\t\tLEFT JOIN EDW.DIM_BRANCH BR\n\t\t\t\t\tON B.ProductionBranchID = BR.BranchID\n\t\t\t\t\t\n\t\t\t\t\tLEFT JOIN EDW.DIM_EMPLOYEE E\n\t\t\t\t\tON B.SalesRep1_EmployeeID = E.EmployeeID\n\t\t\t\t\tLEFT JOIN EDW.DIM_EMPLOYEE E1\n\t\t\t\t\tON B.InstallerID_1 = E1.EmployeeID\n\t\t\t\t\n\t\t\t\t\tLEFT JOIN EDW.DIM_EMPLOYEE E2\n\t\t\t\t\tON CONCAT(A.DIVISION,'-',A.LP_EmployeeID) = E2.EmployeeID\n\t\t\t\t\t\n\t\t\t\t\tWHERE A.DIVISION='SWR' \n\t\t\t\t\tAND A.LP_New_JobStatusID IN ('J','K','PD','I','9','SP')\n\t\t\t\t\tAND MLD.LP_MilestoneDateTypeID ='C' \n\t\t\t\t\tAND MLD.ACtualDate >= '2025-01-01' \n\t\t\t\t\tAND MLD.ACtualDate <= GETDATE()\n\t\t\t\t\tAND MLD.ACtualDate IS NOT NULL\n\t\t\t\t\t) M1\n\t\t\t\t\t\n\t\t\t) M2;",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "TRUNCATE TABLE [Data_Enrichment].[SWR_DISCREPANT_JOBS];",
+						"allowCopyCommand": true
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "staging"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "JobID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "JobID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "ContractID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ContractID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "New_JobStatusID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "New_JobStatusID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Old_JobStatusID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Old_JobStatusID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DateChanged",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "DateChanged",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "CompletionDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "CompletionDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "EmployeeName",
+									"type": "String"
+								},
+								"sink": {
+									"name": "EmployeeName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "SalesRepName",
+									"type": "String"
+								},
+								"sink": {
+									"name": "SalesRepName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "InstallerName",
+									"type": "String"
+								},
+								"sink": {
+									"name": "InstallerName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Old_GrossAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "Old_GrossAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "New_GrossAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "New_GrossAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "Helper_Gross",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "Helper_Gross",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BranchID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchName",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BranchName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UnifiedMarket",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UnifiedMarket",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DiscrepancyCount",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "DiscrepancyCount",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "ProductName",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ProductName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ContractDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "ContractDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_FACT_JOB",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_SWR_DISCREPANT_JOBS",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/DATA_ENRICHMENT"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-11-13T12:50:27Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

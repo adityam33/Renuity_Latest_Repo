@@ -1,0 +1,190 @@
+{
+	"name": "DF_Foundation_Transformation",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "df_foundation_csv",
+						"type": "DatasetReference"
+					},
+					"name": "MAC"
+				},
+				{
+					"dataset": {
+						"referenceName": "df_foundation_csv",
+						"type": "DatasetReference"
+					},
+					"name": "MXH"
+				},
+				{
+					"dataset": {
+						"referenceName": "df_foundation_csv",
+						"type": "DatasetReference"
+					},
+					"name": "SWR"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "fico_foundation_ods",
+						"type": "DatasetReference"
+					},
+					"name": "sink1",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "surrogateKey1"
+				},
+				{
+					"name": "surrogateKey2"
+				},
+				{
+					"name": "surrogateKey3"
+				},
+				{
+					"name": "filter1"
+				},
+				{
+					"name": "filter2"
+				},
+				{
+					"name": "filter3"
+				},
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "derivedColumn2"
+				},
+				{
+					"name": "derivedColumn3"
+				},
+				{
+					"name": "DCMadCity"
+				},
+				{
+					"name": "DCmaxHome"
+				},
+				{
+					"name": "DCstatewide"
+				},
+				{
+					"name": "union1"
+				},
+				{
+					"name": "select1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          Prop_0 as string,",
+				"          Prop_1 as string,",
+				"          Prop_2 as string,",
+				"          Prop_3 as string,",
+				"          Prop_4 as string,",
+				"          Prop_5 as string,",
+				"          Prop_6 as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> MAC",
+				"source(output(",
+				"          Prop_0 as string,",
+				"          Prop_1 as string,",
+				"          Prop_2 as string,",
+				"          Prop_3 as string,",
+				"          Prop_4 as string,",
+				"          Prop_5 as string,",
+				"          Prop_6 as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> MXH",
+				"source(output(",
+				"          Prop_0 as string,",
+				"          Prop_1 as string,",
+				"          Prop_2 as string,",
+				"          Prop_3 as string,",
+				"          Prop_4 as string,",
+				"          Prop_5 as string,",
+				"          Prop_6 as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> SWR",
+				"MAC keyGenerate(output(rowNumber as long),",
+				"     startAt: 1L,",
+				"     stepValue: 1L) ~> surrogateKey1",
+				"MXH keyGenerate(output(rowNumber as long),",
+				"     startAt: 1L,",
+				"     stepValue: 1L) ~> surrogateKey2",
+				"SWR keyGenerate(output(rowNumber as long),",
+				"     startAt: 1L,",
+				"     stepValue: 1L) ~> surrogateKey3",
+				"surrogateKey1 filter(and(rowNumber >= 2,rowNumber <= 6)) ~> filter1",
+				"surrogateKey2 filter(and(rowNumber >= 7,rowNumber <= 11)) ~> filter2",
+				"surrogateKey3 filter(and(rowNumber >= 12,rowNumber <= 16)) ~> filter3",
+				"filter1 derive(Lender = 'Foundation',",
+				"          {FICO Band} = toString(byName('Prop_2')),",
+				"          StartofMonth = iif(length(toString(Prop_1)) == 5, concat('0',substring(toString(Prop_1), 0, 1),'-01','-',right(toString(Prop_1), 4))    ,concat(substring(toString(Prop_1), 0, 2),'-01','-',right(toString(Prop_1), 4))),",
+				"          Aprvd = toString(byName('Prop_5')),",
+				"          Total = toString(byName('Prop_3')),",
+				"          {Apvd $} = toString(byName('Prop_6')),",
+				"          {Total $s} = toString(byName('Prop_4'))) ~> derivedColumn1",
+				"filter2 derive(Lender = 'Foundation',",
+				"          {FICO Band} = toString(byName('Prop_2')),",
+				"          Aprvd = toString(byName('Prop_5')),",
+				"          Total = toString(byName('Prop_3')),",
+				"          {Apvd $} = toString(byName('Prop_6')),",
+				"          {Total $s} = toString(byName('Prop_4')),",
+				"          StartofMonth = iif(length(toString(Prop_1)) == 5, concat('0',substring(toString(Prop_1), 0, 1),'-01','-',right(toString(Prop_1), 4))    ,concat(substring(toString(Prop_1), 0, 2),'-01','-',right(toString(Prop_1), 4)))) ~> derivedColumn2",
+				"filter3 derive(Lender = 'Foundation',",
+				"          {FICO Band} = toString(byName('Prop_2')),",
+				"          Aprvd = toString(byName('Prop_5')),",
+				"          Total = toString(byName('Prop_3')),",
+				"          {Apvd $} = toString(byName('Prop_6')),",
+				"          {Total $s} = toString(byName('Prop_4')),",
+				"          StartofMonth = iif(length(toString(Prop_1)) == 5, concat('0',substring(toString(Prop_1), 0, 1),'-01','-',right(toString(Prop_1), 4))    ,concat(substring(toString(Prop_1), 0, 2),'-01','-',right(toString(Prop_1), 4)))) ~> derivedColumn3",
+				"derivedColumn1 derive(Division = 'Mad City',",
+				"          Month = concat(StartofMonth, ' - ', toString(lastDayOfMonth(toDate(StartofMonth, 'MM-dd-yyyy')), 'MM-dd-yyyy'))) ~> DCMadCity",
+				"derivedColumn2 derive(Division = 'Max Home',",
+				"          Month = concat(StartofMonth, ' - ', toString(lastDayOfMonth(toDate(StartofMonth, 'MM-dd-yyyy')), 'MM-dd-yyyy'))) ~> DCmaxHome",
+				"derivedColumn3 derive(Division = 'Statewide',",
+				"          Month = concat(StartofMonth, ' - ', toString(lastDayOfMonth(toDate(StartofMonth, 'MM-dd-yyyy')), 'MM-dd-yyyy'))) ~> DCstatewide",
+				"DCMadCity, DCmaxHome, DCstatewide union(byName: true)~> union1",
+				"union1 select(mapColumn(",
+				"          Week = Month,",
+				"          FICO_Band = {FICO Band},",
+				"          Lender,",
+				"          Aprvd,",
+				"          Total,",
+				"          Apvd_Amount = {Apvd $},",
+				"          Total_Amount = {Total $s},",
+				"          Division_Name = Division",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"select1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     staged: true,",
+				"     allowCopyCommand: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> sink1"
+			]
+		}
+	}
+}

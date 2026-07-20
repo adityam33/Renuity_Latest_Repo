@@ -1,0 +1,401 @@
+{
+	"name": "batch_cpy_LP_to_ODS_medium_ZML",
+	"properties": {
+		"activities": [
+			{
+				"name": "cpy_LP_brn_Branches",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_mcd_MarketingCostDetail",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_brn_Branches_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_brp_ProductionBranches",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_brn_Branches",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_brp_ProductionBranches_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_emp_Employees",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_brz_BranchZips",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_emp_Employees_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_fco_FinanceCompany",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_HOA_HomeownersAssociations",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_fco_FinanceCompany_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_ins_installers",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_emp_Employees",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_ins_installers_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_prd_Products",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_jco_JobChangeOrders",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_prd_Products_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_prg_Product_Groups",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_prd_Products",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_prg_Product_Groups_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_sds_SalesDistricts",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_brp_ProductionBranches",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_sds_SalesDistricts_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_jsv_JobService",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_fco_FinanceCompany",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_jsv_JobService_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_brz_BranchZips",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_inv_Invoca_Data",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_brz_BranchZips_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_HOA_HomeownersAssociations",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_prd_ProductOnOrder",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_HOA_HomeownersAssociations_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_jco_JobChangeOrders",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_Com_Commissions",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_jco_JobChangeOrders_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_Com_Commissions",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_Com_Commissions_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_phn_phones",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_jsv_JobService",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_phn_phones_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_inv_Invoca_Data",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_inv_InvocaData_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_mcd_MarketingCostDetail",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_mcc_MarketingCostCategories",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_mcd_MarketingCostDetail_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_mcc_MarketingCostCategories",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_mcd_MarketingCostCategories_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_prd_ProductOnOrder",
+				"type": "ExecutePipeline",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_prd_ProductOnOrder_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"folder": {
+			"name": "Temp/Anuj/ZML/LP_to_ODS_ZML"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-11-12T09:43:12Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

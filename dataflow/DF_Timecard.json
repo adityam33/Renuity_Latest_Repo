@@ -1,0 +1,167 @@
+{
+	"name": "DF_Timecard",
+	"properties": {
+		"folder": {
+			"name": "Test-Dataflows"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DS_TimeCard",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "DS_EmployeeTimeCard",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "filter1"
+				},
+				{
+					"name": "surrogateKey1"
+				},
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "MapDrifted1",
+					"description": "Creates an explicit mapping for each drifted column"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          {Start Date} as string,",
+				"          {09/14/2024} as string,",
+				"          Prop_2 as string,",
+				"          Prop_3 as string,",
+				"          Prop_4 as string,",
+				"          Prop_5 as string,",
+				"          Prop_6 as string,",
+				"          Prop_7 as string,",
+				"          Prop_8 as string,",
+				"          Prop_9 as string,",
+				"          Prop_10 as string,",
+				"          Prop_11 as string,",
+				"          Prop_12 as string,",
+				"          Prop_13 as string,",
+				"          Prop_14 as string,",
+				"          Prop_15 as string,",
+				"          Prop_16 as string,",
+				"          Prop_17 as string,",
+				"          Prop_18 as string,",
+				"          Prop_19 as string,",
+				"          Prop_20 as string,",
+				"          Prop_21 as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> source1",
+				"surrogateKey1 filter(row_number>=6) ~> filter1",
+				"source1 keyGenerate(output(row_number as long),",
+				"     startAt: 1L,",
+				"     stepValue: 1L) ~> surrogateKey1",
+				"MapDrifted1 derive(FirstName = {Start Date},",
+				"          LastName = {09/14/2024},",
+				"          AssociateID = Prop_2,",
+				"          JobTitleDescription = Prop_3,",
+				"          WorkEmail = Prop_4,",
+				"          PayClass = Prop_5,",
+				"          PayClassTimeclockRestrictionGroup = Prop_6,",
+				"          Division = Prop_7,",
+				"          PayDate = Prop_8,",
+				"          TimeIn = Prop_9,",
+				"          TimeOut = Prop_10,",
+				"          Hours = Prop_11,",
+				"          EarningsCode = Prop_12,",
+				"          WorkedDepartment = Prop_13,",
+				"          TimecardWorkLocation = Prop_14,",
+				"          TimecardWorkCarpentersJobNumber = Prop_15,",
+				"          TimecardWorkFHIABJsLocations = Prop_16,",
+				"          TimecardWorkGoSouthernLocation = Prop_17,",
+				"          TimecardWorkMADCITYLOCATION = Prop_18,",
+				"          TimecardWorkMAXHOMELOCATION = Prop_19,",
+				"          TimecardWorkMAXHOMEPROJECT = Prop_20,",
+				"          Approve = Prop_21,",
+				"          ApproveSupervisorName = ApproveSupervisorName,",
+				"          InsertedDate = currentTimestamp()) ~> derivedColumn1",
+				"filter1 derive(ApproveSupervisorName = toString(byName('_col0_'))) ~> MapDrifted1",
+				"derivedColumn1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          FirstName as string,",
+				"          LastName as string,",
+				"          AssociateID as string,",
+				"          JobTitleDescription as string,",
+				"          WorkContact_WorkEmail as string,",
+				"          PayClass as string,",
+				"          PayClassTimeclockRestrictionGroup as string,",
+				"          Division as string,",
+				"          PayDate as string,",
+				"          TimeIn as string,",
+				"          TimeOut as string,",
+				"          Hours as string,",
+				"          EarningsCode as string,",
+				"          WorkedDepartment as string,",
+				"          TimecardWorkLocation as string,",
+				"          TimecardWorkCarpentersJobNumber as string,",
+				"          TimecardWorkFHIABJsLocations as string,",
+				"          TimecardWorkGoSouthernLocation as string,",
+				"          TimecardWorkMADCITYLOCATION as string,",
+				"          TimecardWorkMAXHOMELOCATION as string,",
+				"          TimecardWorkMAXHOMEPROJECT as string,",
+				"          Approve as string,",
+				"          ApproveSupervisorName as string,",
+				"          InsertedDate as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     truncate:true,",
+				"     format: 'table',",
+				"     staged: true,",
+				"     allowCopyCommand: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          FirstName,",
+				"          LastName,",
+				"          AssociateID,",
+				"          JobTitleDescription,",
+				"          WorkContact_WorkEmail = WorkEmail,",
+				"          PayClass,",
+				"          PayDate,",
+				"          PayClassTimeclockRestrictionGroup,",
+				"          Division,",
+				"          TimeIn,",
+				"          TimeOut,",
+				"          Hours,",
+				"          EarningsCode,",
+				"          WorkedDepartment,",
+				"          TimecardWorkLocation,",
+				"          TimecardWorkCarpentersJobNumber,",
+				"          TimecardWorkFHIABJsLocations,",
+				"          TimecardWorkGoSouthernLocation,",
+				"          TimecardWorkMADCITYLOCATION,",
+				"          TimecardWorkMAXHOMELOCATION,",
+				"          TimecardWorkMAXHOMEPROJECT,",
+				"          Approve,",
+				"          ApproveSupervisorName,",
+				"          InsertedDate",
+				"     )) ~> sink1"
+			]
+		}
+	}
+}

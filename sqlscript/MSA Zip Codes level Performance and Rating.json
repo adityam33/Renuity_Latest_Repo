@@ -1,0 +1,17 @@
+{
+	"name": "MSA Zip Codes level Performance and Rating",
+	"properties": {
+		"content": {
+			"query": "SELECT\nzipPerf.[Division]\n,[EntryMonth]\n,zipPerf.[ZipCode]\n,[LeadSubSourceID]\n,[ProductID]\n,[BranchID]\n,[LeadCount]\n,[ProspectCount]\n,[ApptSet]\n,[NetIssue]\n,[Demo]\n,[NetSold]\n,[NetSalesAmount]\n,[GrossSalesAmount]\n,[JobCount]\n,zipPerf.[City]\n,zipPerf.[County]\n,zipPerf.[CBSA_Name]\n,zipPerf.[MSA_Name]\n,zipPerf.[State]\n,[Total_Households]\n,[Pct_Households_Entry_Level]\n,[Pct_Households_Feature_And_Location]\n,[Pct_Households_Simple_Life]\n,[Pct_Households_Family_Life]\n,[Pct_Households_Elite]\n,[Pct_Households_AA_Entry_Level]\n,[Pct_Households_AA_Feature_And_Location]\n,[Pct_Households_AA_Elite]\n,[Pct_Households_Renters]\n,[Median_Home_Price]\n,[Median_Year_Built]\n,[Overall_Remodeling_Activity_Index]\n,[Overall_Remodeling_Composite_Ranking_Index]\n,[Baths_Activity_Index]\n,[Baths_Composite_Ranking_Index]\n,[Windows_Activity_Index]\n,[Windows_Composite_Ranking_Index]\n,[PopulationEstimate]\n,[PersonsPerHousehold]\n,[AverageHouseValue]\n,[IncomePerHousehold]\n,[MedianAge]\n,[DeliveryResidential]\n,[DeliveryBusiness]\n,[DeliveryTotal]\n,[ClassificationCode]\n,[MultiCounty]\n,[LandArea]\n,[WaterArea]\n,[BoxCount]\n,[SFDU] as SingleFamilyDwellingUints\n,[MFDU] as MultiFamilyDwellingUnits\n FROM \n [ODS].[MKTDATA_ZIP_CODES_DB_DELUXE_BUSINESS] zip\n inner join [EDW].[SUMM_FACT_ZIP_CODE_PERFORMANCE] zipPerf\n on zipPerf.ZipCode = zip.ZipCode \nleft join ODS.MKTDATA_ZONDA_ZIP_CODE_INDEX zonda\non zipPerf.ZipCode = zonda.ZipCode\n where \n zip.PrimaryRecord = 'P'\n and zip.MSA_Name in (\n'Greenville-Spartanburg-Anderson SC MSA', \n'Charlotte-Gastonia-Rock Hill NC-SC MSA', \n'Columbia SC MSA',\n'Raleigh-Durham-Chapel Hill NC MSA',\n'Knoxville TN MSA',\n'Charleston-North Charleston SC MSA'\n )\n order by MSA_NAME, [NetSalesAmount] desc\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

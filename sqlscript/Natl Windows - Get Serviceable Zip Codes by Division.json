@@ -1,0 +1,17 @@
+{
+	"name": "Natl Windows - Get Serviceable Zip Codes by Division",
+	"properties": {
+		"content": {
+			"query": "\n/** Get the zip codes for FHIA **/\nSELECT \nbrz.[ZipCode]\n,brz.[LP_BranchID]\n,prg.[ProductGroup]\n,brz.[Division]\n FROM \n [EDW].[DIM_BRANCH_ZIP] brz\n ,[EDW].[DIM_PRODUCT_GROUP] prg\n where\n brz.ProductGroupID = prg.ProductGroupID\n and brz.Division = 'FHI'\n and ZipCode not in ('00000')\n and prg.[Active] = 'True'\n --and prg.ProductGroupID in ('SWR-BRem','SWR-WABth')\n order BY\nprg.[ProductGroup]\n,brz.[LP_BranchID]\n,brz.[ZipCode]\n\n\n/** Get the zip codes for Paradise **/\n\nSELECT \nbrz.[ZipCode]\n,brz.[LP_BranchID]\n,prg.[ProductGroup]\n,brz.[Division]\n FROM \n [EDW].[DIM_BRANCH_ZIP] brz\n ,[EDW].[DIM_PRODUCT_GROUP] prg\n where\n brz.ProductGroupID = prg.ProductGroupID\n and brz.Division = 'PHI'\n and ZipCode not in ('00000')\n and prg.[Active] = 'True'\n and prg.ProductGroup in ('Default')\n order BY\nprg.[ProductGroup]\n,brz.[LP_BranchID]\n,brz.[ZipCode]\n\n/** Get the zip codes for Statewide **/\n\nSELECT distinct\nbrz.[ZipCode]\n,brz.[LP_BranchID]\n,prg.[ProductGroup]\n,brz.[Division]\n FROM \n [EDW].[DIM_BRANCH_ZIP] brz\n ,[EDW].[DIM_BRANCH] brn\n ,[EDW].[DIM_PRODUCT_GROUP] prg\n where\n brz.ProductGroupID = prg.ProductGroupID\n and brz.BranchID = brn.BranchID\n and brz.Division = 'SWR'\n and ZipCode not in ('00000')\n and prg.[Active] = 'True'\n and brn.[Active] = 'True'\n and prg.ProductGroupID in ('SWR-WinSd')\n order BY\nprg.[ProductGroup]\n,brz.[LP_BranchID]\n,brz.[ZipCode]\n\n\n\n/** Get the zip codes for MaxHome **/\n\nSELECT \nbrz.[ZipCode]\n,brz.[LP_BranchID]\n,prg.[ProductGroup]\n,brz.[Division]\n FROM \n [EDW].[DIM_BRANCH_ZIP] brz\n ,[EDW].[DIM_PRODUCT_GROUP] prg\n where\n brz.ProductGroupID = prg.ProductGroupID\n and brz.Division = 'MXH'\n and ZipCode not in ('00000')\n and prg.[Active] = 'True'\n and prg.ProductGroupID in ('MXH-WND')\n and brz.BranchID not in ('MXH-HUB')\n order BY\nprg.[ProductGroup]\n,brz.[LP_BranchID]\n,brz.[ZipCode]\n\n\n/** Get the zip codes for RTW **/\n\nSELECT \nbrz.[ZipCode]\n,brz.[LP_BranchID]\n,prg.[ProductGroup]\n,brz.[Division]\n FROM \n [EDW].[DIM_BRANCH_ZIP] brz\n ,[EDW].[DIM_PRODUCT_GROUP] prg\n where\n brz.ProductGroupID = prg.ProductGroupID\n and brz.Division = 'RTW'\n and ZipCode not in ('00000','0')\n and prg.[Active] = 'True'\n and prg.ProductGroupID in ('RTW-DEF')\n order BY\nprg.[ProductGroup]\n,brz.[LP_BranchID]\n,brz.[ZipCode]",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

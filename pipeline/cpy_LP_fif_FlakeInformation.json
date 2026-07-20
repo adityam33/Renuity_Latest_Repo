@@ -1,0 +1,239 @@
+{
+	"name": "cpy_LP_fif_FlakeInformation",
+	"properties": {
+		"activities": [
+			{
+				"name": "CTA",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT [id]\r\n      ,[job_id]\r\n      ,[Loc]\r\n      ,[SquareFootage]\r\n      ,[FlakeColor]\r\n      ,[MoistureBarrier]\r\n      ,[SLE100]\r\n      ,[EP55]\r\n      ,[comments]\r\n      ,[enteredon]\r\n      ,[enteredby]\r\n      ,[updatedon]\r\n      ,[updatedby]\r\n      ,[ActualSQF]\r\n  FROM [dbo].[fif_FlakeInformation] WITH (NOLOCK)",
+						"queryTimeout": "00:30:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": " IF OBJECT_ID('ODS.LP_CTA_fif_FlakeInformation')  IS NOT NULL TRUNCATE TABLE ODS.LP_CTA_fif_FlakeInformation\n",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "id",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "id",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "job_id",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "job_id",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Loc",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Loc",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SquareFootage",
+									"type": "Decimal",
+									"physicalType": "money",
+									"scale": 4,
+									"precision": 19
+								},
+								"sink": {
+									"name": "SquareFootage",
+									"type": "Decimal",
+									"physicalType": "money",
+									"scale": 4,
+									"precision": 19
+								}
+							},
+							{
+								"source": {
+									"name": "FlakeColor",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "FlakeColor",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "MoistureBarrier",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "MoistureBarrier",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SLE100",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SLE100",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "EP55",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "EP55",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "comments",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "comments",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "enteredon",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "enteredon",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								}
+							},
+							{
+								"source": {
+									"name": "enteredby",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "enteredby",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "updatedon",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "updatedon",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								}
+							},
+							{
+								"source": {
+									"name": "updatedby",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "updatedby",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "ActualSQF",
+									"type": "Decimal",
+									"physicalType": "money",
+									"scale": 4,
+									"precision": 19
+								},
+								"sink": {
+									"name": "ActualSQF",
+									"type": "Decimal",
+									"physicalType": "money",
+									"scale": 4,
+									"precision": 19
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_CTA_fif_FlakeInformation",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_LP_CTA_fif_FlakeInformation",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "SRC_to_ODS/CRM/LP"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-02-03T05:28:32Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

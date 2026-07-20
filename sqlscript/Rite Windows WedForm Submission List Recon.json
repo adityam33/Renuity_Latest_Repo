@@ -1,0 +1,17 @@
+{
+	"name": "Rite Windows WedForm Submission List Recon",
+	"properties": {
+		"content": {
+			"query": "SELECT distinct\ncast(rtw.[Submission Time] as DATE) as SubmissionDate\n,rtw.[Name]\n,rtw.[Number]\n,rtw.[Email]\n,rtw.[Form Name]\n FROM [ODS].[WEB_RTW_FORM_SUBMISSION_LIST] rtw\n inner join \n (\n SELECT distinct\ncrl.[Email]\n FROM [ODS].[WEB_RTW_FORM_SUBMISSION_LIST] crl\n left join [ODS].[LP_RTW_cst_Customers] cst\n on crl.Email = cst.Email\n WHERE\n cst.Email is null\n ) ccr_email\n on rtw.Email = ccr_email.Email\n order by \n rtw.[Email] desc",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

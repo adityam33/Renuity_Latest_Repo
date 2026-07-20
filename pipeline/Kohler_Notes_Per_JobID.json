@@ -1,0 +1,301 @@
+{
+	"name": "Kohler_Notes_Per_JobID",
+	"properties": {
+		"activities": [
+			{
+				"name": "Hit Notes API Until",
+				"type": "Until",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(variables('hasMoreData'), false)",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Increment nextPageNumber",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "nextPageNumber",
+								"value": {
+									"value": "@add(variables('currentPageNumber'), 1)",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Fetch Notes of a JobID Page by Page",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "Increment nextPageNumber",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "RestSource",
+									"httpRequestTimeout": "00:01:40",
+									"requestInterval": "00.00:00:00.010",
+									"requestMethod": "GET",
+									"additionalHeaders": {
+										"Authorization": {
+											"value": "@concat('Bearer ', pipeline().parameters.access_token)",
+											"type": "Expression"
+										}
+									}
+								},
+								"sink": {
+									"type": "SqlServerSink",
+									"writeBehavior": "insert",
+									"sqlWriterUseTableLock": false
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"mappings": [
+										{
+											"source": {
+												"path": "['id']"
+											},
+											"sink": {
+												"name": "NoteId",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['note']"
+											},
+											"sink": {
+												"name": "Note",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['user_id']"
+											},
+											"sink": {
+												"name": "UserId",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['noteable_id']"
+											},
+											"sink": {
+												"name": "JobID",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "['created_at']"
+											},
+											"sink": {
+												"name": "CreatedAt",
+												"type": "DateTime"
+											}
+										},
+										{
+											"source": {
+												"path": "['updated_at']"
+											},
+											"sink": {
+												"name": "UpdatedAt",
+												"type": "DateTime"
+											}
+										},
+										{
+											"source": {
+												"path": "['user']"
+											},
+											"sink": {
+												"name": "UserName",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"path": "$['meta']['pagination']['current_page']"
+											},
+											"sink": {
+												"name": "ApiPage",
+												"type": "String"
+											}
+										}
+									],
+									"collectionReference": "$['notes']"
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "Notes_api",
+									"type": "DatasetReference",
+									"parameters": {
+										"job_id": {
+											"value": "@pipeline().parameters.JobID",
+											"type": "Expression"
+										},
+										"page": {
+											"value": "@variables('nextPageNumber')",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "Kohler_SqlServerTables",
+									"type": "DatasetReference",
+									"parameters": {
+										"TableName": "kohler_jobs_notes",
+										"SchemaName": "dbo"
+									}
+								}
+							]
+						},
+						{
+							"name": "Check Empty Data",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Fetch Notes of a JobID Page by Page",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "hasMoreData",
+								"value": {
+									"value": "@greater(activity('Fetch Notes of a JobID Page by Page').output.rowsCopied, 0)",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Set currentPageNumber",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Check Empty Data",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "currentPageNumber",
+								"value": {
+									"value": "@variables('nextPageNumber')",
+									"type": "Expression"
+								}
+							}
+						}
+					],
+					"timeout": "0.12:00:00"
+				}
+			},
+			{
+				"name": "Reset currentPageNumber",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Hit Notes API Until",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "currentPageNumber",
+					"value": 0
+				}
+			},
+			{
+				"name": "Reset hasMoreData",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Reset currentPageNumber",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "hasMoreData",
+					"value": true
+				}
+			}
+		],
+		"parameters": {
+			"JobID": {
+				"type": "string"
+			},
+			"access_token": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"hasMoreData": {
+				"type": "Boolean",
+				"defaultValue": true
+			},
+			"currentPageNumber": {
+				"type": "Integer",
+				"defaultValue": 0
+			},
+			"nextPageNumber": {
+				"type": "Integer",
+				"defaultValue": 0
+			}
+		},
+		"folder": {
+			"name": "Temp/Sameen"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-02-19T20:40:19Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

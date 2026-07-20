@@ -1,0 +1,275 @@
+{
+	"name": "Kohler_API_Data",
+	"properties": {
+		"activities": [
+			{
+				"name": "Get Token",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/x-www-form-urlencoded"
+					},
+					"url": "https://auth.1andfund.com/oauth/token",
+					"connectVia": {
+						"referenceName": "AutoResolveIntegrationRuntime",
+						"type": "IntegrationRuntimeReference"
+					},
+					"body": "audience=https://api.oneclickcontractor.com&grant_type=client_credentials&client_id=wfsYTbKJa4NlcPvUywqpVVoyHJ8cYxAk&client_secret=CbFDk-s20fys6iAGdOnZRfDkO-H9Ho7Ai82gGq4BsUL71koDrTjFCCWrExNh4unE"
+				}
+			},
+			{
+				"name": "Set Access Token",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Get Token",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "access_token",
+					"value": {
+						"value": "@activity('Get Token').output.access_token",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Get JobIDs From kohler_jobs",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "Set Access Token",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "select count(distinct OneClickContractNumber) as JobID\nfrom dbo.kohler_jobs\nwhere OneClickContractNumber not in ('-', '0')",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "Kohler_SqlServerTables",
+						"type": "DatasetReference",
+						"parameters": {
+							"TableName": "kohler_jobs",
+							"SchemaName": "dbo"
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "TRUNCATE kohler_jobs_notes Table",
+				"type": "Script",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Get JobIDs From kohler_jobs",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "LP_Kohler",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "TRUNCATE TABLE dbo.kohler_jobs_notes"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Call API ForEach JobID",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "TRUNCATE kohler_jobs_notes Table",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Get JobIDs From kohler_jobs').output.value",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"batchCount": 5,
+					"activities": [
+						{
+							"name": "Increment Current API Call Counter",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "apiCallCounter_current",
+								"value": {
+									"value": "@add(variables('apiCallCounter_prev'), 1)",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Set appcallCounter_prev",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "If API Counter Mod of 20",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "apiCallCounter_prev",
+								"value": {
+									"value": "@variables('apiCallCounter_current')",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "If API Counter Mod of 20",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "Increment Current API Call Counter",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@equals(mod(variables('apiCallCounter_current'), 20), 0)",
+									"type": "Expression"
+								},
+								"ifTrueActivities": [
+									{
+										"name": "Wait1",
+										"type": "Wait",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"waitTimeInSeconds": 10
+										}
+									}
+								]
+							}
+						},
+						{
+							"name": "Load Job Notes Page by Page",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "Set appcallCounter_prev",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "Kohler_Notes_Per_JobID",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"JobID": {
+										"value": "@item().JobID",
+										"type": "Expression"
+									},
+									"access_token": {
+										"value": "@variables('access_token')",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"variables": {
+			"access_token": {
+				"type": "String",
+				"defaultValue": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImpTTGt5ZEZxeC1xVWpCLTdINEZkXyJ9.eyJpc3MiOiJodHRwczovL2F1dGguMWFuZGZ1bmQuY29tLyIsInN1YiI6Indmc1lUYktKYTRObGNQdlV5d3FwVlZveUhKOGNZeEFrQGNsaWVudHMiLCJhdWQiOiJodHRwczovL2FwaS5vbmVjbGlja2NvbnRyYWN0b3IuY29tIiwiaWF0IjoxNzcxNTI5MzAwLCJleHAiOjE3NzE2MTU3MDAsImd0eSI6ImNsaWVudC1jcmVkZW50aWFscyIsImF6cCI6Indmc1lUYktKYTRObGNQdlV5d3FwVlZveUhKOGNZeEFrIn0.PHgHqbnMniUDwnKCX4qyQ-sjpXgy1vgLyXVxaeL31l7RwfswWn1Td30PZFR7Ru28uIJxMxtEEIylkJ9vBVIzSKFyb7qSykXYy3DKLviUJp1IODFfEgWaQlPTTK3dQMGdKBhK1ANDccZujvF-aoFgjksA23TXGsTuzTZigerSFmaumfnRiJ9kNlkZ8Jk60P9-PdHK8D51NmxDiSm0og-7OXU3qk0oNWCoNFf1_-GENvRN1y910vwTbUPr0IQKBGlKAVLWFwplw3y0d147jcGsr65bCks9O-bUX3ZQX_F2ccNQ7GoOrIgIllhoAzeC6DdgkN5K-hoFw_R0P2BMpVb9yg"
+			},
+			"apiCallCounter_prev": {
+				"type": "Integer",
+				"defaultValue": 0
+			},
+			"apiCallCounter_current": {
+				"type": "Integer",
+				"defaultValue": 0
+			}
+		},
+		"folder": {
+			"name": "Temp/Sameen"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-02-24T22:00:25Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

@@ -1,0 +1,17 @@
+{
+	"name": "Get Call Count by Month for a Zip",
+	"properties": {
+		"content": {
+			"query": "SELECT \ncst.Zip\n,MONTH(cls.CallDate) as CallMonth\n,count(1) as CallCount\n--,sum(lds.GrossSalesAmount) as GrossSalesAmount\n FROM \n [EDW].[FACT_CALL] cls\n --,[EDW].[FACT_LEAD] lds\n ,[EDW].[DIM_CUSTOMER] cst\n where\n cls.CustomerID = cst.CustomerID\n --and cls.CustomerID = lds.CustomerID\n and cls.OperatingCompany = 'FHI' \n and cls.CallDate >= '2022-01-01'\n --and lds.EntryDate >= '2022-01-01'\n and cst.Zip = '33143'\ngroup BY\nMONTH(cls.CallDate)\n,cst.Zip\norder by MONTH(cls.CallDate) asc\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

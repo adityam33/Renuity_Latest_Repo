@@ -1,0 +1,17 @@
+{
+	"name": "Past Sold Customers",
+	"properties": {
+		"content": {
+			"query": "SELECT distinct\nlds.Division\n,srs.[SourceCode] as Source\n,srs.[LeadSubSource]\n,lds.LeadID\n,lds.CustomerID\n,lds.EntryDate\n,cst.[FirstName]\n,cst.[LastName]\n,cst.[Address1]\n,cst.[Address2]\n,cst.[City]\n,cst.[State]\n,cst.[Zip]\n,cst.[Phone]\n,cst.[Email]\n,lds.[ProductID]\n,prd.ProductName\n,brn.LongName as Market\n,dsp.Disposition\n,app.SetDate as AppointmentSetDate\n,app.ApptDate as AppointmentDate\n,case \n    when jbs.LP_JobStatusCategoryID is NULL then 'False'\n    when jbs.LP_JobStatusCategoryID in (3,5) then 'False'\n    else 'True'\nend as Sold\n,case \n    when jbs.LP_JobStatusCategoryID is NULL then 0\n    when jbs.LP_JobStatusCategoryID in (3,5) then 0 \n    else job.GrossAmount\nend as NetSales\n,job.GrossAmount as GrossSales\n,job.JobID\n,jbs.JobStatus\n,jsc.JobStatusCategory\n,job.ContractDate as [JobContractDate]\n,lds.[LeadScore_ExpectedValueRank]\n,lds.[LeadScore_LogisticRegressionRank]\n,lds.[LeadScore_RegressionRank]\n,lds.[LeadScore_Initial_LikelihoodToBuy]\n,lds.[LeadScore_Initial_LikelySaleAmount]\n,lds.[LeadScore_Initial_ExpectedValue]\n,lds.[LeadScore_Current_LikelihoodToBuy]\n,lds.[LeadScore_Current_LikelySaleAmount]\n,lds.[LeadScore_Current_ExpectedValue]\nFROM \n[EDW].[FACT_LEAD] lds\n,[EDW].[DIM_LEAD_SUB_SOURCE] srs\n,[EDW].[DIM_DISPOSITION] dsp\n,[EDW].[DIM_CUSTOMER] cst\n,[EDW].[DIM_BRANCH] brn\n,[EDW].[DIM_PRODUCT] prd\n,(select LeadID, max(SetDate) as SetDate, max(ApptDate) as ApptDate from [EDW].[FACT_APPOINTMENT] group by LeadID) app\n,[EDW].[FACT_JOB] job\n,[EDW].[DIM_JOB_STATUS] jbs\n,[EDW].[DIM_JOB_STATUS_CATEGORY] jsc\nWHERE\nlds.LeadSubSourceID = srs.LeadSubSourceID\nand lds.DispositionID = dsp.DispositionID\nand lds.CustomerID = cst.CustomerID\nand lds.BranchID = brn.BranchID\nand lds.ProductID = prd.ProductID\nand lds.LeadID = app.LeadID\nand lds.LeadID = job.LeadID\nand job.JobStatusID = jbs.JobStatusID\nand jbs.JobStatusCategoryID = jsc.JobStatusCategoryID\nand lds.Sold = 'True'\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

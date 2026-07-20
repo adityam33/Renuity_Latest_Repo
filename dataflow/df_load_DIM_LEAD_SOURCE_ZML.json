@@ -1,0 +1,144 @@
+{
+	"name": "df_load_DIM_LEAD_SOURCE_ZML",
+	"properties": {
+		"folder": {
+			"name": "ZML_ODS_to_EDW/DIMENSIONS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ZML_ODS_FHI_src_SourceCodes",
+						"type": "DatasetReference"
+					},
+					"name": "FHI"
+				},
+				{
+					"dataset": {
+						"referenceName": "ODS_vw_lkp_LP_SourceGroups_ZML",
+						"type": "DatasetReference"
+					},
+					"name": "SrcODSvwlkpLPSourceGroups"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_DIM_LEAD_SOURCE_ZML",
+						"type": "DatasetReference"
+					},
+					"name": "targetDim",
+					"description": "Export data to EDW_DIM_LEAD_SOURCE",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "selectColsFHI"
+				},
+				{
+					"name": "createIDsFHI"
+				},
+				{
+					"name": "unionAllOpCos"
+				},
+				{
+					"name": "addLastUpdateTimestamp"
+				},
+				{
+					"name": "lookupLPSourceGroupID"
+				},
+				{
+					"name": "AlterRow"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          SourceCode as string,",
+				"          SourceGroup as string,",
+				"          Descr as string,",
+				"          Active as boolean,",
+				"          TimeSched as boolean,",
+				"          id as integer,",
+				"          GLAcct as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> FHI",
+				"source(output(",
+				"          Division as string,",
+				"          id as integer,",
+				"          SourceGroup as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> SrcODSvwlkpLPSourceGroups",
+				"FHI select(mapColumn(",
+				"          SourceCode,",
+				"          SourceGroup,",
+				"          LeadSource = Descr,",
+				"          Active,",
+				"          LP_LeadSourceID = id",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColsFHI",
+				"selectColsFHI derive(LeadSourceID = concat('FHI-',toString(LP_LeadSourceID)),",
+				"          Division = 'FHI') ~> createIDsFHI",
+				"createIDsFHI union(byName: true)~> unionAllOpCos",
+				"lookupLPSourceGroupID derive(LastUpdateTS = currentTimestamp(),",
+				"          LP_SourceGroupID = id,",
+				"          SourceGroupID = unionAllOpCos@Division + '-' + toString(id)) ~> addLastUpdateTimestamp",
+				"unionAllOpCos, SrcODSvwlkpLPSourceGroups lookup(unionAllOpCos@Division == SrcODSvwlkpLPSourceGroups@Division",
+				"     && unionAllOpCos@SourceGroup == SrcODSvwlkpLPSourceGroups@SourceGroup,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> lookupLPSourceGroupID",
+				"addLastUpdateTimestamp alterRow(upsertIf(true())) ~> AlterRow",
+				"AlterRow sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          LeadSourceID as string,",
+				"          SourceGroupID as string,",
+				"          SourceCode as string,",
+				"          LeadSource as string,",
+				"          Active as boolean,",
+				"          LP_LeadSourceID as integer,",
+				"          LP_SourceGroupID as integer,",
+				"          Division as string,",
+				"          LastUpdateTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['LeadSourceID'],",
+				"     format: 'table',",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          LeadSourceID,",
+				"          SourceGroupID,",
+				"          SourceCode,",
+				"          LeadSource,",
+				"          Active,",
+				"          LP_LeadSourceID,",
+				"          LP_SourceGroupID,",
+				"          Division = unionAllOpCos@Division,",
+				"          LastUpdateTS",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> targetDim"
+			]
+		}
+	}
+}

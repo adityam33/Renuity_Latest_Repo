@@ -1,0 +1,247 @@
+{
+	"name": "cpy_ERP_GL_PAYMENT_REF",
+	"properties": {
+		"activities": [
+			{
+				"name": "ERP to ODS - GL_PAYMENT_REF",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ODataSource",
+						"httpRequestTimeout": "00:05:00"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"tableOption": "autoCreate",
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Date",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "Txn_GL_DocDate",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Txn_GL_AccountID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Description",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Txn_GL_AccountID_DESC",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchNumber",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Txn_GL_BatchNbr",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Branch",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Txn_GL_BranchID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchName",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Txn_GL_BranchID_Desc",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DocType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Txn_GL_DocType",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ApplicationPeriod",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Txn_GL_FinPeriodID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "RefNbr",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Txn_GL_RefNbr",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "SourceDocType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Txn_GL_SourceDocType",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "SourceRefNbr",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Txn_GL_SourceRefNbr",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Vendor",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Txn_GL_VendorID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchNumber_2",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Bat_GL_BatchNbr",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Module",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Bat_GL_Module",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "RefNbr_2",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Bat_GL_RefNbr",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Branch_2",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Bat_GL_BranchID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PostPeriod",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Bat_GL_FinPeriodID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "OrigBatchNumber",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Bat_GL_OrigBatchNbr",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchGL_tranPeriodID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Bat_GL_TranPeriodID",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_ERP_GL_PAYMENT_REF",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_ERP_GL_PAYMENT_REF",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "SRC_to_ODS/ERP/Acumatica/TRANSACTIONS"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-01-27T15:49:08Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

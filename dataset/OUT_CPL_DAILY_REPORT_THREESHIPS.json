@@ -1,0 +1,31 @@
+{
+	"name": "OUT_CPL_DAILY_REPORT_THREESHIPS",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "OUT/AFFILIATES/THREESHIPS"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@concat('CPL_DAILY_REPORT_', formatdatetime(convertFromUtc(utcnow(), 'Eastern Standard Time'),'yyyyMMdd_HHmmss'), '.csv')",
+					"type": "Expression"
+				},
+				"folderPath": "out",
+				"fileSystem": "affiliate-threeships"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": []
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}

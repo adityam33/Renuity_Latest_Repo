@@ -1,0 +1,233 @@
+{
+	"name": "cpy_LP_phn_phones_ZML",
+	"properties": {
+		"activities": [
+			{
+				"name": "FHI",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.07:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 300,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT\nid,\t\nPhone,\t\nDescr,\t\nCAST(Active AS INT) AS Active,\t\nSortOrder,\t\nsrs_id\nFROM [dbo].[phn_phones]",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "TRUNCATE TABLE [ZML].[LP_FHI_phn_phones]",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "id",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Id"
+								}
+							},
+							{
+								"source": {
+									"name": "Phone",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Phone"
+								}
+							},
+							{
+								"source": {
+									"name": "Descr",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Descr"
+								}
+							},
+							{
+								"source": {
+									"name": "Active",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Active"
+								}
+							},
+							{
+								"source": {
+									"name": "SortOrder",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "SortOrder"
+								}
+							},
+							{
+								"source": {
+									"name": "srs_id",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "srs_id"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_ZML_FHI_aph_AlternatePhones",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ZML_ODS_LP_FHI_phn_phones",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "MXH",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.07:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 300,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT\nid,\t\nPhone,\t\nDescr,\t\nCAST(Active AS INT) AS Active,\t\nSortOrder,\t\nsrs_id\nFROM [dbo].[phn_phones]",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "TRUNCATE TABLE [ZML].[LP_MXH_phn_phones]",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "id",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Id"
+								}
+							},
+							{
+								"source": {
+									"name": "Phone",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Phone"
+								}
+							},
+							{
+								"source": {
+									"name": "Descr",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Descr"
+								}
+							},
+							{
+								"source": {
+									"name": "Active",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Active"
+								}
+							},
+							{
+								"source": {
+									"name": "SortOrder",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "SortOrder"
+								}
+							},
+							{
+								"source": {
+									"name": "srs_id",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "srs_id"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_ZML_MXH_aph_AlternatePhones",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ZML_ODS_LP_MXH_phn_phones",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "Temp/Anuj/ZML/LP_to_ODS_ZML"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-11-12T09:45:46Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

@@ -1,0 +1,105 @@
+{
+	"name": "batch_load_Dimensions_ERP_ZML",
+	"properties": {
+		"activities": [
+			{
+				"name": "UNI_UPD_Branch_copy1",
+				"type": "Script",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "UPDATE A\nSET A.UNI_Market = B.UNI_Market,\nA.UNI_MarketGroup = B.UNI_MarketGroup,\nA.UNI_CompanyReporting  = B.Division_MKTG\nFROM [ZML].[DIM_ERP_BRANCH] A\nLEFT JOIN \n(\nSELECT DISTINCT ACU_ID,ACU_Market,UNI_Market,UNI_MarketGroup,Division_MKTG\nFROM [ZML].[DIM_BRANCH_EXTN]\n) B \nON A.BranchCode = B.ACU_ID\nWHERE B.UNI_Market IS NOT NULL AND B.UNI_Market!='';\n\n\nUPDATE [ZML].[DIM_ERP_BRANCH]\nSET UNI_CompanyReporting = 'H.Rite Window'\nWHERE UNI_CompanyReporting = 'E.Home Smart';\n\n\nUPDATE [ZML].[DIM_ERP_BRANCH]\nSET UNI_CompanyReporting = 'A.FHIA'\nWHERE TRIM(UNI_CompanyReporting) = 'F.Max Home';\n\nUPDATE [ZML].[DIM_ERP_BRANCH]\nSET UNI_CompanyReporting = 'A.Renuity East'\nWHERE TRIM(UNI_CompanyReporting) = 'A.FHIA';\n"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "ERP_DIM_Customer",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "UNI_UPD_Branch_copy1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "UPDATE ZML.DIM_ERP_CUSTOMER SET CustomerClass='FHIA',CustomerClassDescription='FHIA' WHERE CustomerClass IN ('Max Home','MAXHOME');\r\nUPDATE ZML.DIM_ERP_CUSTOMER SET CustomerClass='Renuity East',CustomerClassDescription='Renuity East' WHERE CustomerClass IN ('FHIA');\r\nUPDATE ZML.DIM_ERP_CUSTOMER SET CustomerClass='West Division',CustomerClassDescription='West Division' WHERE CustomerClass IN ('PACIFIC','Pacific Bath');"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "ERP_Project",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "ERP_DIM_Customer",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "UPDATE ZML.[DIM_ERP_PROJECT] SET ProjectManager='FHIA',ProjectManagerDesc='FHIA FHIA' WHERE TRIM(ProjectManager) IN ('MAXHOME');\r\nUPDATE ZML.[DIM_ERP_PROJECT] SET ProjectManager='RENUITY EAST',ProjectManagerDesc='RENUITY EAST' WHERE TRIM(ProjectManager) IN ('FHIA');\r\nUPDATE ZML.[DIM_ERP_PROJECT] SET ProjectManager='WEST DIVISION',ProjectManagerDesc='WEST DIVISION' WHERE TRIM(ProjectManager) IN ('PACIFIC');"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			}
+		],
+		"folder": {
+			"name": "Temp/Anuj/ZML/ERP_ODS_to_EDW"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-12-15T08:30:35Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

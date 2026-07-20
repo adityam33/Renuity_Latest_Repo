@@ -1,0 +1,427 @@
+{
+	"name": "batch_load_marketing_Tracking_codes",
+	"properties": {
+		"activities": [
+			{
+				"name": "ODS Tracking codes",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "PostgreSqlV2Source",
+						"query": "SELECT *\nFROM tracking_codes\nWHERE ( created_at >= (CURRENT_TIMESTAMP - INTERVAL '7 days')\n   OR updated_at >= (CURRENT_TIMESTAMP - INTERVAL '7 days')) \n   and Hash_code is not null"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "Truncate table ODS.AP_TRACKING_CODES",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "Postgres_Division_mappings",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_CTA_TEST_DYN_DIM_CUSTOMER",
+						"type": "DatasetReference",
+						"parameters": {
+							"SchemaName": "ODS",
+							"TableName": "AP_TRACKING_CODES"
+						}
+					}
+				]
+			},
+			{
+				"name": "DIM load",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "ODS Tracking codes",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT ID,\nHash_Code, \nCase when Hash_code like '%ca' or Hash_code like '%gc' then 'CTA'\n\twhen Hash_code like '%mh' then 'FHI'\n\twhen Hash_code like '%pb' then 'PBC'\n\twhen Hash_code like '%rw' or Hash_code like '%hs' then 'RTW'\n\twhen Hash_code like '%fhi' then 'FHI'\n\twhen Hash_code like '%mac' then 'MAC'\n\twhen Hash_code like '%swr' then 'SWR' end as Division, \n\tDivision as Division_SRC,\n\tParent_Channel, Channel_Category,Channel, Channel_Provider,\nSub_Channel_1 ,Sub_Channel_2, Sub_Channel_3, Sub_Channel_4, Sub_Channel_5, Sub_Channel_6, Sub_Channel_7, \nSub_Channel_8, Sub_Channel_9, Sub_Channel_10, Sub_Channel_11, Sub_Channel_12,\nLanding_page, Destination_Number,Content, Description,Active, Status, Created_At, Updated_at, Getdate() as LastUpdatedTS\n\nfrom ODS.AP_TRacking_codes\n-- where Parent_Channel like '%Life%'",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Upsert",
+						"upsertSettings": {
+							"keys": [
+								"Hash_Code"
+							],
+							"interimSchemaName": ""
+						},
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/edw"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "ID",
+									"type": "Guid"
+								},
+								"sink": {
+									"name": "ID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Hash_Code",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Hash_Code",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Division",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Division_SRC",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Division_SRC",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Parent_Channel",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Parent_Channel",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Channel_Category",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Channel_Category",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Channel",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Channel",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Channel_Provider",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Channel_Provider",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Sub_Channel_1",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Sub_Channel_1",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Sub_Channel_2",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Sub_Channel_2",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Sub_Channel_3",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Sub_Channel_3",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Sub_Channel_4",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Sub_Channel_4",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Sub_Channel_5",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Sub_Channel_5",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Sub_Channel_6",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Sub_Channel_6",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Sub_Channel_7",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Sub_Channel_7",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Sub_Channel_8",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Sub_Channel_8",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Sub_Channel_9",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Sub_Channel_9",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Sub_Channel_10",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Sub_Channel_10",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Sub_Channel_11",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Sub_Channel_11",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Sub_Channel_12",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Sub_Channel_12",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Landing_page",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Landing_Page",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Destination_Number",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Destination_Number",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Content",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Content",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Description",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Description",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Active",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "Active",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "Status",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Status",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Created_At",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "Created_At",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "Updated_at",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "Updated_At",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_AD_PERFORMANCE_METRICS_DETAIL",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_CTA_TEST_DYN_DIM_CUSTOMER",
+						"type": "DatasetReference",
+						"parameters": {
+							"SchemaName": "EDW",
+							"TableName": "DIM_MKTNG_TRACKING_CODES"
+						}
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/DIMENSIONS/MAR TECH"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-03-17T06:01:32Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

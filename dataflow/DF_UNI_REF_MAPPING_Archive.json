@@ -1,0 +1,72 @@
+{
+	"name": "DF_UNI_REF_MAPPING_Archive",
+	"properties": {
+		"folder": {
+			"name": "ODS_to_EDW/DIMENSIONS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "EDW_UNI_REF_MAPPING",
+						"type": "DatasetReference"
+					},
+					"name": "sourcerefunification"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "UNI_REF_MAPPING_File",
+						"type": "DatasetReference"
+					},
+					"name": "sinkRefMapping"
+				}
+			],
+			"transformations": [
+				{
+					"name": "derivedColumn1"
+				}
+			],
+			"scriptLines": [
+				"parameters{",
+				"     FolderName as string (TableName)",
+				"}",
+				"source(output(",
+				"          UNI_RefID as long,",
+				"          DataOwner as string,",
+				"          DataOwnerEmail as string,",
+				"          SourceSystem as string,",
+				"          Division as string,",
+				"          TableName as string,",
+				"          TableColumnName as string,",
+				"          TablePK_EDW as string,",
+				"          TableColumnValue as string,",
+				"          TableColumnValueDesc as string,",
+				"          UnifiedValue as string,",
+				"          UnifiedValueDesc as string,",
+				"          UnifiedValue_Group as string,",
+				"          UnifiedValue_Category as string,",
+				"          MappingInd as string,",
+				"          DateFile as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT \\nA.UNI_RefID,\\nB.DataOwner,\\nB.DataOwnerEmail,\\nA.SourceSystem,\\nA.Division,\\nA.TableName,\\nA.TableColumnName,\\nA.TablePK_EDW ,\\nA.TableColumnValue,\\nA.TableColumnValueDesc,\\nA.UnifiedValue,\\nA.UnifiedValueDesc,\\nA.UnifiedValue_Group,\\nA.UnifiedValue_Category,\\nA.MappingInd,\\nCONVERT(VARCHAR(8),CAST(GETDATE() AS DATE),112) AS DateFile\\nFROM [EDW_DUN].[UNI_REF_MAPPING] A\\nJOIN [EDW_DUN].[UNI_TABLE_METADATA] B\\nON A.UNI_MetaID = B.UNI_MetaID',",
+				"     format: 'query',",
+				"     staged: true) ~> sourcerefunification",
+				"sourcerefunification derive(FileName = 'Out/Daily Unification File Archive/'+ TableName + '/' + MappingInd +'/' + TableName + '_' + DateFile + '.csv') ~> derivedColumn1",
+				"derivedColumn1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     rowUrlColumn:'FileName',",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sinkRefMapping"
+			]
+		}
+	}
+}

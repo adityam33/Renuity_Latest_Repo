@@ -1,0 +1,952 @@
+{
+	"name": "cpy_load_CubeSW_Summ_Job_Lead_daily",
+	"properties": {
+		"activities": [
+			{
+				"name": "cp_load_cube_job_Revenue",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT\n\tCASE WHEN ML.MilestoneDateTypeID IN ('SWR-C','HSI-C','PBC-C','RTW-C','FHI-C','MAC-S','MXH-C','PHI-C','CTA-C') THEN ML.ActualDate END AS RevenueMonthDate,\n\tM.ACU_ID AS ACU_BranchID,\n\tM.BranchName,\n\tM.Market_OpCo_Reporting AS Market,\n\tP.ACU_ProductID,\n\tP.TX_Product_Reporting AS Product,\n\tS.ACU_MarketingAccountID,\n\tS.TX_SourceCode AS Subsource,\n\tS.LeadSubSource AS LeadSubSource,\n\tCOUNT(DISTINCT CASE WHEN (CASE WHEN J.[JobNetAmt]>0 AND J.DIVISION NOT IN ('MXH','CTA','SWR') THEN J.[JobNetAmt] \n\t\t\t\t\t\t\t\t\tELSE J.[GrossAmount] END\n\t\t\t\t\t\t\t )>0 THEN J.JobID END) -\n\t\t\tCOUNT(DISTINCT CASE WHEN RIGHT(JS.JobStatusCategoryID,1) IN ('5','3') \tAND (CASE WHEN J.[JobNetAmt]>0 AND J.DIVISION NOT IN ('MXH','CTA','SWR') \n\t\t\t\t\tTHEN J.[JobNetAmt] ELSE J.[GrossAmount] END)>0 \n\t\t\tTHEN J.JobID END) AS [Jobs # REV],\n\tISNULL(SUM(CASE WHEN J.[JobNetAmt]>0 AND J.DIVISION NOT IN ('MXH','CTA','SWR') THEN J.[JobNetAmt] ELSE J.[GrossAmount] END),0) -\n\t\t\tISNULL(SUM(CASE WHEN RIGHT(JS.JobStatusCategoryID,1) IN ('5','3') THEN \n\t\t\t(CASE WHEN J.[JobNetAmt]>0 AND J.DIVISION NOT IN ('MXH','CTA','SWR') THEN J.[JobNetAmt] ELSE J.[GrossAmount] END) END),0)\n\t\t\tAS [Jobs $ REV],\n\tISNULL(SUM(J.[GrossAmount]),0)- ISNULL(SUM(CASE WHEN RIGHT(JS.JobStatusCategoryID,1) IN ('5','3') THEN J.[GrossAmount] END),0) AS [JobGrossAmount],\n\tI.Name AS Name,\n\tJ.ContractID,\n\tPR.ProjectID,\n\tJS.JobStatus,\n\tJSC.JobStatusCategory\n\n\nFROM EDW.FACT_LEAD L\n\tJOIN EDW.FACT_JOB J ON J.LeadID=L.LeadID\n\tJOIN RDM.REF_MKTNG_MARKET_GROUP M ON M.BranchID=J.ProductionBranchID \n\tJOIN EDW.DIM_MKTNG_PRODUCT_MAPPING P ON P.ProductID= J.ProductID AND P.MAPPINGIND<>'UNMAP'\n\tJOIN EDW.DIM_MKTNG_SUB_SOURCE_MAPPING S ON S.LeadSubSourceID=L.LeadSubSourceID AND TX_SourceGroup NOT IN ('NA','0') AND S.MAPPINGIND<>'UNMAP'\n\tJOIN EDW.FACT_MILESTONE_DETAIL ML ON ML.JOBID=J.JOBID AND ML.MilestoneDateTypeID IN ('SWR-C','HSI-C','PBC-C','RTW-C','FHI-C','MAC-S','MXH-C','PHI-C','CTA-C') AND ML.ActualDate IS NOT NULL\n\tLEFT JOIN EDW.DIM_JOB_STATUS JS ON J.[JobStatusID]=JS.[JobStatusID]\n\tLEFT JOIN EDW.DIM_INSTALLER I ON I.InstallerID=J.InstallerID_1\n\tLEFT JOIN EDW.DIM_ERP_PROJECT PR on J.ContractID=PR.ProjectID\n\tLEFT JOIN EDW.DIM_JOB_STATUS_CATEGORY JSC on JS.JobStatusCategoryID=JSC.JobStatusCategoryID\n\n\nWHERE (CASE WHEN ML.MilestoneDateTypeID IN ('SWR-C','HSI-C','PBC-C','RTW-C','FHI-C','MAC-S','MXH-C','PHI-C','CTA-C') THEN ML.ActualDate END) BETWEEN '2021-01-01' AND GETDATE()\n\tAND (CAST(J.ContractDate AS DATE)>='2020-01-01' OR CAST(J.ContractDate AS DATE)='1900-01-01')\n\tAND L.BranchID NOT IN ('MAC-GSCLT','MAC-GSDC','REN-') \n\tAND M.Division <> 'G.Pacific Gutter'\n\t\n\n\nGROUP BY CASE WHEN ML.MilestoneDateTypeID IN ('SWR-C','HSI-C','PBC-C','RTW-C','FHI-C','MAC-S','MXH-C','PHI-C','CTA-C') THEN ML.ActualDate END\n,M.ACU_ID, M.BranchName, M.Market_OpCo_Reporting, P.ACU_ProductID, P.TX_Product_Reporting, S.ACU_MarketingAccountID, S.TX_SourceCode, S.LeadSubSource,\nI.Name, J.ContractID,PR.ProjectID,JS.JobStatus,JSC.JobStatusCategory\n\n\nORDER BY CASE WHEN ML.MilestoneDateTypeID IN ('SWR-C','HSI-C','PBC-C','RTW-C','FHI-C','MAC-S','MXH-C','PHI-C','CTA-C') THEN ML.ActualDate END\n,M.ACU_ID, M.BranchName, M.Market_OpCo_Reporting, P.ACU_ProductID, P.TX_Product_Reporting, S.ACU_MarketingAccountID, S.TX_SourceCode, S.LeadSubSource,\nI.Name, J.ContractID,PR.ProjectID,JS.JobStatus,JSC.JobStatusCategory",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "IF OBJECT_ID('OUT.CUBESW_SUMM_JOB_REVENUE_DAILY')  IS NOT NULL TRUNCATE TABLE OUT.CUBESW_SUMM_JOB_REVENUE_DAILY;",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "RevenueMonthDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "RevenueMonthDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "ACU_BranchID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ACU_BranchID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "BranchName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Market",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Market",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ACU_ProductID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ACU_ProductID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Product",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Product",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ACU_MarketingAccountID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ACU_MarketingAccountID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Subsource",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Subsource",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadSubSource",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "LeadSubSource",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Jobs # REV",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Jobs # REV",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Jobs $ REV",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 4,
+									"precision": 38
+								},
+								"sink": {
+									"name": "Jobs $ REV",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 4,
+									"precision": 38
+								}
+							},
+							{
+								"source": {
+									"name": "Name",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Name",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ContractID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ContractID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ProjectID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ProjectID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "JobStatus",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "JobStatus",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "JobStatusCategory",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "JobStatusCategory",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "JobGrossAmount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 4,
+									"precision": 38
+								},
+								"sink": {
+									"name": "Job $ Gross",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 4,
+									"precision": 38
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_FACT_LEAD",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "OUT_CUBESW_SUMM_JOB_REVENUE_DAILY",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "cp_load_cube_summ_lead_By entryDate",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "cp_load_cube_job_Revenue",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT \r\n\tL.EntryDate AS EntryMonthDate, \r\n\tM.ACU_ID AS ACU_BranchID,\r\n\tM.BranchName,\r\n\tM.Market_OpCo_Reporting AS Market,\r\n\tP.ACU_ProductID,\r\n\tP.TX_Product_Reporting AS Product,\r\n\tS.ACU_MarketingAccountID,\r\n\tS.TX_SourceCode AS Subsource,\r\n\tS.LeadSubSource AS LeadSubSource,\r\n\tJ.ContractID,\r\n\tPR.ProjectID,\r\n\t\r\n\tCOUNT(DISTINCT L.LeadID) AS [Raw # MRK],\r\n\t\r\n\tCOUNT(DISTINCT CASE WHEN EverSet=1 THEN L.LeadID END) AS [Set # MRK],\r\n\t\r\n\tCOUNT(DISTINCT CASE WHEN RIGHT(L.[SalesRep1_EmployeeID],2)!='-0' AND right(L.[SalesRep1_EmployeeID],1)!='-' AND EverNetIssued=1 THEN L.LeadID END) AS [Net Issue # MRK],\r\n\t\r\n\tCOUNT(DISTINCT CASE WHEN RIGHT(L.[SalesRep1_EmployeeID],2)!='-0' AND right(L.[SalesRep1_EmployeeID],1)!='-' AND EverSat=1 THEN L.LeadID END) AS [Demo # MRK],\r\n\t\r\n\tCOUNT(DISTINCT CASE WHEN (CASE WHEN J.[JobNetAmt]>0 AND J.DIVISION NOT IN ('MXH','CTA','SWR') THEN J.[JobNetAmt] ELSE J.[GrossAmount] END)>0 THEN J.JobID END) AS [Sold # MRK],\r\n\t\r\n\tCOUNT(DISTINCT CASE WHEN RIGHT(JS.JobStatusCategoryID,1)='5' AND \r\n\t(CASE WHEN J.[JobNetAmt]>0 AND J.DIVISION NOT IN ('MXH','CTA','SWR') THEN J.[JobNetAmt] ELSE J.[GrossAmount] END)>0 THEN J.JobID END) AS [BTD # MRK],\r\n\t\r\n\tCOUNT(DISTINCT CASE WHEN RIGHT(JS.JobStatusCategoryID,1)='3' AND \r\n\t(CASE WHEN J.[JobNetAmt]>0 AND J.DIVISION NOT IN ('MXH','CTA','SWR') THEN J.[JobNetAmt] ELSE J.[GrossAmount] END)>0 THEN J.JobID END) AS [Cancel # MRK],\r\n\t\r\n\tCOUNT(DISTINCT CASE WHEN (CASE WHEN J.[JobNetAmt]>0 AND J.DIVISION NOT IN ('MXH','CTA','SWR') THEN J.[JobNetAmt] ELSE J.[GrossAmount] END)>0 THEN J.JobID END) -\r\n\tCOUNT(DISTINCT CASE WHEN RIGHT(JS.JobStatusCategoryID,1) IN ('5','3') \r\n\tAND (CASE WHEN J.[JobNetAmt]>0 AND J.DIVISION NOT IN ('MXH','CTA','SWR') THEN J.[JobNetAmt] ELSE J.[GrossAmount] END)>0 THEN J.JobID END) AS [Net Sales # MRK],\r\n\t\r\n\tISNULL(SUM(CASE WHEN J.[JobNetAmt]>0 AND J.DIVISION NOT IN ('MXH','CTA','SWR') THEN J.[JobNetAmt] ELSE J.[GrossAmount] END),0) AS [Gross Sales $ MRK],\r\n\t\r\n\tISNULL(SUM(CASE WHEN RIGHT(JS.JobStatusCategoryID,1)='5' THEN \r\n\t(CASE WHEN J.[JobNetAmt]>0 AND J.DIVISION NOT IN ('MXH','CTA','SWR') THEN J.[JobNetAmt] ELSE J.[GrossAmount] END) END),0) AS [BTD $ MRK],\r\n\t\r\n\tISNULL(SUM(CASE WHEN RIGHT(JS.JobStatusCategoryID,1)='3' THEN \r\n\t(CASE WHEN J.[JobNetAmt]>0 AND J.DIVISION NOT IN ('MXH','CTA','SWR') THEN J.[JobNetAmt] ELSE J.[GrossAmount] END) END),0) AS [Cancel $ MRK],\r\n\t\r\n\tISNULL(SUM(CASE WHEN J.[JobNetAmt]>0 AND J.DIVISION NOT IN ('MXH','CTA','SWR') THEN J.[JobNetAmt] ELSE J.[GrossAmount] END),0) -\r\n\tISNULL(SUM(CASE WHEN RIGHT(JS.JobStatusCategoryID,1) IN ('5','3') THEN \r\n\t(CASE WHEN J.[JobNetAmt]>0 AND J.DIVISION NOT IN ('MXH','CTA','SWR') THEN J.[JobNetAmt] ELSE J.[GrossAmount] END) END),0) AS [Net Sales $ MRK]\r\n\r\nFROM EDW.FACT_LEAD L\r\n\tJOIN RDM.REF_MKTNG_MARKET_GROUP M ON M.BranchID=L.BranchID \r\n\t--LEFT JOIN RDM.REF_MKTNG_ACU_MARKET MACU ON MACU.BranchID=M.BranchID\r\n\tJOIN EDW.DIM_MKTNG_PRODUCT_MAPPING P ON P.ProductID=L.ProductID AND P.MAPPINGIND<>'UNMAP'\r\n\t--LEFT JOIN RDM.REF_MKTNG_ACU_PRODUCT PACU ON PACU.ProductID=P.ProductID\r\n\tJOIN EDW.DIM_MKTNG_SUB_SOURCE_MAPPING S ON S.LeadSubSourceID=L.LeadSubSourceID AND TX_SourceGroup NOT IN ('NA','0') AND S.MAPPINGIND<>'UNMAP'\r\n\t--LEFT JOIN RDM.REF_MKTNG_ACU_SUBSOURCE SACU ON SACU.LeadSubSource=S.TX_SourceCode\r\n\tLEFT JOIN EDW.FACT_JOB J ON J.LeadID=L.LeadID\r\n\tLEFT JOIN EDW.DIM_JOB_STATUS JS ON J.[JobStatusID]=JS.[JobStatusID]\r\n\tLEFT JOIN EDW.DIM_ERP_PROJECT PR on J.ContractID=PR.ProjectID\r\n\t\r\nWHERE L.EntryDate BETWEEN '2021-01-01' AND GETDATE()\r\n\tAND L.BranchID NOT IN ('MAC-GSCLT','MAC-GSDC','REN-') \r\n\tAND M.Division <> 'G.Pacific Gutter'\r\n\tAND L.ProductID NOT IN ('PBC-3')\r\n\r\nGROUP BY L.EntryDate,M.ACU_ID, M.BranchName, M.Market_OpCo_Reporting, P.ACU_ProductID, P.TX_Product_Reporting, S.ACU_MarketingAccountID, S.TX_SourceCode, S.LeadSubSource,\tJ.ContractID,PR.ProjectID\r\n\r\nORDER BY L.EntryDate,M.ACU_ID, M.BranchName, M.Market_OpCo_Reporting, P.ACU_ProductID, P.TX_Product_Reporting, S.ACU_MarketingAccountID, S.TX_SourceCode, S.LeadSubSource,\tJ.ContractID,PR.ProjectID\r\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "IF OBJECT_ID('OUT.CUBESW_SUMM_LEAD_ENTRY_DAILY')  IS NOT NULL TRUNCATE TABLE OUT.CUBESW_SUMM_LEAD_ENTRY_DAILY;",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "EntryMonthDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "EntryMonthDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "ACU_BranchID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ACU_BranchID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "BranchName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Market",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Market",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ACU_ProductID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ACU_ProductID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Product",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Product",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ACU_MarketingAccountID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ACU_MarketingAccountID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Subsource",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Subsource",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadSubSource",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "LeadSubSource",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ContractID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ContractID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ProjectID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ProjectID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Raw # MRK",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Raw # MRK",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Set # MRK",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Set # MRK",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Net Issue # MRK",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Net Issue # MRK",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Demo # MRK",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Demo # MRK",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Sold # MRK",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Sold # MRK",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "BTD # MRK",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "BTD # MRK",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Cancel # MRK",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Cancel # MRK",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Net Sales # MRK",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Net Sales # MRK",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Gross Sales $ MRK",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 4,
+									"precision": 38
+								},
+								"sink": {
+									"name": "Gross Sales $ MRK",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 4,
+									"precision": 38
+								}
+							},
+							{
+								"source": {
+									"name": "BTD $ MRK",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 4,
+									"precision": 38
+								},
+								"sink": {
+									"name": "BTD $ MRK",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 4,
+									"precision": 38
+								}
+							},
+							{
+								"source": {
+									"name": "Cancel $ MRK",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 4,
+									"precision": 38
+								},
+								"sink": {
+									"name": "Cancel $ MRK",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 4,
+									"precision": 38
+								}
+							},
+							{
+								"source": {
+									"name": "Net Sales $ MRK",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 4,
+									"precision": 38
+								},
+								"sink": {
+									"name": "Net Sales $ MRK",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 4,
+									"precision": 38
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_FACT_LEAD",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "OUT_CUBESW_SUMM_LEAD_ENTRY_DAILY",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "cp_load_cube_summ_lead_by ApptDate",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "cp_load_cube_summ_lead_By entryDate",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT \r\n\tCASE WHEN J.[ContractDate] IS NULL THEN L.ApptDate ELSE J.ContractDate END AS ApptMonthDate,\r\n\tM.ACU_ID AS ACU_BranchID,\r\n\tM.BranchName,\r\n\tM.Market_OpCo_Reporting AS Market,\r\n\tP.ACU_ProductID,\r\n\tP.TX_Product_Reporting AS Product,\r\n\tS.ACU_MarketingAccountID,\r\n\tS.TX_SourceCode AS Subsource,\r\n\tS.LeadSubSource AS LeadSubSource,\r\n\tJ.ContractID,\r\n\tPR.ProjectID, \r\n\r\n\tCOUNT(DISTINCT CASE WHEN RIGHT(L.[SalesRep1_EmployeeID],2)!='-0' AND RIGHT(L.[SalesRep1_EmployeeID],1)!='-' AND EverNetIssued=1 THEN L.LeadID END) AS [Net Issue # SLS],\r\n\t\r\n\tCOUNT(DISTINCT CASE WHEN RIGHT(L.[SalesRep1_EmployeeID],2)!='-0' AND RIGHT(L.[SalesRep1_EmployeeID],1)!='-' AND EverSat=1 THEN L.LeadID END) AS [Demo # SLS],\r\n\t\r\n\tCOUNT(DISTINCT CASE WHEN (CASE WHEN J.[JobNetAmt]>0 AND J.DIVISION NOT IN ('MXH','CTA','SWR') THEN J.[JobNetAmt] ELSE J.[GrossAmount] END)>0 THEN J.JobID END) AS [Sold # SLS],\r\n\t\r\n\tCOUNT(DISTINCT CASE WHEN RIGHT(JS.JobStatusCategoryID,1)='5' AND (CASE WHEN J.[JobNetAmt]>0 AND J.DIVISION NOT IN ('MXH','CTA','SWR') THEN J.[JobNetAmt] ELSE J.[GrossAmount] END)>0 \r\n\tTHEN J.JobID END) AS [BTD # SLS],\r\n\t\r\n\tCOUNT(DISTINCT CASE WHEN RIGHT(JS.JobStatusCategoryID,1)='3' AND (CASE WHEN J.[JobNetAmt]>0 AND J.DIVISION NOT IN ('MXH','CTA','SWR') THEN J.[JobNetAmt] ELSE J.[GrossAmount] END)>0 \r\n\tTHEN J.JobID END) AS [Cancel # SLS],\r\n\t\r\n\tCOUNT(DISTINCT CASE WHEN (CASE WHEN J.[JobNetAmt]>0 AND J.DIVISION NOT IN ('MXH','CTA','SWR') THEN J.[JobNetAmt] ELSE J.[GrossAmount] END)>0 THEN J.JobID END) -\r\n\tCOUNT(DISTINCT CASE WHEN RIGHT(JS.JobStatusCategoryID,1) IN ('5','3') AND (CASE WHEN J.[JobNetAmt]>0 AND J.DIVISION NOT IN ('MXH','CTA','SWR') THEN J.[JobNetAmt] ELSE J.[GrossAmount] END)>0 \r\n\tTHEN J.JobID END) AS [Net Sales # SLS],\r\n\t\r\n\tISNULL(SUM(CASE WHEN J.[JobNetAmt]>0 AND J.DIVISION NOT IN ('MXH','CTA','SWR') THEN J.[JobNetAmt] ELSE J.[GrossAmount] END),0) AS [Gross Sales $ SLS],\r\n\t\r\n\tISNULL(SUM(CASE WHEN RIGHT(JS.JobStatusCategoryID,1)='5' THEN \r\n\t(CASE WHEN J.[JobNetAmt]>0 AND J.DIVISION NOT IN ('MXH','CTA','SWR') THEN J.[JobNetAmt] ELSE J.[GrossAmount] END) END),0) AS [BTD $ SLS],\r\n\t\r\n\tISNULL(SUM(CASE WHEN RIGHT(JS.JobStatusCategoryID,1)='3' THEN \r\n\t(CASE WHEN J.[JobNetAmt]>0 AND J.DIVISION NOT IN ('MXH','CTA','SWR') THEN J.[JobNetAmt] ELSE J.[GrossAmount] END) END),0) AS [Cancel $ SLS],\r\n\t\r\n\tISNULL(SUM(CASE WHEN J.[JobNetAmt]>0 AND J.DIVISION NOT IN ('MXH','CTA','SWR') THEN J.[JobNetAmt] ELSE J.[GrossAmount] END),0) -\r\n\tISNULL(SUM(CASE WHEN RIGHT(JS.JobStatusCategoryID,1) IN ('5','3') THEN \r\n\t(CASE WHEN J.[JobNetAmt]>0 AND J.DIVISION NOT IN ('MXH','CTA','SWR') THEN J.[JobNetAmt] ELSE J.[GrossAmount] END) END),0) AS [Net Sales $ SLS]\r\n\r\nFROM EDW.FACT_LEAD L\r\n\tJOIN RDM.REF_MKTNG_MARKET_GROUP M ON M.BranchID=L.BranchID \r\n\tJOIN EDW.DIM_MKTNG_PRODUCT_MAPPING P ON P.ProductID=L.ProductID AND P.MAPPINGIND<>'UNMAP'\r\n\tJOIN EDW.DIM_MKTNG_SUB_SOURCE_MAPPING S ON S.LeadSubSourceID=L.LeadSubSourceID AND TX_SourceGroup NOT IN ('NA','0') AND S.MAPPINGIND<>'UNMAP'\r\n\tLEFT JOIN EDW.FACT_JOB J ON J.LeadID=L.LeadID\r\n\tLEFT JOIN EDW.DIM_JOB_STATUS JS ON J.[JobStatusID]=JS.[JobStatusID]\r\n\tLEFT JOIN EDW.DIM_ERP_PROJECT PR on J.ContractID=PR.ProjectID\r\n\r\nWHERE (CASE WHEN J.[ContractDate] IS NULL THEN L.ApptDate ELSE J.ContractDate END) BETWEEN '2021-01-01' AND GETDATE()\r\n\tAND L.BranchID NOT IN ('MAC-GSCLT','MAC-GSDC','REN-') --'PBC-PGPOR','PBC-PGSEA'\r\n\tAND M.Division <> 'G.Pacific Gutter'\r\n\tAND EverNetIssued=1\r\n\r\nGROUP BY CASE WHEN J.[ContractDate] IS NULL THEN L.ApptDate ELSE J.ContractDate END,\r\nM.ACU_ID, M.BranchName, M.Market_OpCo_Reporting, P.ACU_ProductID, P.TX_Product_Reporting, S.ACU_MarketingAccountID, S.TX_SourceCode, S.LeadSubSource,J.ContractID,PR.ProjectID\r\n\r\n\r\nORDER BY CASE WHEN J.[ContractDate] IS NULL THEN L.ApptDate ELSE J.ContractDate END,\r\nM.ACU_ID, M.BranchName, M.Market_OpCo_Reporting, P.ACU_ProductID, P.TX_Product_Reporting, S.ACU_MarketingAccountID, S.TX_SourceCode, S.LeadSubSource ,J.ContractID,PR.ProjectID\r\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "IF OBJECT_ID('OUT.CUBESW_SUMM_LEAD_APPT_DAILY')  IS NOT NULL TRUNCATE TABLE OUT.CUBESW_SUMM_LEAD_APPT_DAILY;",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "ApptMonthDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "ApptMonthDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "ACU_BranchID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ACU_BranchID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "BranchName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Market",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Market",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ACU_ProductID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ACU_ProductID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Product",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Product",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ACU_MarketingAccountID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ACU_MarketingAccountID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Subsource",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Subsource",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadSubSource",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "LeadSubSource",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ContractID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ContractID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ProjectID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ProjectID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Net Issue # SLS",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Net Issue # SLS",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Demo # SLS",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Demo # SLS",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Sold # SLS",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Sold # SLS",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "BTD # SLS",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "BTD # SLS",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Cancel # SLS",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Cancel # SLS",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Net Sales # SLS",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Net Sales # SLS",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Gross Sales $ SLS",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 4,
+									"precision": 38
+								},
+								"sink": {
+									"name": "Gross Sales $ SLS",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 4,
+									"precision": 38
+								}
+							},
+							{
+								"source": {
+									"name": "BTD $ SLS",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 4,
+									"precision": 38
+								},
+								"sink": {
+									"name": "BTD $ SLS",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 4,
+									"precision": 38
+								}
+							},
+							{
+								"source": {
+									"name": "Cancel $ SLS",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 4,
+									"precision": 38
+								},
+								"sink": {
+									"name": "Cancel $ SLS",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 4,
+									"precision": 38
+								}
+							},
+							{
+								"source": {
+									"name": "Net Sales $ SLS",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 4,
+									"precision": 38
+								},
+								"sink": {
+									"name": "Net Sales $ SLS",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 4,
+									"precision": 38
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_FACT_LEAD",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "OUT_CUBESW_SUMM_LEAD_APPT_DAILY",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "RDC_to_Cube"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-08-20T13:39:05Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

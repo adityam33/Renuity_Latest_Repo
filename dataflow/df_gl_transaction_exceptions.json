@@ -1,0 +1,100 @@
+{
+	"name": "df_gl_transaction_exceptions",
+	"properties": {
+		"folder": {
+			"name": "Test-Dataflows"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ODS_ERP_GL_TRANSACTIONS_TEST",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "OUT_FACT_ERP_GL_TRANSACTION_TEST",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "derivedColumn1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          Module as string,",
+				"          BatchNumber as string,",
+				"          LineNbr as integer,",
+				"          Account as string,",
+				"          Branch as string,",
+				"          GLTran_tranID as integer,",
+				"          PeriodID as string,",
+				"          GLTran_creditAmt as decimal(38,18),",
+				"          GLTran_debitAmt as decimal(38,18),",
+				"          TransactionDescription as string,",
+				"          GLTran_lastModifiedDateTime as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> source1",
+				"source1 derive(GL_LINE_KEY = Module + '|' + BatchNumber + '|' + toString((LineNbr)),",
+				"          BalanceAmount = GLTran_debitAmt - GLTran_creditAmt,",
+				"          FinPeriodID = substring(PeriodID,1,2)+'-'+substring(PeriodID,3,4)) ~> derivedColumn1",
+				"derivedColumn1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          GL_LINE_KEY as string,",
+				"          Module as string,",
+				"          BatchNumber as string,",
+				"          LineNbr as integer,",
+				"          TransactionID as integer,",
+				"          BranchCode as string,",
+				"          FinPeriodID as string,",
+				"          CreditAmount as decimal(38,18),",
+				"          DebitAmount as decimal(38,18),",
+				"          BalanceAmount as decimal(38,18),",
+				"          TransactionDescription as string,",
+				"          LastModifiedDateTime as timestamp,",
+				"          AccountCode as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     staged: true,",
+				"     allowCopyCommand: true,",
+				"     preSQLs:['IF OBJECT_ID(\\'OUT.FACT_ERP_GL_TRANSACTION_TEST\\')  IS NOT NULL TRUNCATE TABLE OUT.FACT_ERP_GL_TRANSACTION_TEST;'],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          GL_LINE_KEY,",
+				"          Module,",
+				"          BatchNumber,",
+				"          LineNbr,",
+				"          TransactionID = GLTran_tranID,",
+				"          BranchCode = Branch,",
+				"          FinPeriodID,",
+				"          CreditAmount = GLTran_creditAmt,",
+				"          DebitAmount = GLTran_debitAmt,",
+				"          BalanceAmount,",
+				"          TransactionDescription,",
+				"          LastModifiedDateTime = GLTran_lastModifiedDateTime,",
+				"          AccountCode = Account",
+				"     )) ~> sink1"
+			]
+		}
+	}
+}

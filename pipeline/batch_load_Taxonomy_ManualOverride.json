@@ -1,0 +1,50 @@
+{
+	"name": "batch_load_Taxonomy_ManualOverride",
+	"properties": {
+		"activities": [
+			{
+				"name": "df_load_Taxonomy_ManualOverride",
+				"description": "Overrides the manual inputs in DC",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_DIM_MKTNG_SUBSOURCE_TX_MANUAL_OVERRIDE",
+						"type": "DataFlowReference",
+						"datasetParameters": {
+							"TgtDimMktngSubSourceMapping": {
+								"SchemaName": "EDW"
+							}
+						}
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/EDW/DIMENSIONS"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/DIMENSIONS/TAXONOMY"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-03-30T16:22:44Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

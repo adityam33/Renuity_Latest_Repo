@@ -1,0 +1,17 @@
+{
+	"name": "Get Zip Performance for OOH - Billboards",
+	"properties": {
+		"content": {
+			"query": "select \nzipPerfForOOH.*\n,RANK() OVER (PARTITION BY Division, Branch, Product ORDER BY [Net Sales Amount] DESC) AS [Net Sales Rank]\n,RANK() OVER (PARTITION BY Division, Branch, Product ORDER BY [3Mo Net Sales Amount] DESC) AS [3Mo Net Sales Rank]\nfrom\n(\nSELECT\nzipPerf.Division\n,brn.LongName as Branch\n,prd.LongDescription as Product\n,zipPerf.[ZipCode]\n,zip.HouseholdsPerZipCode as [Total Households]\n,sum(case when EntryMonth between '2022-12-01' and '2023-02-28' then NetSalesAmount else 0 end) as [3Mo Net Sales Amount]\n,sum([NetSalesAmount]) as [Net Sales Amount]\n,zonda.[Overall_Remodeling_Composite_Ranking_Index] as [Overall RRI]\n,zonda.[Baths_Composite_Ranking_Index] as [Baths RRI]\n,zonda.[Windows_Composite_Ranking_Index] as [Windows RRI]\n,sum([LeadCount]) as [Lead Count]\n,sum(case when EntryMonth between '2022-12-01' and '2023-02-28' then LeadCount else 0 end) as [3Mo Lead Count]\n,sum([ApptSet]) as [Appt Set]\n,sum(case when EntryMonth between '2022-12-01' and '2023-02-28' then ApptSet else 0 end) as [3Mo Appt Set]\n,sum([NetSold]) as [Net Sold]\n,sum(case when EntryMonth between '2022-12-01' and '2023-02-28' then NetSold else 0 end) as [3Mo Net Sold]\n,zipPerf.[City]\n,zipPerf.[County]\n,zipPerf.[State]\n FROM \n [EDW].[SUMM_FACT_ZIP_CODE_PERFORMANCE] zipPerf\n inner join ODS.MKTDATA_ZIP_CODES_DB_DELUXE_BUSINESS zip\n on zipPerf.ZipCode = zip.ZipCode\n inner join EDW.DIM_BRANCH brn\n on zipPerf.BranchID = brn.BranchID\n inner join EDW.DIM_PRODUCT prd\n on zipPerf.ProductID = prd.ProductID\nleft join ODS.MKTDATA_ZONDA_ZIP_CODE_INDEX zonda\non zipPerf.ZipCode = zonda.ZipCode\nwhere \nzip.PrimaryRecord = 'P'\ngroup by \nzipPerf.Division\n,brn.LongName\n,prd.LongDescription\n,zipPerf.[ZipCode]\n,zip.HouseholdsPerZipCode\n,zipPerf.[City]\n,zipPerf.[County]\n,zipPerf.[State]\n,zonda.[Overall_Remodeling_Composite_Ranking_Index]\n,zonda.[Baths_Composite_Ranking_Index]\n,zonda.[Windows_Composite_Ranking_Index]\n) zipPerfForOOH\norder BY\nDivision, Branch, Product, [Net Sales Rank], [3Mo Net Sales Rank]",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

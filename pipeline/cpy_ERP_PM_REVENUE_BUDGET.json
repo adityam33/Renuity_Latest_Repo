@@ -1,0 +1,325 @@
+{
+	"name": "cpy_ERP_PM_REVENUE_BUDGET",
+	"properties": {
+		"activities": [
+			{
+				"name": "cpy_ERP_PM_REVENUE_BUDGET_SRC_TO_ODS",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.6:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ODataSource",
+						"httpRequestTimeout": "00:05:00"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Upsert",
+						"upsertSettings": {
+							"keys": [
+								"ProjectID",
+								"TaskCD",
+								"CostCodeID",
+								"AccountGroupID",
+								"InventoryID"
+							],
+							"interimSchemaName": ""
+						},
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "PMRevenueBudget_projectID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "ProjectID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ProjectTask",
+									"type": "String"
+								},
+								"sink": {
+									"name": "TaskCD",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CostCode",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CostCodeID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "AccountGroup",
+									"type": "String"
+								},
+								"sink": {
+									"name": "AccountGroupID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "InventoryID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "InventoryID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Description",
+									"type": "String"
+								},
+								"sink": {
+									"name": "AccountGroupID_Description",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "OriginalBudgetedQuantity",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "OriginalBudgetedQuantity",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UOM",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UOM",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UnitRate",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "UnitRate",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "OriginalBudgetedAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "OriginalBudgetedAmount",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "RevisedBudgetedAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "RevisedBudgetedAmount",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DraftInvoiceQuantity",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "InvoiceQuantity",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DraftInvoicesAmountinBaseCurrency",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "InvoiceAmount",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ActualQuantity",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "ActualQuantity",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ActualAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "ActualAmount",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Completed",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "CompletedPct",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PendingInvoiceQuantity",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "PendingInvoiceQuantity",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PendingInvoiceAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "PendingInvoiceAmount",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Performance",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "Performance",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "TaxCategory",
+									"type": "String"
+								},
+								"sink": {
+									"name": "TaxCategoryID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Description_2",
+									"type": "String"
+								},
+								"sink": {
+									"name": "TaxCategoryDescription",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ProgressBillingBase",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ProgressBillingBase",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CreatedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "CreatedOn",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CreatedBy",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CreatedBy",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LastModifiedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastModifiedOn",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LastModifiedBy",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LastModifiedBy",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_ERP_PMRevenueBudget",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_ERP_PM_REVENUE_BUDGET",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "SRC_to_ODS/ERP/Acumatica/TRANSACTIONS"
+		},
+		"annotations": [],
+		"lastPublishTime": "2023-07-10T15:33:33Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

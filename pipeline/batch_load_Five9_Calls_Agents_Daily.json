@@ -1,0 +1,383 @@
+{
+	"name": "batch_load_Five9_Calls_Agents_Daily",
+	"properties": {
+		"activities": [
+			{
+				"name": "Execute Pipeline_Five9AgentLogins",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_Five9_Agent_Login_Timeouts",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Execute Pipeline_Five9Calls",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_Five9_Renuity_Call_Logs",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_Archive_Five9_Files",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Get Last Updated Date",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.6:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"wildcardFolderPath": "reports",
+							"wildcardFileName": "*.csv",
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_RenuityCallLog",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "Five9_Files_Archive",
+						"type": "DatasetReference",
+						"parameters": {
+							"daily_folder": {
+								"value": "@concat('archive/',substring(activity('Get Last Updated Date').output.lastModified,0,10))",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "Get Last Updated Date",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.6:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "SRC_RenuityCallLog",
+						"type": "DatasetReference"
+					},
+					"fieldList": [
+						"lastModified"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "DelimitedTextReadSettings"
+					}
+				}
+			},
+			{
+				"name": "Execute Pipeline Five9 Agent Occupancy",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_Five9_Agent_Occupancy",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Execute Pipeline Five9 List Details",
+				"type": "ExecutePipeline",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_Five9_List_Details",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Execute Pipeline Call PHI Coatings ASAP",
+				"type": "ExecutePipeline",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_Renuity_CALL_PHI_COATING_ASAP",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_Five9_Agent_State_Summary",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_Five9_Agent_State_Summary",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Execute_Renuity_Call_Logs_NEW_FACT_DIM",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute Pipeline_Five9AgentLogins",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Execute Pipeline_Five9Calls",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "cpy_Five9_Agent_State_Summary",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_Renuity_Call_Logs_NEW",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "UPD_DIM_FIVE9_AGENT_GROUP_MAPPING",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Execute_Renuity_Call_Logs_NEW_FACT_DIM",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "EXEC EDW.SP_DIM_FIVE9_AGENT_GROUP_MAPPING"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "UPD_Agent_Group_Mapping",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "UPD_DIM_FIVE9_AGENT_GROUP_MAPPING",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "SELECT AGENT_NAME,AGENT_GROUP\nINTO #T_1\nFROM\n(\n\tSELECT  \n\tAGENT_NAME,\n\tAGENT_GROUP,\n\tROW_NUMBER() OVER (PARTITION BY AGENT_NAME ORDER BY DATE DESC) AS RW\n\tFROM EDW.FACT_FIVE9_CALL_LOG_ALL \n\tWHERE AGENT_NAME IS NOT NULL \n\tAND AGENT_GROUP IS NOT NULL\n\t) MX\n    WHERE RW=1;\n\n\n\nUPDATE A\nSET A.AgentGroup_Five9 = B.AGENT_GROUP\nFROM\nEDW.DIM_FIVE9_AGENT_GROUP_MAPPING A\nLEFT JOIN #T_1 B\nON A.AgentName_Five9 = B.AGENT_NAME\nOR COALESCE(A.AgentName_Corrected,'NX1') = B.AGENT_NAME\nWHERE B.AGENT_GROUP != A.AgentGroup_Five9;\n\n\n\n--***************************************************\n--***************************************************\n\n\n\nSELECT AGENT_NAME,AGENT AS EMAIL_Five9\nINTO #T_2\nFROM\n(\n\tSELECT  \n\tAGENT_NAME,\n\tAGENT,\n\tROW_NUMBER() OVER (PARTITION BY AGENT_NAME ORDER BY DATE DESC) AS RW\n\tFROM EDW.FACT_FIVE9_CALL_LOG_ALL \n\tWHERE AGENT_NAME IS NOT NULL \n\tAND AGENT IS NOT NULL\n\t) MX\n    WHERE RW=1\n\n\n\nUPDATE A\nSET A.Email_Five9 = B.EMAIL_Five9\nFROM\nEDW.DIM_FIVE9_AGENT_GROUP_MAPPING A\nLEFT JOIN #T_2 B\nON A.AgentName_Five9 = B.AGENT_NAME\nOR COALESCE(A.AgentName_Corrected,'NX1') = B.AGENT_NAME;"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Agent_Group_Remove_DUP",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "UPD_Agent_Group_Mapping",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "WITH M1 AS \n(\nSELECT AgentName_Five9,COUNT(1) AS CT \nFROM  EDW.DIM_FIVE9_AGENT_GROUP_MAPPING\nGROUP BY AgentName_Five9\nHAVING COUNT(1)>1\n\t),\n\nM2 AS \n( \nSELECT A.AgentName_Five9,A.Division,COUNT(1) AS Ct\nFROM EDW.DIM_FIVE9_AGENT_GROUP_MAPPING A \nJOIN EDW.FACT_FIVE9_CALL_LOG_ALL B\nON A.AgentName_Five9 = B.Agent_Name\nAND A.Division = B.Division\nWHERE A.AgentName_Five9 IN (SELECT AgentName_Five9 FROM M1)\nGROUP BY A.AgentName_Five9,A.Division\n),\n\nM3 AS \n(\nSELECT AgentName_Five9,Division\nFROM\n(\nSELECT *,ROW_NUMBER() OVER (PARTITION BY AgentName_Five9 ORDER BY CT DESC) AS RW\nFROM M2 \n) A\nWHERE RW>1  -- Delete duplicate based on Count of Calls\n\n) \n\n\nDELETE T\nFROM EDW.DIM_FIVE9_AGENT_GROUP_MAPPING T\nJOIN M3\n    ON T.AgentName_Five9 = M3.AgentName_Five9\n   AND T.Division = M3.Division;\n\n\n\n\n--*************************************\n\n\nDELETE A\nFROM EDW.DIM_FIVE9_AGENT_GROUP_MAPPING A\nLEFT JOIN EDW.FACT_FIVE9_CALL_LOG_ALL B\nON A.AgentName_Five9\t= B.Agent_Name\nAND A.Division\t\t\t= B.Division\nWHERE B.Agent_Name IS NULL;"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "UPD_ADP_EmployeeID",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Agent_Group_Remove_DUP",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "Five9_RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "\nUPDATE B\nSET B.ADP_EmployeeID = A.EmployeeID\nFROM\n(\n\tSELECT DISTINCT EmployeeID,FirstName,LastName,WorkEmail,Division \n\tFROM EDW.DIM_HR_EMPLOYEE \n\tWHERE WorkEmail IS NOT NULL AND WorkEmail!=''\n\t) A\n\nJOIN [EDW].[DIM_FIVE9_AGENT_GROUP_MAPPING] B\nON A.WorkEmail = B.Email_Five9\nAND A.Division = B.Division\nWHERE B.ADP_EmployeeID IS NULL;\n\n\n--**********************************\n--**********************************\n\n\n\nUPDATE B\nSET B.ADP_EmployeeID = A.EmployeeID\nFROM\n(\n\tSELECT DISTINCT EmployeeID,FirstName,LastName,WorkEmail,Division \n\tFROM EDW.DIM_HR_EMPLOYEE \n\t) A\n\n\nJOIN [EDW].[DIM_FIVE9_AGENT_GROUP_MAPPING] B\nON  A.FirstName = LEFT(B.AgentName_Five9, CHARINDEX(' ', B.AgentName_Five9 + ' ') - 1)\nAND A.LastName\t= RIGHT(B.AgentName_Five9, CHARINDEX(' ', REVERSE(B.AgentName_Five9) + ' ') - 1)\nAND A.Division  = B.Division\nWHERE B.ADP_EmployeeID IS NULL\n\n\n\n--**********************************\n--**********************************\n\n\nUPDATE MX\nSET MX.ADP_EmployeeID = A.EmployeeID\nFROM\n(\n\tSELECT DISTINCT EmployeeID,FirstName,LastName,WorkEmail,Division \n\tFROM EDW.DIM_HR_EMPLOYEE \n\t) A\n\nJOIN \n\t(\t\t\n\t\tSELECT M1.ADP_EmployeeID,M1.AgentName_Five9,M1.Division,M2.Email,M2.FirstName,M2.LastName \n\t\tFROM  [EDW].[DIM_FIVE9_AGENT_GROUP_MAPPING] M1\n\t\tJOIN EDW.DIM_EMPLOYEE M2\n\t\tON M2.EmployeeID = M1.LP_EmployeeID \n\t\tWHERE ADP_EmployeeID IS NULL\n\t\t)B\nON A.WorkEmail = B.Email\nAND A.Division = B.Division\n\nJOIN [EDW].[DIM_FIVE9_AGENT_GROUP_MAPPING] MX \nON B.AgentName_Five9 = MX.AgentName_Five9\nAND B.Division = MX.Division\n\nWHERE MX.ADP_EmployeeID IS NULL;\n\n\n\n\n--**********************************\n--**********************************\n\n\nUPDATE MX\nSET MX.ADP_EmployeeID = A.EmployeeID\nFROM\n(\n\tSELECT DISTINCT EmployeeID,FirstName,LastName,WorkEmail,Division \n\tFROM EDW.DIM_HR_EMPLOYEE \n\t) A\n\nJOIN \n\t(\t\t\n\t\tSELECT M1.ADP_EmployeeID,M1.AgentName_Five9,M1.Division,M2.Email,M2.FirstName,M2.LastName \n\t\tFROM  [EDW].[DIM_FIVE9_AGENT_GROUP_MAPPING] M1\n\t\tJOIN EDW.DIM_EMPLOYEE M2\n\t\tON M2.EmployeeID = M1.LP_EmployeeID \n\t\tWHERE ADP_EmployeeID IS NULL\n\t\t)B\n\nON  A.FirstName = LEFT(B.AgentName_Five9, CHARINDEX(' ', B.AgentName_Five9 + ' ') - 1)\nAND A.LastName\t= RIGHT(B.AgentName_Five9, CHARINDEX(' ', REVERSE(B.AgentName_Five9) + ' ') - 1)\nAND A.Division = B.Division\n\n\nJOIN [EDW].[DIM_FIVE9_AGENT_GROUP_MAPPING] MX \nON B.AgentName_Five9 = MX.AgentName_Five9\nAND B.Division = MX.Division\n\n\nWHERE MX.ADP_EmployeeID IS NULL;"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			}
+		],
+		"folder": {
+			"name": "Five9_to_EDW"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-04-23T15:18:29Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

@@ -1,0 +1,309 @@
+{
+	"name": "cpy_LP_Log_Job_Status_ZML",
+	"properties": {
+		"activities": [
+			{
+				"name": "FHI",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:40:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT * FROM [dbo].[log_Job_Status] WITH (NOLOCK)",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE ZML.LP_FHI_Log_Job_Status",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Job_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Job_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "OldJbs_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "OldJbs_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "NewJbs_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "NewJbs_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DateChanged",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "DateChanged",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "Emp_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Emp_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "oldGrossAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "oldGrossAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "newGrossAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "newGrossAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "origin",
+									"type": "String"
+								},
+								"sink": {
+									"name": "origin",
+									"type": "String"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_ZML_FHI_aph_AlternatePhones",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ZML_ODS__FHI_Log_Job_Status",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "MXH",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:40:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT * FROM [dbo].[log_Job_Status] WITH (NOLOCK)",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE ZML.LP_MXH_Log_Job_Status",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Job_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Job_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "OldJbs_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "OldJbs_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "NewJbs_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "NewJbs_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DateChanged",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "DateChanged",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "Emp_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Emp_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "oldGrossAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "oldGrossAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "newGrossAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "newGrossAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "origin",
+									"type": "String"
+								},
+								"sink": {
+									"name": "origin",
+									"type": "String"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_ZML_MXH_aph_AlternatePhones",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ZML_ODS_MXH_Log_Job_Status",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "Temp/Anuj/ZML/LP_to_ODS_ZML"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-11-06T07:17:07Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

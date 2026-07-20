@@ -1,0 +1,42 @@
+{
+	"name": "src_Parquet1_Leap_DV_Leap_Files",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "Leap_S3Compatible_test_Abbas",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"workgroup": "data-vault-workgroup",
+				"Catalog": "AwsDataCatalog",
+				"database": "stg_renuity_db",
+				"Region": "us-east-1"
+			}
+		},
+		"parameters": {
+			"file_directory": {
+				"type": "string"
+			},
+			"file_name": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AmazonS3CompatibleLocation",
+				"bucketName": "customer-analytics-data-vault-staging",
+				"folderPath": {
+					"value": "@concat('production/Renuity/', dataset().file_directory)",
+					"type": "Expression"
+				},
+				"fileName": {
+					"value": "@dataset().file_name",
+					"type": "Expression"
+				}
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}

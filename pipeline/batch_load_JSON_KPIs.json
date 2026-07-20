@@ -1,0 +1,286 @@
+{
+	"name": "batch_load_JSON_KPIs",
+	"properties": {
+		"activities": [
+			{
+				"name": "cpy_JSON_Sharepoint",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "If Condition1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "WITH NowUTC AS (\n  SELECT CAST(SYSUTCDATETIME() AS date) AS TodayUTC,\n         CAST(SYSUTCDATETIME() AS datetime2(0)) AS LastRefreshUtc\n),\nBounds AS (\n  SELECT\n    LastRefreshUtc,\n    DATEFROMPARTS(YEAR(TodayUTC),1,1) AS StartOfYTD,\n    TodayUTC                           AS EndDate\n  FROM NowUTC\n),\n\n\n\n--########### Net Promoter Score ############\n\n/*\n--Satisfaction %\n\nNPS_Score AS \n(\n\tSELECT \n\t(Promoter_NPS - Detractor_NPS ) AS NPS\n\tFROM\n\t(\n\t\n\t\tSELECT \n\t\t( Promoter_Count * 1.000  / InstallationCount * 1.000 ) AS Promoter_NPS,\n\t\t( Detractor_Count * 1.000 / InstallationCount * 1.000 ) AS Detractor_NPS\n\t\tFROM\n\t\t(\n\t\t\tSELECT \n\t\t\tCOUNT(DISTINCT Survey_ID)\t\t\t\t\t\tAS InstallationCount ,\n\t\t\tCOUNT(DISTINCT Promoter_Survey_ID ) - 1\t\tAS Promoter_Count,\n\t\t\tCOUNT(DISTINCT Detractor_Survey_ID) - 1\t\tAS Detractor_Count\n\t\t\tFROM\n\t\t\t(\n\t\t\t\tSELECT \n\t\t\t\tSurvey_ID,\n\t\t\t\tResponse_Date,\n\t\t\t\tCASE WHEN Service_NPS>=9\t\t\t\t\tTHEN Survey_ID ELSE 0 END AS Promoter_Survey_ID,\n\t\t\t\tCASE WHEN Service_NPS>=0 AND Service_NPS<=6 THEN Survey_ID ELSE 0 END AS Detractor_Survey_ID\n\t\t\t\tFROM EDW.FACT_MEDALLIA_CUSTOMER_SURVEY M\n\t\t\t\tWHERE Program in ('Installation Experience New','Installation Experience')\n\t\t\t\tAND ActiveInd = 1\n\t\t\t\tAND Service_NPS IS NOT NULL\n\t\t\t\t\n\t\t\t\t) M1\n\t\t\n\t\t\tCROSS JOIN Bounds b\n\t\t\tWHERE TRY_CONVERT(date, M1.Response_Date) >= b.StartOfYTD\n\t\t\tAND TRY_CONVERT(date, M1.Response_Date) <  DATEADD(day,1,b.EndDate)\n\t\t\n\t\t\t) M2\n\t\t\n\t\t) M3\n\t\t\n\t),\n\t\n*/\n\nNPS_Score AS \n(\n\n  SELECT\n    COUNT_BIG(*)                      AS Responses,\n    AVG(CAST(m.Service_NPS AS float)) AS AvgScore\n\tFROM EDW.FACT_Medallia_Customer_survey m\n\tCROSS JOIN Bounds b\n\tWHERE TRY_CONVERT(date, m.Response_Date) >= b.StartOfYTD\n    AND TRY_CONVERT(date, m.Response_Date) <  DATEADD(day,1,b.EndDate)\n    AND m.Service_NPS BETWEEN 0 AND 10\n\t\n\t),\n\n--########### Service Calls resolved ############\t\n\nServiceCalls AS \n(\n\n  SELECT\n    COUNT(*) AS ServiceCallsResolved\n\tFROM EDW.FACT_JOB_SERVICE S\n\tJOIN [EDW].[DIM_SERVICE_STATUS] SS\n\tON S.ServiceStatusID = SS.ServiceStatusID\n  \n\tCROSS JOIN Bounds b\n\tWHERE TRY_CONVERT(date, S.CompletionDate) >= b.StartOfYTD\n    AND TRY_CONVERT(date, S.CompletionDate) <  DATEADD(day,1,b.EndDate)\n\tAND SS.ServiceStatus = 'Complete'\n\t\n),\n\n\n\n--########### Homeowners Helped ############\t\n\nHomeowners AS (\n\n\tSELECT COUNT(DISTINCT CustomerID) AS HomeownersHelpedYTD\n\tFROM \n\t(\n\t\n\t\tSELECT\n\t\tS.CustomerID\n\t\tFROM EDW.FACT_JOB_SERVICE S\n\t\tJOIN [EDW].[DIM_SERVICE_STATUS] SS\n\t\tON S.ServiceStatusID = SS.ServiceStatusID\n\t\n\t\tCROSS JOIN Bounds b\n\t\tWHERE TRY_CONVERT(date, S.CompletionDate) >= b.StartOfYTD\n\t\tAND TRY_CONVERT(date, S.CompletionDate) <  DATEADD(day,1,b.EndDate)\n\t\tAND SS.ServiceStatus = 'Complete' -- Check what status is needed\n\t\t--AND SS.ServiceStatus IS NOT NULL   **** CHeck\n\t\t\n\t\t\n\t\tUNION \n\t\t\n\t\tSELECT \n\t\tCustomerID\n\t\tFROM \n\t\t(\n\t\t\tSELECT A.JobID,A.CustomerID,\n\t\t\tCASE \n\t\t\t\tWHEN A.Division='FHI' AND B.MilestoneDateTypeID='FHI-8' THEN B.ActualDate\n\t\t\t\tWHEN A.Division='MAC' AND B.MilestoneDateTypeID='MAC-1' THEN B.ActualDate\n\t\t\t\tWHEN A.Division='MXH' AND B.MilestoneDateTypeID='MXH-A' THEN B.ActualDate\n\t\t\t\tWHEN A.Division='PBC' AND B.MilestoneDateTypeID='PBC-37' THEN B.ActualDate\n\t\t\t\tWHEN A.Division='CTA' AND B.MilestoneDateTypeID='CTA-E' THEN B.ActualDate\n\t\t\t\tWHEN A.Division='RTW' AND B.MilestoneDateTypeID='RTW-Q' THEN B.ActualDate\n\t\t\t\t--WHEN A.Division='SWR' AND B.MilestoneDateTypeID='FHI-8' THEN B.ActualDate\n\t\t\t\tEND AS ActualDate\n\t\t\tFROM EDW.FACT_JOB A \n\t\t\tJOIN  EDW.FACT_MILESTONE_DETAIL B\n\t\t\tON A.JobID = B.JobID\n\t\t\t\n\t\t\t) M1 \n\t\t\n\t\tCROSS JOIN Bounds b\n\t\tWHERE TRY_CONVERT(date, M1.ActualDate) >= b.StartOfYTD\n\t\tAND TRY_CONVERT(date, M1.ActualDate) <  DATEADD(day,1,b.EndDate)\n\t\t\n\t\t\n\t\t) MX\n\t\n\t  \n\n),\n\n\n\n--########### Installs Completed ############\t\n\nInstalls AS (\n\nSELECT Count(DISTINCT JobID) AS InstallsCompletedYTD \nFROM \n(\n\tSELECT A.JobID,A.CustomerID,\n\tCASE \n\t\tWHEN A.Division='FHI' AND B.MilestoneDateTypeID='FHI-8' THEN B.ActualDate\n\t\tWHEN A.Division='MAC' AND B.MilestoneDateTypeID='MAC-1' THEN B.ActualDate\n\t\tWHEN A.Division='MXH' AND B.MilestoneDateTypeID='MXH-A' THEN B.ActualDate\n\t\tWHEN A.Division='PBC' AND B.MilestoneDateTypeID='PBC-37' THEN B.ActualDate\n\t\tWHEN A.Division='CTA' AND B.MilestoneDateTypeID='CTA-E' THEN B.ActualDate\n\t\tWHEN A.Division='RTW' AND B.MilestoneDateTypeID='RTW-Q' THEN B.ActualDate\n\t\tWHEN A.Division='SWR' AND B.MilestoneDateTypeID='SWR-C' THEN B.ActualDate\n\t\tEND AS ActualDate\n\tFROM EDW.FACT_JOB A \n\tJOIN  EDW.FACT_MILESTONE_DETAIL B\n\tON A.JobID = B.JobID\n\n\t) M1 \n\n CROSS JOIN Bounds b\n WHERE TRY_CONVERT(date, M1.ActualDate) >= b.StartOfYTD\n AND TRY_CONVERT(date, M1.ActualDate) <  DATEADD(day,1,b.EndDate)\n\n\n\n)\n\n\n\n\nSELECT\n  b.LastRefreshUtc AS LastRefreshUTC,\n  i.InstallsCompletedYTD,\n  sc.ServiceCallsResolved,\n  h.HomeownersHelpedYTD,\n  --n.NPS\n  CAST(n.AvgScore/2.0 AS decimal(9,2)) AS NpsOutOf5\n\nFROM Bounds b\nCROSS JOIN Installs i\nCROSS JOIN ServiceCalls sc\nCROSS JOIN Homeowners h\nCROSS JOIN NPS_Score n;\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "JsonSink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings",
+							"copyBehavior": "PreserveHierarchy"
+						},
+						"formatSettings": {
+							"type": "JsonWriteSettings"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "LastRefreshUTC",
+									"type": "DateTime"
+								},
+								"sink": {
+									"path": "$['LastRefreshUTC']"
+								}
+							},
+							{
+								"source": {
+									"name": "InstallsCompletedYTD",
+									"type": "Int32"
+								},
+								"sink": {
+									"path": "$['InstallsCompletedYTD']"
+								}
+							},
+							{
+								"source": {
+									"name": "ServiceCallsResolved",
+									"type": "Int32"
+								},
+								"sink": {
+									"path": "$['ServiceCallsResolved']"
+								}
+							},
+							{
+								"source": {
+									"name": "HomeownersHelpedYTD",
+									"type": "Int32"
+								},
+								"sink": {
+									"path": "$['HomeownersHelpedYTD']"
+								}
+							},
+							{
+								"source": {
+									"name": "NpsOutOf5",
+									"type": "Decimal"
+								},
+								"sink": {
+									"path": "$['NpsOutOf5']"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_FACT_JOB_SERVICE",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "Json_NPS_Metrics",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Check file Name",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.6:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "Sharepoint_KPI_Out",
+						"type": "DatasetReference"
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "DelimitedTextReadSettings"
+					}
+				}
+			},
+			{
+				"name": "Filter_Latest_File",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "Check file Name",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Check file Name').output.childItems",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@and(\n  equals(item().type, 'File'),\n  contains(item().name, 'JSON_KPI')\n)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "If Condition1",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Filter_Latest_File",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@greater(length(activity('Filter_Latest_File').output.value), 0)",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "cpy_Archive_Five9_Files_copy1",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.6:00:00",
+								"retry": 1,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "JsonSource",
+									"storeSettings": {
+										"type": "AzureBlobStorageReadSettings",
+										"recursive": true,
+										"wildcardFolderPath": "out",
+										"wildcardFileName": "JSON_KPI_*",
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "JsonReadSettings"
+									}
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "Json_NPS_Metrics",
+									"type": "DatasetReference"
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "Sharepoint_JSon_Archive",
+									"type": "DatasetReference",
+									"parameters": {
+										"daily_folder": {
+											"value": "@concat('Archive/', formatDateTime(utcNow(), 'yyyy-MM-dd'))",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "Delete_Existing_Files_copy1",
+							"type": "Delete",
+							"dependsOn": [
+								{
+									"activity": "cpy_Archive_Five9_Files_copy1",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "Json_NPS_Metrics",
+									"type": "DatasetReference"
+								},
+								"logStorageSettings": {
+									"linkedServiceName": {
+										"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+										"type": "LinkedServiceReference"
+									},
+									"path": "staging"
+								},
+								"enableLogging": true,
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": true,
+									"wildcardFileName": "*",
+									"enablePartitionDiscovery": false
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/SHAREPOINT_KPI"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-01-09T12:43:37Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

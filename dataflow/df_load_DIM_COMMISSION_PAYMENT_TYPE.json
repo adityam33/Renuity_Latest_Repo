@@ -1,0 +1,260 @@
+{
+	"name": "df_load_DIM_COMMISSION_PAYMENT_TYPE",
+	"properties": {
+		"folder": {
+			"name": "ODS_to_EDW/DIMENSIONS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_FHI_cpt_CommissionPmtTypes",
+						"type": "DatasetReference"
+					},
+					"name": "FHI"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_HSI_cpt_CommissionPmtTypes",
+						"type": "DatasetReference"
+					},
+					"name": "HSI"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_MAC_cpt_CommissionPmtTypes",
+						"type": "DatasetReference"
+					},
+					"name": "MAC"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_PBC_cpt_CommissionPmtTypes",
+						"type": "DatasetReference"
+					},
+					"name": "PBC"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_SWR_cpt_CommissionPmtTypes",
+						"type": "DatasetReference"
+					},
+					"name": "SWR"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_RTW_cpt_CommissionPmtTypes",
+						"type": "DatasetReference"
+					},
+					"name": "RTW"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_MXH_cpt_CommissionPmtTypes",
+						"type": "DatasetReference"
+					},
+					"name": "MXH"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_CTA_cpt_CommissionPmtTypes",
+						"type": "DatasetReference"
+					},
+					"name": "CTA"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_DIM_COMMISSION_PAYMENT_TYPE",
+						"type": "DatasetReference"
+					},
+					"name": "targetDim",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "addOpCoNameFHI"
+				},
+				{
+					"name": "addOpCoNameHSI"
+				},
+				{
+					"name": "addOpCoNameMAC"
+				},
+				{
+					"name": "addOpCoNamePBC"
+				},
+				{
+					"name": "addOpCoNameSWR"
+				},
+				{
+					"name": "unionAllOpCos"
+				},
+				{
+					"name": "derivedColumns"
+				},
+				{
+					"name": "addOpCoNameRTW"
+				},
+				{
+					"name": "addOpCoNameMXH"
+				},
+				{
+					"name": "selectRenameColumns"
+				},
+				{
+					"name": "addOpCoNameCTA"
+				},
+				{
+					"name": "AlterRow1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          ID as integer,",
+				"          Descr as string,",
+				"          Active as boolean,",
+				"          SortOrder as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> FHI",
+				"source(output(",
+				"          ID as integer,",
+				"          Descr as string,",
+				"          Active as boolean,",
+				"          SortOrder as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> HSI",
+				"source(output(",
+				"          ID as integer,",
+				"          Descr as string,",
+				"          Active as boolean,",
+				"          SortOrder as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> MAC",
+				"source(output(",
+				"          ID as integer,",
+				"          Descr as string,",
+				"          Active as boolean,",
+				"          SortOrder as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> PBC",
+				"source(output(",
+				"          ID as integer,",
+				"          Descr as string,",
+				"          Active as boolean,",
+				"          SortOrder as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> SWR",
+				"source(output(",
+				"          ID as integer,",
+				"          Descr as string,",
+				"          Active as boolean,",
+				"          SortOrder as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> RTW",
+				"source(output(",
+				"          ID as integer,",
+				"          Descr as string,",
+				"          Active as boolean,",
+				"          SortOrder as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> MXH",
+				"source(output(",
+				"          ID as integer,",
+				"          Descr as string,",
+				"          Active as boolean,",
+				"          SortOrder as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> CTA",
+				"FHI derive(Division = 'FHI') ~> addOpCoNameFHI",
+				"HSI derive(Division = 'HSI') ~> addOpCoNameHSI",
+				"MAC derive(Division = 'MAC') ~> addOpCoNameMAC",
+				"PBC derive(Division = 'PBC') ~> addOpCoNamePBC",
+				"SWR derive(Division = 'SWR') ~> addOpCoNameSWR",
+				"addOpCoNameFHI, addOpCoNameHSI, addOpCoNameMAC, addOpCoNamePBC, addOpCoNameSWR, addOpCoNameRTW, addOpCoNameMXH, addOpCoNameCTA union(byName: true)~> unionAllOpCos",
+				"selectRenameColumns derive(LastUpdateTS = currentTimestamp(),",
+				"          CommissionPaymentTypeID = concat(Division,'-',toString(LP_CommissionPaymentTypeID))) ~> derivedColumns",
+				"RTW derive(Division = 'RTW') ~> addOpCoNameRTW",
+				"MXH derive(Division = 'MXH') ~> addOpCoNameMXH",
+				"unionAllOpCos select(mapColumn(",
+				"          LP_CommissionPaymentTypeID = ID,",
+				"          CommissionPaymentType = Descr,",
+				"          Active,",
+				"          Division",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectRenameColumns",
+				"CTA derive(Division = 'CTA') ~> addOpCoNameCTA",
+				"derivedColumns alterRow(upsertIf(true())) ~> AlterRow1",
+				"AlterRow1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          CommissionPaymentTypeID as string,",
+				"          CommissionPaymentType as string,",
+				"          Active as boolean,",
+				"          LP_CommissionPaymentTypeID as integer,",
+				"          Division as string,",
+				"          LastUpdateTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['CommissionPaymentTypeID'],",
+				"     format: 'table',",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          LP_CommissionPaymentTypeID,",
+				"          CommissionPaymentType,",
+				"          Active,",
+				"          Division,",
+				"          LastUpdateTS,",
+				"          CommissionPaymentTypeID",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> targetDim"
+			]
+		}
+	}
+}

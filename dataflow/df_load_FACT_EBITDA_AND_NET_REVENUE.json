@@ -1,0 +1,91 @@
+{
+	"name": "df_load_FACT_EBITDA_AND_NET_REVENUE",
+	"properties": {
+		"folder": {
+			"name": "ODS_to_EDW/FACTS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ODS_EBITDA_NETREVENUE",
+						"type": "DatasetReference"
+					},
+					"name": "SRCEBITDA"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_FACT_EBITDA_NETREVENUE",
+						"type": "DatasetReference"
+					},
+					"name": "FACTEBITDA"
+				}
+			],
+			"transformations": [
+				{
+					"name": "auditcols"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          Period as string,",
+				"          Year as integer,",
+				"          Month as integer,",
+				"          Division as string,",
+				"          Account as string,",
+				"          BranchID as string,",
+				"          Market as string,",
+				"          Amount as decimal(16,2),",
+				"          Scenario as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> SRCEBITDA",
+				"SRCEBITDA derive(CreatedTS = currentUTC(),",
+				"          UpdatedTS = currentUTC()) ~> auditcols",
+				"auditcols sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          Finperiod as string,",
+				"          Year as integer,",
+				"          Month as integer,",
+				"          Division as string,",
+				"          AccountType as string,",
+				"          BranchCode as string,",
+				"          Amount as decimal(16,2),",
+				"          Type as string,",
+				"          CreatedTS as timestamp,",
+				"          UpdatedTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     staged: true,",
+				"     allowCopyCommand: true,",
+				"     preSQLs:['TRUNCATE TABLE EDW.FACT_EBITDA_and_Netrevenue'],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          Finperiod = Period,",
+				"          Year,",
+				"          Month,",
+				"          Division,",
+				"          AccountType = Account,",
+				"          BranchCode = BranchID,",
+				"          Amount,",
+				"          Type = Scenario,",
+				"          CreatedTS,",
+				"          UpdatedTS",
+				"     )) ~> FACTEBITDA"
+			]
+		}
+	}
+}

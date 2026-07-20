@@ -1,0 +1,217 @@
+{
+	"name": "cpy_LP_rnk_Rank_ZML",
+	"properties": {
+		"activities": [
+			{
+				"name": "FHI",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT \nid\t,\ndescr\t,\nSortOrder\t,\nActive\t,\nLeadWeight\t\n\nFROM dbo.rnk_Rank WITH (NOLOCK)",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE [ZML].[LP_FHI_rnk_Rank]",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"tableOption": "autoCreate",
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "descr",
+									"type": "String"
+								},
+								"sink": {
+									"name": "descr",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "SortOrder",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "SortOrder",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Active",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "Active",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadWeight",
+									"type": "Double"
+								},
+								"sink": {
+									"name": "LeadWeight",
+									"type": "Double"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_ZML_FHI_aph_AlternatePhones",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ZML_ODS_FHI_rnk_Rank",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "MXH",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT \nid\t,\ndescr\t,\nSortOrder\t,\nActive\t,\nLeadWeight\t\n\nFROM dbo.rnk_Rank WITH (NOLOCK)",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE [ZML].[LP_MXH_rnk_Rank]",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"tableOption": "autoCreate",
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "descr",
+									"type": "String"
+								},
+								"sink": {
+									"name": "descr",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "SortOrder",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "SortOrder",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Active",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "Active",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadWeight",
+									"type": "Double"
+								},
+								"sink": {
+									"name": "LeadWeight",
+									"type": "Double"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_ZML_MXH_aph_AlternatePhones",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ZML_ODS_MXH_rnk_Rank",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "Temp/Anuj/ZML/LP_to_ODS_ZML"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-11-06T06:03:35Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

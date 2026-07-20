@@ -1,0 +1,17 @@
+{
+	"name": "Get Call Lineage from Invoca to Five9 to LP",
+	"properties": {
+		"content": {
+			"query": "SELECT distinct \n[Call Record ID] as InvocaCallRecordID\n,[Call Start Time] as InvocaCallDate\n,[Media Type] as InvocaMediaType\n,[Promo Number Description] as InvocaPromoNumberDescription\n,[Call Segment Path] as InvocaCallSegmentPath\n,[Final Campaign] as InvocaFinalCampaign\n,[Total Duration] as InvocaTotalDuration\n,[Total Connected Duration] as InvocaTotalConnectedDuration\n,[Total IVR Duration] as InvocaTotalIVRDuration\n,inv.[City] as InvocaCity\n,[Region] as InvocaRegion\n,[Caller ID] as InvocaCallerID\n,[Phone Type] as InvocaPhoneType\n,[Signal Names] as InvocaSignalNames\n,[CALL ID] as Five9CallID\n,[TIMESTAMP] as Five9CallDate\n,[CAMPAIGN] as Five9Campaign\n,[CALL TYPE] as Five9CallType\n,f9.[DISPOSITION] as Five9Disposition\n,[CALL TIME] as Five9CallTime\n,[CallID] as LPCallID\n,[CallTypeID] as LPCallTypeID\n,[CallResultID] as LPCallResultID\n,[CallDate] as LPCallDate\n,lds.LeadID as LPLeadID\n,cls.CustomerID as LPCustomerID\n,lds.EntryDate as LPEntryDate\n,lds.LeadSourceID as LPLeadSourceID\n,lds.LeadSubSourceID as LPLeadSubSourceID\n,srs.LeadSubSource as LPLeadSubSource\n,lds.DispositionID as LPDispositionID\n,dsp.Disposition as LPDisposition\n,cls.[Division] as LPDivision\nFROM \n[ODS].[INVOCA_FHI_CALLS] inv\nleft join [ODS].[FIVE9_FHI_CALLS] f9\non REPLACE(inv.[Caller ID],'-','') = f9.[ANI]\nleft join  [EDW].[FACT_CALL] cls\non REPLACE(inv.[Caller ID],'-','') = cls.[Phone]\nleft join  [EDW].[DIM_CUSTOMER] cst\non cls.CustomerID = cst.CustomerID\nleft join [EDW].[FACT_LEAD] lds\non cst.CustomerID = lds.CustomerID\nleft join [EDW].[DIM_LEAD_SUB_SOURCE] srs\non lds.LeadSubSourceID = srs.LeadSubSourceID\nleft join [EDW].[DIM_DISPOSITION] dsp\non lds.DispositionID = dsp.DispositionID\nWHERE\n[Media Type] = 'Offline: Direct Mail'\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

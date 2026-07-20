@@ -1,0 +1,139 @@
+{
+	"name": "out_3p_DNC_Customers_Daily",
+	"properties": {
+		"activities": [
+			{
+				"name": "3P DNC CUSTOMERS DAILY",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:30:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"sqlReaderQuery": "SELECT \nC.CustomerID AS CustomerID,\nCONCAT(CONCAT(C.FirstName,' '),C.LastName) AS Name,\nC.Phone,\nL.DispositionID,\nD.Disposition,\nD.Comments\nFROM EDW.DIM_CUSTOMER C \nJOIN EDW.FACT_LEAD L  ON L.CustomerID = C.CustomerID\nJOIN EDW.DIM_DISPOSITION D ON L.DispositionID = D.DispositionID\nWHERE D.Disposition IN ('DNC','TPCA')\nAND C.Division !='MXH'\nAND CAST(L.EntryDate AS DATE) >= CAST(GETDATE()-30 AS DATE)",
+						"queryTimeout": "00:30:00"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "CustomerID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CustomerID",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Name",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Name",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Phone",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Phone",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DispositionID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "DispositionID",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Disposition",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Disposition",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Comments",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Comments",
+									"type": "String",
+									"physicalType": "String"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "OUT_DNC_CUSTOMER_L30",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "OUT_DNC_CUSTOMERS_L30",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "RDC_to_3pContactCenter"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-01-11T17:13:19Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

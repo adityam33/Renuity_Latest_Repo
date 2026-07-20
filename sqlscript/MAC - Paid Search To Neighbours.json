@@ -1,0 +1,20 @@
+{
+	"name": "MAC - Paid Search To Neighbours",
+	"properties": {
+		"folder": {
+			"name": "DMLs/Analysis SQL/Performance Marketing"
+		},
+		"content": {
+			"query": "SELECT\ncst.[CustomerID]\n,trim(SUBSTRING(cst.[Address1],0,CHARINDEX(' ',cst.[Address1]))) as StreetNumber\n,trim(SUBSTRING(cst.[Address1],CHARINDEX(' ',cst.[Address1]),1000)) as StreetName\n,cst.[Address1]\n,cst.[City]\n,cst.[State]\n,cst.[Zip]\n,brn.LongName as [Market]\n,lds.EntryDate\n,lds.GrossSalesAmount\n,zonda.[Overall_Remodeling_Composite_Ranking_Index]\n,zonda.[Baths_Composite_Ranking_Index]\n,zonda.[Windows_Composite_Ranking_Index]\n FROM \n [EDW].[DIM_CUSTOMER] cst\n ,[EDW].[DIM_BRANCH] brn\n ,[EDW].[FACT_LEAD] lds\n ,[ODS].[MKTDATA_ZONDA_ZIP_CODE_INDEX] zonda\n where \n cst.CustomerID = lds.CustomerID\n and cst.[Zip] = zonda.[ZipCode]\n and lds.BranchID = brn.BranchID\n and lds.Sold = 'True'\n and cst.OperatingCompany = 'MAC'\n and lds.EntryDate > '2022-01-01' \norder BY\nCAST(zonda.[Overall_Remodeling_Composite_Ranking_Index] as DECIMAL(10,2)) desc\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

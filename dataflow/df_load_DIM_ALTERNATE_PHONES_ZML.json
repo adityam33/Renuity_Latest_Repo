@@ -1,0 +1,138 @@
+{
+	"name": "df_load_DIM_ALTERNATE_PHONES_ZML",
+	"properties": {
+		"folder": {
+			"name": "ZML_ODS_to_EDW/DIMENSIONS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ZML_ODS_FHI_aph_AlternatePhones",
+						"type": "DatasetReference"
+					},
+					"name": "FHI",
+					"description": "Source to Fetch data from ODS Alternate Phones for FHI"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_DIM_ALTERNATE_PHONES_ZML",
+						"type": "DatasetReference"
+					},
+					"name": "targetDIM",
+					"description": "Load DIM_ALTERNATE_PHONES"
+				}
+			],
+			"transformations": [
+				{
+					"name": "selectColsFHI"
+				},
+				{
+					"name": "derivedDivisionFHI",
+					"description": "Creating/updating the columns DivisionID"
+				},
+				{
+					"name": "unionAllOpCos",
+					"description": "Combining rows from transformation 'createIDsFHI, createIDsHSI, createIDsMAC, createIDsPBC, createIDsPHI, createIDsSWR, createIDsRTW, createIDsMXH'"
+				},
+				{
+					"name": "addLastUpdatedTimestamp"
+				},
+				{
+					"name": "AlterRow"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          Id as long,",
+				"          cst_id as long,",
+				"          Phone as string,",
+				"          pnt_id as string,",
+				"          CallMorning as integer,",
+				"          CallAfternoon as integer,",
+				"          CallEvening as integer,",
+				"          CallWeekend as integer,",
+				"          dnc_id as string,",
+				"          intdnc as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> FHI",
+				"FHI select(mapColumn(",
+				"          LP_AlternatePhoneID = Id,",
+				"          LP_CustomerID = cst_id,",
+				"          Phone,",
+				"          LP_PhoneTypeID = pnt_id,",
+				"          CallMorning,",
+				"          CallAfternoon,",
+				"          CallEvening,",
+				"          CallWeekend,",
+				"          dnc_id,",
+				"          intdnc",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColsFHI",
+				"selectColsFHI derive(Division = 'FHI') ~> derivedDivisionFHI",
+				"derivedDivisionFHI union(byName: true)~> unionAllOpCos",
+				"unionAllOpCos derive(LastUpdateTS = currentTimestamp(),",
+				"          AlternatePhoneID = concat(Division,'-',toString(LP_AlternatePhoneID)),",
+				"          CustomerID = concat(Division,'-',toString(LP_CustomerID)),",
+				"          PhoneTypeID = concat(Division,'-',toString(LP_PhoneTypeID))) ~> addLastUpdatedTimestamp",
+				"addLastUpdatedTimestamp alterRow(upsertIf(true())) ~> AlterRow",
+				"AlterRow sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          AlternatePhoneID as string,",
+				"          CustomerID as string,",
+				"          Phone as string,",
+				"          PhoneTypeID as string,",
+				"          CallMorning as integer,",
+				"          CallAfternoon as integer,",
+				"          CallEvening as integer,",
+				"          CallWeekend as integer,",
+				"          dnc_id as string,",
+				"          intdnc as string,",
+				"          LP_AlternatePhoneID as integer,",
+				"          LP_CustomerID as long,",
+				"          LP_PhoneTypeID as integer,",
+				"          Division as string,",
+				"          LastUpdateTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['AlternatePhoneID'],",
+				"     format: 'table',",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          LP_AlternatePhoneID,",
+				"          LP_CustomerID,",
+				"          Phone,",
+				"          LP_PhoneTypeID,",
+				"          CallMorning,",
+				"          CallAfternoon,",
+				"          CallEvening,",
+				"          CallWeekend,",
+				"          dnc_id,",
+				"          intdnc,",
+				"          Division,",
+				"          LastUpdateTS,",
+				"          AlternatePhoneID,",
+				"          CustomerID,",
+				"          PhoneTypeID",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> targetDIM"
+			]
+		}
+	}
+}

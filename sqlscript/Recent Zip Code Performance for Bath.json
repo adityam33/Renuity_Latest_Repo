@@ -1,0 +1,17 @@
+{
+	"name": "Recent Zip Code Performance for Bath",
+	"properties": {
+		"content": {
+			"query": "SELECT \n[ZipCode] as [Zip Code]\n,max(City) as City\n,max(County) as County\n,max(State) as State\n,max(zipPerf.Division) as Division\n,sum([NetSalesAmount]) as [Net Sales Amount]\n,sum([CancelledAmount]) as [Cancelled Amount]\n,sum([CreditDeclineAmount]) as [Credit Decline Amount]\n,sum([CancelledCount]) as [Cancelled Count]\n,sum([CreditDeclineCount]) as [Credit Decline Count]\n,sum([GrossSalesAmount]) as [Gross Sales Amount]\n,sum(ApptSet) as [Appt Set]\n,sum(NetIssue) as [Net Issue]\n,sum(Demo) as Demo\n,sum(Sold) as Sold\n,sum(NetSold) as [Net Sold]\n,sum(LeadCount) as [Lead Count]\n,max(PopulationEstimate) as [Population Estimate]\n FROM \n [EDW].[SUMM_FACT_ZIP_CODE_PERFORMANCE] zipPerf\n ,[EDW].[DIM_PRODUCT] prd\n where \n zipPerf.ProductID = prd.ProductID\n and prd.ProductName in \n (\n    'Bath',\n    'Shwr',\n    'BathK',\n    'Bath',\n    'Bath',\n    'Sbath',\n    'WIS',\n    'Bath',\n    'ShBth',\n    'WetAreaBth'\n )\n and EntryMonth between '2023-01-01' and '2023-04-30'\n group by\n [ZipCode]\n order by \n [Net Sales Amount] desc\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

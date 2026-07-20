@@ -1,0 +1,945 @@
+{
+	"name": "batch_load_moengage_file_to_ODS_Day-1",
+	"properties": {
+		"activities": [
+			{
+				"name": "Raw data load",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "ForEach1_MAC",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "ForEach1_CTA",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "ForEach1_FHIA",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "ForEach1_RTW",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "ForEach1_SWR",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "ForEach1_Renuity_West",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.2:30:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_moengage_Event_data_Raw",
+						"type": "DataFlowReference",
+						"datasetParameters": {
+							"CTA": {
+								"ExportDay": {
+									"value": "@pipeline().parameters.ExportDay",
+									"type": "Expression"
+								}
+							},
+							"MAC": {
+								"ExportDay": {
+									"value": "@pipeline().parameters.ExportDay",
+									"type": "Expression"
+								}
+							},
+							"FHI": {
+								"ExportDay": {
+									"value": "@pipeline().parameters.ExportDay",
+									"type": "Expression"
+								},
+								"Division": "FHI"
+							},
+							"RTW": {
+								"ExportDay": {
+									"value": "@pipeline().parameters.ExportDay",
+									"type": "Expression"
+								},
+								"Division": "RTW"
+							},
+							"SWR": {
+								"ExportDay": {
+									"value": "@pipeline().parameters.ExportDay",
+									"type": "Expression"
+								},
+								"Division": "SWR"
+							},
+							"RenuityWest": {
+								"ExportDay": "@pipeline().parameters.ExportDay"
+							},
+							"sink1": {
+								"Tablename": "MOENGAGE_EVENT_RAW_DATA"
+							}
+						}
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "staging"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "Get Filenames_CTA",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:30:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "SRC_MOENGAGE_CAMPAIGN_STATS_CTA",
+						"type": "DatasetReference",
+						"parameters": {
+							"Exportday": {
+								"value": "@pipeline().parameters.ExportDay",
+								"type": "Expression"
+							}
+						}
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "JsonReadSettings"
+					}
+				}
+			},
+			{
+				"name": "ForEach1_CTA",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Get Filenames_CTA",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Get Filenames_CTA').output.childItems",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"batchCount": 40,
+					"activities": [
+						{
+							"name": "unzip gz files",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.00:30:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "JsonSource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": false,
+										"wildcardFolderPath": {
+											"value": "@concat('in/Data_Core_Campaign_Stats_Export/export_day=',formatDateTime(pipeline().parameters.ExportDay,'yyyy-MM-dd'))",
+											"type": "Expression"
+										},
+										"wildcardFileName": {
+											"value": "@item().name",
+											"type": "Expression"
+										},
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "JsonReadSettings"
+									}
+								},
+								"sink": {
+									"type": "JsonSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "JsonWriteSettings"
+									}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "SRC_MOENGAGE_CAMPAIGN_STATS_CTA",
+									"type": "DatasetReference",
+									"parameters": {
+										"Exportday": {
+											"value": "@pipeline().parameters.ExportDay",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "SRC_MOENGAGE_CAMPAIGN_STATS_UNZIPPED_CTA",
+									"type": "DatasetReference",
+									"parameters": {
+										"ExportDay": {
+											"value": "@pipeline().parameters.ExportDay",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			},
+			{
+				"name": "Campaign and user tracked events",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Raw data load",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.1:0:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": " SELECT \n\tApp_name, DB_Name, Export_Day, Export_Doc_Id, Export_hour,Filename, UID, Email_id, Mobile_number,\n\tEvent_code, Event_name, Event_source, Dateadd(Second, Event_time, '1970') as Event_time, Event_type, Event_UUID,\n    JSON_VALUE(EventAttributes, '$.campaign_channel') \t\t\tAS campaign_channel,\n    JSON_VALUE(EventAttributes, '$.campaign_id')  \t\t\t\tAS campaign_id,\n    JSON_VALUE(EventAttributes, '$.campaign_name')        \t\tAS campaign_name,\n    JSON_VALUE(EventAttributes, '$.campaign_type')      \t\tAS campaign_type,\n    JSON_VALUE(EventAttributes, '$.flow_version_id')        \tAS flow_version_id,\n    JSON_VALUE(EventAttributes, '$.flow_version_name')          AS flow_version_name,\n    JSON_VALUE(EventAttributes, '$.moe_campaign_channel')       AS moe_campaign_channel,\n\tJSON_VALUE(EventAttributes, '$.moe_campaign_content_type')  AS moe_campaign_content_type,\n    JSON_VALUE(EventAttributes, '$.moe_campaign_tags')        \tAS moe_campaign_tags,\n    JSON_VALUE(EventAttributes, '$.moe_delivery_type')\t\t\tAS moe_delivery_type,\n    JSON_VALUE(EventAttributes, '$.moe_f_pid')        \t\t\tAS moe_f_pid,\n    JSON_VALUE(EventAttributes, '$.moe_f_pname')\t\t\t\tAS moe_f_pname,\n    JSON_VALUE(UserAttributes, '$.moengage_user_id')         \tAS moengage_user_id,\n\tJSON_VALUE(EventAttributes, '$.moe_event_category') \t\tAS moe_event_category,\n    JSON_VALUE(EventAttributes, '$.moe_event_source')        \tAS moe_event_source,\n    JSON_VALUE(EventAttributes, '$.internal_marketing_id')      AS internal_marketing_id,\n    JSON_VALUE(EventAttributes, '$.marketing_id')        \t\tAS marketing_id,\n    JSON_VALUE(EventAttributes, '$.moe_attribution_type')       AS moe_attribution_type,\n    JSON_VALUE(EventAttributes, '$.moe_campaign_user_type')     AS moe_campaign_user_type,\n\tJSON_VALUE(EventAttributes, '$.moe_flow_action_cids')       AS moe_flow_action_cids,\n    JSON_VALUE(EventAttributes, '$.moe_flow_conversion_event')  AS moe_flow_conversion_event,\n    JSON_VALUE(EventAttributes, '$.moe_flow_goal_name')\t\t\tAS moe_flow_goal_name,\n    JSON_VALUE(EventAttributes, '$.moe_flow_id')\t\t\t\tAS moe_flow_id,\n    JSON_VALUE(EventAttributes, '$.moe_flow_name')\t\t\t\tAS moe_flow_name,\n\tJSON_VALUE(EventAttributes, '$.moe_flow_trip_id')\t\t\tAS moe_flow_trip_id,\n    JSON_VALUE(EventAttributes, '$.\"Flow Id\"')         \t\t\tAS [Flow Id],\n\tJSON_VALUE(EventAttributes, '$.\"Flow Name\"')        \t\tAS FlowName,\n    JSON_VALUE(EventAttributes, '$.flow_type')      \t\t\tAS flow_type,\n\tEventAttributes, UserAttributes\nfrom ODS.MOENGAGE_EVENT_RAW_DATA",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "Truncate table ODS.MOENGAGE_EVENT_DATA",
+						"allowCopyCommand": true,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "staging"
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_ODS_PBC_slt_SalesTypes",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_DYN_TGT_TBL",
+						"type": "DatasetReference",
+						"parameters": {
+							"Tablename": "MOENGAGE_EVENT_DATA"
+						}
+					}
+				]
+			},
+			{
+				"name": "Get Filenames_MAC",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:30:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "SRC_MOENGAGE_CAMPAIGN_STATS_MAC",
+						"type": "DatasetReference",
+						"parameters": {
+							"Exportday": {
+								"value": "@pipeline().parameters.ExportDay",
+								"type": "Expression"
+							}
+						}
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "JsonReadSettings"
+					}
+				}
+			},
+			{
+				"name": "ForEach1_MAC",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Get Filenames_MAC",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Get Filenames_MAC').output.childItems",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"batchCount": 40,
+					"activities": [
+						{
+							"name": "unzip gz files_MAC",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.00:30:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "JsonSource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": false,
+										"wildcardFolderPath": {
+											"value": "@concat('in/Data_Core_MAC_Events_Export/export_day=',formatDateTime(pipeline().parameters.ExportDay,'yyyy-MM-dd'))",
+											"type": "Expression"
+										},
+										"wildcardFileName": {
+											"value": "@item().name",
+											"type": "Expression"
+										},
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "JsonReadSettings"
+									}
+								},
+								"sink": {
+									"type": "JsonSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "JsonWriteSettings"
+									}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "SRC_MOENGAGE_CAMPAIGN_STATS_CTA",
+									"type": "DatasetReference",
+									"parameters": {
+										"Exportday": {
+											"value": "@pipeline().parameters.ExportDay",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "SRC_MOENGAGE_CAMPAIGN_STATS_UNZIPPED_MAC",
+									"type": "DatasetReference",
+									"parameters": {
+										"ExportDay": {
+											"value": "@pipeline().parameters.ExportDay",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			},
+			{
+				"name": "Get Filenames_FHIA",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:30:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "SRC_MOENGAGE_CAMPAIGN_STATS_DYN",
+						"type": "DatasetReference",
+						"parameters": {
+							"Exportday": {
+								"value": "@pipeline().parameters.ExportDay",
+								"type": "Expression"
+							},
+							"Division": "FHI"
+						}
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "JsonReadSettings"
+					}
+				}
+			},
+			{
+				"name": "ForEach1_FHIA",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Get Filenames_FHIA",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Get Filenames_FHIA').output.childItems",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"batchCount": 40,
+					"activities": [
+						{
+							"name": "unzip gz files_FHIA",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.00:30:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "JsonSource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": false,
+										"wildcardFolderPath": {
+											"value": "@concat('in/Data_Core_FHI_Events_Export/export_day=',formatDateTime(pipeline().parameters.ExportDay,'yyyy-MM-dd'))",
+											"type": "Expression"
+										},
+										"wildcardFileName": {
+											"value": "@item().name",
+											"type": "Expression"
+										},
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "JsonReadSettings"
+									}
+								},
+								"sink": {
+									"type": "JsonSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "JsonWriteSettings"
+									}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "SRC_MOENGAGE_CAMPAIGN_STATS_CTA",
+									"type": "DatasetReference",
+									"parameters": {
+										"Exportday": {
+											"value": "@pipeline().parameters.ExportDay",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "SRC_MOENGAGE_CAMPAIGN_STATS_UNZIPPED_DYN",
+									"type": "DatasetReference",
+									"parameters": {
+										"ExportDay": {
+											"value": "@pipeline().parameters.ExportDay",
+											"type": "Expression"
+										},
+										"Division": "FHI"
+									}
+								}
+							]
+						}
+					]
+				}
+			},
+			{
+				"name": "Get Filenames_RTW",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:30:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "SRC_MOENGAGE_CAMPAIGN_STATS_DYN",
+						"type": "DatasetReference",
+						"parameters": {
+							"Exportday": {
+								"value": "@pipeline().parameters.ExportDay",
+								"type": "Expression"
+							},
+							"Division": "RTW"
+						}
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "JsonReadSettings"
+					}
+				}
+			},
+			{
+				"name": "ForEach1_RTW",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Get Filenames_RTW",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Get Filenames_RTW').output.childItems",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"batchCount": 40,
+					"activities": [
+						{
+							"name": "unzip gz files_RTW",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.00:30:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "JsonSource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": false,
+										"wildcardFolderPath": {
+											"value": "@concat('in/Data_Core_RTW_Events_Export/export_day=',formatDateTime(pipeline().parameters.ExportDay,'yyyy-MM-dd'))",
+											"type": "Expression"
+										},
+										"wildcardFileName": {
+											"value": "@item().name",
+											"type": "Expression"
+										},
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "JsonReadSettings"
+									}
+								},
+								"sink": {
+									"type": "JsonSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "JsonWriteSettings"
+									}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "SRC_MOENGAGE_CAMPAIGN_STATS_CTA",
+									"type": "DatasetReference",
+									"parameters": {
+										"Exportday": {
+											"value": "@pipeline().parameters.ExportDay",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "SRC_MOENGAGE_CAMPAIGN_STATS_UNZIPPED_DYN",
+									"type": "DatasetReference",
+									"parameters": {
+										"ExportDay": {
+											"value": "@pipeline().parameters.ExportDay",
+											"type": "Expression"
+										},
+										"Division": "RTW"
+									}
+								}
+							]
+						}
+					]
+				}
+			},
+			{
+				"name": "Get Filenames_SWR",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:30:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "SRC_MOENGAGE_CAMPAIGN_STATS_DYN",
+						"type": "DatasetReference",
+						"parameters": {
+							"Exportday": {
+								"value": "@pipeline().parameters.ExportDay",
+								"type": "Expression"
+							},
+							"Division": "SWR"
+						}
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "JsonReadSettings"
+					}
+				}
+			},
+			{
+				"name": "ForEach1_SWR",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Get Filenames_SWR",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Get Filenames_SWR').output.childItems",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"batchCount": 40,
+					"activities": [
+						{
+							"name": "unzip gz files_SWR",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.00:30:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "JsonSource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": false,
+										"wildcardFolderPath": {
+											"value": "@concat('in/Data_Core_SWR_Events_Export/export_day=',formatDateTime(pipeline().parameters.ExportDay,'yyyy-MM-dd'))",
+											"type": "Expression"
+										},
+										"wildcardFileName": {
+											"value": "@item().name",
+											"type": "Expression"
+										},
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "JsonReadSettings"
+									}
+								},
+								"sink": {
+									"type": "JsonSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "JsonWriteSettings"
+									}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "SRC_MOENGAGE_CAMPAIGN_STATS_CTA",
+									"type": "DatasetReference",
+									"parameters": {
+										"Exportday": {
+											"value": "@pipeline().parameters.ExportDay",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "SRC_MOENGAGE_CAMPAIGN_STATS_UNZIPPED_DYN",
+									"type": "DatasetReference",
+									"parameters": {
+										"ExportDay": {
+											"value": "@pipeline().parameters.ExportDay",
+											"type": "Expression"
+										},
+										"Division": "SWR"
+									}
+								}
+							]
+						}
+					]
+				}
+			},
+			{
+				"name": "Get Filenames_Renuity_West",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "SRC_MOENGAGE_CAMPAIGN_STATS_DYN",
+						"type": "DatasetReference",
+						"parameters": {
+							"Exportday": "@pipeline().parameters.ExportDay",
+							"Division": "Renuity_West"
+						}
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "JsonReadSettings"
+					}
+				}
+			},
+			{
+				"name": "ForEach1_Renuity_West",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Get Filenames_Renuity_West",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Get Filenames_Renuity_West').output.childItems",
+						"type": "Expression"
+					},
+					"batchCount": 40,
+					"activities": [
+						{
+							"name": "unzip gz files_renuity_west",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "JsonSource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": true,
+										"wildcardFolderPath": {
+											"value": "@concat('in/Data_Core_Renuity_West_Events_Export/export_day=',formatDateTime(pipeline().parameters.ExportDay,'yyyy-MM-dd'))",
+											"type": "Expression"
+										},
+										"wildcardFileName": {
+											"value": "@item().name",
+											"type": "Expression"
+										},
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "JsonReadSettings"
+									}
+								},
+								"sink": {
+									"type": "JsonSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "JsonWriteSettings"
+									}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "SRC_MOENGAGE_CAMPAIGN_STATS_CTA",
+									"type": "DatasetReference",
+									"parameters": {
+										"Exportday": "@pipeline().parameters.ExportDay"
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "SRC_MOENGAGE_CAMPAIGN_STATS_UNZIPPED_DYN",
+									"type": "DatasetReference",
+									"parameters": {
+										"ExportDay": "@pipeline().parameters.ExportDay",
+										"Division": "Renuity_West"
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"ExportDay": {
+				"type": "string",
+				"defaultValue": "2025-09-13"
+			}
+		},
+		"folder": {
+			"name": "MoEngage to EDW"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-04-03T23:37:25Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

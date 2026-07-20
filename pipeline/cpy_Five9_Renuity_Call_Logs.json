@@ -1,0 +1,2276 @@
+{
+	"name": "cpy_Five9_Renuity_Call_Logs",
+	"properties": {
+		"activities": [
+			{
+				"name": "df_Five9_RenuityCallLogs_All",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.6:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_ODS_RenuityCallLogs_All",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/ODS"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "cpy_EDW_FACT_FIVE9_CALL_LOG_ALL",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "df_Five9_RenuityCallLogs_All",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Dataflow_CALL_LOG_PBI_MAC",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.6:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"additionalColumns": [
+							{
+								"name": "Data_Identifier",
+								"value": "ALL_DIVISION"
+							}
+						],
+						"sqlReaderQuery": "SELECT\nNULL AS DIVISION\n,CALL_ID\n,TIMESTAMP\n,CAMPAIGN\n,CALL_TYPE\n,AGENT\n,CASE \n    WHEN AGENT_NAME IN ('Michael McKenzie','Micheal Mckenzie') THEN 'Michael McKenzie' \n    WHEN AGENT_NAME IN ('Lanita Mays','LaNita Mays') THEN 'Lanita Mays' \n    ELSE AGENT_NAME END AS AGENT_NAME\n,(CASE WHEN DISPOSITION ='' THEN NULL ELSE DISPOSITION END ) AS DISPOSITION\n,SUBSTRING(ANI,1,3) AS ANI_CODE\n,ANI\n,CUSTOMER_NAME\n,DNIS\n,CALL_TIME\n,IVR_TIME\n,QUEUE_WAIT_TIME\n,RING_TIME\n,TALK_TIME\n,HOLD_TIME\n,PARK_TIME\n,AFTER_CALL_WORK_TIME\n,ABANDONED\n,RECORDINGS\n,CASE WHEN ISDate(date)=1 THEN CAST(DATE AS DATE) ELSE NULL END AS DATE\n,HOUR\n,SUBSTRING(TIMESTAMP, LEN(TIMESTAMP) - 8,9) AS TIME\n,CAMPAIGN_TYPE\n,NO_PARTY_CONTACT\n,SKILL\n,SERVICE_LEVEL\n,CONTACTED\n,LIVE_CONNECT\n,CALLS\n,LIST_NAME\n,SESSION_ID\n,SPEED_OF_ANSWER\n,AGENT_GROUP\n,CALLS_COMPLETED_IN_IVR\n,CONTACT_ID\n,CUSTID\n,LOCAL_ANI\n,(CASE WHEN SOURCE='' THEN NULL ELSE SOURCE END) AS SOURCE\n,(CASE WHEN SUBSOURCE='' THEN NULL ELSE SUBSOURCE END) AS SUBSOURCE\n,NUMBER3\n,COMPANY\n,DATEUPLOADED\n,NUMBER1\n,NUMBER2\n,(CASE WHEN PRODUCT='' THEN NULL ELSE PRODUCT END)  AS PRODUCT\n,CONTACT_CREATE_DATE_TIME\n,LEAD_ID\n,LPRECTYPE\n,ANR_LOGIT_RANK\n,LPRECKEY\n,NUMBER_OF_ATTEMPTS\n,(CASE WHEN SOURCEGROUP='' THEN NULL ELSE SOURCEGROUP END) AS SOURCEGROUP\n,AB_TEST\n,LANGUAGE\n,DIAL_TIME\n,TIME_TO_ABANDON\n,MANUAL_TIME\n,HANDLE_TIME\n,CONSULT_TIME\n,TOTAL_QUEUE_TIME\n,PREVIEW_TIME\n,QUEUE_CALLBACK_WAIT_TIME\n,(CASE WHEN MARKET='' THEN NULL ELSE MARKET END) AS MARKET\n,GETDATE() AS LAST_UPDATED_TS\n,NULL AS DIVISION_ORIG\n,NULL AS LP_CUSTID\n,NULL AS LP_LEADID\n,NULL AS LP_BranchID\n,NULL AS LP_Product\n,NULL AS LP_SourceGroup\n,NULL AS LP_SourceCode\n,NULL AS LP_LeadSubSource\n,NULL AS LP_DISPOSITION\n,SIP_RESPONSE_CODE\n,SIP_REFER\n,SIP_REFER_DESTINATION\n,SIP_REFER_SOURCE\nFROM ODS.FIVE9_RENUITY_CALL_LOGS_ALL\nWHERE COALESCE(DATEUPLOADED,'NA') NOT LIKE '%INQ%'",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "DELETE FROM EDW.FACT_FIVE9_CALL_LOG_ALL\nWHERE CAST(DATE AS DATE) IN (SELECT DISTINCT CAST((CASE WHEN ISDate(date)=1 THEN DATE ELSE '2099-01-01' END ) AS DATE) FROM [ODS].[FIVE9_RENUITY_CALL_LOGS_ALL])\nAND DATA_IDENTIFIER ='ALL_DIVISION'",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "DIVISION",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "DIVISION",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SESSION_ID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "SESSION_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CALL_ID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CALL_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CONTACT_ID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CONTACT_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "TIMESTAMP",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "TIMESTAMP",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DATE",
+									"type": "Date",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "DATE",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								}
+							},
+							{
+								"source": {
+									"name": "HOUR",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "HOUR",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "TIME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CALL_TYPE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CALL_TYPE",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CAMPAIGN_TYPE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CAMPAIGN_TYPE",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CAMPAIGN",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CAMPAIGN",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SKILL",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "SKILL",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LIST_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "LIST_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AGENT_GROUP",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "AGENT_GROUP",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AGENT_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "AGENT_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AGENT",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "AGENT",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CUSTOMER_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CUSTOMER_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ANI_CODE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ANI_CODE",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ANI",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ANI",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DNIS",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "DNIS",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DISPOSITION",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "DISPOSITION",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CALLS",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CALLS",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ABANDONED",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ABANDONED",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CONTACTED",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CONTACTED",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LIVE_CONNECT",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "LIVE_CONNECT",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "NO_PARTY_CONTACT",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "NO_PARTY_CONTACT",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SPEED_OF_ANSWER",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "SPEED_OF_ANSWER",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_LEVEL",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "SERVICE_LEVEL",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CALLS_COMPLETED_IN_IVR",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CALLS_COMPLETED_IN_IVR",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "COMPANY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "COMPANY",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CUSTID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "CUSTID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LEAD_ID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "LEAD_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CONTACT_CREATE_DATE_TIME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CONTACT_CREATE_DATE_TIME",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								}
+							},
+							{
+								"source": {
+									"name": "NUMBER1",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "NUMBER1",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "NUMBER2",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "NUMBER2",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "NUMBER3",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "NUMBER3",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ANR_LOGIT_RANK",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ANR_LOGIT_RANK",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "MARKET",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "MARKET",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PRODUCT",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "PRODUCT",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SOURCEGROUP",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "SOURCEGROUP",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SOURCE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "SOURCE",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SUBSOURCE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "SUBSOURCE",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LANGUAGE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "LANGUAGE",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LPRECTYPE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "LPRECTYPE",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LPRECKEY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "LPRECKEY",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DATEUPLOADED",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "DATEUPLOADED",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								}
+							},
+							{
+								"source": {
+									"name": "NUMBER_OF_ATTEMPTS",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "NUMBER_OF_ATTEMPTS",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LOCAL_ANI",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "LOCAL_ANI",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AB_TEST",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "AB_TEST",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CALL_TIME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CALL_TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DIAL_TIME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "DIAL_TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "RING_TIME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "RING_TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "TIME_TO_ABANDON",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "TIME_TO_ABANDON",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "MANUAL_TIME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "MANUAL_TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "HANDLE_TIME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "HANDLE_TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CONSULT_TIME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CONSULT_TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "QUEUE_CALLBACK_WAIT_TIME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "QUEUE_CALLBACK_WAIT_TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PREVIEW_TIME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "PREVIEW_TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AFTER_CALL_WORK_TIME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "AFTER_CALL_WORK_TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "TOTAL_QUEUE_TIME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "TOTAL_QUEUE_TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "QUEUE_WAIT_TIME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "QUEUE_WAIT_TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "HOLD_TIME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "HOLD_TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "TALK_TIME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "TALK_TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PARK_TIME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "PARK_TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "IVR_TIME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "IVR_TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "RECORDINGS",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "RECORDINGS",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LAST_UPDATED_TS",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "LAST_UPDATED_TS",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								}
+							},
+							{
+								"source": {
+									"name": "Data_Identifier",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Data_Identifier",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DIVISION_ORIG",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "DIVISION_ORIG",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_CUSTID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "LP_CUSTID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_LEADID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "LP_LEADID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_BranchID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "LP_BranchID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_Product",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "LP_Product",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_SourceGroup",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "LP_SourceGroup",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_SourceCode",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "LP_SourceCode",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_LeadSubSource",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "LP_LeadSubSource",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_DISPOSITION",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "LP_DISPOSITION",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SIP_RESPONSE_CODE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "SIP_RESPONSE_CODE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SIP_REFER",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "SIP_REFER",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SIP_REFER_DESTINATION",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "SIP_REFER_DESTINATION",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SIP_REFER_SOURCE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "SIP_REFER_SOURCE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_ODS_FIVE9_RENUITY_CALL_LOGS_ALL",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_FACT_FIVE9_CALL_LOG_ALL",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Dataflow_CALL_LOG_PBI_MAC",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_ODS_RenuityCallLogs_All_PBI_MAC",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "cpy_EDW_FACT_FIVE9_CALL_LOG_ALL_MAC",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "DELETE_JUNK",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT \n'MAC' AS DIVISION\t,\nSESSION_ID\t,\nCALL_ID\t,\nCONTACT_ID\t,\nTIMESTAMP\t,\nDATE\t,\nHOUR\t,\nSUBSTRING(TIMESTAMP, LEN(TIMESTAMP) - 8,9) AS TIME\t,\nCALL_TYPE\t,\nCAMPAIGN_TYPE\t,\nCAMPAIGN\t,\nSKILL\t,\nLIST_NAME\t,\nAGENT_GROUP\t,\nAGENT_NAME\t,\nAGENT\t,\nCUSTOMER_NAME\t,\nNULL AS ANI_CODE\t,\nANI\t,\nDNIS\t,\n(CASE WHEN DISPOSITION ='' THEN NULL ELSE DISPOSITION END ) AS DISPOSITION ,\nCALLS\t,\nABANDONED\t,\nCONTACTED\t,\nLIVE_CONNECT\t,\nNO_PARTY_CONTACT\t,\nSPEED_OF_ANSWER\t,\nSERVICE_LEVEL\t,\nCALLS_COMPLETED_IN_IVR\t,\ncompany\t,\nCustID\t,\nlead_id\t,\nCONVERT(VARCHAR, CAST(REPLACE(CONTACT_CReATE_TIMESTAMP, LEFT(CONTACT_CReATE_TIMESTAMP, CHARINDEX(',', CONTACT_CReATE_TIMESTAMP) + 1), '') AS DATETIME), 120) AS CONTACT_CREATE_TIMESTAMP,\nnumber1\t,\nnumber2\t,\nnumber3\t,\nanr_logit_rank\t,\n(CASE WHEN MARKET='' THEN NULL ELSE MARKET END) AS Market\t,\nNULL AS PRODUCT\t,\n(CASE WHEN SOURCEGROUP='' THEN NULL ELSE SOURCEGROUP END) AS SourceGroup\t,\n(CASE WHEN SOURCE='' THEN NULL ELSE SOURCE END) AS Source\t,\n(CASE WHEN SUBSOURCE='' THEN NULL ELSE SUBSOURCE END) AS Subsource\t,\nLanguage\t,\nNULL AS LPRECTYPE\t,\nNULL AS LPRECKEY\t,\nDateUploaded\t,\nNULL AS NUMBER_OF_ATTEMPTS\t,\nNULL AS LOCAL_ANI\t,\nNULL AS AB_TEST\t,\nCALL_TIME\t,\nDIAL_TIME\t,\nRING_TIME\t,\nTIME_TO_ABANDON\t,\nMANUAL_TIME\t,\nHANDLE_TIME\t,\nCONSULT_TIME\t,\nQUEUE_CALLBACK_WAIT_TIME\t,\nPREVIEW_TIME\t,\nAFTER_CALL_WORK_TIME\t,\nTOTAL_QUEUE_TIME\t,\nQUEUE_WAIT_TIME\t,\nHOLD_TIME\t,\nTALK_TIME\t,\nPARK_TIME\t,\nIVR_TIME\t,\nRECORDINGS\t,\nGETDATE() AS LastUpdatedTS,\n'MAC_NEW_SERVER' AS DATA_IDENTIFIER,\n'MAC' AS DIVISION_ORIG\n,NULL AS LP_CUSTID\n,NULL AS LP_LEADID\n,NULL AS LP_BranchID\n,NULL AS LP_Product\n,NULL AS LP_SourceGroup\n,NULL AS LP_SourceCode\n,NULL AS LP_LeadSubSource\n,NULL AS LP_DISPOSITION\n,SIP_RESPONSE_CODE\n,SIP_REFER\n,SIP_REFER_DESTINATION\n,SIP_REFER_SOURCE\nFROM [ODS].[FIVE9_CALLS_MAC]\nWHERE Call_ID!='and Don Tucker\"'",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "DELETE FROM EDW.FACT_FIVE9_CALL_LOG_ALL\nWHERE CAST(DATE AS DATE) IN (SELECT DISTINCT(CAST(DATE AS DATE)) FROM [ODS].[FIVE9_CALLS_MAC])\nAND DATA_IDENTIFIER ='MAC_NEW_SERVER'",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "DIVISION",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "DIVISION",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SESSION_ID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "SESSION_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CALL_ID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CALL_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CONTACT_ID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CONTACT_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "TIMESTAMP",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "TIMESTAMP",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DATE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "DATE",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								}
+							},
+							{
+								"source": {
+									"name": "HOUR",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "HOUR",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "TIME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CALL_TYPE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CALL_TYPE",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CAMPAIGN_TYPE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CAMPAIGN_TYPE",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CAMPAIGN",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CAMPAIGN",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SKILL",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "SKILL",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LIST_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "LIST_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AGENT_GROUP",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "AGENT_GROUP",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AGENT_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "AGENT_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AGENT",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "AGENT",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CUSTOMER_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CUSTOMER_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ANI_CODE",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "ANI_CODE",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ANI",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ANI",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DNIS",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "DNIS",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DISPOSITION",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "DISPOSITION",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CALLS",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CALLS",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ABANDONED",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ABANDONED",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CONTACTED",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CONTACTED",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LIVE_CONNECT",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "LIVE_CONNECT",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "NO_PARTY_CONTACT",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "NO_PARTY_CONTACT",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SPEED_OF_ANSWER",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "SPEED_OF_ANSWER",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_LEVEL",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "SERVICE_LEVEL",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CALLS_COMPLETED_IN_IVR",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CALLS_COMPLETED_IN_IVR",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "company",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "COMPANY",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CustID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CUSTID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "lead_id",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "LEAD_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CONTACT_CREATE_TIMESTAMP",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "CONTACT_CREATE_DATE_TIME",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								}
+							},
+							{
+								"source": {
+									"name": "number1",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "NUMBER1",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "number2",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "NUMBER2",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "number3",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "NUMBER3",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "anr_logit_rank",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ANR_LOGIT_RANK",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Market",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "MARKET",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PRODUCT",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "PRODUCT",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SourceGroup",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "SOURCEGROUP",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Source",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "SOURCE",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Subsource",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "SUBSOURCE",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Language",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "LANGUAGE",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LPRECTYPE",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "LPRECTYPE",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LPRECKEY",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "LPRECKEY",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DateUploaded",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "DATEUPLOADED",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								}
+							},
+							{
+								"source": {
+									"name": "NUMBER_OF_ATTEMPTS",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "NUMBER_OF_ATTEMPTS",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LOCAL_ANI",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "LOCAL_ANI",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AB_TEST",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "AB_TEST",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CALL_TIME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CALL_TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DIAL_TIME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "DIAL_TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "RING_TIME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "RING_TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "TIME_TO_ABANDON",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "TIME_TO_ABANDON",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "MANUAL_TIME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "MANUAL_TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "HANDLE_TIME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "HANDLE_TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CONSULT_TIME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CONSULT_TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "QUEUE_CALLBACK_WAIT_TIME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "QUEUE_CALLBACK_WAIT_TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PREVIEW_TIME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "PREVIEW_TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AFTER_CALL_WORK_TIME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "AFTER_CALL_WORK_TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "TOTAL_QUEUE_TIME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "TOTAL_QUEUE_TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "QUEUE_WAIT_TIME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "QUEUE_WAIT_TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "HOLD_TIME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "HOLD_TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "TALK_TIME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "TALK_TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PARK_TIME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "PARK_TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "IVR_TIME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "IVR_TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "RECORDINGS",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "RECORDINGS",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "LAST_UPDATED_TS",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								}
+							},
+							{
+								"source": {
+									"name": "DATA_IDENTIFIER",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Data_Identifier",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DIVISION_ORIG",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "DIVISION_ORIG",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_CUSTID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "LP_CUSTID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_LEADID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "LP_LEADID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_BranchID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "LP_BranchID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_Product",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "LP_Product",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_SourceGroup",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "LP_SourceGroup",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_SourceCode",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "LP_SourceCode",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_LeadSubSource",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "LP_LeadSubSource",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_DISPOSITION",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "LP_DISPOSITION",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SIP_RESPONSE_CODE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "SIP_RESPONSE_CODE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SIP_REFER",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "SIP_REFER",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SIP_REFER_DESTINATION",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "SIP_REFER_DESTINATION",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SIP_REFER_SOURCE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "SIP_REFER_SOURCE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ODS_Five9_RENUITY_CALL_LOG_MAC",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_FACT_FIVE9_CALL_LOG_ALL",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "UPD_LP_LeadID",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Update_DIVISION",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "--********** TEMP TABLES START*********\n\nSELECT Division,LeadID,CustomerID,DispositionID,BranchID,ProductID,LeadSubSourceID \nINTO #T_LEAD\nFROM EDW.FACT_LEAD;\n\n\n\nSELECT InboundQueueLogID,\nLeadID\nINTO #T_FACT_INBOUND_QUEUE_LOG\nFROM EDW.FACT_INBOUND_QUEUE_LOG;\n\n\nSELECT * INTO #T_DISPOSITION FROM EDW.DIM_DISPOSITION;\nSELECT * INTO #T_PRODUCT FROM EDW.DIM_PRODUCT;\nSELECT * INTO #T_BRANCH FROM EDW.DIM_BRANCH;\n\n\n\n\n--############## LP_LEADID UPDATED ###################\n--############### STARTS HERE ##################\n\n--***********************\n--SUBSTRING(LPRecKey,1,3) ='LDS'\n\n\nUPDATE A \nSET A.LP_LeadID \t= B.LeadID\nFROM\nEDW.FACT_FIVE9_CALL_LOG_ALL A\nJOIN #T_LEAD B\nON CONCAT( A.Division,'-',SUBSTRING(A.LPRecKey,4,12) ) = B.LeadID   -- LDS KEY JOIN\nWHERE SUBSTRING(A.LPRecKey,1,3) ='LDS'\nAND A.LP_LeadID IS NULL\nAND CAST(A.DATE AS DATE) >= CAST(GETDATE()-45 AS DATE); -- ***( LPRECTYPE ='cst' only)\n\n\n\nUPDATE A \nSET A.LP_LeadID \t= B.LeadID\nFROM\nEDW.FACT_FIVE9_CALL_LOG_ALL A\nJOIN #T_LEAD B\nON CONCAT( A.Division,'-',A.Lead_ID ) = B.LeadID\t\t\t-- LEAD_ID Join\nWHERE SUBSTRING(A.LPRecKey,1,3) ='LDS'\nAND A.LP_LeadID IS NULL\nAND CAST(A.DATE AS DATE) >= CAST(GETDATE()-45 AS DATE);\n\n\n\n\n--**********************\n--SUBSTRING(LPRecKey,1,3) ='INQ'\n\nUPDATE A \nSET A.LP_LeadID = C.LeadID\nFROM EDW.FACT_FIVE9_CALL_LOG_ALL A\nJOIN #T_FACT_INBOUND_QUEUE_LOG B\n    ON CONCAT(A.Division, '-', SUBSTRING(A.LPRecKey, 4, 12)) = B.InboundQueueLogID\nJOIN #T_LEAD C\n    ON B.LeadID = C.LeadID\nWHERE SUBSTRING(A.LPRecKey, 1, 3) = 'INQ'\n  AND A.LP_LeadID IS NULL\n  AND CAST(A.DATE AS DATE) >= CAST(GETDATE()-45 AS DATE);\n\n\n--SUBSTRING(LPRecKey,1,3) ='INQ' AND LPRECTYPE='cst'\n\nUPDATE A \nSET A.LP_LeadID \t= B.LeadID\nFROM\nEDW.FACT_FIVE9_CALL_LOG_ALL A\nJOIN #T_LEAD B\nON CONCAT( A.Division,'-',A.Lead_ID ) = B.LeadID\nWHERE  SUBSTRING(A.LPRecKey,1,3) ='INQ'\nAND A.LPRECTYPE='cst' \nAND (SUBSTRING(A.LPRecKey,4,12) != A.Lead_ID)  \nAND  A.LP_LeadID IS NULL\nAND CAST(A.DATE AS DATE) >= CAST(GETDATE()-45 AS DATE);\n\n\n--SUBSTRING(LPRecKey,1,3) IS NULL AND LPRECTYPE='cst'\n\nUPDATE A \nSET A.LP_LeadID \t= B.LeadID\nFROM\nEDW.FACT_FIVE9_CALL_LOG_ALL A\nJOIN #T_LEAD B\nON CONCAT( A.Division,'-',A.Lead_ID ) = B.LeadID\nWHERE A.LPRecKey IS NULL\nAND A.LPRECTYPE='cst'\nAND  A.LP_LeadID IS NULL\nAND CAST(A.DATE AS DATE) >= CAST(GETDATE()-45 AS DATE);\n\n\n--SUBSTRING(LPRecKey,1,3) IS NULL AND LPRECTYPE='inq'\n\nUPDATE A \nSET A.LP_LeadID \t= C.LeadID\nFROM\nEDW.FACT_FIVE9_CALL_LOG_ALL A\nJOIN #T_FACT_INBOUND_QUEUE_LOG B\nON  CONCAT( A.Division,'-',A.Lead_ID ) = B.InboundQueueLogID\n\nJOIN #T_LEAD C\nON B.LEadID = C.LeadID\nWHERE A.LPRecKey IS NULL \nAND  A.LP_LeadID IS NULL -- Whichever not found in INQ check their cst - LeadID\nAND A.LPRECTYPE='inq' \nAND CAST(A.DATE AS DATE) >= CAST(GETDATE()-45 AS DATE);\n\n\n--*************************\n\n--############### UPDATE DISPOSTITION ##################\n\nUPDATE  [EDW].[FACT_FIVE9_CALL_LOG_ALL]  \nSET Disposition=call_type\nWHERE CALL_TYPE IN ('Queue Callback','3rd party transfer','3rd party conference');\n\n\n\n\n\n\n\n--##################################\n\nUPDATE [EDW].[FACT_FIVE9_CALL_LOG_ALL]  \nSET LP_LeadID=NULL \nWHERE DIVISION_ORIG IN ('HSI','PHI')\nAND LP_LeadID IS NOT NULL;\n\n\n\n\n--############### UPDATE FOR NEW TABLE TO HAVE CONSISTEN VALUES ##################\n\n\n\n\nUPDATE  A\nSET A.LP_CustID = B.CustomerID\nFROM [EDW].[FACT_FIVE9_CALL_LOG_ALL]  A \nJOIN #T_LEAD B \nON A.LP_LeadID = B.LeadID\nAND CAST(A.DATE AS DATE) >= CAST(GETDATE()-45 AS DATE);\n\n\n\nUPDATE  A\nSET A.LP_Product = D.ProductName\nFROM [EDW].[FACT_FIVE9_CALL_LOG_ALL]  A \nJOIN #T_LEAD B \nON A.LP_LeadID = B.LeadID\nJOIN #T_PRODUCT D \nON B.ProductID = D.ProductID\nWHERE CAST(A.DATE AS DATE) >= CAST(GETDATE()-45 AS DATE);\n\n\n\nUPDATE  A\nSET \nA.LP_SOURCEGROUP   = LSS.SOURCEGROUP,\nA.LP_SOURCECODE    = LSS.SourceCode,\nA.LP_LeadSUBSOURCE = LSS.LeadSubSource\nFROM [EDW].[FACT_FIVE9_CALL_LOG_ALL]  A \nJOIN #T_LEAD B \nON A.LP_LeadID = B.LeadID\nJOIN  [EDW].[DIM_MKTNG_SUB_SOURCE_MAPPING] LSS \nON B.LeadSubSourceID = LSS.LeadSubSourceID\nWHERE \n   LSS.SOURCEGROUP NOT IN ('', '0')\n  AND LSS.SourceCode NOT IN ('', '0')\n  AND LSS.LeadSubSource NOT IN ('', '0')\n AND CAST(A.DATE AS DATE) >= CAST(GETDATE()-45 AS DATE);\n\n\n\n--################## BRANCH Logic STARTS ###################\n--################## POPULATE ALL BRANCH ID HERE #################\n\nUPDATE  A\nSET A.LP_BranchID = D.LP_BranchID\nFROM [EDW].[FACT_FIVE9_CALL_LOG_ALL]  A \nJOIN #T_LEAD B \nON A.LP_LeadID = B.LeadID\nJOIN #T_BRANCH D \nON B.BranchID = D.BranchID\nWHERE CAST(A.DATE AS DATE) >= CAST(GETDATE()-45 AS DATE);\n\n\n-- NULLify the LP_BranchID where Market COlumn has valid Branch Available\nUPDATE  A\nSET A.LP_BranchID = NULL\nFROM [EDW].[FACT_FIVE9_CALL_LOG_ALL]  A \nJOIN #T_BRANCH D \nON A.Market = D.LP_BranchID\nAND A.DIvision = D.Division;\n\n\n--*********** BRANCH Logic END ******************\n"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "CLEAN_EMPTY_STRING",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "UPD_LP_LeadID",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "UPDATE EDW.FACT_FIVE9_CALL_LOG_ALL SET LP_SourceGroup = NULL WHERE LP_SourceGroup = '';\nUPDATE EDW.FACT_FIVE9_CALL_LOG_ALL SET LP_SourceCode = NULL WHERE LP_SourceCode = '';\nUPDATE EDW.FACT_FIVE9_CALL_LOG_ALL SET LP_LeadSubSource = NULL WHERE LP_LeadSubSource = '';\n\n\nUPDATE EDW.FACT_FIVE9_CALL_LOG_ALL SET LP_CUSTID = NULL WHERE LP_CUSTID = '';\nUPDATE EDW.FACT_FIVE9_CALL_LOG_ALL SET LP_LEADID = NULL WHERE LP_LEADID = '';\nUPDATE EDW.FACT_FIVE9_CALL_LOG_ALL SET LP_BranchID = NULL WHERE LP_BranchID = '';\nUPDATE EDW.FACT_FIVE9_CALL_LOG_ALL SET LP_Product = NULL WHERE LP_Product = '';\nUPDATE EDW.FACT_FIVE9_CALL_LOG_ALL SET LP_DISPOSITION = NULL WHERE LP_DISPOSITION = '';"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Update_DIVISION",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "cpy_EDW_FACT_FIVE9_CALL_LOG_ALL_MAC",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "--********* Single Market Division Update *************\r\n\r\n\r\nWITH M1 AS \r\n(\r\n-- Remove Duplicate Market Code \r\n\tSELECT DISTINCT \r\n\tMARKET \r\n\tFROM \r\n\t(\r\n\t\tSELECT A.*,B.LP_BranchID,B.Division,B.LongName,\r\n\t\tCOUNT(1) OVER (PARTITION BY Market ) AS MULTI_DIV_MARKET\r\n\t\tFROM  ( SELECT DISTINCT Market FROM EDW.FACT_FIVE9_CALL_LOG_ALL WHERE DATA_IDENTIFIER = 'ALL_DIVISION' AND DIVISION!='MXH'  -- ** NEW\r\n\t\t)  A \r\n\t\tLEFT JOIN EDW.DIM_BRANCH B\r\n\t\tON A.Market = B.LP_BranchID\r\n\t\t) M1\r\n\tWHERE MULTI_DIV_MARKET=1\r\n\t),\r\n\t\r\nM2 AS \r\n\r\n(\r\n-- Check Market Available in DIM\r\nSELECT Market,Division FROM \r\n\t(\r\n\t\tSELECT A.*,B.LP_BranchID,B.Division,B.LongName\r\n\t\tFROM  M1  A \r\n\t\tJOIN EDW.DIM_BRANCH B\r\n\t\tON A.Market = B.LP_BranchID\r\n\t\t) AX\r\n\t\r\n\t)\r\n\r\n\r\nUPDATE TGT \r\nSET TGT.Division = SRC.Division \r\nFROM EDW.FACT_FIVE9_CALL_LOG_ALL TGT \r\nJOIN M2 SRC \r\nON TGT.Market = SRC.Market\r\nWHERE TGT.Division IS NULL \r\nAND TGT.DATA_IDENTIFIER = 'ALL_DIVISION';\r\n\r\n\r\n\r\n--***********Pending NULL DIvisions ***********\r\n\r\nWITH CALL_LOG AS \r\n(\r\n\r\nSELECT  \r\nCAMPAIGN,\r\nMAX(COALESCE(DIV_CAMP_N,DIV_SKILL_N)) AS DIV_N\r\n\r\nFROM \r\n(\r\n\tSELECT \r\n\t\tCAMPAIGN,\r\n\t\tCASE \r\n\t\t\tWHEN SKILL_DIV IN ('CAM','HO','Home Org')\t\t\t\t\tTHEN 'CTA'\r\n\t\t\tWHEN SKILL_DIV IN ('FHI','FHIA')\t\t\t\t\t\t\tTHEN 'FHI'\r\n\t\t\tWHEN SKILL_DIV IN ('HSI')\t\t\t\t\t\t\t\t\tTHEN 'HSI'\r\n\t\t\tWHEN SUBSTRING(SKILL_DIV,1,3) IN ('MC','MCW','MAC')\t\t\tTHEN 'MAC'\r\n\t\t\tWHEN SKILL_DIV IN ('MAX')\t\t\t\t\t\t\t\t\tTHEN 'FHI'  -- ** NEW\r\n\t\t\tWHEN SUBSTRING(SKILL_DIV,1,3) IN ('PBC','PB')\t\t\t\tTHEN 'PBC'\r\n\t\t\tWHEN SKILL_DIV IN ('PHI')\t\t\t\t\t\t\t\t\tTHEN 'PHI'\r\n\t\t\tWHEN SKILL_DIV IN ('RIT')\t\t\t\t\t\t\t\t\tTHEN 'RTW'\r\n\t\t\tWHEN SKILL_DIV IN ('SWR')\t\t\t\t\t\t\t\t\tTHEN 'SWR'\r\n\t\t\tELSE NULL END AS DIV_SKILL_N,\r\n\t\t\r\n\t\tCASE \r\n\t\t\tWHEN CAMPAIGN_DIV IN ('CAM','HO','Home Org')\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tTHEN 'CTA'\r\n\t\t\tWHEN CAMPAIGN_DIV IN ('FHI','FHIA')\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tTHEN 'FHI'\r\n\t\t\tWHEN CAMPAIGN_DIV IN ('HSI','BR')\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tTHEN 'HSI'\r\n\t\t\tWHEN SUBSTRING(CAMPAIGN_DIV,1,3) IN ('MC','MCW','MAC','OB')\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tTHEN 'MAC'\r\n\t\t\tWHEN CAMPAIGN_DIV IN ('MAX')\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tTHEN 'FHI'  -- ** NEW\r\n\t\t\tWHEN SUBSTRING(CAMPAIGN_DIV,1,3) IN ('HFB','Pac','PBC','PB') OR ( CAMPAIGN LIKE '%PBC%' OR CAMPAIGN LIKE '%HFB%')\tTHEN 'PBC'\r\n\t\t\tWHEN CAMPAIGN_DIV IN ('PHI','zPHI') OR CAMPAIGN LIKE '%PHI%'\t\t\t\t\t\t\t\t\t\t\t\t\t\tTHEN 'PHI'\r\n\t\t\tWHEN CAMPAIGN_DIV IN ('RTW','RIT') \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tTHEN 'RTW'\r\n\t\t\tWHEN SUBSTRING(CAMPAIGN_DIV,1,3) IN\t('SWR') \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tTHEN 'SWR'\r\n\t\t\tELSE NULL END AS DIV_CAMP_N\r\n\t\t\t\r\n\t\t\t\r\n\t\t\tFROM\r\n\t\t\t(\r\n\t\t\t\tSELECT DISTINCT\r\n\t\t\t\tCAMPAIGN,\r\n\t\t\t\tCASE WHEN CHARINDEX('-', CAMPAIGN)=0 THEN SUBSTRING(CAMPAIGN,1,3) ELSE  LEFT(CAMPAIGN, CHARINDEX('-', CAMPAIGN) - 1) END AS CAMPAIGN_DIV,\r\n\t\t\t\tCASE WHEN CHARINDEX('-', SKILL)=0 THEN SUBSTRING(SKILL,1,3) ELSE  LEFT(SKILL, CHARINDEX('-', SKILL) - 1) END AS SKILL_DIV\r\n\t\t\t\tFROM [EDW].[FACT_FIVE9_CALL_LOG_ALL] \r\n\t\t\t\tWHERE Data_Identifier='ALL_DIVISION'\r\n\t\t\t\tAND CAMPAIGN NOT LIKE '%TEST%'\r\n\t\t\t\tAND CAMPAIGN NOT IN \r\n\t\t\t\t(  'Default ANI Callbacks'\t,\r\n\t\t\t\t\t'Test - New Logic testing'\t,\r\n\t\t\t\t\t'DO NOT USE'\t,\r\n\t\t\t\t\t'Test - five9'\t,\r\n\t\t\t\t\t'Reset-Internet Reset'\t,\r\n\t\t\t\t\t'Data-New Internet'\t,\r\n\t\t\t\t\t'Cancel Save'\t,\r\n\t\t\t\t\t'Jeff List'\t,\r\n\t\t\t\t\t'SMS Outbound Test'\t,\r\n\t\t\t\t\t'SMS Outbound'\t,\r\n\t\t\t\t\t'Test - Lead Power Test'\t,\r\n\t\t\t\t\t'Jeff Renuity List'\t,\r\n\t\t\t\t\t'SMS Inbound'\t,\r\n\t\t\t\t\t'Invoca Test'\t,\r\n\t\t\t\t\t'Test - five9 - Sam'\t,\r\n\t\t\t\t\t'[None]'\t,\r\n\t\t\t\t\t'Dial Plan C'\t,\r\n\t\t\t\t\t'Renuity TV - Paid Search SWR'\t,\r\n\t\t\t\t\t'zTest - Ryan',\r\n\t\t\t\t\t'[Deleted]'\t\r\n\r\n\t\t\t\t\t)\r\n\t\t\t\t-- ADD 6 MONTH FILTER HERE\r\n\t\t\t\t) M1\r\n\t\t\t\t\r\n\t\t) M2\r\n\t\t\r\n\tGROUP BY CAMPAIGN\r\n\t\r\n\t)\r\n\t\t\r\n\t\t\r\n\t\t\r\n\r\n\r\nUPDATE A\r\nSET A.Division = C.DIV_N\r\nFROM EDW.FACT_FIVE9_CALL_LOG_ALL A\r\nJOIN CALL_LOG C\r\nON A.CAMPAIGN = C.CAMPAIGN\r\nWHERE Data_Identifier ='ALL_DIVISION'\r\nAND A.Division IS NULL;\r\n\r\n\r\n\r\n\r\n-- MAC NEW SERVER  Division Update\r\n\r\nUPDATE EDW.FACT_FIVE9_CALL_LOG_ALL  SET DIVISION='MAC' WHERE Data_Identifier !='ALL_DIVISION';\r\n\r\nUPDATE EDW.FACT_FIVE9_CALL_LOG_ALL SET DIVISION_ORIG = DIVISION WHERE DIVISION_ORIG IS NULL AND DIVISION IS NOT NULL;\r\n\r\nUPDATE EDW.FACT_FIVE9_CALL_LOG_ALL SET DIVISION='RTW',DIVISION_ORIG='RTW' WHERE DIVISION='HSI' AND CAST(DATE AS DATE) >='2025-02-03' AND DATA_IDENTIFIER='ALL_DIVISION';\r\n\r\nUPDATE EDW.FACT_FIVE9_CALL_LOG_ALL SET DIVISION='CTA',DIVISION_ORIG='CTA' WHERE DIVISION='PHI' AND DATA_IDENTIFIER='ALL_DIVISION';\r\n\r\nUPDATE EDW.FACT_FIVE9_CALL_LOG_ALL SET DIVISION='FHI',DIVISION_ORIG='FHI' WHERE DIVISION='MXH' AND CAST(DATE AS DATE) >='2026-01-12' AND DATA_IDENTIFIER='ALL_DIVISION';\r\n"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "DELETE_JUNK",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "cpy_EDW_FACT_FIVE9_CALL_LOG_ALL",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "DELETE FROM [ODS].[FIVE9_CALLS_MAC] WHERE Call_ID='and Don Tucker\"';"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			}
+		],
+		"folder": {
+			"name": "Five9_to_EDW"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-04-27T12:56:38Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

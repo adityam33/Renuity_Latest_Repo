@@ -1,0 +1,20 @@
+{
+	"name": "DML - Medallia - Sales Exp Invite",
+	"properties": {
+		"folder": {
+			"name": "DMLs/Medallia/Sales Experience"
+		},
+		"content": {
+			"query": "SELECT distinct\ncst.FirstName as FIRST_NAME\n,cst.LastName as LAST_NAME\n,cst.Email as EMAIL_ADDRESS\n,cst.Phone as PHONE_NUMBER\n,lds.id as LEAD_ID\n,prd.LongDescr as PRODUCT_LINE\n,getdate() as DATE_TO_SURVEY\n,'US' as COUNTRY\n,'English' as LANGUAGE\n,lds.cst_id as ACCOUNT_ID\n,[slr_id] as SALES_REP_ID_1\n,'PBC' as BRAND_NAME\n,[slr_id2] as SALES_REP_ID_2\n,brn.LongName as SALES_BRANCH_NAME\n,org.Descr as SALES_ORGANIZATION\n,app.Sold as SOLD\n,app.[ApptDate] as APPOINTMENT_DATE\n FROM\n [ODS].[LP_PBC_app_Appointments] app\n inner join [ODS].[LP_PBC_Lds_Leads] lds\non app.id = lds.app_id\n inner join [ODS].[LP_PBC_cst_Customers] cst\non lds.cst_id = cst.id\n inner join [ODS].[LP_PBC_prd_Products] prd\non lds.[productid] = prd.ProductID\n inner join [ODS].[LP_PBC_brn_Branches] brn\n on lds.brn_id = brn.id\n left join [ODS].[LP_PBC_ous_OrgUnits] ous\n on brn.id = ous.brn_id\n left join [ODS].[LP_PBC_org_Organization] org\n on ous.org_id = org.id \n WHERE\n app.Sat = 1 \n and app.ApptDate is not null\nand datediff(DAY, app.ApptDate, dbo.fnConvertUTCtoPST (getdate()))  between 0 and 1\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

@@ -1,0 +1,20 @@
+{
+	"name": "Get GL summary by Module Period Account Branch",
+	"properties": {
+		"folder": {
+			"name": "DMLs/Analysis SQL/Acumatica Recon Analysis"
+		},
+		"content": {
+			"query": "SELECT \ntrim([Module]+'|'+[FinPeriodID]+'|'+acc.AccountCode+'|'+brn.BranchCode) as SearchKey\n,[Module]\n,[FinPeriodID]\n,acc.AccountCode\n,brn.BranchCode\n\n,org.CompanyID\n,org.CompanyName\n\n--,acc.AccountClass\n--,acc.AccountDescription\n\n,sum(CreditAmount) as CreditAmount\n,sum(DebitAmount) as DebitAmount\n,sum(BalanceAmount) as BalanceAmount\n,count(1) as LineCount\n FROM \n [EDW].[FACT_ERP_GL_TRANSACTION] gl\n,[EDW].[DIM_ERP_ACCOUNT] acc\n,[EDW].[DIM_ERP_BRANCH] brn\n,[EDW].[DIM_ERP_ORGANIZATION] org\n where \n gl.AccountCode = acc.AccountCode\n and gl.BranchCode = brn.BranchCode\n and brn.CompanyID = org.CompanyID\n --and acc.AccountClass = 'EXOTHER'\n --and org.CompanyName = 'FHIA, LLC'\n --and gl.FinPeriodID in ('01-2022','02-2022','03-2022','04-2022','05-2022','06-2022','07-2022')\n and Posted = 'True'\n and acc.AccountCode in ('73004') --and GL_LINE_KEY = 'AP|234224|2'\n group BY\n[Module]\n,[FinPeriodID]\n,acc.AccountCode\n,brn.BranchCode\n,org.CompanyID\n,org.CompanyName\norder by \nSearchKey\n\n ",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

@@ -1,0 +1,143 @@
+{
+	"name": "df_load_DIM_LEAD_SUB_SOURCE_ZML",
+	"properties": {
+		"folder": {
+			"name": "ZML_ODS_to_EDW/DIMENSIONS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ZML_ODS_FHI_srs_SourceSubs",
+						"type": "DatasetReference"
+					},
+					"name": "FHI"
+				},
+				{
+					"dataset": {
+						"referenceName": "ZML_ODS_FHI_src_SourceCodes",
+						"type": "DatasetReference"
+					},
+					"name": "LeadSourceIDAllDivs"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_DIM_LEAD_SUB_SOURCE_ZML",
+						"type": "DatasetReference"
+					},
+					"name": "targetDim",
+					"description": "Export data to EDW_DIM_LEAD_SUB_SOURCE",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "selectColsFHI"
+				},
+				{
+					"name": "setDivisionFHI"
+				},
+				{
+					"name": "unionAllOpCos"
+				},
+				{
+					"name": "createIDs"
+				},
+				{
+					"name": "lkpLeadSourceID"
+				},
+				{
+					"name": "AlterRow"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          ID as integer,",
+				"          SourceCode as string,",
+				"          Descr as string,",
+				"          Active as boolean,",
+				"          StartDate as timestamp,",
+				"          EndDate as timestamp,",
+				"          glacct as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> FHI",
+				"source(output(",
+				"          LP_LeadSourceID as integer,",
+				"          SourceCode as string,",
+				"          Division as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT\\n[id] as LP_LeadSourceID\\n,SourceCode\\n,\\'FHI\\' as Division\\nFROM [ZML].[LP_FHI_src_SourceCodes]',",
+				"     format: 'query',",
+				"     staged: true) ~> LeadSourceIDAllDivs",
+				"FHI select(mapColumn(",
+				"          LP_LeadSubSourceID = ID,",
+				"          SourceCode,",
+				"          LeadSubSource = Descr,",
+				"          Active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColsFHI",
+				"selectColsFHI derive(Division = 'FHI') ~> setDivisionFHI",
+				"setDivisionFHI union(byName: true)~> unionAllOpCos",
+				"lkpLeadSourceID derive(LastUpdateTS = currentTimestamp(),",
+				"          LeadSubSourceID = concat(unionAllOpCos@Division,'-',toString(LP_LeadSubSourceID)),",
+				"          LeadSourceID = concat(unionAllOpCos@Division,'-',toString(LP_LeadSourceID))) ~> createIDs",
+				"unionAllOpCos, LeadSourceIDAllDivs lookup(unionAllOpCos@Division == LeadSourceIDAllDivs@Division",
+				"     && unionAllOpCos@SourceCode == LeadSourceIDAllDivs@SourceCode,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> lkpLeadSourceID",
+				"createIDs alterRow(upsertIf(true())) ~> AlterRow",
+				"AlterRow sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          LeadSubSourceID as string,",
+				"          LeadSourceID as string,",
+				"          SourceCode as string,",
+				"          LeadSubSource as string,",
+				"          Active as boolean,",
+				"          LP_LeadSubSourceID as integer,",
+				"          LP_LeadSourceID as string,",
+				"          Division as string,",
+				"          LastUpdateTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['LeadSubSourceID'],",
+				"     format: 'table',",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          LeadSubSourceID,",
+				"          LeadSourceID,",
+				"          SourceCode = unionAllOpCos@SourceCode,",
+				"          LeadSubSource,",
+				"          Active,",
+				"          LP_LeadSubSourceID,",
+				"          LP_LeadSourceID,",
+				"          Division = unionAllOpCos@Division,",
+				"          LastUpdateTS",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> targetDim"
+			]
+		}
+	}
+}

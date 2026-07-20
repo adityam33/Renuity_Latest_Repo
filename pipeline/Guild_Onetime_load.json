@@ -1,0 +1,163 @@
+{
+	"name": "Guild_Onetime_load",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy data1",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobStorageReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"allowCopyCommand": true
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "staging"
+					},
+					"enableSkipIncompatibleRow": true,
+					"logSettings": {
+						"enableCopyActivityLog": true,
+						"copyActivityLogSettings": {
+							"logLevel": "Warning",
+							"enableReliableLogging": false
+						},
+						"logLocationSettings": {
+							"linkedServiceName": {
+								"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+								"type": "LinkedServiceReference"
+							},
+							"path": "rdctestanuj/AkshayTest/Guild One Time"
+						}
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Survey Id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Survey_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Survey Completion Date",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Response_Date",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Template",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Program",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "AccountID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "AccountID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LeadID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Company",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Company",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Sales Rep 1",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Sales_Rep_1",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Sales Rep 2",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Sales_Rep_2",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "guild_onetime_data_csv",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "OUT_GUILD_QUALITY_ONE_TIME_LOAD",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "Temp/Akshay"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-12-11T12:25:35Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

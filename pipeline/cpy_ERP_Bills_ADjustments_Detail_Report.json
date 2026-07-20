@@ -1,0 +1,387 @@
+{
+	"name": "cpy_ERP_Bills_ADjustments_Detail_Report",
+	"properties": {
+		"activities": [
+			{
+				"name": "cp_bills_Adjustment_Detail",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:20:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "--Select CAST(i.Type as VARCHAR) as DocumentType,CAST(g.ReferenceNumber as VARCHAR) as ReferenceNumber,CAST(i.PostingPeriod as VARCHAR) as PostingPeriod,CAST(i.ServicePeriod as VARCHAR) as ServicePeriod,\r\n--CAST(i.VendorRef as VARCHAR) as VendorReference,CAST(g.CustomerVendor as VARCHAR) as VendorID,CAST(i.Description as VARCHAR) as VendorDescription,CAST(g.BranchCode as VARCHAR) as BranchCode,\r\n--CAST(b.BranchName as VARCHAR) as BranchName,CAST(g.TransactionDescription as VARCHAR) as TransactionDescription,CAST(g.AccountCode as VARCHAR) as AccountCode,\r\n--CAST(a.AccountDescription as VARCHAR) as AccountDescription,CAST(g.ProjectID as VARCHAR) as Project,CAST(g.SubAccount as VARCHAR) as SubAccount,\r\n--CAST(LEFT(RIGHT(g.SubAccount,7),4) as VARCHAR) as MarketingSubAccount,CAST(smm.Description as VARCHAR) as SubAccountDescription,CAST(LEFT(RIGHT(g.SubAccount,11),4) as VARCHAR) as SourceGroup,\r\n--CAST(smg.Description as VARCHAR) as SourceGroupDescription,g.CreditAmount,g.DebitAmount,g.BalanceAmount\r\n--from EDW.FACT_ERP_GL_TRANSACTION g left join ODS.ERP_AP_INVOICE i on g.ReferenceNumber=i.ReferenceNbr\r\n--left join EDW.DIM_ERP_ACCOUNT a on g.AccountCode=a.AccountCode\r\n--left join EDW.DIM_ERP_BRANCH b on g.BranchCode=b.BranchCode\r\n--left join (Select * from ODS.ERP_SUBACCOUNT_SEGMENT_MASTER where SegmentID='5') smm on LEFT(RIGHT(g.SubAccount,7),4)=smm.Value\r\n--left join (Select * from ODS.ERP_SUBACCOUNT_SEGMENT_MASTER where SegmentID='4') smg on LEFT(RIGHT(g.SubAccount,11),4)=smg.Value\r\n-- where --g.ReferenceNumber='793898' and\r\n--g.Module='AP' and i.ServicePeriod>='012024'\r\n\r\n\r\n\r\n--Select CAST(i.Type as VARCHAR) as DocumentType,CAST(g.ReferenceNumber as VARCHAR) as ReferenceNumber,CAST(g.FinPeriodID as VARCHAR) as PostingPeriod,CAST(i.ServicePeriod as VARCHAR) as ServicePeriod,\r\n--CAST(i.VendorRef as VARCHAR) as VendorReference,CAST(g.CustomerVendor as VARCHAR) as VendorID,CAST(v.VendorName as VARCHAR) as VendorDescription,CAST(smv.Description as VARCHAR) as SourceVendor,\r\n--CAST(g.BranchCode as VARCHAR) as BranchCode,CAST(b.BranchName as VARCHAR) as BranchName,CAST(g.TransactionDescription as VARCHAR) as TransactionDescription,\r\n--CAST(g.AccountCode as VARCHAR) as AccountCode,CAST(a.AccountDescription as VARCHAR) as AccountDescription,CAST(g.ProjectID as VARCHAR) as Project,\r\n--CAST(g.SubAccount as VARCHAR) as SubAccount,CAST(LEFT(RIGHT(g.SubAccount,7),4) as VARCHAR) as MarketingSubAccount,CAST(smm.Description as VARCHAR) as SubAccountDescription,\r\n--CAST(RIGHT(LEFT(g.SubAccount,6),3) as VARCHAR) as SourceGroup,CAST(smg.Description as VARCHAR) as SourceGroupDescription,\r\n--CAST(LEFT(RIGHT(g.SubAccount,11),4) as VARCHAR) as DepartmentID,CAST(smd.Description as VARCHAR) as DepartmentDescription,g.CreditAmount,g.DebitAmount,g.BalanceAmount\r\n--from EDW.FACT_ERP_GL_TRANSACTION g left join ODS.ERP_AP_INVOICE i on g.ReferenceNumber=i.ReferenceNbr\r\n--left join EDW.DIM_ERP_ACCOUNT a on g.AccountCode=a.AccountCode\r\n--left join EDW.DIM_ERP_BRANCH b on g.BranchCode=b.BranchCode\r\n--left join EDW.DIM_ERP_VENDOR v  on g.CustomerVendor=v.VendorID\r\n--left join (Select * from ODS.ERP_SUBACCOUNT_SEGMENT_MASTER where SegmentID='5') smm on LEFT(RIGHT(g.SubAccount,7),4)=smm.Value\r\n--left join (Select * from ODS.ERP_SUBACCOUNT_SEGMENT_MASTER where SegmentID='2') smg on RIGHT(LEFT(g.SubAccount,6),3)=smg.Value\r\n--left join (Select * from ODS.ERP_SUBACCOUNT_SEGMENT_MASTER where SegmentID='4') smd on LEFT(RIGHT(g.SubAccount,11),4)=smd.Value\r\n--left join (Select * from ODS.ERP_SUBACCOUNT_SEGMENT_MASTER where SegmentID='3') smv on RIGHT(LEFT(g.SubAccount,9),3)=smv.Value\r\n-- where --g.ReferenceNumber='793181' and\r\n--g.Module='AP' and (CAST(LEFT(g.FinPeriodID,2) as INT)>=01 and CAST(RIGHT(g.FinPeriodID,4) as INT)>=2024) \r\n----and CAST(LEFT(g.FinPeriodID,2) as INT)!=CAST(LEFT(i.PostingPeriod,2) as INT)\r\n--order by g.FinPeriodID\r\n\r\n\r\nSelect CAST(g.[Module] as VARCHAR) as ModuleType,CAST(i.Type as VARCHAR) as DocumentType,CAST(g.ReferenceNumber as VARCHAR) as ReferenceNumber,CAST(g.BatchNumber as VARCHAR) as BatchNumber ,CAST(g.FinPeriodID as VARCHAR) as PostingPeriod,CAST(i.ServicePeriod as VARCHAR) as ServicePeriod,\r\nCAST(i.VendorRef as VARCHAR) as VendorReference,CAST(g.CustomerVendor as VARCHAR) as VendorID,CAST(v.VendorName as VARCHAR) as VendorDescription,CAST(smv.Description as VARCHAR) as SourceVendor,\r\nCAST(g.BranchCode as VARCHAR) as BranchCode,CAST(b.BranchName as VARCHAR) as BranchName,CAST(g.TransactionDescription as VARCHAR) as TransactionDescription,\r\nCAST(g.AccountCode as VARCHAR) as AccountCode,CAST(a.AccountDescription as VARCHAR(1000)) as AccountDescription,CAST(g.ProjectID as VARCHAR) as Project,\r\nCAST(g.SubAccount as VARCHAR) as SubAccount,CAST(LEFT(RIGHT(g.SubAccount,7),4) as VARCHAR) as MarketingSubAccount,CAST(smm.Description as VARCHAR) as SubAccountDescription,\r\nCAST(RIGHT(LEFT(g.SubAccount,6),3) as VARCHAR) as SourceGroup,CAST(smg.Description as VARCHAR) as SourceGroupDescription,\r\nCAST(LEFT(RIGHT(g.SubAccount,11),4) as VARCHAR) as DepartmentID,CAST(smd.Description as VARCHAR) as DepartmentDescription,g.CreditAmount,g.DebitAmount,g.BalanceAmount\r\nfrom EDW.FACT_ERP_GL_TRANSACTION g left join ODS.ERP_AP_INVOICE i on g.ReferenceNumber=i.ReferenceNbr\r\nleft join EDW.DIM_ERP_ACCOUNT a on g.AccountCode=a.AccountCode\r\nleft join EDW.DIM_ERP_BRANCH b on g.BranchCode=b.BranchCode\r\nleft join EDW.DIM_ERP_VENDOR v  on g.CustomerVendor=v.VendorID\r\nleft join (Select * from ODS.ERP_SUBACCOUNT_SEGMENT_MASTER where SegmentID='5') smm on LEFT(RIGHT(g.SubAccount,7),4)=smm.Value\r\nleft join (Select * from ODS.ERP_SUBACCOUNT_SEGMENT_MASTER where SegmentID='2') smg on RIGHT(LEFT(g.SubAccount,6),3)=smg.Value\r\nleft join (Select * from ODS.ERP_SUBACCOUNT_SEGMENT_MASTER where SegmentID='4') smd on LEFT(RIGHT(g.SubAccount,11),4)=smd.Value\r\nleft join (Select * from ODS.ERP_SUBACCOUNT_SEGMENT_MASTER where SegmentID='3') smv on RIGHT(LEFT(g.SubAccount,9),3)=smv.Value\r\n where --g.ReferenceNumber='793181' and\r\ng.Module='AP' AND CAST(CONCAT(RIGHT(g.FinPeriodID,4),'-',LEFT(g.FinPeriodID,2),'-01') as DATE) >= CAST(DATEADD(month, DATEDIFF(month, 0, GETDATE()) - 2, 0) as DATE)\r\nAND CAST(CONCAT(RIGHT(g.FinPeriodID,4),'-',LEFT(g.FinPeriodID,2),'-01') as DATE) <= CAST(GETDATE() as DATE)\r\nand i.Type not in ('QCK','VQC')\r\n\r\n\r\nUNION ALL\r\n\r\nSelect CAST(g.[Module] as VARCHAR) as ModuleType,NULL as DocumentType,ISNULL(CAST(g.ReferenceNumber as VARCHAR),'-9999') as ReferenceNumber,CAST(g.BatchNumber as VARCHAR) as BatchNumber, CAST(g.FinPeriodID as VARCHAR) as PostingPeriod,CAST(g.ServicePeriod as VARCHAR) as ServicePeriod,\r\nNULL as VendorReference,CAST(g.CustomerVendor as VARCHAR) as VendorID,CAST(v.VendorName as VARCHAR) as VendorDescription,CAST(smv.Description as VARCHAR) as SourceVendor,\r\nCAST(g.BranchCode as VARCHAR) as BranchCode,CAST(b.BranchName as VARCHAR) as BranchName,CAST(g.TransactionDescription as VARCHAR) as TransactionDescription,\r\nCAST(g.AccountCode as VARCHAR) as AccountCode,CAST(a.AccountDescription as VARCHAR(1000)) as AccountDescription,CAST(g.ProjectID as VARCHAR) as Project,\r\nCAST(g.SubAccount as VARCHAR) as SubAccount,CAST(LEFT(RIGHT(g.SubAccount,7),4) as VARCHAR) as MarketingSubAccount,CAST(smm.Description as VARCHAR) as SubAccountDescription,\r\nCAST(RIGHT(LEFT(g.SubAccount,6),3) as VARCHAR) as SourceGroup,CAST(smg.Description as VARCHAR) as SourceGroupDescription,\r\nCAST(LEFT(RIGHT(g.SubAccount,11),4) as VARCHAR) as DepartmentID,CAST(smd.Description as VARCHAR) as DepartmentDescription,g.CreditAmount,g.DebitAmount,g.BalanceAmount\r\nfrom EDW.FACT_ERP_GL_TRANSACTION g left join ODS.ERP_AP_INVOICE i on g.ReferenceNumber=i.ReferenceNbr\r\nleft join EDW.DIM_ERP_ACCOUNT a on g.AccountCode=a.AccountCode\r\nleft join EDW.DIM_ERP_BRANCH b on g.BranchCode=b.BranchCode\r\nleft join EDW.DIM_ERP_VENDOR v  on g.CustomerVendor=v.VendorID\r\nleft join (Select * from ODS.ERP_SUBACCOUNT_SEGMENT_MASTER where SegmentID='5') smm on LEFT(RIGHT(g.SubAccount,7),4)=smm.Value\r\nleft join (Select * from ODS.ERP_SUBACCOUNT_SEGMENT_MASTER where SegmentID='2') smg on RIGHT(LEFT(g.SubAccount,6),3)=smg.Value\r\nleft join (Select * from ODS.ERP_SUBACCOUNT_SEGMENT_MASTER where SegmentID='4') smd on LEFT(RIGHT(g.SubAccount,11),4)=smd.Value\r\nleft join (Select * from ODS.ERP_SUBACCOUNT_SEGMENT_MASTER where SegmentID='3') smv on RIGHT(LEFT(g.SubAccount,9),3)=smv.Value\r\n where --g.ReferenceNumber='793181' and\r\ng.Module='GL' AND CAST(CONCAT(RIGHT(g.FinPeriodID,4),'-',LEFT(g.FinPeriodID,2),'-01') as DATE) >= CAST(DATEADD(month, DATEDIFF(month, 0, GETDATE()) - 2, 0) as DATE) \r\nAND CAST(CONCAT(RIGHT(g.FinPeriodID,4),'-',LEFT(g.FinPeriodID,2),'-01') as DATE) <= CAST(GETDATE() as DATE) and g.BatchNumber not in ('2518243','2518632','2597649')\r\n--and CAST(LEFT(g.FinPeriodID,2) as INT)!=CAST(LEFT(i.PostingPeriod,2) as INT)\r\n--order by g.FinPeriodID\r\n\r\nUNION ALL\r\n\r\n\r\nSelect CAST(g.[Module] as VARCHAR) as ModuleType,NULL as DocumentType,ISNULL(CAST(g.ReferenceNumber as VARCHAR),'-9999') as ReferenceNumber,CAST(g.BatchNumber as VARCHAR) as BatchNumber, CAST(g.FinPeriodID as VARCHAR) as PostingPeriod,CAST(g.ServicePeriod as VARCHAR) as ServicePeriod,\r\nNULL as VendorReference,CAST(g.CustomerVendor as VARCHAR) as VendorID,CAST(v.VendorName as VARCHAR) as VendorDescription,CAST(smv.Description as VARCHAR) as SourceVendor,\r\nCAST(g.BranchCode as VARCHAR) as BranchCode,CAST(b.BranchName as VARCHAR) as BranchName,CAST(g.TransactionDescription as VARCHAR) as TransactionDescription,\r\nCAST(g.AccountCode as VARCHAR) as AccountCode,CAST(a.AccountDescription as VARCHAR(1000)) as AccountDescription,CAST(g.ProjectID as VARCHAR) as Project,\r\nCAST(g.SubAccount as VARCHAR) as SubAccount,CAST(LEFT(RIGHT(g.SubAccount,7),4) as VARCHAR) as MarketingSubAccount,CAST(smm.Description as VARCHAR) as SubAccountDescription,\r\nCAST(RIGHT(LEFT(g.SubAccount,6),3) as VARCHAR) as SourceGroup,CAST(smg.Description as VARCHAR) as SourceGroupDescription,\r\nCAST(LEFT(RIGHT(g.SubAccount,11),4) as VARCHAR) as DepartmentID,CAST(smd.Description as VARCHAR) as DepartmentDescription,g.CreditAmount,g.DebitAmount,g.BalanceAmount\r\nfrom EDW.FACT_ERP_GL_TRANSACTION g left join ODS.ERP_AP_INVOICE i on g.ReferenceNumber=i.ReferenceNbr\r\nleft join EDW.DIM_ERP_ACCOUNT a on g.AccountCode=a.AccountCode\r\nleft join EDW.DIM_ERP_BRANCH b on g.BranchCode=b.BranchCode\r\nleft join EDW.DIM_ERP_VENDOR v  on g.CustomerVendor=v.VendorID\r\nleft join (Select * from ODS.ERP_SUBACCOUNT_SEGMENT_MASTER where SegmentID='5') smm on LEFT(RIGHT(g.SubAccount,7),4)=smm.Value\r\nleft join (Select * from ODS.ERP_SUBACCOUNT_SEGMENT_MASTER where SegmentID='2') smg on RIGHT(LEFT(g.SubAccount,6),3)=smg.Value\r\nleft join (Select * from ODS.ERP_SUBACCOUNT_SEGMENT_MASTER where SegmentID='4') smd on LEFT(RIGHT(g.SubAccount,11),4)=smd.Value\r\nleft join (Select * from ODS.ERP_SUBACCOUNT_SEGMENT_MASTER where SegmentID='3') smv on RIGHT(LEFT(g.SubAccount,9),3)=smv.Value\r\n where --g.BatchNumber='2537165' and\r\ng.Module='PM' AND CAST(CONCAT(RIGHT(g.FinPeriodID,4),'-',LEFT(g.FinPeriodID,2),'-01') as DATE) >= CAST(DATEADD(month, DATEDIFF(month, 0, GETDATE()) - 2, 0) as DATE) \r\nAND CAST(CONCAT(RIGHT(g.FinPeriodID,4),'-',LEFT(g.FinPeriodID,2),'-01') as DATE) <= CAST(GETDATE() as DATE)\r\n\r\nUNION ALL\r\n\r\nSelect CAST(g.[Module] as VARCHAR) as ModuleType,NULL as DocumentType,ISNULL(CAST(g.ReferenceNumber as VARCHAR),'-9999') as ReferenceNumber,CAST(g.BatchNumber as VARCHAR) as BatchNumber, CAST(g.FinPeriodID as VARCHAR) as PostingPeriod,CAST(g.ServicePeriod as VARCHAR) as ServicePeriod,\r\nNULL as VendorReference,CAST(g.CustomerVendor as VARCHAR) as VendorID,CAST(v.VendorName as VARCHAR) as VendorDescription,CAST(smv.Description as VARCHAR) as SourceVendor,\r\nCAST(g.BranchCode as VARCHAR) as BranchCode,CAST(b.BranchName as VARCHAR) as BranchName,CAST(g.TransactionDescription as VARCHAR) as TransactionDescription,\r\nCAST(g.AccountCode as VARCHAR) as AccountCode,CAST(a.AccountDescription as VARCHAR(1000)) as AccountDescription,CAST(g.ProjectID as VARCHAR) as Project,\r\nCAST(g.SubAccount as VARCHAR) as SubAccount,CAST(LEFT(RIGHT(g.SubAccount,7),4) as VARCHAR) as MarketingSubAccount,CAST(smm.Description as VARCHAR) as SubAccountDescription,\r\nCAST(RIGHT(LEFT(g.SubAccount,6),3) as VARCHAR) as SourceGroup,CAST(smg.Description as VARCHAR) as SourceGroupDescription,\r\nCAST(LEFT(RIGHT(g.SubAccount,11),4) as VARCHAR) as DepartmentID,CAST(smd.Description as VARCHAR) as DepartmentDescription,g.CreditAmount,g.DebitAmount,g.BalanceAmount\r\nfrom EDW.FACT_ERP_GL_TRANSACTION g left join ODS.ERP_AP_INVOICE i on g.ReferenceNumber=i.ReferenceNbr\r\nleft join EDW.DIM_ERP_ACCOUNT a on g.AccountCode=a.AccountCode\r\nleft join EDW.DIM_ERP_BRANCH b on g.BranchCode=b.BranchCode\r\nleft join EDW.DIM_ERP_VENDOR v  on g.CustomerVendor=v.VendorID\r\nleft join (Select * from ODS.ERP_SUBACCOUNT_SEGMENT_MASTER where SegmentID='5') smm on LEFT(RIGHT(g.SubAccount,7),4)=smm.Value\r\nleft join (Select * from ODS.ERP_SUBACCOUNT_SEGMENT_MASTER where SegmentID='2') smg on RIGHT(LEFT(g.SubAccount,6),3)=smg.Value\r\nleft join (Select * from ODS.ERP_SUBACCOUNT_SEGMENT_MASTER where SegmentID='4') smd on LEFT(RIGHT(g.SubAccount,11),4)=smd.Value\r\nleft join (Select * from ODS.ERP_SUBACCOUNT_SEGMENT_MASTER where SegmentID='3') smv on RIGHT(LEFT(g.SubAccount,9),3)=smv.Value\r\n where --g.BatchNumber='2537165' and\r\ng.Module='CA' AND CAST(CONCAT(RIGHT(g.FinPeriodID,4),'-',LEFT(g.FinPeriodID,2),'-01') as DATE) >= CAST(DATEADD(month, DATEDIFF(month, 0, GETDATE()) - 2, 0) as DATE)\r\nAND CAST(CONCAT(RIGHT(g.FinPeriodID,4),'-',LEFT(g.FinPeriodID,2),'-01') as DATE) <= CAST(GETDATE() as DATE) and i.Type not in ('QCK','VQC')\r\n\r\n\r\n\r\n\r\n--AND CAST(CONCAT(RIGHT(g.FinPeriodID,4),'-',LEFT(g.FinPeriodID,2),'-01') as DATE) >= '2024-09-01'\r\n--AND CAST(CONCAT(RIGHT(g.FinPeriodID,4),'-',LEFT(g.FinPeriodID,2),'-01') as DATE) < CAST(DATEADD(month, DATEDIFF(month, 0, GETDATE()), 0) as DATE)",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "Delete from EDW.REPORT_ERP_AP_BILLS_ADJUSTMENTS_DETAIL where CAST(CONCAT(RIGHT(PostingPeriod,4),'-',LEFT(PostingPeriod,2),'-01') as DATE) >= CAST(DATEADD(month, DATEDIFF(month, 0, GETDATE()) - 2, 0) as DATE)",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "DocumentType",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "DocumenType",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ReferenceNumber",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ReferenceNumber",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PostingPeriod",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PostingPeriod",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ServicePeriod",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ServicePeriod",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "VendorID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "VendorID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "VendorDescription",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "VendorName",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SourceVendor",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SourceVendor",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "VendorReference",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "VendorReferenceNumber",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchCode",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "BranchCode",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchName",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "BranchName",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "TransactionDescription",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Transaction Description",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AccountCode",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "AccountCode",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AccountDescription",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "AccountDescription",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Project",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Project",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SubAccount",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SubAccount",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "MarketingSubAccount",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "MarketingSubAccount",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SubAccountDescription",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "MarketingSubAccountDescription",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SourceGroup",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SourceGroup",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SourceGroupDescription",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SourceGroupDescription",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DepartmentID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "DepartmentID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DepartmentDescription",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "DepartmentDescription",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CreditAmount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								},
+								"sink": {
+									"name": "CreditAmount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "DebitAmount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								},
+								"sink": {
+									"name": "DebitAmount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "BalanceAmount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								},
+								"sink": {
+									"name": "BalanceAmount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "ModuleType",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ModuleType",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchNumber",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "BatchNumber",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_FACT_ERP_GL_TRANSACTION",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_REPORT_ERP_AP_BILLS_ADJUSTMENTS_DETAIL",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/FACTS/ERP"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-01-28T20:20:49Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

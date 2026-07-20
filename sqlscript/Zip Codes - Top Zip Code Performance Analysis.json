@@ -1,0 +1,20 @@
+{
+	"name": "Zip Codes - Top Zip Code Performance Analysis",
+	"properties": {
+		"folder": {
+			"name": "DMLs/Analysis SQL"
+		},
+		"content": {
+			"query": "SELECT\ncust.Zip\n--,jobStatus.Description as JobStatus\n,sum(job.GrossAmount) as [Total Gross Amount]\n,count(job.JobID) as [Job Count]\n,AVG(job.GrossAmount) as [Avg Gross Amount]\n,DATEDIFF(month,min(ContractDate),max(ContractDate)) as [Months In Market]\n,min(ContractDate) as [Min Contract Date]\n,max(ContractDate) as [Max Contract Date]\n FROM \n [EDW].[FACT_JOB] job\n ,[EDW].[DIM_JOB_STATUS] jobStatus\n,[EDW].[DIM_CUSTOMER] cust\nWHERE\njob.CustomerID = cust.CustomerID\nand job.JobStatusID = jobStatus.JobStatusID\nand cust.Zip in (\n'75052',\n'53704',\n'53711',\n'33023',\n'53511',\n'78660',\n'33157',\n'75002',\n'75115',\n'53590'\n)\nand job.ContractDate > '1900-01-01'\ngroup by\ncust.Zip\n--,jobStatus.Description\norder by [Total Gross Amount] desc\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

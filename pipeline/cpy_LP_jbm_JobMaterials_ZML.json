@@ -1,0 +1,529 @@
+{
+	"name": "cpy_LP_jbm_JobMaterials_ZML",
+	"properties": {
+		"activities": [
+			{
+				"name": "FHI",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:40:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT \nId\t,\nJob_Id\t,\nMat_ID\t,\nQty\t,\nCost\t,\nPrice\t,\nCommFlag\t,\nOverrideFlag\t,\nInvoiceDate\t,\nInvoiceNumber\t,\nComments\t,\nEnteredOn\t,\nEnteredBy\t,\nUpdatedOn\t,\nUpdatedBy\t,\nBatchFlag\t,\nBatchNo\t,\nBatchDate\t,\nEstQty\t,\nEstCost\t\n\nFROM dbo.jbm_jobMaterials WITH (NOLOCK)\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE [ZML].[LP_FHI_jbm_JobMaterials]",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Job_Id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Job_Id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Mat_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Mat_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Qty",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "Qty",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "Cost",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "Cost",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "Price",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "Price",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "CommFlag",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "CommFlag",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "OverrideFlag",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "OverrideFlag",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "InvoiceDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "InvoiceDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "InvoiceNumber",
+									"type": "String"
+								},
+								"sink": {
+									"name": "InvoiceNumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Comments",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Comments",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "UpdatedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "UpdatedBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchFlag",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "BatchFlag",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchNo",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "BatchNo",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "BatchDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "EstQty",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "EstQty",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "EstCost",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "EstCost",
+									"type": "Decimal"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_ZML_FHI_aph_AlternatePhones",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ZML_ODS_FHI_jbm_JobMaterials",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "MXH",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:40:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT \nId\t,\nJob_Id\t,\nMat_ID\t,\nQty\t,\nCost\t,\nPrice\t,\nCommFlag\t,\nOverrideFlag\t,\nInvoiceDate\t,\nInvoiceNumber\t,\nComments\t,\nEnteredOn\t,\nEnteredBy\t,\nUpdatedOn\t,\nUpdatedBy\t,\nBatchFlag\t,\nBatchNo\t,\nBatchDate\t,\nEstQty\t,\nEstCost\t\n\nFROM dbo.jbm_jobMaterials WITH (NOLOCK)\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE [ZML].[LP_MXH_jbm_JobMaterials]",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Job_Id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Job_Id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Mat_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Mat_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Qty",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "Qty",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "Cost",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "Cost",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "Price",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "Price",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "CommFlag",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "CommFlag",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "OverrideFlag",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "OverrideFlag",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "InvoiceDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "InvoiceDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "InvoiceNumber",
+									"type": "String"
+								},
+								"sink": {
+									"name": "InvoiceNumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Comments",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Comments",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "UpdatedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "UpdatedBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchFlag",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "BatchFlag",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchNo",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "BatchNo",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "BatchDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "EstQty",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "EstQty",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "EstCost",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "EstCost",
+									"type": "Decimal"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_ZML_MXH_aph_AlternatePhones",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ZML_ODS_MXH_jbm_JobMaterials",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "Temp/Anuj/ZML/LP_to_ODS_ZML"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-11-05T14:55:14Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

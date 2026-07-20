@@ -1,0 +1,17 @@
+{
+	"name": "Get Setters for National Campaign Leads",
+	"properties": {
+		"content": {
+			"query": "SELECT distinct\nils.Division\n,prd.LongDescription as Product\n,srs.LeadSubSource\n,app.LP_AppointmentID\n,emp.LP_EmployeeID as SetBy_LP_EmployeeID\n,emp.FirstName as SetBy_FirstName\n,emp.LastName as SetBy_LastName\n,emp.FirstName +' '+ emp.LastName as SetBy_FullName\n,emp.Active as SetBy_Active\n,lds.LP_CustomerID as ProspectID\n,lds.LP_LeadID as LeadID\n,lds.EntryDate\n,app.SetDate\n,ils.ApptDate\nFROM\nEDW.FACT_ISSUED_LEAD ils\n,EDW.FACT_APPOINTMENT app\n,EDW.FACT_LEAD lds\n,EDW.DIM_EMPLOYEE emp\n,EDW.DIM_PRODUCT prd\n,EDW.DIM_LEAD_SUB_SOURCE srs\nwhere \nils.AppointmentID = app.AppointmentID\nand ils.LeadID = lds.LeadID\nand app.SetBy = emp.EmployeeID\nand lds.ProductID = prd.ProductID\nand lds.LeadSubSourceID = srs.LeadSubSourceID\nand app.SetDate between '2023-05-01' and '2023-05-31'\nand prd.LongDescription not in ('Concrete Coatings','Garage Org', 'Garage Organization')\nand lds.LeadSubSourceID in\n(\n'FHI-1319',\n'FHI-954',\n'FHI-1323',\n'HSI-4897',\n'HSI-4839',\n'HSI-2299',\n'HSI-4902',\n'MAC-2666',\n'MAC-2717',\n'MAC-2495',\n'MXH-6000',\n'MXH-5950',\n'MXH-5951',\n'MXH-6024',\n'PBC-859',\n'PBC-128',\n'PBC-873',\n'PHI-513',\n'PHI-291',\n'PHI-525',\n'RTW-1703',\n'RTW-1492',\n'RTW-1720',\n'SWR-3033',\n'SWR-2823',\n'SWR-3142'\n)\norder by \nils.Division\n,prd.LongDescription\n,srs.LeadSubSource\n,emp.LP_EmployeeID",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

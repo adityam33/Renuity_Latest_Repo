@@ -1,0 +1,17 @@
+{
+	"name": "Get Milestone Types by Division",
+	"properties": {
+		"content": {
+			"query": "SELECT\nmld.[Division]\n,mld.[LP_MilestoneDateTypeID]\n,mdt.[MilestoneDateType]\n,mdt.Active\n,count(mld.[MilestoneDetailID]) as MilestoneCount\n,count(distinct mld.[JobID]) as JobCount\n FROM \n [EDW].[FACT_MILESTONE_DETAIL] mld\n ,[EDW].[DIM_MILESTONE_DATE_TYPE] mdt\n where\n mld.MilestoneDateTypeID = mdt.MilestoneDateTypeID\n group by\n mld.[Division]\n,mld.[LP_MilestoneDateTypeID]\n,mdt.[MilestoneDateType]\n,mdt.Active\norder by \nmld.[Division]\n,mdt.Active desc\n,MilestoneCount desc\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

@@ -1,0 +1,20 @@
+{
+	"name": "LP - Get All Dispositions and Usage",
+	"properties": {
+		"folder": {
+			"name": "DMLs/LP Data"
+		},
+		"content": {
+			"query": "SELECT \ndsp.[OperatingCompany]\n,[Active]\n,dsp.[DispositionCategoryID]\n,dct.DispositionCategory\n,dsp.[DispositionID]\n,[Disposition]\n,dsp_vol.LeadCount\n,[Comments]\n,[Data]\n,[SetAppt]\n,[Verification]\n,[Confirmation]\n,[Issue]\n,[Presentation]\n,[Sale]\n,[CountAsKill]\n,[OkToReset]\n,[LP_Dispositionid]\n,dsp.[LP_DispositionCategoryID]\nFROM \n[EDW].[DIM_DISPOSITION] dsp\njoin [EDW].[DIM_DISPOSITION_CATEGORY] dct on \ndsp.DispositionCategoryID = dct.DispositionCategoryID\nleft join\n(SELECT \n[OperatingCompany]\n,[DispositionID]\n,count([LeadID]) as LeadCount\nFROM [EDW].[FACT_LEAD]\ngroup by\n[OperatingCompany]\n,[DispositionID]\n) dsp_vol\non \nCONCAT(dsp.[OperatingCompany],'-' ,[Disposition]) = dsp_vol.[DispositionID]\norder by \ndsp.[OperatingCompany]\n,[Active] desc\n,dsp.[DispositionCategoryID]\n,dsp_vol.LeadCount desc\n,[DispositionID]\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

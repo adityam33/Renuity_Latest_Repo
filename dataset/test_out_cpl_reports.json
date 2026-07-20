@@ -1,0 +1,33 @@
+{
+	"name": "test_out_cpl_reports",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureBlobStorage1",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"FileName": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": {
+					"value": "@concat('CPL_DAILY_REPORT_', dataset().FileName, '_', formatdatetime(convertFromUtc(utcnow(), 'Eastern Standard Time'),'yyyyMMdd_HHmmss'), '.csv')",
+					"type": "Expression"
+				},
+				"folderPath": "out",
+				"container": "affilitate-test"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": []
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}

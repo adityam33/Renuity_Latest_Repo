@@ -1,0 +1,329 @@
+{
+	"name": "df_load_DIM_VENDORS",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_FHI_vnd_Vendors",
+						"type": "DatasetReference"
+					},
+					"name": "FHI"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_SWR_vnd_Vendors",
+						"type": "DatasetReference"
+					},
+					"name": "SWR"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_MAC_vnd_Vendors",
+						"type": "DatasetReference"
+					},
+					"name": "MAC"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_MXH_vnd_Vendors",
+						"type": "DatasetReference"
+					},
+					"name": "MXH"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_CTA_vnd_Vendors",
+						"type": "DatasetReference"
+					},
+					"name": "CTA"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_RTW_vnd_Vendors",
+						"type": "DatasetReference"
+					},
+					"name": "RTW"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_PBC_vnd_Vendors",
+						"type": "DatasetReference"
+					},
+					"name": "PBC"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_DIM_VENDORS",
+						"type": "DatasetReference"
+					},
+					"name": "targetDim",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "createDsFHI"
+				},
+				{
+					"name": "createDsSWR"
+				},
+				{
+					"name": "createDsMAC"
+				},
+				{
+					"name": "createDsMXH"
+				},
+				{
+					"name": "createDsCTA"
+				},
+				{
+					"name": "createDsRTW"
+				},
+				{
+					"name": "createDsPBC"
+				},
+				{
+					"name": "selectColFHI"
+				},
+				{
+					"name": "selectColSWR"
+				},
+				{
+					"name": "selectColMAC"
+				},
+				{
+					"name": "selectColMXH"
+				},
+				{
+					"name": "selectColCTA"
+				},
+				{
+					"name": "selectColRTW"
+				},
+				{
+					"name": "selectColPBC"
+				},
+				{
+					"name": "unionAllDivisions"
+				},
+				{
+					"name": "updateTimestamp"
+				},
+				{
+					"name": "alterRow"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          id as integer,",
+				"          ShortDescr as string,",
+				"          MediumDescr as string,",
+				"          LongDescr as string,",
+				"          Active as boolean,",
+				"          SortOrder as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> FHI",
+				"source(output(",
+				"          id as integer,",
+				"          ShortDescr as string,",
+				"          MediumDescr as string,",
+				"          LongDescr as string,",
+				"          Active as boolean,",
+				"          SortOrder as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> SWR",
+				"source(output(",
+				"          id as integer,",
+				"          ShortDescr as string,",
+				"          MediumDescr as string,",
+				"          LongDescr as string,",
+				"          Active as boolean,",
+				"          SortOrder as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> MAC",
+				"source(output(",
+				"          id as integer,",
+				"          ShortDescr as string,",
+				"          MediumDescr as string,",
+				"          LongDescr as string,",
+				"          Active as boolean,",
+				"          SortOrder as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> MXH",
+				"source(output(",
+				"          id as integer,",
+				"          ShortDescr as string,",
+				"          MediumDescr as string,",
+				"          LongDescr as string,",
+				"          Active as boolean,",
+				"          SortOrder as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> CTA",
+				"source(output(",
+				"          id as integer,",
+				"          ShortDescr as string,",
+				"          MediumDescr as string,",
+				"          LongDescr as string,",
+				"          Active as boolean,",
+				"          SortOrder as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> RTW",
+				"source(output(",
+				"          id as integer,",
+				"          ShortDescr as string,",
+				"          MediumDescr as string,",
+				"          LongDescr as string,",
+				"          Active as boolean,",
+				"          SortOrder as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> PBC",
+				"selectColFHI derive(Division = 'FHI',",
+				"          VendorID = concat('FHI-',toString(LP_VendorID))) ~> createDsFHI",
+				"selectColSWR derive(Division = 'SWR',",
+				"          VendorID = concat('SWR-',toString(LP_VendorID))) ~> createDsSWR",
+				"selectColMAC derive(Division = 'MAC',",
+				"          VendorID = concat('MAC-',toString(LP_VendorID))) ~> createDsMAC",
+				"selectColMXH derive(Division = 'MXH',",
+				"          VendorID = concat('MXH-',toString(LP_VendorID))) ~> createDsMXH",
+				"selectColCTA derive(Division = 'CTA',",
+				"          VendorID = concat('CTA-',toString(LP_VendorID))) ~> createDsCTA",
+				"selectColRTW derive(Division = 'RTW',",
+				"          VendorID = concat('RTW-',toString(LP_VendorID))) ~> createDsRTW",
+				"selectColPBC derive(Division = 'PBC',",
+				"          VendorID = concat('PBC-',toString(LP_VendorID))) ~> createDsPBC",
+				"FHI select(mapColumn(",
+				"          LP_VendorID = id,",
+				"          ShortDescr,",
+				"          MediumDescr,",
+				"          LongDescr,",
+				"          Active,",
+				"          SortOrder",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColFHI",
+				"SWR select(mapColumn(",
+				"          LP_VendorID = id,",
+				"          ShortDescr,",
+				"          MediumDescr,",
+				"          LongDescr,",
+				"          Active,",
+				"          SortOrder",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColSWR",
+				"MAC select(mapColumn(",
+				"          LP_VendorID = id,",
+				"          ShortDescr,",
+				"          MediumDescr,",
+				"          LongDescr,",
+				"          Active,",
+				"          SortOrder",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColMAC",
+				"MXH select(mapColumn(",
+				"          LP_VendorID = id,",
+				"          ShortDescr,",
+				"          MediumDescr,",
+				"          LongDescr,",
+				"          Active,",
+				"          SortOrder",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColMXH",
+				"CTA select(mapColumn(",
+				"          LP_VendorID = id,",
+				"          ShortDescr,",
+				"          MediumDescr,",
+				"          LongDescr,",
+				"          Active,",
+				"          SortOrder",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColCTA",
+				"RTW select(mapColumn(",
+				"          LP_VendorID = id,",
+				"          ShortDescr,",
+				"          MediumDescr,",
+				"          LongDescr,",
+				"          Active,",
+				"          SortOrder",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColRTW",
+				"PBC select(mapColumn(",
+				"          LP_VendorID = id,",
+				"          ShortDescr,",
+				"          MediumDescr,",
+				"          LongDescr,",
+				"          Active,",
+				"          SortOrder",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColPBC",
+				"createDsFHI, createDsSWR, createDsMAC, createDsMXH, createDsCTA, createDsRTW, createDsPBC union(byName: true)~> unionAllDivisions",
+				"unionAllDivisions derive(LastUpdateTimeStamp = currentTimestamp()) ~> updateTimestamp",
+				"updateTimestamp alterRow(upsertIf(true())) ~> alterRow",
+				"alterRow sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['VendorID'],",
+				"     format: 'table',",
+				"     staged: true,",
+				"     allowCopyCommand: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          LP_VendorID,",
+				"          ShortDescr,",
+				"          MediumDescr,",
+				"          LongDescr,",
+				"          Active,",
+				"          SortOrder,",
+				"          Division,",
+				"          VendorID,",
+				"          LastUpdateTimeStamp",
+				"     )) ~> targetDim"
+			]
+		}
+	}
+}

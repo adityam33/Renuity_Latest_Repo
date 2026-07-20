@@ -1,0 +1,112 @@
+{
+	"name": "df_load_DIM_MILESTONE_DATE_TYPE_ZML",
+	"properties": {
+		"folder": {
+			"name": "ZML_ODS_to_EDW/DIMENSIONS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ZML_ODS_FHI_mdt_MilestoneDateTypes",
+						"type": "DatasetReference"
+					},
+					"name": "FHI"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_DIM_MILESTONE_DATE_TYPE_ZML",
+						"type": "DatasetReference"
+					},
+					"name": "targetDim",
+					"description": "Export data to EDW_DIM_MILESTONE_DATE_TYPE",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "selectColsFHI"
+				},
+				{
+					"name": "createIDsFHI"
+				},
+				{
+					"name": "unionAllOpCos"
+				},
+				{
+					"name": "addLastUpdateTimestamp"
+				},
+				{
+					"name": "AlterRow"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          ID as string,",
+				"          Descr as string,",
+				"          Active as boolean,",
+				"          SortOrder as integer,",
+				"          Forecolor as string,",
+				"          BackColor as string,",
+				"          idpkey as integer,",
+				"          resource as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> FHI",
+				"FHI select(mapColumn(",
+				"          LP_MilestoneDateTypeID = ID,",
+				"          MilestoneDateType = Descr,",
+				"          Active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColsFHI",
+				"selectColsFHI derive(MilestoneDateTypeID = concat('FHI-',toString(LP_MilestoneDateTypeID)),",
+				"          Division = 'FHI') ~> createIDsFHI",
+				"createIDsFHI union(byName: true)~> unionAllOpCos",
+				"unionAllOpCos derive(LastUpdateTS = currentTimestamp()) ~> addLastUpdateTimestamp",
+				"addLastUpdateTimestamp alterRow(upsertIf(true())) ~> AlterRow",
+				"AlterRow sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          MilestoneDateTypeID as string,",
+				"          MilestoneDateType as string,",
+				"          Active as boolean,",
+				"          LP_MilestoneDateTypeID as string,",
+				"          Division as string,",
+				"          UNI_MilestoneDateType as string,",
+				"          UNI_MilestoneDateType_Group as string,",
+				"          LastUpdateTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['MilestoneDateTypeID'],",
+				"     format: 'table',",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          LP_MilestoneDateTypeID,",
+				"          MilestoneDateType,",
+				"          Active,",
+				"          MilestoneDateTypeID,",
+				"          Division,",
+				"          LastUpdateTS",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> targetDim"
+			]
+		}
+	}
+}

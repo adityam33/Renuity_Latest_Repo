@@ -1,0 +1,30 @@
+{
+	"name": "Ds_Lp_Job_Jobs_Parquet_Sink",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureBlobStorage1",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"Date": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": {
+					"value": "@concat('JOB_JOBS_ARCHIVE','_',dataset().Date,'.parquet')",
+					"type": "Expression"
+				},
+				"folderPath": "test/LP_Jobs_Archives_Files",
+				"container": "sameen"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}

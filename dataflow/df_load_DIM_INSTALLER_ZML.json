@@ -1,0 +1,138 @@
+{
+	"name": "df_load_DIM_INSTALLER_ZML",
+	"properties": {
+		"folder": {
+			"name": "ZML_ODS_to_EDW/DIMENSIONS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ZML_ODS_FHI_ins_installers",
+						"type": "DatasetReference"
+					},
+					"name": "FHI"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_DIM_INSTALLER_ZML",
+						"type": "DatasetReference"
+					},
+					"name": "targetDim",
+					"description": "Export data to EDW_DIM_INSTALLER",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "selectColsFHI"
+				},
+				{
+					"name": "createIDsFHI"
+				},
+				{
+					"name": "unionAllOpCos"
+				},
+				{
+					"name": "addLastUpdateTimestamp"
+				},
+				{
+					"name": "AlterRow1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          Id as integer,",
+				"          Name as string,",
+				"          ContactName as string,",
+				"          W9ExpDate as timestamp,",
+				"          WorkCompExpDate as timestamp,",
+				"          Address1 as string,",
+				"          Address2 as string,",
+				"          City as string,",
+				"          State as string,",
+				"          Zip as string,",
+				"          Phone1 as string,",
+				"          Phone2 as string,",
+				"          Fax as string,",
+				"          Cell as string,",
+				"          VendorID as string,",
+				"          Installer as boolean,",
+				"          Measurer as boolean,",
+				"          Active as boolean,",
+				"          email as string,",
+				"          emp_id as integer,",
+				"          ForeColor as string,",
+				"          BackColor as string,",
+				"          org as string,",
+				"          product as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> FHI",
+				"FHI select(mapColumn(",
+				"          LP_InstallerID = Id,",
+				"          Name,",
+				"          ContactName,",
+				"          W9ExpDate,",
+				"          WorkCompExpDate,",
+				"          City,",
+				"          State,",
+				"          Zip,",
+				"          Installer,",
+				"          Measurer,",
+				"          Active,",
+				"          LP_EmployeeID = emp_id",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColsFHI",
+				"selectColsFHI derive(InstallerID = concat('FHI-',toString(LP_InstallerID)),",
+				"          Division = 'FHI',",
+				"          EmployeeID = concat('FHI-',toString(LP_EmployeeID))) ~> createIDsFHI",
+				"createIDsFHI union(byName: true)~> unionAllOpCos",
+				"unionAllOpCos derive(LastUpdateTS = currentTimestamp()) ~> addLastUpdateTimestamp",
+				"addLastUpdateTimestamp alterRow(upsertIf(true())) ~> AlterRow1",
+				"AlterRow1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['InstallerID'],",
+				"     format: 'table',",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          InstallerID,",
+				"          EmployeeID,",
+				"          Name,",
+				"          ContactName,",
+				"          W9ExpDate,",
+				"          WorkCompExpDate,",
+				"          City,",
+				"          State,",
+				"          Zip,",
+				"          Installer,",
+				"          Measurer,",
+				"          Active,",
+				"          LP_InstallerID,",
+				"          LP_EmployeeID,",
+				"          Division,",
+				"          LastUpdateTS",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> targetDim"
+			]
+		}
+	}
+}

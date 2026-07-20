@@ -1,0 +1,101 @@
+{
+	"name": "df_load_DIM_CALL_CENTER_DEPARTMENT",
+	"properties": {
+		"folder": {
+			"name": "ODS_to_EDW/DIMENSIONS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_MAC_ccd_CallCenterDepartment",
+						"type": "DatasetReference"
+					},
+					"name": "MAC"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_DIM_CALL_CENTER_DEPARTMENT",
+						"type": "DatasetReference"
+					},
+					"name": "targetDim",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "selectColsMAC"
+				},
+				{
+					"name": "createIDsMAC"
+				},
+				{
+					"name": "addLastUpdateTimestamp"
+				},
+				{
+					"name": "AlterRow"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          Id as integer,",
+				"          Descr as string,",
+				"          SortOrder as integer,",
+				"          Active as boolean",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> MAC",
+				"MAC select(mapColumn(",
+				"          LP_CallCenterDepartmentID = Id,",
+				"          CallCenterDepartment = Descr,",
+				"          Active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColsMAC",
+				"selectColsMAC derive(CallCenterDepartmentID = concat('MAC-',toString(LP_CallCenterDepartmentID)),",
+				"          Division = 'MAC') ~> createIDsMAC",
+				"createIDsMAC derive(LastUpdateTS = currentTimestamp()) ~> addLastUpdateTimestamp",
+				"addLastUpdateTimestamp alterRow(upsertIf(true())) ~> AlterRow",
+				"AlterRow sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          CallCenterDepartmentID as string,",
+				"          CallCenterDepartment as string,",
+				"          Active as boolean,",
+				"          LP_CallCenterDepartmentID as integer,",
+				"          Division as string,",
+				"          LastUpdateTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['CallCenterDepartmentID'],",
+				"     format: 'table',",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          CallCenterDepartmentID,",
+				"          CallCenterDepartment,",
+				"          Active,",
+				"          LP_CallCenterDepartmentID,",
+				"          Division,",
+				"          LastUpdateTS",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> targetDim"
+			]
+		}
+	}
+}

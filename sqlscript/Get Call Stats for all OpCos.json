@@ -1,0 +1,20 @@
+{
+	"name": "Get Call Stats for all OpCos",
+	"properties": {
+		"folder": {
+			"name": "DMLs/Analysis SQL"
+		},
+		"content": {
+			"query": "SELECT \ncls.[OperatingCompany]\n,cty.[CallType]\n,clr.[CallResult]\n,clr.Connected\n,count([CallID]) as CallCount\n FROM \n [EDW].[FACT_CALL] cls\n ,[EDW].[DIM_CALL_TYPE] cty\n ,[EDW].[DIM_CALL_RESULT] clr\n WHERE\n cls.CallTypeID = cty.CallTypeID\n and cls.CallResultID = clr.CallResultID\n group BY\ncls.[OperatingCompany]\n,cty.[CallType]\n,clr.[CallResult]\n,clr.Connected\norder by\ncls.[OperatingCompany]\n,cty.[CallType]\n,clr.[CallResult]\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

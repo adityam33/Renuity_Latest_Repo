@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 65",
+	"properties": {
+		"content": {
+			"query": "select count(1) from [EDW].[ADP_EMPLOYEE_TIMECARD] (nolock)\nselect distinct * from [ods].[ADP_EMPLOYEE_TIMECARD]\nwhere associate_id='LWFECHMSS'\n\nselect count(1),ref_file from edw.ADP_EMPLOYEE_TIMECARD\ngroup by ref_file\n--\n--select * into EDW.ADP_EMPLOYEE_TIMECARD_bkup_20241222\n--from edw.ADP_EMPLOYEE_TIMECARD\n\nselect ASSOCIATE_ID,PAY_DATE,count(*),REF_FILE from edw.ADP_EMPLOYEE_TIMECARD\ngroup by ASSOCIATE_ID,PAY_DATE,REF_FILE\nhaving count(*)>1\n\n\n\n\nselect ASSOCIATE_ID,PAY_DATE,count(*) from edw.ADP_EMPLOYEE_TIMECARD\ngroup by ASSOCIATE_ID,PAY_DATE\nhaving count(*)>1\n\n\n\nselect associate_id,pay_Date from ODS.ADP_EMPLOYEE_TIMECARD\nwhere associate_id='PQ8NNARPM'\n--and pay_date=''\n\n---truncate table edw.ADP_EMPLOYEE_TIMECARD\n\n\nselect associate_id,pay_Date,insertedDate from edw.ADP_EMPLOYEE_TIMECARD\nwhere associate_id='0EUAYO8IG'\n\n--truncate table  edw.ADP_EMPLOYEE_TIMECARD\n\n\nselect * from edw.ADP_EMPLOYEE_TIMECARD\nwhere associate_id='9WRHZVT9K'\norder by pay_Date\n\n\n\n\n\n\n\n\nUPDATE edw.ADP_EMPLOYEE_TIMECARD\nSET associate_id = TRIM(UPPER(associate_id));\n\n\nselect distinct inserteddate from ODS.ADP_EMPLOYEE_TIMECARD",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

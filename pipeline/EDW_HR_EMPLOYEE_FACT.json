@@ -1,0 +1,1185 @@
+{
+	"name": "EDW_HR_EMPLOYEE_FACT",
+	"properties": {
+		"activities": [
+			{
+				"name": "cpy_FACT_EMPLOYEE_TIMECARD",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:30:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"sqlReaderQuery": "SELECT DISTINCT\nE1.Employee_PK,\nE3.Employee_PK AS ApproverSupervisor_PK,\nM1.EmployeeID,\n--M1.Division,\nE1.Division, \t\t-- Getting the Division From DIM_HR_EMPLOYEE\n\nCOALESCE(M1.LocationPK,M1.LocationPK_FHIA_BJ,M1.LocationPK_GO_SOUTHERN,M1.LocationPK_MAC,M1.LocationPK_MXH) AS LocationPK,\nM1.PayDate,\nM1.TimeIN,\nM1.TimeOUT,\nM1.Hours,\nM1.EarningCode,\nM1.WorkedDepartment,\nM1.JobContractID,\nSC.JobServiceID,\nM1.Approve,\nM1.EMP_HashKey,\nM1.RecordCreatedDate,\nM1.RecordUpdatedDate\nFROM \n(\n\n\t\tSELECT \n\t\tE.ASSOCIATE_ID\t\t\t\t\tAS EmployeeID,\n\t\tHASHBYTES('SHA2_256', \n\t\t\t\t\t\t\t\tCONCAT(\n\t\t\t\t\t\t\t\t\tCOALESCE(E.ASSOCIATE_ID, ''), '|', \n\t\t\t\t\t\t\t\t\tCOALESCE(E.Division, ''), '|', \n\t\t\t\t\t\t\t\t\tCOALESCE(E.FIRST_NAME, ''), '|', \n\t\t\t\t\t\t\t\t\tCOALESCE(E.LAST_NAME, ''), '|', \n\t\t\t\t\t\t\t\t\tCOALESCE(E.JOB_TITLE_DESCRIPTION, ''), '|', \n\t\t\t\t\t\t\t\t\tCOALESCE(E.FLSA_DESCRIPTION, ''), '|', \n\t\t\t\t\t\t\t\t\tCOALESCE(E.WORK_CONTACT_WORK_EMAIL, ''), '|', \n\t\t\t\t\t\t\t\t\tCOALESCE(E.PAY_CLASS, ''), '|', \n\t\t\t\t\t\t\t\t\tCOALESCE(E.PAY_CLASS_TIMECLOCK_RESTRICTION_GROUP, ''), '|', \n\t\t\t\t\t\t\t\t\tCOALESCE(E.Benefits_Eligibility_Class_Description, '')\n\t\t\t\t\t\t\t\t)) AS EMP_HashKey,\n\t\t\t\t\t\t\t\t\n\t\tCASE\n\t\t\tWHEN E.Division IN ('FHIA','Renuity - Florida') \t\t\tTHEN 'FHI'\n\t\t\tWHEN E.Division IN ('Renuity-Remote','Renuity-Charlotte') THEN 'REN'\n\t\t\tWHEN E.Division IN ('Closet America','Renuity Home Base') \t\t\t\tTHEN 'CTA'\n\t\t\tWHEN E.Division='MaxHome' \t\t\t\t\t\tTHEN 'MXH'\n\t\t\tWHEN E.Division='Statewide Remodeling' \t\t\tTHEN 'SWR'\n\t\t\tWHEN E.Division IN ('Home Smart','Rite Window') THEN 'RTW'\n\t\t\tWHEN E.Division='Pacific Bath' OR E.Division LIKE '%WEST%'\tTHEN 'PBC'\n\t\t\tWHEN E.Division='Mad City' \t\t\t\t\t\tTHEN 'MAC'\n\t\t\tWHEN E.Division IS NULL\t\t\t\t\t\t\tTHEN 'NA'\n\t\t\tELSE E.Division END AS Division,\n\t\t\t\t\n\t\t\n\t\tE.Reports_To_AssociateID\t\tAS ReportsToEmployeeID,\n\t\tE.APPROVE_SUPERVISOR_NAME\t\tAS ApproverSupervisorID,\n\t\tL1.Location_PK\t\t\t\t\tAS LocationPK,\n\t\tL2.Location_PK\t\t\t\t\tAS LocationPK_FHIA_BJ,\n\t\tL3.Location_PK\t\t\t\t\tAS LocationPK_GO_SOUTHERN,\n\t\tL4.Location_PK\t\t\t\t\tAS LocationPK_MAC,\n\t\tL5.Location_PK\t\t\t\t\tAS LocationPK_MXH,\n\t\tE.PAY_DATE\t\t\t\t\t\tAS PayDate,\n\t\tE.TIME_IN\t\t\t\t\t\tAS TimeIN,\n\t\tE.TIME_OUT\t\t\t\t\t\tAS TimeOUT,\n\t\tE.HOURS\t\t\t\t\t\t\tAS Hours,\n\t\tE.EARNINGS_CODE\t\t\t\t\tAS EarningCode,\n\t\tE.WORKED_DEPARTMENT\t\t\t\tAS WorkedDepartment,\n\t\tJ.ContractID\t\t\t\t\tAS JobContractID,\n\t\tE.TIMECARD_WORK_SERVICE_ID\t\tAS TIMECARD_WORK_SERVICE_ID,\n\t\tE.APPROVE\t\t\t\t\t\tAS Approve,\n\t\tGETDATE()\t\t\t\t\t\tAS RecordCreatedDate,\n\t\tGETDATE()\t\t\t\t\t\tAS RecordUpdatedDate\n\t\t\t\n\t\tFROM [ODS].[ADP_EMPLOYEE_TIMECARD]  E\n\t\tLEFT JOIN  [EDW].[DIM_HR_EMPLOYEE_LOCATION] L1 ON E.TIMECARD_WORK_LOCATION\t\t\t\t= L1.LocationName AND L1.DataSource='Employee Timecard File'\n\t\tLEFT JOIN  [EDW].[DIM_HR_EMPLOYEE_LOCATION] L2 ON E.TIMECARD_WORK_FHIA_BJS_LOCATIONS\t= L2.LocationName AND L2.DataSource='Employee Timecard File'\n\t\tLEFT JOIN  [EDW].[DIM_HR_EMPLOYEE_LOCATION] L3 ON E.TIMECARD_WORK_GO_SOUTHERN_LOCATION\t= L3.LocationName AND L3.DataSource='Employee Timecard File'\n\t\tLEFT JOIN  [EDW].[DIM_HR_EMPLOYEE_LOCATION] L4 ON E.TIMECARD_WORK_MADCITY_LOCATION\t\t= L4.LocationName AND L4.DataSource='Employee Timecard File'\n\t\tLEFT JOIN  [EDW].[DIM_HR_EMPLOYEE_LOCATION] L5 ON E.TIMECARD_WORK_MAXHOME_LOCATION\t\t= L5.LocationName AND L5.DataSource='Employee Timecard File'\n\t\tLEFT JOIN (SELECT DISTINCT ContractID FROM  EDW.FACT_JOB ) J \n\t\t\tON E.TIMECARD_WORK_CARPENTERS_JOB_NUMBER = J.ContractID\n\t\t--WHERE E.ASSOCIATE_ID='38DMHAZ0X'\n\t\t\n\t\t) M1\n\t\t\nJOIN (SELECT * FROM EDW.DIM_HR_EMPLOYEE WHERE CurrentRecordFlag='Y') E1 \nON M1.EmployeeID = E1.EmployeeID\n\nLEFT JOIN  \n\t\t(\n\t\t\t\t(\n\t\t\n\t\t\t\t\tSELECT Employee_PK,EmployeeID FROM\n\t\t\t\t\t(\n\t\t\t\t\tSELECT \n\t\t\t\t\tEmployee_PK,\n\t\t\t\t\tEmployeeID,\n\t\t\t\t\tROW_NUMBER() OVER (PARTITION BY  EmployeeID ORDER BY Employee_PK DESC) AS RW\n\t\t\t\t\tFROM EDW.DIM_HR_EMPLOYEE \n\t\t\t\t\t) A1\n\t\t\t\t\tWHERE RW=1\n\t\t\t\t\t\n\t\t\t\t\t)\n\t\t\t\t) E3\nON M1.ApproverSupervisorID = E3.EmployeeID\n\n\nLEFT JOIN [EDW].[FACT_JOB_SERVICE] SC \nON CONCAT(M1.Division,'-',M1.TIMECARD_WORK_SERVICE_ID) = SC.JobServiceID",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "TRUNCATE TABLE EDW.FACT_HR_EMPLOYEE_TIMECARD;",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Employee_PK",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Employee_PK",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "EmployeeID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "EmployeeID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ApproverSupervisor_PK",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "ApproverSupervisor_PK",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "LocationPK",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Location_PK",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "PayDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "PayDate",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "TimeIN",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "TimeIN",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "TimeOUT",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "TimeOUT",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Hours",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Hours",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "EarningCode",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "EarningCode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "WorkedDepartment",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "WorkedDepartment",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "JobContractID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "JobContractID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "JobServiceID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "JobServiceID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Approve",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Approve",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "EMP_HashKey",
+									"type": "Byte[]",
+									"physicalType": "varbinary"
+								},
+								"sink": {
+									"name": "Emp_HashKey",
+									"type": "Byte[]",
+									"physicalType": "varbinary"
+								}
+							},
+							{
+								"source": {
+									"name": "RecordCreatedDate",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "RecordCreatedDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "RecordUpdatedDate",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "RecordUpdatedDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_EDW_ADP_EMPLOYEE_TIMECARD",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_FACT_HR_EMPLOYEE_TIMECARD",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "cpy_FACT_HR_EMPLOYEE_WAGES",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT DISTINCT\nCAST(A.PayDate AS DATE)\t\t\t\tAS PayDate,\nCAST(A.PeriodBeginningDate AS DATE)\tAS PeriodBeginningDate,\nCAST(A.PeriodEndDate AS DATE)\t\t\tAS PeriodEndDate,\nE.Employee_PK,\nA.EmployeeID,\n/*\nCASE \n\tWHEN A.Division LIKE '%Home Smart%'\t\t\t\tTHEN 'HSI'\n\tWHEN A.Division LIKE '%Pacific Bath%'\t\t\tTHEN 'PBC'\n\tWHEN A.Division LIKE '%Paradise%'\t\t\t\tTHEN 'PHI'\n\tWHEN A.Division LIKE '%Mad%'\t\t\t\t\tTHEN 'MAC'\n\tWHEN A.Division LIKE '%Renuity%'\t\t\t\tTHEN 'REN'\n\tWHEN A.Division LIKE '%Pacific%' OR A.Division LIKE '%WEST%'THEN 'PBC'\n\tWHEN A.Division LIKE '%Rite Window%'\t\t\tTHEN 'RTW'\n\tWHEN A.Division LIKE '%Statewide%'\t\t\t\tTHEN 'SWR'\n\tWHEN A.Division LIKE '%Closet America%'\t\t\tTHEN 'CTA'\n\tWHEN A.Division LIKE '%FHIA%'\t\t\t\t\tTHEN 'FHI'\n\tWHEN A.Division LIKE '%MaxHome%'\t\t\t\tTHEN 'MXH'\n\tEND AS Division,\n\t\n*/\n\nE.Division,\n\n CAST(A.WeekNumber AS INT) AS WeekNumber,\n\t\n\tCASE \n        WHEN A.PayrollNumber LIKE '(%' THEN -CAST(REPLACE(REPLACE(REPLACE(A.PayrollNumber, '(', ''), ')', ''), ',', '') AS INT)\n        ELSE CAST(REPLACE(REPLACE(A.PayrollNumber, '$', ''), ',', '') AS INT)\n    END AS PayrollNumber,\n\n\tCASE \n        WHEN A.DistributionNumber LIKE '(%' THEN -CAST(REPLACE(REPLACE(REPLACE(A.DistributionNumber, '(', ''), ')', ''), ',', '') AS INT)\n        ELSE CAST(REPLACE(REPLACE(A.DistributionNumber, '$', ''), ',', '') AS INT)\n    END AS DistributionNumber,\n\n\t\n\t CASE \n        WHEN A.RegularPayRateAmount LIKE '(%' THEN -CAST(REPLACE(REPLACE(REPLACE(A.RegularPayRateAmount, '(', ''), ')', ''), ',', '') AS DECIMAL(10,2))\n        ELSE CAST(REPLACE(REPLACE(A.RegularPayRateAmount, '$', ''), ',', '') AS DECIMAL(10,2))\n    END AS RegularPayRateAmount,\n\n\t\n    A.RegularPayRateDescription,\n\n    CASE \n        WHEN A.GrossPay LIKE '(%' THEN -CAST(REPLACE(REPLACE(REPLACE(A.GrossPay, '(', ''), ')', ''), ',', '') AS DECIMAL(10,2))\n        ELSE CAST(REPLACE(REPLACE(A.GrossPay, '$', ''), ',', '') AS DECIMAL(10,2))\n    END AS GrossPay,\n\n    CASE \n        WHEN A.RegularHoursTotal LIKE '(%' THEN -CAST(REPLACE(REPLACE(REPLACE(A.RegularHoursTotal, '(', ''), ')', ''), ',', '') AS DECIMAL(10,2))\n        ELSE CAST(REPLACE(REPLACE(A.RegularHoursTotal, '$', ''), ',', '') AS DECIMAL(10,2))\n    END AS RegularHoursTotal,\n\n    CASE \n        WHEN A.OvertimeHoursTotal LIKE '(%' THEN -CAST(REPLACE(REPLACE(REPLACE(A.OvertimeHoursTotal, '(', ''), ')', ''), ',', '') AS DECIMAL(10,2))\n        ELSE CAST(REPLACE(REPLACE(A.OvertimeHoursTotal, '$', ''), ',', '') AS DECIMAL(10,2))\n    END AS OvertimeHoursTotal,\n\n    CASE \n        WHEN A.PBD_1_2PaidBday_Hours LIKE '(%' THEN -CAST(REPLACE(REPLACE(REPLACE(A.PBD_1_2PaidBday_Hours, '(', ''), ')', ''), ',', '') AS DECIMAL(10,2))\n        ELSE CAST(REPLACE(REPLACE(A.PBD_1_2PaidBday_Hours, '$', ''), ',', '') AS DECIMAL(10,2))\n    END AS PBD_1_2PaidBday_Hours,\n\n    CASE \n        WHEN A.PTO_Hours LIKE '(%' THEN -CAST(REPLACE(REPLACE(REPLACE(A.PTO_Hours, '(', ''), ')', ''), ',', '') AS DECIMAL(10,2))\n        ELSE CAST(REPLACE(REPLACE(A.PTO_Hours, '$', ''), ',', '') AS DECIMAL(10,2))\n    END AS PTO_Hours,\n\n    CASE \n        WHEN A.SI1_SickPay_Hours LIKE '(%' THEN -CAST(REPLACE(REPLACE(REPLACE(A.SI1_SickPay_Hours, '(', ''), ')', ''), ',', '') AS DECIMAL(10,2))\n        ELSE CAST(REPLACE(REPLACE(A.SI1_SickPay_Hours, '$', ''), ',', '') AS DECIMAL(10,2))\n    END AS SI1_SickPay_Hours,\n\n    CASE \n        WHEN A.TotalHours LIKE '(%' THEN -CAST(REPLACE(REPLACE(REPLACE(A.TotalHours, '(', ''), ')', ''), ',', '') AS DECIMAL(10,2))\n        ELSE CAST(REPLACE(REPLACE(A.TotalHours, '$', ''), ',', '') AS DECIMAL(10,2))\n    END AS TotalHours,\n\n    CASE \n        WHEN A.RegularEarningsTotal LIKE '(%' THEN -CAST(REPLACE(REPLACE(REPLACE(A.RegularEarningsTotal, '(', ''), ')', ''), ',', '') AS DECIMAL(10,2))\n        ELSE CAST(REPLACE(REPLACE(A.RegularEarningsTotal, '$', ''), ',', '') AS DECIMAL(10,2))\n    END AS RegularEarningsTotal,\n\n    CASE \n        WHEN A.OvertimeEarningsTotal LIKE '(%' THEN -CAST(REPLACE(REPLACE(REPLACE(A.OvertimeEarningsTotal, '(', ''), ')', ''), ',', '') AS DECIMAL(10,2))\n        ELSE CAST(REPLACE(REPLACE(A.OvertimeEarningsTotal, '$', ''), ',', '') AS DECIMAL(10,2))\n    END AS OvertimeEarningsTotal,\n\n    CASE \n        WHEN A.BON_BONUS_Earnings LIKE '(%' THEN -CAST(REPLACE(REPLACE(REPLACE(A.BON_BONUS_Earnings, '(', ''), ')', ''), ',', '') AS DECIMAL(10,2))\n        ELSE CAST(REPLACE(REPLACE(A.BON_BONUS_Earnings, '$', ''), ',', '') AS DECIMAL(10,2))\n    END AS BON_BONUS_Earnings,\n\n\t CASE \n        WHEN A.COM_COMMISSION_Earnings LIKE '(%' THEN -CAST(REPLACE(REPLACE(REPLACE(A.COM_COMMISSION_Earnings, '(', ''), ')', ''), ',', '') AS DECIMAL(10,2))\n        ELSE CAST(REPLACE(REPLACE(A.COM_COMMISSION_Earnings, '$', ''), ',', '') AS DECIMAL(10,2))\n    END AS COM_COMMISSION_Earnings,\n\n    CASE \n        WHEN A.CPA_Earnings LIKE '(%' THEN -CAST(REPLACE(REPLACE(REPLACE(A.CPA_Earnings, '(', ''), ')', ''), ',', '') AS DECIMAL(10,2))\n        ELSE CAST(REPLACE(REPLACE(A.CPA_Earnings, '$', ''), ',', '') AS DECIMAL(10,2))\n    END AS CPA_Earnings,\n\n    CASE \n        WHEN A.INC_Commission_Earnings LIKE '(%' THEN -CAST(REPLACE(REPLACE(REPLACE(A.INC_Commission_Earnings, '(', ''), ')', ''), ',', '') AS DECIMAL(10,2))\n        ELSE CAST(REPLACE(REPLACE(A.INC_Commission_Earnings, '$', ''), ',', '') AS DECIMAL(10,2))\n    END AS INC_Commission_Earnings,\n\n    CASE \n        WHEN A.PBD_1_2PaidBday_Earnings LIKE '(%' THEN -CAST(REPLACE(REPLACE(REPLACE(A.PBD_1_2PaidBday_Earnings, '(', ''), ')', ''), ',', '') AS DECIMAL(10,2))\n        ELSE CAST(REPLACE(REPLACE(A.PBD_1_2PaidBday_Earnings, '$', ''), ',', '') AS DECIMAL(10,2))\n    END AS PBD_1_2PaidBday_Earnings,\n\n    CASE \n        WHEN A.PTO_Earnings LIKE '(%' THEN -CAST(REPLACE(REPLACE(REPLACE(A.PTO_Earnings, '(', ''), ')', ''), ',', '') AS DECIMAL(10,2))\n        ELSE CAST(REPLACE(REPLACE(A.PTO_Earnings, '$', ''), ',', '') AS DECIMAL(10,2))\n    END AS PTO_Earnings,\n\n    CASE \n        WHEN A.SI1_SickPay_Earnings LIKE '(%' THEN -CAST(REPLACE(REPLACE(REPLACE(A.SI1_SickPay_Earnings, '(', ''), ')', ''), ',', '') AS DECIMAL(10,2))\n        ELSE CAST(REPLACE(REPLACE(A.SI1_SickPay_Earnings, '$', ''), ',', '') AS DECIMAL(10,2))\n    END AS SI1_SickPay_Earnings,\n\n    CASE \n        WHEN A.TotalEarnings LIKE '(%' THEN -CAST(REPLACE(REPLACE(REPLACE(A.TotalEarnings, '(', ''), ')', ''), ',', '') AS DECIMAL(10,2))\n        ELSE CAST(REPLACE(REPLACE(A.TotalEarnings, '$', ''), ',', '') AS DECIMAL(10,2))\n    END AS TotalEarnings,\n\n    GETDATE() AS RecordCreatedDate,\n    GETDATE() AS RecordUpdatedDate\n\nFROM ODS.ADP_WAGES_PAYROLL_REPORT A \nLEFT JOIN EDW.DIM_HR_EMPLOYEE E\nON A.EmployeeID = E.EmployeeID",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"writeBehavior": "Upsert",
+						"upsertSettings": {
+							"keys": [
+								"EmployeeID",
+								"PayDate"
+							],
+							"interimSchemaName": ""
+						},
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "PayDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "PayDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "PeriodBeginningDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "PeriodBeginningDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "PeriodEndDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "PeriodEndDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "Employee_PK",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Employee_PK",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "EmployeeID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "EmployeeID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "WeekNumber",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "WeekNumber",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "PayrollNumber",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "PayrollNumber",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "DistributionNumber",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "DistributionNumber",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "RegularPayRateAmount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 4,
+									"precision": 16
+								},
+								"sink": {
+									"name": "RegularPayRateAmount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 4,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "RegularPayRateDescription",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "RegularPayRateDescription",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "GrossPay",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 10
+								},
+								"sink": {
+									"name": "GrossPay",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "RegularHoursTotal",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 10
+								},
+								"sink": {
+									"name": "RegularHoursTotal",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "OvertimeHoursTotal",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 10
+								},
+								"sink": {
+									"name": "OvertimeHoursTotal",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "PBD_1_2PaidBday_Hours",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 10
+								},
+								"sink": {
+									"name": "PBD_1_2PaidBday_Hours",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "PTO_Hours",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 10
+								},
+								"sink": {
+									"name": "PTO_Hours",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "SI1_SickPay_Hours",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 10
+								},
+								"sink": {
+									"name": "SI1_SickPay_Hours",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "TotalHours",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 10
+								},
+								"sink": {
+									"name": "TotalHours",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "RegularEarningsTotal",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 10
+								},
+								"sink": {
+									"name": "RegularEarningsTotal",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "OvertimeEarningsTotal",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 10
+								},
+								"sink": {
+									"name": "OvertimeEarningsTotal",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "BON_BONUS_Earnings",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 10
+								},
+								"sink": {
+									"name": "BON_BONUS_Earnings",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "COM_COMMISSION_Earnings",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 10
+								},
+								"sink": {
+									"name": "COM_COMMISSION_Earnings",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "CPA_Earnings",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 10
+								},
+								"sink": {
+									"name": "CPA_Earnings",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "INC_Commission_Earnings",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 10
+								},
+								"sink": {
+									"name": "INC_Commission_Earnings",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "PBD_1_2PaidBday_Earnings",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 10
+								},
+								"sink": {
+									"name": "PBD_1_2PaidBday_Earnings",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "PTO_Earnings",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 10
+								},
+								"sink": {
+									"name": "PTO_Earnings",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "SI1_SickPay_Earnings",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 10
+								},
+								"sink": {
+									"name": "SI1_SickPay_Earnings",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "TotalEarnings",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 10
+								},
+								"sink": {
+									"name": "TotalEarnings",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "RecordCreatedDate",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "RecordCreatedDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "RecordUpdatedDate",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "RecordUpdatedDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_ODS_ADP_WAGES_PAYROLL_REPORT",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_FACT_HR_EMPLOYEE_WAGES",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "UPD_Employee_PK",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "cpy_FACT_EMPLOYEE_TIMECARD",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "cpy_FACT_HR_EMPLOYEE_TIMEOFF",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "cpy_FACT_HR_EMPLOYEE_WAGES",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "UPDATE A\nSET A.Employee_PK = B.Employee_PK\nFROM EDW.FACT_HR_EMPLOYEE_TIMECARD A\nJOIN EDW.DIM_HR_EMPLOYEE B \nON A.EmployeeID = B.EmployeeID\nWHERE B.CurrentRecordFlag='Y'\nAND A.Employee_PK!=B.Employee_PK;\n\n\nUPDATE A\nSET A.Employee_PK = B.Employee_PK\nFROM EDW.FACT_HR_EMPLOYEE_WAGES A\nJOIN EDW.DIM_HR_EMPLOYEE B \nON A.EmployeeID = B.EmployeeID\nWHERE B.CurrentRecordFlag='Y'\nAND A.Employee_PK!=B.Employee_PK;\n\n\nUPDATE A\nSET A.Employee_PK = B.Employee_PK\nFROM EDW.FACT_HR_EMPLOYEE_TIMEOFF A\nJOIN EDW.DIM_HR_EMPLOYEE B \nON A.EmployeeID = B.EmployeeID\nWHERE B.CurrentRecordFlag='Y'\nAND A.Employee_PK!=B.Employee_PK;"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "cpy_FACT_HR_EMPLOYEE_TIMEOFF",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT  \nDISTINCT \nE.Employee_PK\n,A.AssociateID\t\t\tAS\t\tEmployeeID\n,CASE WHEN A.SubmittedDate IS NULL OR A.SubmittedDate='' THEN NULL ELSE CAST(A.SubmittedDate AS DATE)\tEND\tAS\t\tSubmissionDate\n,CASE WHEN A.RequestDate IS NULL OR A.RequestDate ='' THEN NULL ELSE CAST(A.RequestDate AS DATE) END\t\tAS\t\tTimeoffReqDate\n,A.ReasonCode\t\t\tAS\t\tReasonCode\n,A.PositionID\t\t\tAS\t\tPositionID\n,A.PayrollCompanyCode\tAS\t\tCompanyCode\n,A.HomeDept\t\t\t\tAS\t\tWorkedDepartment\n,A.LocationCode\t\t\tAS\t\tLocation\n,A.LocationDesc\t\t\tAS\t\tLocationDesc\n,A.ReportsTo\t\t\tAS\t\tReportsTo\n,A.PolicyName\t\t\tAS\t\tPolicyName\n,A.RequestedBy\t\t\tAS\t\tSubmittedBy\n,A.StartTime\t\t\tAS\t\tStartTime\n,CASE WHEN A.Amount IS NULL OR A.Amount='' THEN NULL ELSE CAST(LEFT(A.Amount, CHARINDEX(' ', A.Amount) - 1) AS FLOAT) END\t\tAS Duration\n,CASE WHEN A.Amount IS NULL OR A.Amount='' THEN NULL ELSE LTRIM(RIGHT(A.Amount, LEN(A.Amount) - CHARINDEX(' ', A.Amount))) END\tAS Day_Hours\n,'Approved' \t\t\tAS \t\tRequestStatus\n,CAST(NULL AS DATE) \tAS \t\tLastReviewDate\n,A.Modified_ApprovedBy\tAS\t\tReviewerName\n,A.Comments\t\t\t\tAS\t\tComments\n,A.Notes\t\t\t\tAS\t\tNotes\n,CASE WHEN A.TransactionDate IS NULL OR A.TransactionDate='' THEN NULL ELSE CAST(A.TransactionDate AS DATE)\tEND\tAS\t\tTransactionDate\n,CASE WHEN A.ReviewByDate IS NULL OR A.ReviewByDate ='' THEN NULL ELSE CAST(A.ReviewByDate AS DATE) END\t\t\tAS\t\tReviewDate\n,A.LastReviewedBy\t\tAS\t\tLastReviewBy\n,A.RequestType\t\t\tAS\t\tRequestType\n,A.ReviewerComments\t\tAS\t\tReviewerComments\n,GETDATE() AS CreatedTS\n,GETDATE() AS LastUpdatedTS\n\nFROM [ODS].[ADP_EMPLOYEE_TIMEOFF] A\nJOIN EDW.DIM_HR_EMPLOYEE E\nON A.AssociateID = E.EmployeeID",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "TRUNCATE TABLE [EDW].[FACT_HR_EMPLOYEE_TIMEOFF]",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Employee_PK",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Employee_PK",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "EmployeeID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "EmployeeID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SubmissionDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "SubmissionDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "TimeoffReqDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "TimeoffReqDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "ReasonCode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ReasonCode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PositionID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "PositionID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CompanyCode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CompanyCode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "WorkedDepartment",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "WorkedDepartment",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Location",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Location",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LocationDesc",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "LocationDesc",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ReportsTo",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ReportsTo",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PolicyName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "PolicyName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SubmittedBy",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "SubmittedBy",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "StartTime",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "StartTime",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Duration",
+									"type": "Double",
+									"physicalType": "float"
+								},
+								"sink": {
+									"name": "Duration",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Day_Hours",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Day_Hours",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "RequestStatus",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "RequestStatus",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LastReviewDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "LastReviewDate",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ReviewerName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ReviewerName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Comments",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Comments",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Notes",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Notes",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "TransactionDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "TransactionDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "ReviewDate",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ReviewDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "LastReviewBy",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "LastReviewBy",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "RequestType",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "RequestType",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ReviewerComments",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ReviewerComments",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CreatedTS",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "RecordCreatedDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "RecordUpdatedDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ODS_ADP_EMPLOYEE_TIMEOFF",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_FACT_HR_EMPLOYEE_TIMEOFF",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "ADP_Employee"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-10-30T12:46:38Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

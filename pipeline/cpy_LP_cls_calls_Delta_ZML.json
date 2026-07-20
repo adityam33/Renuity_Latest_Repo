@@ -1,0 +1,753 @@
+{
+	"name": "cpy_LP_cls_calls_Delta_ZML",
+	"properties": {
+		"activities": [
+			{
+				"name": "FHI",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:40:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT \n*\nFROM dbo.cls_Calls WITH (NOLOCK)\n--WHERE CAST(CallDate AS DATE) >=CAST(GETDATE()-45 AS DATE);\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE [ZML].[LP_FHI_cls_calls]",
+						"allowCopyCommand": true,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "cst_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "cst_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "lds_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "lds_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "emp_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "emp_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "CallDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "CallDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "ResultCode",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ResultCode",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Phone",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Phone",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "cty_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "cty_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ccl_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "ccl_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "ccd_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "ccd_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "cqd_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "cqd_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "campaign",
+									"type": "String"
+								},
+								"sink": {
+									"name": "campaign",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "IVRTime",
+									"type": "String"
+								},
+								"sink": {
+									"name": "IVRTime",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "RingTime",
+									"type": "String"
+								},
+								"sink": {
+									"name": "RingTime",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ParkTime",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ParkTime",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "AfterCallWorkTime",
+									"type": "String"
+								},
+								"sink": {
+									"name": "AfterCallWorkTime",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Transfers",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Transfers",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Conferences",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Conferences",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Holds",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Holds",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Abandoned",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Abandoned",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CustomerName",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CustomerName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Recordings",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Recordings",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CallID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CallID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "SESSIONID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "SESSIONID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadScore",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LeadScore",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "F9CustID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "F9CustID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "anr_logit_rank",
+									"type": "String"
+								},
+								"sink": {
+									"name": "anr_logit_rank",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LISTNAME",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LISTNAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "anr_ev_rank",
+									"type": "String"
+								},
+								"sink": {
+									"name": "anr_ev_rank",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ServiceLevel",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ServiceLevel",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CampaignType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CampaignType",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Skill",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Skill",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "AgentGroup",
+									"type": "String"
+								},
+								"sink": {
+									"name": "AgentGroup",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LPRecType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LPRecType",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "SpeedOfAnswer",
+									"type": "String"
+								},
+								"sink": {
+									"name": "SpeedOfAnswer",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "NoPartyContact",
+									"type": "String"
+								},
+								"sink": {
+									"name": "NoPartyContact",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Contacted",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Contacted",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LiveConnect",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LiveConnect",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DialTime",
+									"type": "String"
+								},
+								"sink": {
+									"name": "DialTime",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "TimeToAbandon",
+									"type": "String"
+								},
+								"sink": {
+									"name": "TimeToAbandon",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "TalkTIme",
+									"type": "String"
+								},
+								"sink": {
+									"name": "TalkTIme",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ManualTime",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ManualTime",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "TotalQueue",
+									"type": "String"
+								},
+								"sink": {
+									"name": "TotalQueue",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ConsultTime",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ConsultTime",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "TalkTimeLessHoldAndPark",
+									"type": "String"
+								},
+								"sink": {
+									"name": "TalkTimeLessHoldAndPark",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Parks",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Parks",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PreviewTime",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PreviewTime",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "number1",
+									"type": "String"
+								},
+								"sink": {
+									"name": "number1",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Source",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Source",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "SubSource",
+									"type": "String"
+								},
+								"sink": {
+									"name": "SubSource",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Language",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Language",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Agent",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Agent",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_ZML_FHI_aph_AlternatePhones",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ZML_ODS_FHI_cls_calls_FullLoad",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "MXH",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:40:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT \nid\t,\ncst_id\t,\nlds_id\t,\nemp_id\t,\nCallDate\t,\nResultCode\t,\nPhone\t,\ncty_id\t,\nccl_id\t,\nccd_id\t,\ncqd_id\t\n\nFROM dbo.cls_Calls WITH (NOLOCK)\n--WHERE CAST(CallDate AS DATE) >=CAST(GETDATE()-45 AS DATE);",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE [ZML].[LP_MXH_cls_calls]",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "cst_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "cst_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "lds_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "lds_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "emp_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "emp_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "CallDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "CallDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "ResultCode",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ResultCode",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Phone",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Phone",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "cty_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "cty_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ccl_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "ccl_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "ccd_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "ccd_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "cqd_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "cqd_id",
+									"type": "Int32"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_ZML_MXH_aph_AlternatePhones",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ZML_ODS_MXH_cls_calls_Delta",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "Temp/Anuj/ZML/LP_to_ODS_ZML"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-11-12T09:12:25Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

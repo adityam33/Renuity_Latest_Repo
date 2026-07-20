@@ -1,0 +1,287 @@
+{
+	"name": "cpy_ERP_AP_TRAN",
+	"properties": {
+		"activities": [
+			{
+				"name": "ERP to ODS - AP Tran",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ODataSource",
+						"httpRequestTimeout": "00:05:00"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"tableOption": "autoCreate",
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "LineNbr",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "LineNbr",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ReferenceNbr",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ReferenceNbr",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "TranType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "TranType",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Account",
+									"type": "String"
+								},
+								"sink": {
+									"name": "AccountID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "_1099Box",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Box1099",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Description",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Box1099_Description",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Branch",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BranchID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchName",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BranchID_Description",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Amount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "TranAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "Balance",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "TranBalance",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "APTran_curyInfoID",
+									"type": "Int64"
+								},
+								"sink": {
+									"name": "CuryInfoID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "InventoryID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "InventoryID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Description_2",
+									"type": "String"
+								},
+								"sink": {
+									"name": "InventoryID_Desc",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "APTran_origTranAmt",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "OrigTranAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "OriginalAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "CuryOrigTranAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "Vendor",
+									"type": "String"
+								},
+								"sink": {
+									"name": "VendorID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "VendorName",
+									"type": "String"
+								},
+								"sink": {
+									"name": "VendorID_Desc",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Subaccount",
+									"type": "String"
+								},
+								"sink": {
+									"name": "SubID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Description_3",
+									"type": "String"
+								},
+								"sink": {
+									"name": "SubID_Desc",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "APTran_createdDateTime",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "CreatedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "CreatedBy",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CreatedBy",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "APTran_lastModifiedDateTime",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastModifiedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "LastModifiedBy",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LastModifiedBy",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_ERP_AP_TRAN",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_ERP_AP_TRAN",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "SRC_to_ODS/ERP/Acumatica/TRANSACTIONS"
+		},
+		"annotations": [],
+		"lastPublishTime": "2024-08-26T20:42:06Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

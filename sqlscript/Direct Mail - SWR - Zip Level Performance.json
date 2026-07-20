@@ -1,0 +1,20 @@
+{
+	"name": "Direct Mail - SWR - Zip Level Performance",
+	"properties": {
+		"folder": {
+			"name": "DMLs/Analysis SQL/Direct Mail"
+		},
+		"content": {
+			"query": "SELECT\nzipPerf.[ZipCode]\n,zip.HouseholdsPerZipCode as [Total Households]\n,sum(case when EntryMonth between '2022-09-01' and '2022-11-30' then NetSalesAmount else 0 end) as [3Mo Net Sales Amount]\n,sum([NetSalesAmount]) as [Net Sales Amount]\n,zonda.[Overall_Remodeling_Composite_Ranking_Index] as [Overall RRI]\n,zonda.[Baths_Composite_Ranking_Index] as [Baths RRI]\n,zonda.[Windows_Composite_Ranking_Index] as [Windows RRI]\n,sum([LeadCount]) as [Lead Count]\n,sum(case when EntryMonth between '2022-09-01' and '2022-11-30' then LeadCount else 0 end) as [3Mo Lead Count]\n,sum([ApptSet]) as [Appt Set]\n,sum(case when EntryMonth between '2022-09-01' and '2022-11-30' then ApptSet else 0 end) as [3Mo Appt Set]\n,sum([NetSold]) as [Net Sold]\n,sum(case when EntryMonth between '2022-09-01' and '2022-11-30' then NetSold else 0 end) as [3Mo Net Sold]\n,zipPerf.[City]\n,zipPerf.[County]\n,zipPerf.[State]\n FROM \n [EDW].[SUMM_FACT_ZIP_CODE_PERFORMANCE] zipPerf\n inner join ODS.MKTDATA_ZIP_CODES_DB_DELUXE_BUSINESS zip\n on zipPerf.ZipCode = zip.ZipCode\nleft join ODS.MKTDATA_ZONDA_ZIP_CODE_INDEX zonda\non zipPerf.ZipCode = zonda.ZipCode\nwhere \nzipPerf.Division = 'SWR'\nand zip.PrimaryRecord = 'P'\ngroup by \nzipPerf.[ZipCode]\n,zip.HouseholdsPerZipCode\n,zipPerf.[City]\n,zipPerf.[County]\n,zipPerf.[State]\n,zonda.[Overall_Remodeling_Composite_Ranking_Index]\n,zonda.[Baths_Composite_Ranking_Index]\n,zonda.[Windows_Composite_Ranking_Index]\norder by \n[Net Sales Amount] desc\n\n/*\nselect distinct brn.LongName as Branch, ZipCode\nfrom \nEDW.DIM_BRANCH_ZIP brz, EDW.DIM_BRANCH brn\nwhere brz.Division = 'SWR'\nand brz.BranchID = brn.BranchID\nand brn.Active = 'True'\norder by Branch\n\nselect * from EDW.DIM_BRANCH where Division = 'SWR' order by BranchID\n*/",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

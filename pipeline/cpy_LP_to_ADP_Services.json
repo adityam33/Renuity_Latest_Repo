@@ -1,0 +1,202 @@
+{
+	"name": "cpy_LP_to_ADP_Services",
+	"properties": {
+		"activities": [
+			{
+				"name": "Get Last Updated Date",
+				"type": "GetMetadata",
+				"dependsOn": [
+					{
+						"activity": "Services_ALL_DIV",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.6:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "Services_ALL_DIV",
+						"type": "DatasetReference"
+					},
+					"fieldList": [
+						"lastModified"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "DelimitedTextReadSettings"
+					}
+				}
+			},
+			{
+				"name": "Archive",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Get Last Updated Date",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.6:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": false,
+							"wildcardFolderPath": "lp-extracts/Services_with_StartDate",
+							"wildcardFileName": "*.csv",
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "Services_ALL_DIV",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ADP_File_Archive",
+						"type": "DatasetReference",
+						"parameters": {
+							"daily_folder": {
+								"value": "@concat('lp-extracts/Services_with_StartDate/archive/',substring(activity('Get Last Updated Date').output.lastModified,0,10))",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "Services_ALL_DIV",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT \nJSV.LP_JobServiceID \tAS TicketNumber,\nCASE \n\tWHEN JSV.DIVISION='PBC' THEN 'PBC Service ID'\n\tWHEN JSV.DIVISION='FHI' THEN 'FHI Service ID'\n\tWHEN JSV.DIVISION='RTW' THEN 'RTW Service ID'\n\tWHEN JSV.DIVISION='SWR' THEN 'SWR Service ID'\n\tWHEN JSV.DIVISION='CTA' THEN 'HRG Service ID'\n\tWHEN JSV.DIVISION='MAC' THEN 'MAC Service ID'\n\tWHEN JSV.DIVISION='MXH' THEN 'MXH Service ID'\n\tEND AS CustName\n\nFROM EDW.FACT_JOB_SERVICE JSV \nJOIN EDW.DIM_CUSTOMER CST ON JSV.CustomerID = CST.CustomerID \nWHERE JSV.ScheduledServiceDate >=CAST(GETDATE()-7 AS DATE)\nAND JSV.ScheduledServiceDate <= CAST(DATEADD(DAY,7,GETDATE()) AS DATE)",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "TicketNumber",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "TicketNumber",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CustName",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "CustName",
+									"type": "String",
+									"physicalType": "String"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_FACT_JOB",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "Services_ALL_DIV",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "ADP_Employee/LP_to_ADP"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-11-13T12:50:12Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

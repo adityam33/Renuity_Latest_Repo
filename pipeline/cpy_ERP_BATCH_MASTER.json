@@ -1,0 +1,152 @@
+{
+	"name": "cpy_ERP_BATCH_MASTER",
+	"properties": {
+		"activities": [
+			{
+				"name": "ERP to ODS - Batch Master",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "00.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ODataSource",
+						"httpRequestTimeout": "00:10:00"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Upsert",
+						"upsertSettings": {
+							"keys": [
+								"BatchNumber"
+							],
+							"interimSchemaName": ""
+						},
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "BatchNumber",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BatchNumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Description",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BatchDescription",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PostPeriod",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PostPeriod",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Batch_tranPeriodID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BatchTranPeriodID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CreatedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "CreatedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "Branch",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BranchID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Module",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Module",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "OrigBatchNumber",
+									"type": "String"
+								},
+								"sink": {
+									"name": "OriginalBatchNumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LastModifiedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastModifiedOn",
+									"type": "DateTime"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_ERP_BATCH_MASTER",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_ERP_BATCH_MASTER",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "SRC_to_ODS/ERP/Acumatica/MASTER DATA"
+		},
+		"annotations": [],
+		"lastPublishTime": "2023-07-26T14:20:44Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

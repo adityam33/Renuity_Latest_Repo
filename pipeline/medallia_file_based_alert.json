@@ -1,0 +1,182 @@
+{
+	"name": "medallia_file_based_alert",
+	"properties": {
+		"activities": [
+			{
+				"name": "Get Survey Metadata",
+				"description": "",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "SRC_MEDALLIA_SURVEY_FILES",
+						"type": "DatasetReference"
+					},
+					"fieldList": [
+						"exists"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "DelimitedTextReadSettings"
+					}
+				}
+			},
+			{
+				"name": "If Survey Condition",
+				"description": "Check Survey files if exists in affiliate folder else execute pipeline to check in archive \nfolder.",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Get Survey Metadata",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@activity('Get Survey Metadata').output.exists",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "Execute Medallia Survey Archive Status",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "medallia_survey_archive_status",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "Variable for Survey",
+							"type": "AppendVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "exists_in_affiliate_folder",
+								"value": "true"
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Get Guild Quality Metadata",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "SRC_MEDALLIA_GUILD_QUALITY_FILES",
+						"type": "DatasetReference"
+					},
+					"fieldList": [
+						"exists"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "DelimitedTextReadSettings"
+					}
+				}
+			},
+			{
+				"name": "If Guild Quality Condition",
+				"description": "Check Guild Quality files if exists in affiliate folder else execute pipeline to check in archive ",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Get Guild Quality Metadata",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@activity('Get Guild Quality Metadata').output.exists",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "Execute Medallia Guild Quality Archive Status",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "medallia_guild_quality_archive_status",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "Variable for Guild Quality",
+							"type": "AppendVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "medallia_guild_quality_files_exists",
+								"value": "true"
+							}
+						}
+					]
+				}
+			}
+		],
+		"variables": {
+			"exists_in_affiliate_folder": {
+				"type": "Array"
+			},
+			"medallia_guild_quality_files_exists": {
+				"type": "Array"
+			}
+		},
+		"folder": {
+			"name": "Temp/Sameen"
+		},
+		"annotations": [],
+		"lastPublishTime": "2024-04-23T16:16:47Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

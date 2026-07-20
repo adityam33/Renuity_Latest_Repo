@@ -1,0 +1,164 @@
+{
+	"name": "ODS_INCENTIVE_MANUAL_FILES_MONTHLY",
+	"properties": {
+		"activities": [
+			{
+				"name": "ForEach_IncentiveTabs",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Lookup_Budget_File_Config_JSON",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup_Budget_File_Config_JSON').output.value",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"batchCount": 4,
+					"activities": [
+						{
+							"name": "cpy_Incentive_FileLoad",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "ExcelSource",
+									"storeSettings": {
+										"type": "AzureBlobStorageReadSettings",
+										"recursive": true,
+										"enablePartitionDiscovery": false
+									}
+								},
+								"sink": {
+									"type": "SqlPoolSink",
+									"allowCopyCommand": true
+								},
+								"enableStaging": true,
+								"stagingSettings": {
+									"linkedServiceName": {
+										"referenceName": "Azure_blobStorage",
+										"type": "LinkedServiceReference"
+									},
+									"path": "staging"
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "SRC_Incentive_Metrics1",
+									"type": "DatasetReference",
+									"parameters": {
+										"fileName": {
+											"value": "@item().FileName",
+											"type": "Expression"
+										},
+										"sheetName": {
+											"value": "@item().SheetName",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ODS_INCENTIVE_METRICS_1",
+									"type": "DatasetReference",
+									"parameters": {
+										"tableName": "@item().TargetTable",
+										"schemaName": "@item().TargetSchema"
+									}
+								}
+							]
+						}
+					]
+				}
+			},
+			{
+				"name": "Truncate_ODS",
+				"type": "Script",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": {
+								"value": "TRUNCATE TABLE [ODS].INCENTIVE_METRIC_BUDGET_ACTUALS",
+								"type": "Expression"
+							}
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Lookup_Budget_File_Config_JSON",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "Truncate_ODS",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "JsonSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "JsonReadSettings"
+						}
+					},
+					"dataset": {
+						"referenceName": "Bonus_Budget_File_Config_JSON",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/INCENTIVE_METRICS"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-04-27T12:24:13Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

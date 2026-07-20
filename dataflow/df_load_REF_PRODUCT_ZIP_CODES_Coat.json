@@ -1,0 +1,110 @@
+{
+	"name": "df_load_REF_PRODUCT_ZIP_CODES_Coat",
+	"properties": {
+		"folder": {
+			"name": "SRC_to_RDM"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "REF_ZIP_CODES_COAT_PHI",
+						"type": "DatasetReference"
+					},
+					"name": "PHI"
+				},
+				{
+					"dataset": {
+						"referenceName": "REF_ZIP_CODES_COAT_MAC",
+						"type": "DatasetReference"
+					},
+					"name": "MAC"
+				},
+				{
+					"dataset": {
+						"referenceName": "REF_ZIP_CODES_COAT_SWR",
+						"type": "DatasetReference"
+					},
+					"name": "SWR"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "RDM_REF_PRODUCT_ZIP_CODES",
+						"type": "DatasetReference"
+					},
+					"name": "REFPRODUCTZIPCODES",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "unionAllDivisions"
+				},
+				{
+					"name": "addDivisionPHI"
+				},
+				{
+					"name": "addDivisionMAC"
+				},
+				{
+					"name": "addDivisionSWR"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          ZipCode as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> PHI",
+				"source(output(",
+				"          ZipCode as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> MAC",
+				"source(output(",
+				"          ZipCode as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> SWR",
+				"addDivisionPHI, addDivisionMAC, addDivisionSWR union(byName: true)~> unionAllDivisions",
+				"PHI derive(Division = 'PHI',",
+				"          Product = 'Coat') ~> addDivisionPHI",
+				"MAC derive(Division = 'MAC',",
+				"          Product = 'Coat') ~> addDivisionMAC",
+				"SWR derive(Division = 'SWR',",
+				"          Product = 'Coat') ~> addDivisionSWR",
+				"unionAllDivisions sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          Division as string,",
+				"          Product as string,",
+				"          ZipCode as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     staged: true,",
+				"     allowCopyCommand: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          Division,",
+				"          Product,",
+				"          ZipCode",
+				"     )) ~> REFPRODUCTZIPCODES"
+			]
+		}
+	}
+}

@@ -1,0 +1,796 @@
+{
+	"name": "UNI_EXTN_Tables_Load",
+	"properties": {
+		"activities": [
+			{
+				"name": "DIM_BRANCH_EXTN_Load_UPSERT",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "DIM_BRANCH_EXTN_Load",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT REF.TablePK_EDW AS BranchID,\nBR.Division,\nBR.LongName AS BranchName,\nBR.ShortName,\nBR.MediumName,\nREF.UnifiedValue AS UNI_Market,\nREF.UnifiedValue_Group AS UNI_MarketGroup,\nREF.UnifiedValue_Category AS UNI_MarketRegion,\nBEX.ACU_ID,\nBEX.ACU_Market,\nBEX.OrganicVsNonOrganic,\nBEX.TypeOfMarket,\nBEX.District,\nBEX.State,\nBEX.Region,\nCOALESCE(BEX.MappingInd,'NEW') AS MappingInd,\nGETDATE() AS CreatedTS,\nGETDATE() AS LastUpdatedTS,\nCASE \n\tWHEN BEX.Division_MKTG IS NULL AND BR.Division='FHI' THEN 'A.FHIA'\n\tWHEN BEX.Division_MKTG IS NULL AND BR.Division='SWR' THEN 'B.Statewide'\n\tWHEN BEX.Division_MKTG IS NULL AND BR.Division='RTW' THEN 'H.Rite Window'\n\tWHEN BEX.Division_MKTG IS NULL AND BR.Division='MXH' THEN 'F.Max Home'\n\tWHEN BEX.Division_MKTG IS NULL AND BR.Division='HSI' THEN 'E.Home Smart'\n\t\n\tWHEN BEX.Division_MKTG IS NULL AND BR.Division='PBC' AND BR.LongName like '%Gtr%'  \t \t\tTHEN 'G.Pacific Gutter'\n\tWHEN BEX.Division_MKTG IS NULL AND BR.Division='PBC' AND BR.LongName NOT like '%Gtr%'  \t  \tTHEN 'G.Pacific Bath'\n\t\n\tWHEN BEX.Division_MKTG IS NULL AND BR.Division IN ('CTA','PHI','MAC') AND BR.LongName like '%Garage%' THEN 'I.Garage Coating'\n\t\n\tWHEN BEX.Division_MKTG IS NULL AND BR.Division='CTA' AND BR.LongName NOT like '%Garage%'  THEN 'J.Closet America'\n\tWHEN BEX.Division_MKTG IS NULL AND BR.Division='PHI' AND BR.LongName NOT like '%Garage%'  THEN 'D.Paradise'\n\tWHEN BEX.Division_MKTG IS NULL AND BR.Division='MAC' AND BR.LongName NOT like '%Garage%'  THEN 'C.Mad City'\n\t\n\tELSE BEX.Division_MKTG END AS Division_MKTG\n\t\n\nFROM [EDW_DUN].[UNI_REF_MAPPING] REF\nJOIN EDW.DIM_BRANCH BR ON REF.TablePK_EDW = BR.BranchID\nLEFT JOIN EDW_DUN.DIM_BRANCH_EXTN BEX ON REF.TablePK_EDW = BEX.BranchID\nWHERE REF.TableName='DIM_BRANCH'\nAND REF.MappingInd !='UNMAPPED'\nAND (CAST(REF.CreatedTs AS DATE)>=CAST(GETDATE()-10 AS DATE) OR CAST(REF.LastUpdatedTS AS DATE)>=CAST(GETDATE()-10 AS DATE))",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"writeBehavior": "Upsert",
+						"upsertSettings": {
+							"keys": [
+								"BranchID"
+							],
+							"interimSchemaName": ""
+						},
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "BranchID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "BranchID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Division_MKTG",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Division_MKTG",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "BranchName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ShortName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ShortName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "MediumName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "MediumName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "UNI_Market",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "UNI_Market",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "UNI_MarketGroup",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "UNI_MarketGroup",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "UNI_MarketRegion",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "UNI_MarketRegion",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ACU_ID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ACU_ID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ACU_Market",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ACU_Market",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "OrganicVsNonOrganic",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "OrganicVsNonOrganic",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "TypeOfMarket",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "TypeOfMarket",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "District",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "District",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "State",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "State",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Region",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Region",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "MappingInd",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "MappingInd",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CreatedTS",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "CreatedTS",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								}
+							},
+							{
+								"source": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_UNI_REF_MAPPING",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_DIM_BRANCH_EXTN",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "DIM_PRODUCT_EXTN_Load_UPSERT",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "DIM_BRANCH_EXTN_Load_UPSERT",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT \nREF.TablePK_EDW AS ProductID,\nPR.ProductGroupID,\nPR.Division,\nPR.ProductName,\nPR.LongDescription AS ProductDescription,\nPG.ProductGroup,\nREF.UnifiedValue AS UNI_ProductName,\nREF.UnifiedValue_Group AS UNI_ProductGroup,\nPEX.ACU_ProductID,\nPEX.ACU_Product,\nCOALESCE(PEX.MappingInd,'NEW') AS MappingInd,\nGETDATE() AS CreatedTS,\nGETDATE() AS LastUpdatedTS\nFROM [EDW_DUN].[UNI_REF_MAPPING] REF\nJOIN EDW.DIM_PRODUCT PR ON REF.TablePK_EDW = PR.ProductID\nLEFT JOIN EDW.DIM_PRODUCT_GROUP PG ON PR.ProductGroupID = PG.ProductGroupID\nLEFT JOIN EDW_DUN.[DIM_PRODUCT_EXTN] PEX ON REF.TablePK_EDW = PEX.ProductID\nWHERE REF.TableName='DIM_PRODUCT'\nAND REF.MappingInd !='UNMAPPED'\nAND (CAST(REF.CreatedTs AS DATE)>=CAST(GETDATE()-5 AS DATE) OR CAST(REF.LastUpdatedTS AS DATE)>=CAST(GETDATE()-5 AS DATE))",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"writeBehavior": "Upsert",
+						"upsertSettings": {
+							"keys": [
+								"ProductID"
+							],
+							"interimSchemaName": ""
+						},
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "ProductID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ProductID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ProductGroupID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ProductGroupID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ProductName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ProductName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ProductDescription",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ProductDescription",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ProductGroup",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ProductGroup",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "UNI_ProductName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "UNI_ProductName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "UNI_ProductGroup",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "UNI_ProductGroup",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ACU_ProductID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ACU_ProductID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ACU_Product",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ACU_Product",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "MappingInd",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "MappingInd",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CreatedTS",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "CreatedTS",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								}
+							},
+							{
+								"source": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_UNI_REF_MAPPING",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_DIM_PRODUCT_EXTN",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "UPD_BRANCH_EXTN_REF_MKTNG_MARKET",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "DIM_PRODUCT_EXTN_Load_UPSERT",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "INSERT INTO EDW_DUN.DIM_BRANCH_EXTN\n(BranchID\t,Division\t,Division_MKTG\t,BranchName\t,ShortName\t,MediumName\t,\nUNI_Market\t,UNI_MarketGroup\t,UNI_MarketRegion\t,ACU_ID\t,ACU_Market\t,OrganicVsNonOrganic\t,\nTypeOfMarket\t,District\t,State\t,Region\t,MappingInd\t,CreatedTS\t,LastUpdatedTS\t,Division_MKTG_Old\t\n)\n\nSELECT \nA.BranchID,A.Market,A.Division AS Division_MKTG,A.BranchName,A.ShortName,\nA.MediumName,A.Market_OpCo_Reporting,A.MarketGroup,A.MarketRegion,A.ACU_ID,\nA.ACU_Market,A.Organic_vs_New,A.TypeOfMarket,A.District,A.State,A.Region,\n'MAPPED',GETDATE() AS CreatedTS,GETDATE() AS LastUpadtedTS,A.Division\nFROM  [RDM].[REF_MKTNG_MARKET_GROUP]  A\nLEFT JOIN EDW_DUN.DIM_BRANCH_EXTN B\nON A.BranchID = B.BranchID\nWHERE B.BranchID IS NULL;\n\n\n\n\nUPDATE A\nSET \nA.ShortName=B.ShortName,\nA.UNI_Market =B.Market_OpCo_Reporting ,\nA.UNI_MarketGroup = B.MarketGroup,\nA.UNI_MarketRegion = B.MarketRegion,\nA.ACU_ID = B.ACU_ID,\nA.ACU_Market = B.ACU_Market,\nA.OrganicVsNonOrganic = B.Organic_vs_New,\nA.TypeOfMarket = B.TypeOfMarket,\nA.District = B.District,\nA.State = B.State,\nA.Region = B.Region\n--A.DIvision_MKTG = B.Division\nFROM [EDW_DUN].[DIM_BRANCH_EXTN] A \nJOIN [RDM].[REF_MKTNG_MARKET_GROUP] B\nON A.BranchID = B.BranchID;\n\n\nUPDATE [EDW_DUN].[DIM_BRANCH_EXTN]\nSET Division_MKTG = 'I.Home Org'\nWHERE (Division_MKTG like '%Closet%' OR  Division_MKTG like '%Garage%') ;"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "DIM_BRANCH_EXTN_Load",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT \nBR.BranchID,\nBR.Division,\nBR.LongName AS BranchName,\nBR.ShortName,\nBR.MediumName,\nNULL AS UNI_Market,\nNULL AS UNI_MarketGroup,\nNULL AS UNI_MarketRegion,\nNULL AS ACU_ID,\nNULL AS ACU_Market,\nNULL AS OrganicVsNonOrganic,\nNULL AS TypeOfMarket,\nNULL AS District,\nNULL AS State,\nNULL AS Region,\n'NEW' AS MappingInd,\nGETDATE() AS CreatedTS,\nGETDATE() AS LastUpdatedTS,\nCASE \nWHEN BR.Division='FHI' \t\t\t\t\t\t\t\t\t\t\t\t\tTHEN 'A.FHIA'\nWHEN BR.Division='SWR' \t\t\t\t\t\t\t\t\t\t\t\t\tTHEN 'B.Statewide'\nWHEN BR.Division='RTW' \t\t\t\t\t\t\t\t\t\t\t\t\tTHEN 'H.Rite Window'\nWHEN BR.Division='MXH' \t\t\t\t\t\t\t\t\t\t\t\t\tTHEN 'F.Max Home'\nWHEN BR.Division='HSI' \t\t\t\t\t\t\t\t\t\t\t\t\tTHEN 'E.Home Smart'\nWHEN BR.Division='PBC' AND BR.LongName \t\tLIKE '%Gtr%' \t\t\t\tTHEN 'G.Pacific Gutter'\nWHEN BR.Division='PBC' AND BR.LongName NOT \tLIKE '%Gtr%'  \t\t\t\tTHEN 'G.West Division'\nWHEN BR.Division IN ('CTA','PHI','MAC') AND BR.LongName LIKE '%Garage%' THEN 'I.Garage Coating'\nWHEN BR.Division='CTA' AND BR.LongName NOT LIKE '%Garage%'  \t\t\tTHEN 'J.Closet America'\nWHEN BR.Division='PHI' AND BR.LongName NOT LIKE '%Garage%'  \t\t\tTHEN 'D.Paradise'\nWHEN BR.Division='MAC' AND BR.LongName NOT LIKE '%Garage%'  \t\t\tTHEN 'C.Mad City'\nEND  AS Division_MKTG\n\nFROM EDW.DIM_BRANCH BR \nLEFT JOIN EDW_DUN.DIM_BRANCH_EXTN BEX \nON BR.BranchID = BEX.BranchID\nWHERE BEX.BranchID IS NULL",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"allowCopyCommand": true
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "BranchID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BranchID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Division",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Division_MKTG",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Division_MKTG",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchName",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BranchName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ShortName",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ShortName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "MediumName",
+									"type": "String"
+								},
+								"sink": {
+									"name": "MediumName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UNI_Market",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "UNI_Market",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UNI_MarketGroup",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "UNI_MarketGroup",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UNI_MarketRegion",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "UNI_MarketRegion",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ACU_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "ACU_ID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ACU_Market",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "ACU_Market",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "OrganicVsNonOrganic",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "OrganicVsNonOrganic",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "TypeOfMarket",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "TypeOfMarket",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "District",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "District",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "State",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "State",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Region",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Region",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "MappingInd",
+									"type": "String"
+								},
+								"sink": {
+									"name": "MappingInd",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CreatedTS",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "CreatedTS",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_UNI_REF_MAPPING",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_DIM_BRANCH_EXTN",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/DIMENSIONS/Unification"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-12-15T08:03:23Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

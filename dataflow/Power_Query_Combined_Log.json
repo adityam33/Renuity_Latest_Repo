@@ -1,0 +1,157 @@
+{
+	"name": "Power_Query_Combined_Log",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Power_Query_Converted_CSV",
+						"type": "DatasetReference"
+					},
+					"name": "MAC"
+				},
+				{
+					"dataset": {
+						"referenceName": "Power_Query_Converted_CSV",
+						"type": "DatasetReference"
+					},
+					"name": "SWR"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Power_Query_ODS",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "filter1"
+				},
+				{
+					"name": "filter2"
+				},
+				{
+					"name": "AddDivisionMAC"
+				},
+				{
+					"name": "AddDivisionSWR"
+				},
+				{
+					"name": "union1"
+				},
+				{
+					"name": "select1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          {Source.Name} as string,",
+				"          Analyst as string,",
+				"          Office as string,",
+				"          Division as string,",
+				"          {Customer Name} as string,",
+				"          Occupation as string,",
+				"          {Sales Amount } as integer,",
+				"          Month as string,",
+				"          Year as short,",
+				"          {App Date} as date,",
+				"          {Date Closed} as date,",
+				"          {2nd Look Lender} as string,",
+				"          Decision as string,",
+				"          {Loan Amount} as integer,",
+				"          {Sales Rep} as string,",
+				"          APR as double,",
+				"          Term as short,",
+				"          Promo as short,",
+				"          PMT as double,",
+				"          {1LP} as short,",
+				"          {2LP} as short,",
+				"          DF as double,",
+				"          LP as short,",
+				"          Notes as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> MAC",
+				"source(output(",
+				"          {Source.Name} as string,",
+				"          Analyst as string,",
+				"          Office as string,",
+				"          Division as string,",
+				"          {Customer Name} as string,",
+				"          Occupation as string,",
+				"          {Sales Amount } as integer,",
+				"          Month as string,",
+				"          Year as short,",
+				"          {App Date} as date,",
+				"          {Date Closed} as date,",
+				"          {2nd Look Lender} as string,",
+				"          Decision as string,",
+				"          {Loan Amount} as integer,",
+				"          {Sales Rep} as string,",
+				"          APR as double,",
+				"          Term as short,",
+				"          Promo as short,",
+				"          PMT as double,",
+				"          {1LP} as short,",
+				"          {2LP} as short,",
+				"          DF as double,",
+				"          LP as short,",
+				"          Notes as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> SWR",
+				"MAC filter(Division=='MadCity') ~> filter1",
+				"SWR filter(Division == 'Statewide') ~> filter2",
+				"filter1 derive(Division = 'MAC') ~> AddDivisionMAC",
+				"filter2 derive(Division = 'SWR') ~> AddDivisionSWR",
+				"AddDivisionMAC, AddDivisionSWR union(byName: true)~> union1",
+				"union1 select(mapColumn(",
+				"          Analyst,",
+				"          Office,",
+				"          Division,",
+				"          Customer_Name = {Customer Name},",
+				"          Occupation,",
+				"          Sales_Amount = {Sales Amount },",
+				"          Month,",
+				"          Year,",
+				"          App_Date = {App Date},",
+				"          Date_Closed = {Date Closed},",
+				"          Look_Lender_2nd = {2nd Look Lender},",
+				"          Decision,",
+				"          Loan_Amount = {Loan Amount},",
+				"          Sales_Rep = {Sales Rep},",
+				"          APR,",
+				"          Term,",
+				"          Promo,",
+				"          PMT,",
+				"          LP1 = {1LP},",
+				"          LP2 = {2LP},",
+				"          DF,",
+				"          LP,",
+				"          Notes",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"select1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     staged: true,",
+				"     allowCopyCommand: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> sink1"
+			]
+		}
+	}
+}

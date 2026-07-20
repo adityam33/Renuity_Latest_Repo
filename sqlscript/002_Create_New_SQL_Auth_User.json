@@ -1,0 +1,17 @@
+{
+	"name": "002_Create_New_SQL_Auth_User",
+	"properties": {
+		"content": {
+			"query": "--Create login in the master database\n\nuse [master]\nCREATE LOGIN [sa-sql-pbi] WITH PASSWORD = 'R3nu1tYPbi$reader1';\n \n--Create user in Master database\nuse [master]\nCREATE USER pbireader FROM LOGIN [pbireader]  WITH DEFAULT_SCHEMA=[dbo]\nGO\n\n\n\n--Create user in the database\nuse [rdc_sqlpool_prod]\nCREATE USER pbireader FROM LOGIN [pbireader]  WITH DEFAULT_SCHEMA=[dbo]\nGO\n\n--Grant role to the user in the database\nEXEC sp_addrolemember 'db_datareader', 'pbireader';\n\n\n--Create login in the master database\n\nuse [master]\nCREATE LOGIN [sa-sql-cubesw] WITH PASSWORD = 'sWIhu*#9Rlp!aNLD';\n \n--Create user in Master database\nuse [master]\nCREATE USER [sa-sql-cubesw] FROM LOGIN [sa-sql-cubesw]  WITH DEFAULT_SCHEMA=[dbo]\nGO\n\n\n\n--Create user in the database\nuse [rdc_sqlpool_prod]\nCREATE USER [sa-sql-cubesw] FROM LOGIN [sa-sql-cubesw]  WITH DEFAULT_SCHEMA=[dbo]\nGO\n\n--Grant role to the user in the database\nEXEC sp_addrolemember 'db_datareader', 'sa-sql-cubesw';\nExec sp_addrolemember 'db_datawriter', 'renuity-lead-score-model'\n\n\n\nCREATE USER [amathur@renuityhome.com]\nFROM EXTERNAL PROVIDER;\n\n\nCREATE USER [arajdev@renuityhome.com]\nFROM EXTERNAL PROVIDER;\n\nEXEC sp_addrolemember 'db_datareader', [amathur@renuityhome.com]\n\nEXEC sp_addrolemember 'db_datareader', [arajdev@renuityhome.com]\n\nEXEC sp_addrolemember 'db_datareader', [mrathi@renuityhome.com]\n\nExec sp_addrolemember 'db_datawriter', [mrathi@renuityhome.com]\n\n\nuse [master]\nCREATE USER  [mrathi@renuityhome.com]\nFROM EXTERNAL PROVIDER;\nGO\n\nEXEC sp_addrolemember 'db_datareader', [mrathi@renuityhome.com]\n\n\n\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "master",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

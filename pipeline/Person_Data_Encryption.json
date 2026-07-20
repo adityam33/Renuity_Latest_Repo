@@ -1,0 +1,236 @@
+{
+	"name": "Person_Data_Encryption",
+	"properties": {
+		"activities": [
+			{
+				"name": "Person_STG",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "KeyVault_KeyVariable",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobStorageReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "SqlServerSink",
+						"preCopyScript": "TRUNCATE TABLE [dbo].[Person_STG];",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "FirstName",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "FirstName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LastName",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "LastName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SocialSecurityNumber",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "SocialSecurityNumber",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CreditCardNumber",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "CreditCardNumber",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Salary",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Salary",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "person_1",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "PERSON_STG",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "INSERT_Encrypted_Person",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Person_STG",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "test_Encryption_NTTData",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"parameters": [
+								{
+									"name": "keyValue",
+									"type": "String",
+									"value": {
+										"value": "@variables('v_keyVault_key')",
+										"type": "Expression"
+									},
+									"direction": "Input"
+								}
+							],
+							"type": "Query",
+							"text": "--********************************************\n-- Query to Insert the entrypted data \n-- with encrypted key mentioned below\n-- Author: Anuj Girotra\n--********************************************\n\n\nDECLARE @Passphrase NVARCHAR(512) = @keyValue;--'e8dd728f0d924bc18f218dd38585d18c';\n\nDELETE FROM [dbo].[Person] WHERE CreatedTS=CAST(GETDATE() AS DATE);\n\nINSERT INTO [dbo].[Person] (FirstName,LastName,SocialSecurityNumber,CreditCardNumber,Salary,CreatedTS,LastUpdatedTS)\n\nSELECT\nFirstName,\nLastName,\nENCRYPTBYPASSPHRASE(@Passphrase, SocialSecurityNumber) AS SocialSecurityNumber,\nENCRYPTBYPASSPHRASE(@Passphrase, CreditCardNumber) AS CreditCardNumber,\nENCRYPTBYPASSPHRASE(@Passphrase, Salary) AS Salary,\nCAST(GETDATE() AS DATE) AS CreatedTS,\nCAST(GETDATE() AS DATE) AS LastUpdatedTS\nFROM [dbo].[Person_STG]\n\n\nTRUNCATE TABLE [dbo].[Person_STG];\n \n \n \n--********************************************\n-- Sample query to Show the original \n-- Data using the encrypted key\n--********************************************\n\n/* \n \nDECLARE @Passphrase NVARCHAR(512) = '4iq6yJ6QR8moSouiG989sTeqipNc5mr';\n \nSELECT \nID,\nFirstName,\nLastName,\nCONVERT(NVARCHAR, DECRYPTBYPASSPHRASE(@Passphrase, SocialSecurityNumber)) AS SocialSecurityNumber,\nCONVERT(NVARCHAR, DECRYPTBYPASSPHRASE(@Passphrase, CreditCardNumber)) AS CreditCardNumber,\nCONVERT(NVARCHAR, DECRYPTBYPASSPHRASE(@Passphrase, Salary)) AS Salary\nFROM [dbo].[Person];\n\n*/"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Web_Get_Request_KeyVault",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "GET",
+					"url": "https://encryptionvalutdb.vault.azure.net/keys/CMKAuto3/e8dd728f0d924bc18f218dd38585d18c?api-version=7.0",
+					"connectVia": {
+						"referenceName": "AutoResolveIntegrationRuntime",
+						"type": "IntegrationRuntimeReference"
+					},
+					"authentication": {
+						"type": "MSI",
+						"resource": "https://vault.azure.net"
+					}
+				}
+			},
+			{
+				"name": "KeyVault_KeyVariable",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Web_Get_Request_KeyVault",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "v_keyVault_key",
+					"value": {
+						"value": "@split(activity('Web_Get_Request_KeyVault').output.key.n,'_')[0]",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"variables": {
+			"Keyvault": {
+				"type": "String"
+			},
+			"v_keyVault_key": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "Temp/Anuj"
+		},
+		"annotations": [],
+		"lastPublishTime": "2024-07-09T16:50:44Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

@@ -1,0 +1,215 @@
+{
+	"name": "df_load_DIM_PUNCH_LIST",
+	"properties": {
+		"folder": {
+			"name": "ODS_to_EDW/DIMENSIONS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_MAC_pls_PunchList",
+						"type": "DatasetReference"
+					},
+					"name": "srcMAC"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_PBC_pls_PunchList",
+						"type": "DatasetReference"
+					},
+					"name": "srcPBC"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_DIM_PUNCH_LIST",
+						"type": "DatasetReference"
+					},
+					"name": "TargetSTG",
+					"description": "Export data to EDW_DIM_PUNCH_LIST",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "unionAll"
+				},
+				{
+					"name": "deriveCol"
+				},
+				{
+					"name": "createIDsPBC"
+				},
+				{
+					"name": "createIDsMAC"
+				},
+				{
+					"name": "selectcolsMAC"
+				},
+				{
+					"name": "selectcolsPBC"
+				},
+				{
+					"name": "AlterRow"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          id as integer,",
+				"          job_id as integer,",
+				"          Category as integer,",
+				"          PunchList as string,",
+				"          PartsNeeded as string,",
+				"          ins_id as integer,",
+				"          AssignedTo as integer,",
+				"          PercentCompletion as integer,",
+				"          comments as string,",
+				"          enteredon as timestamp,",
+				"          enteredby as integer,",
+				"          Updatedon as timestamp,",
+				"          updatedby as integer,",
+				"          ScheduledDate as timestamp,",
+				"          CompletedDate as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> srcMAC",
+				"source(output(",
+				"          id as integer,",
+				"          job_id as integer,",
+				"          Category as integer,",
+				"          PunchList as string,",
+				"          PartsNeeded as string,",
+				"          ins_id as integer,",
+				"          AssignedTo as integer,",
+				"          Plumber as integer,",
+				"          SubContractor as integer,",
+				"          PercentCompletion as integer,",
+				"          comments as string,",
+				"          enteredon as timestamp,",
+				"          enteredby as integer,",
+				"          Updatedon as timestamp,",
+				"          updatedby as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> srcPBC",
+				"createIDsMAC, createIDsPBC union(byName: true)~> unionAll",
+				"unionAll derive(LastUpdateTS = currentTimestamp()) ~> deriveCol",
+				"selectcolsPBC derive(PunchListID = concat('PBC-',toString(LP_PunchListID)),",
+				"          Job_ID = concat('PBC-',toString(LP_JobID)),",
+				"          INS_ID = concat('PBC-',toString(LP_insID)),",
+				"          Division = 'PBC') ~> createIDsPBC",
+				"selectcolsMAC derive(Plumber = 0,",
+				"          SubContractor = 0,",
+				"          Division = 'MAC',",
+				"          PunchListID = concat('MAC-',toString(LP_PunchListID)),",
+				"          Job_ID = concat('MAC-',toString(LP_JobID)),",
+				"          INS_ID = concat('MAC-',toString(LP_insID))) ~> createIDsMAC",
+				"srcMAC select(mapColumn(",
+				"          LP_PunchListID = id,",
+				"          LP_JobID = job_id,",
+				"          Category,",
+				"          PunchList,",
+				"          PartsNeeded,",
+				"          LP_insID = ins_id,",
+				"          AssignedTo,",
+				"          PercentCompletion,",
+				"          comments,",
+				"          enteredon,",
+				"          enteredby,",
+				"          Updatedon,",
+				"          updatedby",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectcolsMAC",
+				"srcPBC select(mapColumn(",
+				"          LP_PunchListID = id,",
+				"          LP_JobID = job_id,",
+				"          Category,",
+				"          PunchList,",
+				"          PartsNeeded,",
+				"          LP_insID = ins_id,",
+				"          AssignedTo,",
+				"          Plumber,",
+				"          SubContractor,",
+				"          PercentCompletion,",
+				"          comments,",
+				"          enteredon,",
+				"          enteredby,",
+				"          Updatedon,",
+				"          updatedby",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectcolsPBC",
+				"deriveCol alterRow(upsertIf(true())) ~> AlterRow",
+				"AlterRow sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          PunchListID as string,",
+				"          Job_ID as string,",
+				"          INS_ID as string,",
+				"          Division as string,",
+				"          Category as string,",
+				"          PunchList as string,",
+				"          PartsNeeded as string,",
+				"          AssignedTo as string,",
+				"          PercentCompletion as string,",
+				"          Comments as string,",
+				"          EnteredOn as timestamp,",
+				"          Enteredby as string,",
+				"          UpdatedOn as timestamp,",
+				"          LP_PunchListID as string,",
+				"          LP_JobID as string,",
+				"          LP_insID as string,",
+				"          LastModifiedDate as timestamp,",
+				"          UpdatedBy as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['PunchListID'],",
+				"     format: 'table',",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          LP_PunchListID,",
+				"          LP_JobID,",
+				"          Category,",
+				"          PunchList,",
+				"          PartsNeeded,",
+				"          LP_insID,",
+				"          AssignedTo,",
+				"          PercentCompletion,",
+				"          comments,",
+				"          enteredon,",
+				"          enteredby,",
+				"          Updatedon,",
+				"          updatedby,",
+				"          Plumber,",
+				"          SubContractor,",
+				"          Division,",
+				"          PunchListID,",
+				"          Job_ID,",
+				"          INS_ID,",
+				"          LastUpdateTS",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> TargetSTG"
+			]
+		}
+	}
+}

@@ -1,0 +1,371 @@
+{
+	"name": "cpy_LP_log_mld_ZML",
+	"properties": {
+		"activities": [
+			{
+				"name": "FHI",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:40:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT \nid\t,\nemp_id\t,\ndatechanged\t,\njob_id\t,\njpo_id\t,\nmdt_id\t,\nestdate\t,\nactdate\t,\nacttime\t,\noldestdate\t,\noldactdate\t,\noldacttime\t\n\n\n\nFROM dbo.log_mld WITH (NOLOCK)\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE [ZML].[LP_FHI_log_mld]",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "emp_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "emp_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "datechanged",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "datechanged",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "job_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "job_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "jpo_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "jpo_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "mdt_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "mdt_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "estdate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "estdate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "actdate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "actdate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "acttime",
+									"type": "String"
+								},
+								"sink": {
+									"name": "acttime",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "oldestdate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "oldestdate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "oldactdate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "oldactdate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "oldacttime",
+									"type": "String"
+								},
+								"sink": {
+									"name": "oldacttime",
+									"type": "String"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_ZML_FHI_aph_AlternatePhones",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "SRC_ODS_LP_FHI_log_mld_ZML",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "MXH",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:40:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT \nid\t,\nemp_id\t,\ndatechanged\t,\njob_id\t,\njpo_id\t,\nmdt_id\t,\nestdate\t,\nactdate\t,\nacttime\t,\noldestdate\t,\noldactdate\t,\noldacttime\t\n\n\n\nFROM dbo.log_mld WITH (NOLOCK)\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE [ZML].[LP_MXH_log_mld]",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "emp_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "emp_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "datechanged",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "datechanged",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "job_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "job_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "jpo_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "jpo_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "mdt_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "mdt_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "estdate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "estdate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "actdate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "actdate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "acttime",
+									"type": "String"
+								},
+								"sink": {
+									"name": "acttime",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "oldestdate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "oldestdate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "oldactdate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "oldactdate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "oldacttime",
+									"type": "String"
+								},
+								"sink": {
+									"name": "oldacttime",
+									"type": "String"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_ZML_MXH_aph_AlternatePhones",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "SRC_ODS_LP_MXH_log_mld",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "Temp/Anuj/ZML/LP_to_ODS_ZML"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-11-12T09:24:11Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

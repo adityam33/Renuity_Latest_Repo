@@ -1,0 +1,3810 @@
+{
+	"name": "cpy_mysql_to_ODS_user_appointments",
+	"properties": {
+		"activities": [
+			{
+				"name": "cp_mysql_to_ODS_user_appointments",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "MySqlSource"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "Truncate table ODS.CHANNEL_USER_APPOINTMENTS",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "user_ns",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "User_ns",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "appointment_date",
+									"type": "DateTime",
+									"physicalType": "Date"
+								},
+								"sink": {
+									"name": "AppointmentDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "email",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "email",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "phone",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "phone",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "first_name",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "firstname",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "last_name",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "lastname",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "team_id",
+									"type": "UInt64",
+									"physicalType": "UInt64"
+								},
+								"sink": {
+									"name": "teamid",
+									"type": "Int64",
+									"physicalType": "bigint"
+								}
+							},
+							{
+								"source": {
+									"name": "postcode",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "postcode",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "market",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "market",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "lead_source",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "leadsource",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "lead_status",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "leadstatus",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "last_message_type",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "lastmessagetype",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "last_message_at",
+									"type": "DateTime",
+									"physicalType": "Timestamp"
+								},
+								"sink": {
+									"name": "lastmessageat",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "created_at",
+									"type": "DateTime",
+									"physicalType": "Timestamp"
+								},
+								"sink": {
+									"name": "createdat",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "MySQL_To_ODS_USER_APPOINTMENTS",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_CHANNEL_USER_APPOINTMENTS",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "cp_mysql_to_ODS_user_event_logs",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "cp_mysql_to_ODS_user_appointments",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "MySqlSource"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "Truncate table ODS.CHANNEL_USER_EVENT_LOGS",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "id",
+									"type": "UInt64",
+									"physicalType": "UInt64"
+								},
+								"sink": {
+									"name": "ID",
+									"type": "Int64",
+									"physicalType": "bigint"
+								}
+							},
+							{
+								"source": {
+									"name": "flow_ns",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "Flow_ns",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "user_ns",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "User_ns",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "event_ns",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "Event_ns",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "text_value",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "Textvalue",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "number_value",
+									"type": "Int64",
+									"physicalType": "Int64"
+								},
+								"sink": {
+									"name": "Numbervalue",
+									"type": "Int64",
+									"physicalType": "bigint"
+								}
+							},
+							{
+								"source": {
+									"name": "price_value",
+									"type": "Decimal",
+									"physicalType": "NewDecimal"
+								},
+								"sink": {
+									"name": "Pricevalue",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 10
+								}
+							},
+							{
+								"source": {
+									"name": "created_at",
+									"type": "DateTime",
+									"physicalType": "Timestamp"
+								},
+								"sink": {
+									"name": "createdat",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "created_at_date",
+									"type": "DateTime",
+									"physicalType": "Date"
+								},
+								"sink": {
+									"name": "createdatDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "MySQL_To_ODS_USER_EVENT_LOGS",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_CHANNEL_USER_EVENT_LOGS",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "cp_mysql_to_ODS_user_fields",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "cp_mysql_to_ODS_user_event_logs",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "MySqlSource"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "Truncate table ODS.CHANNEL_USER_FIELDS",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "id",
+									"type": "UInt64",
+									"physicalType": "UInt64"
+								},
+								"sink": {
+									"name": "ID",
+									"type": "Int64",
+									"physicalType": "bigint"
+								}
+							},
+							{
+								"source": {
+									"name": "user_ns",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "User_ns",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "var_ns",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "Var_ns",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "value",
+									"type": "String",
+									"physicalType": "Text"
+								},
+								"sink": {
+									"name": "value",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "updated_at",
+									"type": "DateTime",
+									"physicalType": "Timestamp"
+								},
+								"sink": {
+									"name": "updatedat",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "MySQL_To_ODS_USER_FIELDS",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_CHANNEL_USER_FIELDS",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "cp_mysql_to_ODS_user_labels",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "MySqlSource"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "Truncate table ODS.CHANNEL_USER_LABELS",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "id",
+									"type": "UInt64",
+									"physicalType": "UInt64"
+								},
+								"sink": {
+									"name": "ID",
+									"type": "Int64",
+									"physicalType": "bigint"
+								}
+							},
+							{
+								"source": {
+									"name": "team_id",
+									"type": "UInt32",
+									"physicalType": "UInt32"
+								},
+								"sink": {
+									"name": "teamid",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "flow_ns",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "Flow_ns",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "user_ns",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "User_ns",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "label_id",
+									"type": "UInt64",
+									"physicalType": "UInt64"
+								},
+								"sink": {
+									"name": "labelid",
+									"type": "Int64",
+									"physicalType": "bigint"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "MySQL_To_ODS_USER_LABELS",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_CHANNEL_USER_LABELS",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "cp_mysql_to_ODS_users",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "cp_mysql_to_ODS_user_labels",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "MySqlSource"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "Truncate table ODS.CHANNEL_USERS",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "id",
+									"type": "UInt32",
+									"physicalType": "UInt32"
+								},
+								"sink": {
+									"name": "id",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "team_id",
+									"type": "UInt64",
+									"physicalType": "UInt64"
+								},
+								"sink": {
+									"name": "team_id",
+									"type": "Int64",
+									"physicalType": "bigint"
+								}
+							},
+							{
+								"source": {
+									"name": "user_ns",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "user_ns",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "flow_ns",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "flow_ns",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "driver",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "driver",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "master_user_ns",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "master_user_ns",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "channel_id",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "channel_id",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "user_id",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "user_id",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "conv_id",
+									"type": "UInt64",
+									"physicalType": "UInt64"
+								},
+								"sink": {
+									"name": "conv_id",
+									"type": "Int64",
+									"physicalType": "bigint"
+								}
+							},
+							{
+								"source": {
+									"name": "first_name",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "first_name",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "last_name",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "last_name",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "user_name",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "user_name",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "gender",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "gender",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "locale",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "locale",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "timezone",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "timezone",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "language",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "language",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "email",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "email",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "phone",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "phone",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "agent_id",
+									"type": "UInt32",
+									"physicalType": "UInt32"
+								},
+								"sink": {
+									"name": "agent_id",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "agent_group_id",
+									"type": "UInt32",
+									"physicalType": "UInt32"
+								},
+								"sink": {
+									"name": "agent_group_id",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "customer_id",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "customer_id",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "subscribed_at",
+									"type": "DateTime",
+									"physicalType": "Timestamp"
+								},
+								"sink": {
+									"name": "subscribed_at",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								}
+							},
+							{
+								"source": {
+									"name": "last_action_at",
+									"type": "DateTime",
+									"physicalType": "Timestamp"
+								},
+								"sink": {
+									"name": "last_action_at",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								}
+							},
+							{
+								"source": {
+									"name": "last_read_at",
+									"type": "DateTime",
+									"physicalType": "Timestamp"
+								},
+								"sink": {
+									"name": "last_read_at",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								}
+							},
+							{
+								"source": {
+									"name": "image",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "image",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "status",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "status",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "paused_until",
+									"type": "DateTime",
+									"physicalType": "Timestamp"
+								},
+								"sink": {
+									"name": "paused_until",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								}
+							},
+							{
+								"source": {
+									"name": "opt_in_through",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "opt_in_through",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "opt_in_email",
+									"type": "DateTime",
+									"physicalType": "Timestamp"
+								},
+								"sink": {
+									"name": "opt_in_email",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								}
+							},
+							{
+								"source": {
+									"name": "opt_in_sms",
+									"type": "DateTime",
+									"physicalType": "Timestamp"
+								},
+								"sink": {
+									"name": "opt_in_sms",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								}
+							},
+							{
+								"source": {
+									"name": "is_guest",
+									"type": "Byte",
+									"physicalType": "UByte"
+								},
+								"sink": {
+									"name": "is_guest",
+									"type": "Byte",
+									"physicalType": "tinyint"
+								}
+							},
+							{
+								"source": {
+									"name": "is_admin",
+									"type": "Byte",
+									"physicalType": "UByte"
+								},
+								"sink": {
+									"name": "is_admin",
+									"type": "Byte",
+									"physicalType": "tinyint"
+								}
+							},
+							{
+								"source": {
+									"name": "created_at",
+									"type": "DateTime",
+									"physicalType": "Timestamp"
+								},
+								"sink": {
+									"name": "created_at",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								}
+							},
+							{
+								"source": {
+									"name": "last_message_type",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "last_message_type",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "last_message_at",
+									"type": "DateTime",
+									"physicalType": "Timestamp"
+								},
+								"sink": {
+									"name": "last_message_at",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								}
+							},
+							{
+								"source": {
+									"name": "last_bot_action_at",
+									"type": "DateTime",
+									"physicalType": "Timestamp"
+								},
+								"sink": {
+									"name": "last_bot_action_at",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								}
+							},
+							{
+								"source": {
+									"name": "last_agent_action_at",
+									"type": "DateTime",
+									"physicalType": "Timestamp"
+								},
+								"sink": {
+									"name": "last_agent_action_at",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								}
+							},
+							{
+								"source": {
+									"name": "last_agent_read_at",
+									"type": "DateTime",
+									"physicalType": "Timestamp"
+								},
+								"sink": {
+									"name": "last_agent_read_at",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								}
+							},
+							{
+								"source": {
+									"name": "open_at",
+									"type": "DateTime",
+									"physicalType": "Timestamp"
+								},
+								"sink": {
+									"name": "open_at",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								}
+							},
+							{
+								"source": {
+									"name": "done_at",
+									"type": "DateTime",
+									"physicalType": "Timestamp"
+								},
+								"sink": {
+									"name": "done_at",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								}
+							},
+							{
+								"source": {
+									"name": "done_in_seconds",
+									"type": "UInt32",
+									"physicalType": "UInt32"
+								},
+								"sink": {
+									"name": "done_in_seconds",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "first_agent_reply_seconds",
+									"type": "UInt32",
+									"physicalType": "UInt32"
+								},
+								"sink": {
+									"name": "first_agent_reply_seconds",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "ip",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "ip",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "country",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "country",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "region",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "region",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "city",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "city",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "platform",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "platform",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "browser",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "browser",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "device",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "device",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "device_type",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "device_type",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "referrer",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "referrer",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "landing_page",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "landing_page",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "lead_source",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "lead_source",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "lead_status",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "lead_status",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "department",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "department",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "interest",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "interest",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "market",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "market",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "address",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "address",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "postcode",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "postcode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "website",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "website",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "extra_info",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "extra_info",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "MySQL_To_ODS_USERS",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_CHANNEL_USERS",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "cp_mysql_to_ODS_vars",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "cp_mysql_to_ODS_users",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "MySqlSource"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "Truncate table ODS.CHANNEL_VARS",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "id",
+									"type": "UInt32",
+									"physicalType": "UInt32"
+								},
+								"sink": {
+									"name": "id",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "var_ns",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "var_ns",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "flow_ns",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "flow_ns",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "user_id",
+									"type": "UInt32",
+									"physicalType": "UInt32"
+								},
+								"sink": {
+									"name": "user_id",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "category",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "category",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "name",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "name",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "type",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "type",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "var_type",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "var_type",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "value",
+									"type": "String",
+									"physicalType": "Text"
+								},
+								"sink": {
+									"name": "value",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "sample_values",
+									"type": "String",
+									"physicalType": "Text"
+								},
+								"sink": {
+									"name": "sample_values",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "format",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "format",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "description",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "description",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "status",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "status",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "folder_ns",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "folder_ns",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "MySQL_To_ODS_VARS",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_CHANNEL_VARS",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "cp_mysql_to_ODS_chat_msgs",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "MySqlSource"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "Truncate table ODS.CHANNEL_CHAT_MSGS",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "id",
+									"type": "UInt64",
+									"physicalType": "UInt64"
+								},
+								"sink": {
+									"name": "id",
+									"type": "Int64",
+									"physicalType": "bigint"
+								}
+							},
+							{
+								"source": {
+									"name": "team_id",
+									"type": "UInt64",
+									"physicalType": "UInt64"
+								},
+								"sink": {
+									"name": "team_id",
+									"type": "Int64",
+									"physicalType": "bigint"
+								}
+							},
+							{
+								"source": {
+									"name": "flow_ns",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "flow_ns",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "user_ns",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "user_ns",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "conv_id",
+									"type": "UInt64",
+									"physicalType": "UInt64"
+								},
+								"sink": {
+									"name": "conv_id",
+									"type": "Int64",
+									"physicalType": "bigint"
+								}
+							},
+							{
+								"source": {
+									"name": "type",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "type",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "node_ns",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "node_ns",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "user_id",
+									"type": "UInt64",
+									"physicalType": "UInt64"
+								},
+								"sink": {
+									"name": "user_id",
+									"type": "Int64",
+									"physicalType": "bigint"
+								}
+							},
+							{
+								"source": {
+									"name": "msg_type",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "msg_type",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "payload",
+									"type": "String",
+									"physicalType": "Text"
+								},
+								"sink": {
+									"name": "payload",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "postback",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "postback",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "content",
+									"type": "String",
+									"physicalType": "Text"
+								},
+								"sink": {
+									"name": "content",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "mid",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "mid",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "created_ts",
+									"type": "UInt32",
+									"physicalType": "UInt32"
+								},
+								"sink": {
+									"name": "created_ts",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "is_delivered",
+									"type": "Byte",
+									"physicalType": "UByte"
+								},
+								"sink": {
+									"name": "is_delivered",
+									"type": "Byte",
+									"physicalType": "tinyint"
+								}
+							},
+							{
+								"source": {
+									"name": "is_read",
+									"type": "Byte",
+									"physicalType": "UByte"
+								},
+								"sink": {
+									"name": "is_read",
+									"type": "Byte",
+									"physicalType": "tinyint"
+								}
+							},
+							{
+								"source": {
+									"name": "created_ts_date",
+									"type": "DateTime",
+									"physicalType": "Date"
+								},
+								"sink": {
+									"name": "created_ts_date",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "MySQL_To_ODS_CHAT_MSGS",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_CHANNEL_CHAT_MSGS",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "cp_mysql_to_ODS_chau_owned_numbers",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "cp_mysql_to_ODS_chat_msgs",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "MySqlSource"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "Truncate table ODS.CHANNEL_CHAU_OWNED_NUMBERS",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "phone_number",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "phone_number",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "MySQL_To_ODS_CHAU_OWNED_NUMBERS",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_CHANNEL_CHAU_OWNED_PHONES",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "cp_mysql_to_ODS_flow_market_lookup",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "cp_mysql_to_ODS_chau_owned_numbers",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "MySqlSource"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "Truncate table ODS.CHANNEL_FLOW_MARKET_LOOKUP",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "flow_ns",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "flow_ns",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "market",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "market",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "MySQL_To_ODS_FLOW_MARKET_LOOKUP",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_CHANNEL_FLOW_MARKET_LOOKUP",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "cp_mysql_to_ODS_global_sendgrid_stats",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "cp_mysql_to_ODS_flow_market_lookup",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "MySqlSource"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "Truncate table ODS.CHANNEL_GLOBAL_SENDGRID_STATS",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "id",
+									"type": "Int32",
+									"physicalType": "Int32"
+								},
+								"sink": {
+									"name": "id",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "date",
+									"type": "DateTime",
+									"physicalType": "Date"
+								},
+								"sink": {
+									"name": "date",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "blocks",
+									"type": "Int32",
+									"physicalType": "Int32"
+								},
+								"sink": {
+									"name": "blocks",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "bounce_drops",
+									"type": "Int32",
+									"physicalType": "Int32"
+								},
+								"sink": {
+									"name": "bounce_drops",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "bounces",
+									"type": "Int32",
+									"physicalType": "Int32"
+								},
+								"sink": {
+									"name": "bounces",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "clicks",
+									"type": "Int32",
+									"physicalType": "Int32"
+								},
+								"sink": {
+									"name": "clicks",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "deferred",
+									"type": "Int32",
+									"physicalType": "Int32"
+								},
+								"sink": {
+									"name": "deferred",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "delivered",
+									"type": "Int32",
+									"physicalType": "Int32"
+								},
+								"sink": {
+									"name": "delivered",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "invalid_emails",
+									"type": "Int32",
+									"physicalType": "Int32"
+								},
+								"sink": {
+									"name": "invalid_emails",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "opens",
+									"type": "Int32",
+									"physicalType": "Int32"
+								},
+								"sink": {
+									"name": "opens",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "processed",
+									"type": "Int32",
+									"physicalType": "Int32"
+								},
+								"sink": {
+									"name": "processed",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "requests",
+									"type": "Int32",
+									"physicalType": "Int32"
+								},
+								"sink": {
+									"name": "requests",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "spam_report_drops",
+									"type": "Int32",
+									"physicalType": "Int32"
+								},
+								"sink": {
+									"name": "spam_report_drops",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "spam_reports",
+									"type": "Int32",
+									"physicalType": "Int32"
+								},
+								"sink": {
+									"name": "spam_reports",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "unique_clicks",
+									"type": "Int32",
+									"physicalType": "Int32"
+								},
+								"sink": {
+									"name": "unique_clicks",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "unique_opens",
+									"type": "Int32",
+									"physicalType": "Int32"
+								},
+								"sink": {
+									"name": "unique_opens",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "unsubscribe_drops",
+									"type": "Int32",
+									"physicalType": "Int32"
+								},
+								"sink": {
+									"name": "unsubscribe_drops",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "unsubscribes",
+									"type": "Int32",
+									"physicalType": "Int32"
+								},
+								"sink": {
+									"name": "unsubscribes",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "MySQL_To_ODS_GLOBAL_SENDGRID_STATS",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_CHANNEL_GLOBAL_SENDGRID_STATS",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "cp_mysql_to_ODS_low_utilization_zips",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "MySqlSource"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "Truncate table ODS.CHANNEL_LOW_UTILIZATION_ZIPS",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "id",
+									"type": "UInt64",
+									"physicalType": "UInt64"
+								},
+								"sink": {
+									"name": "id",
+									"type": "Int64",
+									"physicalType": "bigint"
+								}
+							},
+							{
+								"source": {
+									"name": "brn_id",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "brn_id",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "prg_id",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "prg_id",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "zip",
+									"type": "Int32",
+									"physicalType": "Int32"
+								},
+								"sink": {
+									"name": "zip",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "MySQL_To_ODS_LOW_UTILIZATION_ZIPS",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_CHANNEL_LOW_UTILIZATION_ZIPS",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "cp_mysql_to_ODS_market_lookup",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "cp_mysql_to_ODS_low_utilization_zips",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "MySqlSource"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "Truncate table ODS.CHANNEL_MARKET_LOOKUP",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "flow_ns",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "flow_ns",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "market",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "market",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "MySQL_To_ODS_MARKET_LOOKUP",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_CHANNEL_MARKET_LOOKUP",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "cp_mysql_to_ODS_team_labels",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "cp_mysql_to_ODS_market_lookup",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "MySqlSource"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "Truncate table ODS.CHANNEL_TEAM_LABELS",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "id",
+									"type": "UInt64",
+									"physicalType": "UInt64"
+								},
+								"sink": {
+									"name": "id",
+									"type": "Int64",
+									"physicalType": "bigint"
+								}
+							},
+							{
+								"source": {
+									"name": "team_id",
+									"type": "UInt32",
+									"physicalType": "UInt32"
+								},
+								"sink": {
+									"name": "team_id",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "name",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "name",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "color",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "color",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "folder_id",
+									"type": "UInt64",
+									"physicalType": "UInt64"
+								},
+								"sink": {
+									"name": "folder_id",
+									"type": "Int64",
+									"physicalType": "bigint"
+								}
+							},
+							{
+								"source": {
+									"name": "created_at",
+									"type": "DateTime",
+									"physicalType": "Timestamp"
+								},
+								"sink": {
+									"name": "created_at",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "updated_at",
+									"type": "DateTime",
+									"physicalType": "Timestamp"
+								},
+								"sink": {
+									"name": "updated_at",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "MySQL_To_ODS_TEAM_LABELS",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_CHANNEL_TEAM_LABELS",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "cp_mysql_to_ODS_team_list_change_logs",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "MySqlSource"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "Truncate table ODS.CHANNEL_TEAM_LIST_CHANGE_LOGS",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "id",
+									"type": "UInt64",
+									"physicalType": "UInt64"
+								},
+								"sink": {
+									"name": "id",
+									"type": "Int64",
+									"physicalType": "bigint"
+								}
+							},
+							{
+								"source": {
+									"name": "team_id",
+									"type": "UInt32",
+									"physicalType": "UInt32"
+								},
+								"sink": {
+									"name": "team_id",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "flow_ns",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "flow_ns",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "user_ns",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "user_ns",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "list_id",
+									"type": "UInt64",
+									"physicalType": "UInt64"
+								},
+								"sink": {
+									"name": "list_id",
+									"type": "Int64",
+									"physicalType": "bigint"
+								}
+							},
+							{
+								"source": {
+									"name": "list_item_id",
+									"type": "UInt64",
+									"physicalType": "UInt64"
+								},
+								"sink": {
+									"name": "list_item_id",
+									"type": "Int64",
+									"physicalType": "bigint"
+								}
+							},
+							{
+								"source": {
+									"name": "action",
+									"type": "Byte",
+									"physicalType": "UByte"
+								},
+								"sink": {
+									"name": "action",
+									"type": "Byte",
+									"physicalType": "tinyint"
+								}
+							},
+							{
+								"source": {
+									"name": "column_num",
+									"type": "Byte",
+									"physicalType": "UByte"
+								},
+								"sink": {
+									"name": "column_num",
+									"type": "Byte",
+									"physicalType": "tinyint"
+								}
+							},
+							{
+								"source": {
+									"name": "value",
+									"type": "UInt32",
+									"physicalType": "UInt32"
+								},
+								"sink": {
+									"name": "value",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "created_at",
+									"type": "DateTime",
+									"physicalType": "Timestamp"
+								},
+								"sink": {
+									"name": "created_at",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "updated_at",
+									"type": "DateTime",
+									"physicalType": "Timestamp"
+								},
+								"sink": {
+									"name": "updated_at",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "MySQL_To_ODS_TEAM_LIST_CHANGE_LOGS",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_CHANNEL_TEAM_LIST_CHANGE_LOGS",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "cp_mysql_to_ODS_team_list_items",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "cp_mysql_to_ODS_team_list_change_logs",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "MySqlSource"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "Truncate table ODS.CHANNEL_TEAM_LIST_ITEMS",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "id",
+									"type": "UInt64",
+									"physicalType": "UInt64"
+								},
+								"sink": {
+									"name": "id",
+									"type": "Int64",
+									"physicalType": "bigint"
+								}
+							},
+							{
+								"source": {
+									"name": "team_id",
+									"type": "UInt32",
+									"physicalType": "UInt32"
+								},
+								"sink": {
+									"name": "team_id",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "list_id",
+									"type": "UInt64",
+									"physicalType": "UInt64"
+								},
+								"sink": {
+									"name": "list_id",
+									"type": "Int64",
+									"physicalType": "bigint"
+								}
+							},
+							{
+								"source": {
+									"name": "flow_ns",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "flow_ns",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "user_ns",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "user_ns",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "assignee",
+									"type": "UInt64",
+									"physicalType": "UInt64"
+								},
+								"sink": {
+									"name": "assignee",
+									"type": "Int64",
+									"physicalType": "bigint"
+								}
+							},
+							{
+								"source": {
+									"name": "created_by",
+									"type": "UInt64",
+									"physicalType": "UInt64"
+								},
+								"sink": {
+									"name": "created_by",
+									"type": "Int64",
+									"physicalType": "bigint"
+								}
+							},
+							{
+								"source": {
+									"name": "last_edited_by",
+									"type": "UInt64",
+									"physicalType": "UInt64"
+								},
+								"sink": {
+									"name": "last_edited_by",
+									"type": "Int64",
+									"physicalType": "bigint"
+								}
+							},
+							{
+								"source": {
+									"name": "title",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "title",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "description",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "description",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "select1",
+									"type": "UInt32",
+									"physicalType": "UInt32"
+								},
+								"sink": {
+									"name": "select1",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "select2",
+									"type": "UInt32",
+									"physicalType": "UInt32"
+								},
+								"sink": {
+									"name": "select2",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "select3",
+									"type": "UInt32",
+									"physicalType": "UInt32"
+								},
+								"sink": {
+									"name": "select3",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "select4",
+									"type": "UInt32",
+									"physicalType": "UInt32"
+								},
+								"sink": {
+									"name": "select4",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "select5",
+									"type": "UInt32",
+									"physicalType": "UInt32"
+								},
+								"sink": {
+									"name": "select5",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "date1",
+									"type": "DateTime",
+									"physicalType": "Date"
+								},
+								"sink": {
+									"name": "date1",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "date2",
+									"type": "DateTime",
+									"physicalType": "Date"
+								},
+								"sink": {
+									"name": "date2",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "decimal1",
+									"type": "Decimal",
+									"physicalType": "NewDecimal"
+								},
+								"sink": {
+									"name": "decimal1",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 4,
+									"precision": 14
+								}
+							},
+							{
+								"source": {
+									"name": "decimal2",
+									"type": "Decimal",
+									"physicalType": "NewDecimal"
+								},
+								"sink": {
+									"name": "decimal2",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 4,
+									"precision": 14
+								}
+							},
+							{
+								"source": {
+									"name": "number1",
+									"type": "Int32",
+									"physicalType": "Int32"
+								},
+								"sink": {
+									"name": "number1",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "number2",
+									"type": "Int32",
+									"physicalType": "Int32"
+								},
+								"sink": {
+									"name": "number2",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "rating1",
+									"type": "Byte",
+									"physicalType": "UByte"
+								},
+								"sink": {
+									"name": "rating1",
+									"type": "Byte",
+									"physicalType": "tinyint"
+								}
+							},
+							{
+								"source": {
+									"name": "rating2",
+									"type": "Byte",
+									"physicalType": "UByte"
+								},
+								"sink": {
+									"name": "rating2",
+									"type": "Byte",
+									"physicalType": "tinyint"
+								}
+							},
+							{
+								"source": {
+									"name": "text1",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "text1",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "text2",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "text2",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "text3",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "text3",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "text4",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "text4",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "text5",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "text5",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "comments",
+									"type": "UInt32",
+									"physicalType": "UInt32"
+								},
+								"sink": {
+									"name": "comments",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "created_at",
+									"type": "DateTime",
+									"physicalType": "Timestamp"
+								},
+								"sink": {
+									"name": "created_at",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "updated_at",
+									"type": "DateTime",
+									"physicalType": "Timestamp"
+								},
+								"sink": {
+									"name": "updated_at",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "MySQL_To_ODS_TEAM_LIST_ITEMS",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_CHANNEL_TEAM_LIST_ITEMS",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "cp_mysql_to_ODS_twilio_call_logs",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "cp_mysql_to_ODS_team_list_items",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "MySqlSource"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "Truncate table ODS.CHANNEL_TWILIO_CALL_LOGS",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "sid",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "sid",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "to_number",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "to_number",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "from_number",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "from_number",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "body",
+									"type": "String",
+									"physicalType": "Text"
+								},
+								"sink": {
+									"name": "body",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "status",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "status",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "price",
+									"type": "Decimal",
+									"physicalType": "NewDecimal"
+								},
+								"sink": {
+									"name": "price",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 5,
+									"precision": 10
+								}
+							},
+							{
+								"source": {
+									"name": "date_sent",
+									"type": "DateTime",
+									"physicalType": "DateTime"
+								},
+								"sink": {
+									"name": "date_sent",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "date_created",
+									"type": "DateTime",
+									"physicalType": "DateTime"
+								},
+								"sink": {
+									"name": "date_created",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "date_updated",
+									"type": "DateTime",
+									"physicalType": "DateTime"
+								},
+								"sink": {
+									"name": "date_updated",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "direction",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "direction",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "account_sid",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "account_sid",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "messaging_service_sid",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "messaging_service_sid",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "num_segments",
+									"type": "Int32",
+									"physicalType": "Int32"
+								},
+								"sink": {
+									"name": "num_segments",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "num_media",
+									"type": "Int32",
+									"physicalType": "Int32"
+								},
+								"sink": {
+									"name": "num_media",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "error_code",
+									"type": "Int32",
+									"physicalType": "Int32"
+								},
+								"sink": {
+									"name": "error_code",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "tags",
+									"type": "String",
+									"physicalType": "Text"
+								},
+								"sink": {
+									"name": "tags",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "MySQL_To_ODS_TWILIO_CALL_LOGS",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_CHANNEL_TWILIO_CALL_LOGS",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "cp_mysql_to_ODS_twilio_sms_logs",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "cp_mysql_to_ODS_twilio_call_logs",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "MySqlSource"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "Truncate table ODS.CHANNEL_TWILIO_SMS_LOGS",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "sid",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "sid",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "to_number",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "to_number",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "from_number",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "from_number",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "body",
+									"type": "String",
+									"physicalType": "Text"
+								},
+								"sink": {
+									"name": "body",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "status",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "status",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "price",
+									"type": "Decimal",
+									"physicalType": "NewDecimal"
+								},
+								"sink": {
+									"name": "price",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 5,
+									"precision": 10
+								}
+							},
+							{
+								"source": {
+									"name": "date_sent",
+									"type": "DateTime",
+									"physicalType": "DateTime"
+								},
+								"sink": {
+									"name": "date_sent",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "date_created",
+									"type": "DateTime",
+									"physicalType": "DateTime"
+								},
+								"sink": {
+									"name": "date_created",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "date_updated",
+									"type": "DateTime",
+									"physicalType": "DateTime"
+								},
+								"sink": {
+									"name": "date_updated",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "direction",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "direction",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "account_sid",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "account_sid",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "messaging_service_sid",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "messaging_service_sid",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "num_segments",
+									"type": "Int32",
+									"physicalType": "Int32"
+								},
+								"sink": {
+									"name": "num_segments",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "num_media",
+									"type": "Int32",
+									"physicalType": "Int32"
+								},
+								"sink": {
+									"name": "num_media",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "error_code",
+									"type": "Int32",
+									"physicalType": "Int32"
+								},
+								"sink": {
+									"name": "error_code",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "tags",
+									"type": "String",
+									"physicalType": "Text"
+								},
+								"sink": {
+									"name": "tags",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "MySQL_To_ODS_TWILIO_SMS_LOGS",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_CHANNEL_TWILIO_SMS_LOGS",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "cp_mysql_to_ODS_users_meta",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "cp_mysql_to_ODS_team_labels",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "MySqlSource"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "Truncate table ODS.CHANNEL_USERS_META",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "id",
+									"type": "Int32",
+									"physicalType": "Int32"
+								},
+								"sink": {
+									"name": "id",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "user_ns",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "user_ns",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "lds_id",
+									"type": "String",
+									"physicalType": "VarChar"
+								},
+								"sink": {
+									"name": "lds_id",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "MySQL_To_ODS_USERS_META",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_CHANNEL_USERS_META",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "Temp/Akshay"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-09-17T10:49:51Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

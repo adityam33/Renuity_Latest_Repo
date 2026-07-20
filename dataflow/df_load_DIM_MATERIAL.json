@@ -1,0 +1,324 @@
+{
+	"name": "df_load_DIM_MATERIAL",
+	"properties": {
+		"folder": {
+			"name": "ODS_to_EDW/DIMENSIONS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_FHI_mat_Materials",
+						"type": "DatasetReference"
+					},
+					"name": "FHI"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_HSI_mat_Materials",
+						"type": "DatasetReference"
+					},
+					"name": "HSI"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_MAC_mat_Materials",
+						"type": "DatasetReference"
+					},
+					"name": "MAC"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_PBC_mat_Materials",
+						"type": "DatasetReference"
+					},
+					"name": "PBC"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_SWR_mat_Materials",
+						"type": "DatasetReference"
+					},
+					"name": "SWR"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_RTW_mat_Materials",
+						"type": "DatasetReference"
+					},
+					"name": "RTW"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_MXH_mat_Materials",
+						"type": "DatasetReference"
+					},
+					"name": "MXH"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_CTA_mat_Materials",
+						"type": "DatasetReference"
+					},
+					"name": "CTA"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_DIM_MATERIAL",
+						"type": "DatasetReference"
+					},
+					"name": "targetDim",
+					"description": "Export data to EDW_DIM_MATERIAL",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "addOpCoNameFHI"
+				},
+				{
+					"name": "addOpCoNameHSI"
+				},
+				{
+					"name": "addOpCoNameMAC"
+				},
+				{
+					"name": "addOpCoNamePBC"
+				},
+				{
+					"name": "addOpCoNameSWR"
+				},
+				{
+					"name": "unionAllOpCos"
+				},
+				{
+					"name": "derivedColumns"
+				},
+				{
+					"name": "addOpCoNameRTW"
+				},
+				{
+					"name": "addOpCoNameMXH"
+				},
+				{
+					"name": "selectRenameColumns"
+				},
+				{
+					"name": "addOpCoNameCTA"
+				},
+				{
+					"name": "AlterRow"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          Id as integer,",
+				"          Descr as string,",
+				"          UOM as string,",
+				"          CommFlag as boolean,",
+				"          DiscFlag as boolean,",
+				"          Cost as decimal(19,4),",
+				"          ListPrice as decimal(19,4),",
+				"          jcc_id as integer,",
+				"          Active as boolean,",
+				"          SortOrder as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> FHI",
+				"source(output(",
+				"          Id as integer,",
+				"          Descr as string,",
+				"          UOM as string,",
+				"          CommFlag as boolean,",
+				"          DiscFlag as boolean,",
+				"          Cost as decimal(19,4),",
+				"          ListPrice as decimal(19,4),",
+				"          jcc_id as integer,",
+				"          Active as boolean,",
+				"          SortOrder as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> HSI",
+				"source(output(",
+				"          Id as integer,",
+				"          Descr as string,",
+				"          UOM as string,",
+				"          CommFlag as boolean,",
+				"          DiscFlag as boolean,",
+				"          Cost as decimal(19,4),",
+				"          ListPrice as decimal(19,4),",
+				"          jcc_id as integer,",
+				"          Active as boolean,",
+				"          SortOrder as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> MAC",
+				"source(output(",
+				"          Id as integer,",
+				"          Descr as string,",
+				"          UOM as string,",
+				"          CommFlag as boolean,",
+				"          DiscFlag as boolean,",
+				"          Cost as decimal(19,4),",
+				"          ListPrice as decimal(19,4),",
+				"          jcc_id as integer,",
+				"          Active as boolean,",
+				"          SortOrder as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> PBC",
+				"source(output(",
+				"          Id as integer,",
+				"          Descr as string,",
+				"          UOM as string,",
+				"          CommFlag as boolean,",
+				"          DiscFlag as boolean,",
+				"          Cost as decimal(19,4),",
+				"          ListPrice as decimal(19,4),",
+				"          jcc_id as integer,",
+				"          Active as boolean,",
+				"          SortOrder as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> SWR",
+				"source(output(",
+				"          Id as integer,",
+				"          Descr as string,",
+				"          UOM as string,",
+				"          CommFlag as boolean,",
+				"          DiscFlag as boolean,",
+				"          Cost as decimal(19,4),",
+				"          ListPrice as decimal(19,4),",
+				"          jcc_id as integer,",
+				"          Active as boolean,",
+				"          SortOrder as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> RTW",
+				"source(output(",
+				"          Id as integer,",
+				"          Descr as string,",
+				"          UOM as string,",
+				"          CommFlag as boolean,",
+				"          DiscFlag as boolean,",
+				"          Cost as decimal(19,4),",
+				"          ListPrice as decimal(19,4),",
+				"          jcc_id as integer,",
+				"          Active as boolean,",
+				"          SortOrder as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> MXH",
+				"source(output(",
+				"          Id as integer,",
+				"          Descr as string,",
+				"          UOM as string,",
+				"          CommFlag as boolean,",
+				"          DiscFlag as boolean,",
+				"          Cost as decimal(19,4),",
+				"          ListPrice as decimal(19,4),",
+				"          jcc_id as integer,",
+				"          Active as boolean,",
+				"          SortOrder as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> CTA",
+				"FHI derive(Division = 'FHI') ~> addOpCoNameFHI",
+				"HSI derive(Division = 'HSI') ~> addOpCoNameHSI",
+				"MAC derive(Division = 'MAC') ~> addOpCoNameMAC",
+				"PBC derive(Division = 'PBC') ~> addOpCoNamePBC",
+				"SWR derive(Division = 'SWR') ~> addOpCoNameSWR",
+				"addOpCoNameFHI, addOpCoNameHSI, addOpCoNameMAC, addOpCoNamePBC, addOpCoNameSWR, addOpCoNameRTW, addOpCoNameMXH, addOpCoNameCTA union(byName: true)~> unionAllOpCos",
+				"selectRenameColumns derive(LastUpdateTS = currentTimestamp(),",
+				"          MaterialID = concat(Division,'-',toString(LP_MaterialID)),",
+				"          JobCostCategoryID = concat(Division,'-',toString(LP_JobCostCategoryID))) ~> derivedColumns",
+				"RTW derive(Division = 'RTW') ~> addOpCoNameRTW",
+				"MXH derive(Division = 'MXH') ~> addOpCoNameMXH",
+				"unionAllOpCos select(mapColumn(",
+				"          LP_MaterialID = Id,",
+				"          Material = Descr,",
+				"          UnitOfMeasure = UOM,",
+				"          Cost,",
+				"          ListPrice,",
+				"          LP_JobCostCategoryID = jcc_id,",
+				"          Active,",
+				"          Division",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectRenameColumns",
+				"CTA derive(Division = 'CTA') ~> addOpCoNameCTA",
+				"derivedColumns alterRow(upsertIf(true())) ~> AlterRow",
+				"AlterRow sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          MaterialID as string,",
+				"          JobCostCategoryID as string,",
+				"          Material as string,",
+				"          UnitOfMeasure as string,",
+				"          Cost as decimal(19,4),",
+				"          ListPrice as decimal(19,4),",
+				"          Active as boolean,",
+				"          LP_MaterialID as integer,",
+				"          LP_JobCostCategoryID as integer,",
+				"          Division as string,",
+				"          LastUpdateTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['MaterialID'],",
+				"     format: 'table',",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          LP_MaterialID,",
+				"          Material,",
+				"          UnitOfMeasure,",
+				"          Cost,",
+				"          ListPrice,",
+				"          LP_JobCostCategoryID,",
+				"          Active,",
+				"          Division,",
+				"          LastUpdateTS,",
+				"          MaterialID,",
+				"          JobCostCategoryID",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> targetDim"
+			]
+		}
+	}
+}

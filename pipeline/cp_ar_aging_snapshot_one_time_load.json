@@ -1,0 +1,639 @@
+{
+	"name": "cp_ar_aging_snapshot_one_time_load",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy data1",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT  \r\n    a.Customer,a.CustomerName,a.DocType,a.ReferenceNumber,CONVERT(DATE, a.DocDate, 105) as DocDate,cleaned.DueDt as DueDate,cleaned.SnapDt as SnapshotDate,EOMONTH(CONVERT(DATE, a.AgedOnDate, 105)) as AgedDate,\r\n    COALESCE(i.ProjectID, p.Project) AS ProjectID,\r\n    COALESCE(j_exact.JobID, j_fallback.JobID) AS JobID,\r\n    js.JobStatus,\r\n\tcleaned.clean_balance as Balance,\r\n    -- Division Mapping\r\n    CASE \r\n        WHEN a.Division LIKE 'Renuity%'  THEN 'I.Home Org'\r\n        WHEN a.Division LIKE 'Closet%' THEN 'I.Home Org'\r\n        WHEN a.Division LIKE 'Rite%' THEN 'H.Rite Window'\r\n        WHEN a.Division LIKE 'FHIA%' THEN 'A.FHIA'\r\n        WHEN a.Division LIKE 'Statewide%' THEN 'B.Statewide'\r\n        WHEN a.Division LIKE 'Mad%' THEN 'C.Mad City'\r\n        WHEN a.Division LIKE '%Paradise%' THEN 'I.Home Org'\r\n        WHEN a.Division LIKE 'Homesmart%' or a.Division LIKE 'Home Smart%' THEN 'H.Rite Window'\r\n        WHEN a.Division LIKE 'Max%' THEN 'A.FHIA'\r\n        WHEN a.Division LIKE 'Pacific%' THEN 'G.West Division'\r\n        WHEN a.Division LIKE 'Bylt%' THEN '0.Bylte'\r\n        WHEN a.Division LIKE  'HQ%' THEN 'HQ'\r\n    END AS Division,\r\n\r\n    a.Division AS CompanyName,\r\n    br.BranchName AS BranchName_orig,\r\n\r\n    -- Aging buckets\r\n    CASE WHEN aging_days <= 0 THEN clean_balance ELSE 0 END AS [Current],\r\n    CASE WHEN aging_days BETWEEN 1 AND 15 THEN clean_balance ELSE 0 END AS [1to15Days],\r\n    CASE WHEN aging_days BETWEEN 16 AND 60 THEN clean_balance ELSE 0 END AS [16to60Days],\r\n    CASE WHEN aging_days BETWEEN 61 AND 90 THEN clean_balance ELSE 0 END AS [61to90Days],\r\n    CASE WHEN aging_days BETWEEN 91 AND 120 THEN clean_balance ELSE 0 END AS [91to120Days],\r\n    CASE WHEN aging_days BETWEEN 121 AND 150 THEN clean_balance ELSE 0 END AS [121to150Days],\r\n    CASE WHEN aging_days BETWEEN 151 AND 180 THEN clean_balance ELSE 0 END AS [151to180Days],\r\n    CASE WHEN aging_days BETWEEN 181 AND 360 THEN clean_balance ELSE 0 END AS [181to360Days],\r\n    CASE WHEN aging_days >= 361 THEN clean_balance ELSE 0 END AS [Over360Days]\r\n\r\nFROM [EDW].[FACT_AR_AGED_PERIOD_DETAIL_SNAPSHOT_Temp_To_be_Deleted] a\r\n\r\n-- Clean and convert Balance and Dates\r\nCROSS APPLY (\r\n    SELECT \r\n        CONVERT(DATE, a.DueDate, 105) AS DueDt,\r\n        CONVERT(DATE, a.SnapshotDate, 105) AS SnapDt,\r\n        CONVERT(DECIMAL(18,2), REPLACE(REPLACE(a.Balance, ',', ''), '?', '')) AS clean_balance\r\n) AS cleaned\r\n\r\n-- Calculate Aging Days\r\nCROSS APPLY (\r\n    SELECT DATEDIFF(DAY, cleaned.DueDt, cleaned.SnapDt) AS aging_days\r\n) AS age\r\n\r\n-- Join to invoice table\r\nOUTER APPLY (\r\n    SELECT TOP 1 i.ProjectID\r\n    FROM ODS.ERP_AR_INVOICE i\r\n    WHERE a.DocType IN ('Invoice', 'Credit Memo', 'Debit Memo')\r\n      AND a.ReferenceNumber = i.ReferenceNbr\r\n      AND a.DocType = i.Type\r\n) i\r\n\r\n-- Fallback to payment if invoice not matched\r\nOUTER APPLY (\r\n    SELECT TOP 1 p.Project\r\n    FROM ODS.ERP_AR_PAYMENT p\r\n    WHERE a.DocType IN ('Payment', 'Prepayment', 'Refund')\r\n      AND a.ReferenceNumber = p.ReferenceNbr\r\n      AND a.DocType = p.Type\r\n      AND i.ProjectID IS NULL\r\n) p\r\n\r\n-- Join to FACT_JOB with fallback\r\nOUTER APPLY (\r\n    SELECT TOP 1 *\r\n    FROM EDW.FACT_JOB j1\r\n    WHERE j1.ContractID = COALESCE(i.ProjectID, p.Project)\r\n) j_exact\r\n\r\nOUTER APPLY (\r\n    SELECT TOP 1 *\r\n    FROM EDW.FACT_JOB j2\r\n    WHERE j_exact.ContractID IS NULL  -- fallback only if no exact match\r\n      AND LEFT(j2.ContractID, CHARINDEX('.', j2.ContractID + '.') - 1) =\r\n          LEFT(COALESCE(i.ProjectID, p.Project), CHARINDEX('.', COALESCE(i.ProjectID, p.Project) + '.') - 1)\r\n) j_fallback\r\n\r\n\r\nLEFT JOIN EDW.DIM_JOB_STATUS js \r\n    ON coalesce(j_exact.JobStatusID,j_fallback.JobStatusID) = js.JobStatusID\r\n\r\nLEFT JOIN ODS.ERP_BRANCH_MASTER br \r\n    ON LEFT(a.BranchName,4) = br.BranchCode\r\nwhere cleaned.SnapDt<='2026-01-31' and cleaned.SnapDt>='2026-01-01'\r\n--WHERE a.ReferenceNumber = '323798';\r\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchName_orig",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "BranchName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Customer",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Customer",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CustomerName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CustomerName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ProjectID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ProjectID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DocType",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "DocType",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ReferenceNumber",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ReferenceNumber",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "JobID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "JobID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DocDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "DocDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "DueDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "DueDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "Balance",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 18
+								},
+								"sink": {
+									"name": "Balance",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								}
+							},
+							{
+								"source": {
+									"name": "Current",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 18
+								},
+								"sink": {
+									"name": "CurrentPeriod",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								}
+							},
+							{
+								"source": {
+									"name": "1to15Days",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 18
+								},
+								"sink": {
+									"name": "1-15 DaysPeriod",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								}
+							},
+							{
+								"source": {
+									"name": "16to60Days",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 18
+								},
+								"sink": {
+									"name": "16-60 DaysPeriod",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								}
+							},
+							{
+								"source": {
+									"name": "61to90Days",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 18
+								},
+								"sink": {
+									"name": "61-90 DaysPeriod",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								}
+							},
+							{
+								"source": {
+									"name": "91to120Days",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 18
+								},
+								"sink": {
+									"name": "91-120 DaysPeriod",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								}
+							},
+							{
+								"source": {
+									"name": "121to150Days",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 18
+								},
+								"sink": {
+									"name": "121-150 DaysPeriod",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								}
+							},
+							{
+								"source": {
+									"name": "151to180Days",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 18
+								},
+								"sink": {
+									"name": "151-180 DaysPeriod",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								}
+							},
+							{
+								"source": {
+									"name": "181to360Days",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 18
+								},
+								"sink": {
+									"name": "181-360 DaysPeriod",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								}
+							},
+							{
+								"source": {
+									"name": "Over360Days",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 18
+								},
+								"sink": {
+									"name": "Over 360 DaysPeriod",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								}
+							},
+							{
+								"source": {
+									"name": "AgedDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "AgedOnDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "JobStatus",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "JobStatus",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CompanyName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CompanyName",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SnapshotDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "SnapshotDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ODS_ERP_AR_INVOICE",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_FACT_AR_AGED_PERIOD_DETAIL_SNAPSHOT",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Copy data2",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobStorageReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "Truncate table [EDW].[FACT_AR_AGED_PERIOD_DETAIL_SNAPSHOT_Temp_To_be_Deleted]",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Branch",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "BranchName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Customer Number",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Customer",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Customer Name",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "CustomerName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Doc. Type",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "DocType",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Ref. Number",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "ReferenceNumber",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Doc. Date",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "DocDate",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Due Date",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "DueDate",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Balance",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Balance",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Current",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "CurrentPeriod",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "1 - 30 Days",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "1-30 DaysPeriod",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "31 - 60 Days",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "31-60 DaysPeriod",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "61 - 90 Days",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "61-90 DaysPeriod",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Over 90 Days",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Over 90 DaysPeriod",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Aged Month",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "AgedOnDate",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "End of Month Date",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "SnapshotDate",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ar_report_aging_hist_data",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_FACT_AR_AGED_PERIOD_DETAIL_SNAPSHOT_HIST",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "Temp/Akshay"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-02-12T14:38:09Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

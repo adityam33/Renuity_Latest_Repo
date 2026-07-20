@@ -1,0 +1,17 @@
+{
+	"name": "MaxHome - Get Past Sold Customers for Neighbourhood Mailers",
+	"properties": {
+		"content": {
+			"query": "SELECT\nlds.BranchID\n,cst.[CustomerID]\n,cst.[FirstName]\n,cst.[LastName]\n,cst.[Address1]\n,cst.[Address2]\n,cst.[City]\n,cst.[State]\n,cst.[Zip]\n,cst.[Phone]\n,cst.[Email]\n,[LP_DateAdded]\n FROM \n [EDW].[FACT_LEAD] lds\n ,[EDW].[DIM_CUSTOMER] cst\n WHERE\n lds.Division = 'MXH'\n and lds.CustomerID = cst.CustomerID\n and lds.Sold = 'True'\n and lds.BranchID IN\n (\n/*\n'MXH-NOW'\n,'MXH-NOB'\n,'MXH-BRB'\n,'MXH-BRW'\n,'MXH-LFW'\n,'MXH-LFB'\n,'MXH-BMB'\n,'MXH-BMW'\n*/\n'MXH-PLWIN'\n,'MXH-PLB'\n,'MXH-PCB'\n )\n order BY\nlds.BranchID\n, [LP_DateAdded]",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

@@ -1,0 +1,273 @@
+{
+	"name": "cpy_dim_mktng_productMapping_Initialload",
+	"properties": {
+		"activities": [
+			{
+				"name": "cpy_dim_mktng_productMapping",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ExcelSource",
+						"additionalColumns": [
+							{
+								"name": "LastupdatedTS",
+								"value": {
+									"value": "@utcnow()",
+									"type": "Expression"
+								}
+							},
+							{
+								"name": "ProductGroupID",
+								"value": "$$FILEPATH"
+							},
+							{
+								"name": "ProductGroup",
+								"value": "$$FILEPATH"
+							},
+							{
+								"name": "Active",
+								"value": "TRUE"
+							},
+							{
+								"name": "MappingInd",
+								"value": "LP"
+							},
+							{
+								"name": "CreatedTS",
+								"value": {
+									"value": "@utcnow()",
+									"type": "Expression"
+								}
+							},
+							{
+								"name": "ProductName_Final",
+								"value": "$$FILEPATH"
+							}
+						],
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						}
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE EDW.DIM_MKTNG_PRODUCT_MAPPING",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ProductID",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "ProductID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ProductName_Final",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ProductName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ProductName",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "ProductDescription",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ProductGroupID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ProductGroupID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ProductGroup",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ProductGroup",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Active",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Active",
+									"type": "Boolean",
+									"physicalType": "bit"
+								}
+							},
+							{
+								"source": {
+									"name": "TX_Product Group",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "TX_ProductGroup",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "TX_ProductGroup_Reporting",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "TX_Product_Reporting",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "MappingInd",
+									"type": "String"
+								},
+								"sink": {
+									"name": "MappingInd",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CreatedTS",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CreatedTS",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								}
+							},
+							{
+								"source": {
+									"name": "LastupdatedTS",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LastupdatedTS",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_PRODUCTREF",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_DIM_MKTNG_PRODUCT_MAPPING",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "UpdateProductGroupIdNameActive",
+				"description": "Update ProductGroupId Name Active flag for History from LP",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "cpy_dim_mktng_productMapping",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "Update EDW.DIM_MKTNG_PRODUCT_MAPPING set \r\n\t\tProductgroupId=t1.ProductGroupID\r\n\t\t,ProductGroup=t1.ProductGroup\r\n\t\t,Active=t1.Active\r\n\t\t,productName=t1.ProductName\r\n\tfrom EDW.DIM_MKTNG_PRODUCT_MAPPING T \r\n\tjoin \r\n\t(\r\n\t\tselect  p.Division,\r\n\t\tp.productID as ProductID,\r\n\t\tp.productName as ProductName,\r\n\t\tP.LongDescription as ProductDescription,\r\n\t\tp.productGroupID as ProductGroupID,\r\n\t\tpg.productgroup as ProductGroup,\r\n\t\tp.Active,\r\n\t\tNULL as TX_ProductGroup,\r\n\t\tNULL AS TX_ProductGroup_Reporting,\r\n\t\t'LP' as MappingInd,\r\n\t\tGetdate() as CreatedTS,\r\n\t\tGetdate() as LastupdatedTS\r\n\t\t\tfrom edw.dim_product P \r\n\t\t\tleft join edw.dim_product_group pg on p.productgroupID=pg.productgroupid\r\n\t) t1 \r\n\ton T.Division=t1.division and t1.productID=t.ProductId\r\nwhere 1=1 ;\r\n\r\n\r\nupdate \r\nEDW.DIM_MKTNG_PRODUCT_MAPPING \r\nset productgroupId = null , productgroup = null, active = null ,ProductName =NULL\r\nwhere productgroupid='ProductReference.xlsx' ;"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/DIMENSIONS/TAXONOMY/InitialLoad"
+		},
+		"annotations": [],
+		"lastPublishTime": "2023-09-09T13:43:26Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

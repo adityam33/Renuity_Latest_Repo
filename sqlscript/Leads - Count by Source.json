@@ -1,0 +1,20 @@
+{
+	"name": "Leads - Count by Source",
+	"properties": {
+		"folder": {
+			"name": "DMLs/Analysis SQL"
+		},
+		"content": {
+			"query": "select\n'FHI' as OpCo\n,SRC_ID\n,EOMONTH(EntryDate) as EntryMonth\n,count(1) as LeadCount\nFROM\nods.lp_fhi_lds_leads\nWHERE\nEntryDate BETWEEN '2021-01-01' and '2022-06-30'\ngroup By\nsrc_id\n,EOMONTH(EntryDate)\n\nUNION\n\nselect\n'MAC' as OpCo\n,SRC_ID\n,EOMONTH(EntryDate) as EntryMonth\n,count(1) as LeadCount\nFROM\nods.lp_mac_lds_leads\nWHERE\nEntryDate BETWEEN '2021-01-01' and '2022-06-30'\ngroup By\nsrc_id\n,EOMONTH(EntryDate)\n\nUNION\n\nselect\n'SWR' as OpCo\n,SRC_ID\n,EOMONTH(EntryDate) as EntryMonth\n,count(1) as LeadCount\nFROM\nods.lp_swr_lds_leads\nWHERE\nEntryDate BETWEEN '2021-01-01' and '2022-06-30'\ngroup By\nsrc_id\n,EOMONTH(EntryDate)\n\nUNION\n\nselect\n'PHI' as OpCo\n,SRC_ID\n,EOMONTH(EntryDate) as EntryMonth\n,count(1) as LeadCount\nFROM\nods.lp_phi_lds_leads\nWHERE\nEntryDate BETWEEN '2021-01-01' and '2022-06-30'\ngroup By\nsrc_id\n,EOMONTH(EntryDate)\n\nUNION\n\nselect\n'PBC' as OpCo\n,SRC_ID\n,EOMONTH(EntryDate) as EntryMonth\n,count(1) as LeadCount\nFROM\nods.lp_pbc_lds_leads\nWHERE\nEntryDate BETWEEN '2021-01-01' and '2022-06-30'\ngroup By\nsrc_id\n,EOMONTH(EntryDate)\n\nUNION\n\nselect\n'RTW' as OpCo\n,SRC_ID\n,EOMONTH(EntryDate) as EntryMonth\n,count(1) as LeadCount\nFROM\nods.lp_rtw_lds_leads\nWHERE\nEntryDate BETWEEN '2021-01-01' and '2022-06-30'\ngroup By\nsrc_id\n,EOMONTH(EntryDate)\n\nUNION\n\nselect\n'HSI' as OpCo\n,SRC_ID\n,EOMONTH(EntryDate) as EntryMonth\n,count(1) as LeadCount\nFROM\nods.lp_hsi_lds_leads\nWHERE\nEntryDate BETWEEN '2021-01-01' and '2022-06-30'\ngroup By\nsrc_id\n,EOMONTH(EntryDate)",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

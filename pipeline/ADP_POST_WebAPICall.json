@@ -1,0 +1,281 @@
+{
+	"name": "ADP_POST_WebAPICall",
+	"properties": {
+		"activities": [
+			{
+				"name": "Web_ADP_AccessToken",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"headers": {
+						"Content-Type": {
+							"value": "application/x-www-form-urlencoded",
+							"type": "Expression"
+						},
+						"Accept-Encoding": {
+							"value": "gzip,deflate",
+							"type": "Expression"
+						}
+					},
+					"url": "https://api.adp.com/auth/oauth/v2/token",
+					"connectVia": {
+						"referenceName": "AutoResolveIntegrationRuntime",
+						"type": "IntegrationRuntimeReference"
+					},
+					"body": {
+						"value": "client_id=6763c802-76c6-4352-a52c-bffe06c7d1b0&client_secret=493f8959-b137-447c-a72a-b1a137cb884b&grant_type=client_credentials",
+						"type": "Expression"
+					},
+					"authentication": {
+						"type": "ClientCertificate",
+						"pfx": {
+							"type": "AzureKeyVaultSecret",
+							"store": {
+								"referenceName": "AzureKeyVaultDataCore",
+								"type": "LinkedServiceReference"
+							},
+							"secretName": "LCF-ExportData2ADP",
+							"secretVersion": "8d9e210259564c8caa0d98c1771f071f"
+						},
+						"password": {
+							"type": "AzureKeyVaultSecret",
+							"store": {
+								"referenceName": "AzureKeyVaultDataCore",
+								"type": "LinkedServiceReference"
+							},
+							"secretName": "LCF-ExportData2ADP",
+							"secretVersion": "8d9e210259564c8caa0d98c1771f071f"
+						}
+					}
+				}
+			},
+			{
+				"name": "Set variable Access Token",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Web_ADP_AccessToken",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "AccessToken",
+					"value": {
+						"value": "@activity('Web_ADP_AccessToken').output.access_token",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Lookup_GET_JSON",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "Set variable Access Token",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": {
+							"value": "SELECT FullJSon FROM RDM.ADP_JSON_CODES WHERE Priority = '@{pipeline().parameters.p_Priority}' ORDER BY SNO",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "AD_UserProfileTbl",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach_JSONResponse",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Lookup_GET_JSON",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup_GET_JSON').output.value",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"batchCount": 1,
+					"activities": [
+						{
+							"name": "Web_POST_JSon",
+							"type": "WebActivity",
+							"dependsOn": [
+								{
+									"activity": "Set variable_JSonResponse",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 1,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"method": "POST",
+								"headers": {
+									"Authorization": {
+										"value": "@concat('Bearer ',variables('AccessToken'))",
+										"type": "Expression"
+									},
+									"Content-Type": {
+										"value": "application/json",
+										"type": "Expression"
+									}
+								},
+								"url": "https://api.adp.com/time/v1/labor-allocation-code/upload-requests",
+								"connectVia": {
+									"referenceName": "AutoResolveIntegrationRuntime",
+									"type": "IntegrationRuntimeReference"
+								},
+								"body": {
+									"value": "@json(variables('JSonResponse'))",
+									"type": "Expression"
+								},
+								"authentication": {
+									"type": "ClientCertificate",
+									"pfx": {
+										"type": "AzureKeyVaultSecret",
+										"store": {
+											"referenceName": "AzureKeyVaultDataCore",
+											"type": "LinkedServiceReference"
+										},
+										"secretName": "LCF-ExportData2ADP"
+									},
+									"password": {
+										"type": "AzureKeyVaultSecret",
+										"store": {
+											"referenceName": "AzureKeyVaultDataCore",
+											"type": "LinkedServiceReference"
+										},
+										"secretName": "LCF-ExportData2ADP"
+									}
+								}
+							}
+						},
+						{
+							"name": "Set variable_JSonResponse",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "JSonResponse",
+								"value": {
+									"value": "@item().FullJSon",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Script_UPD_Completed_FLG",
+							"type": "Script",
+							"state": "Inactive",
+							"onInactiveMarkAs": "Succeeded",
+							"dependsOn": [
+								{
+									"activity": "Web_POST_JSon",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"linkedServiceName": {
+								"referenceName": "RDC",
+								"type": "LinkedServiceReference"
+							},
+							"typeProperties": {
+								"scripts": [
+									{
+										"type": "Query",
+										"text": {
+											"value": "concat('UPDATE RDM.ADP_JSON_CODES SET CompletedFlag = 1 WHERE fullJson = ''', json(variables('JSonResponse')), '''')\n",
+											"type": "Expression"
+										}
+									}
+								],
+								"scriptBlockExecutionTimeout": "02:00:00"
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"p_Priority": {
+				"type": "int"
+			}
+		},
+		"variables": {
+			"AccessToken": {
+				"type": "String"
+			},
+			"JSonResponse": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "ADP_Employee/LP_to_ADP/ADP_API_Automation"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-06-19T11:24:54Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

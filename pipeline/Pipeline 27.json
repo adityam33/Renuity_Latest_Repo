@@ -1,0 +1,928 @@
+{
+	"name": "Pipeline 27",
+	"properties": {
+		"activities": [
+			{
+				"name": "ERP to ODS - AP Invoice",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ODataSource",
+						"httpRequestTimeout": "00:05:00"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Upsert",
+						"upsertSettings": {
+							"keys": [
+								"Type",
+								"ReferenceNbr"
+							],
+							"interimSchemaName": ""
+						},
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdctestanuj"
+					},
+					"parallelCopies": 4,
+					"dataIntegrationUnits": 8,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Type",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Type",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ReferenceNbr",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ReferenceNbr",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "VendorRef",
+									"type": "String"
+								},
+								"sink": {
+									"name": "VendorRef",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Date",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "Date",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "PostPeriod",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PostingPeriod",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Description",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Description",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "APAccount",
+									"type": "String"
+								},
+								"sink": {
+									"name": "APAccount",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Description_2",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Description_2",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchNbr",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BatchNbr",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Branch",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Branch",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "APInvoice_chargeAmt",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "APInvoice_chargeAmt",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "ClosedDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "ClosedDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "Amount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "Amount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "Balance",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "Balance",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "TaxAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "TaxAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "CashDiscount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "CashDiscount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "Currency",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Currency",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DueDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "DueDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "Vendor",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Vendor",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PaymentMethod",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PayTypeID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Description_3",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PayTypeID_Description",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Status",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Status",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CreatedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "CreatedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "LastModifiedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastModifiedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "ServicePeriod",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ServicePeriod",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Terms",
+									"type": "String"
+								},
+								"sink": {
+									"name": "TermsID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Description_4",
+									"type": "String"
+								},
+								"sink": {
+									"name": "TermsID_Description",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Project",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ProjectID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Description_5",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ProjectID_Desc",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_ERP_AP_INVOICES",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_ERP_AP_INVOICE",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "ERP to ODS - AP Payment",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ODataSource",
+						"httpRequestTimeout": "00:05:00"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Upsert",
+						"upsertSettings": {
+							"keys": [
+								"Type",
+								"ReferenceNbr"
+							],
+							"interimSchemaName": ""
+						},
+						"sqlWriterUseTableLock": false,
+						"tableOption": "autoCreate",
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Type",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Type",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ReferenceNbr",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ReferenceNbr",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Status",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Status",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PaymentDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "PaymentDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "FinPeriod",
+									"type": "String"
+								},
+								"sink": {
+									"name": "FinPeriod",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Description",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Description",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PaymentRef",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PaymentRef",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PaymentAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "PaymentAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "Balance",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "Balance",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "Currency",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Currency",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CashAccount",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CashAccount",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PaymentMethod",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PaymentMethod",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchNbr",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BatchNbr",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Branch",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Branch",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchName",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BranchName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Vendor",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Vendor",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CreatedBy",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CreatedBy",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CreatedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "CreatedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "LastModifiedBy",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LastModifiedBy",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LastModifiedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastModifiedOn",
+									"type": "DateTime"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_ERP_AP_PAYMENT",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_ERP_AP_PAYMENT",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "cpy_ERP_PM_REVENUE_BUDGET_SRC_TO_ODS",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.6:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ODataSource",
+						"httpRequestTimeout": "00:05:00"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Upsert",
+						"upsertSettings": {
+							"keys": [
+								"ProjectID",
+								"TaskCD",
+								"CostCodeID",
+								"AccountGroupID",
+								"InventoryID"
+							],
+							"interimSchemaName": ""
+						},
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "PMRevenueBudget_projectID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "ProjectID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ProjectTask",
+									"type": "String"
+								},
+								"sink": {
+									"name": "TaskCD",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CostCode",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CostCodeID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "AccountGroup",
+									"type": "String"
+								},
+								"sink": {
+									"name": "AccountGroupID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "InventoryID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "InventoryID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Description",
+									"type": "String"
+								},
+								"sink": {
+									"name": "AccountGroupID_Description",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "OriginalBudgetedQuantity",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "OriginalBudgetedQuantity",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UOM",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UOM",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UnitRate",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "UnitRate",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "OriginalBudgetedAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "OriginalBudgetedAmount",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "RevisedBudgetedAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "RevisedBudgetedAmount",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DraftInvoiceQuantity",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "InvoiceQuantity",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DraftInvoicesAmountinBaseCurrency",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "InvoiceAmount",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ActualQuantity",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "ActualQuantity",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ActualAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "ActualAmount",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Completed",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "CompletedPct",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PendingInvoiceQuantity",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "PendingInvoiceQuantity",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PendingInvoiceAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "PendingInvoiceAmount",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Performance",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "Performance",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "TaxCategory",
+									"type": "String"
+								},
+								"sink": {
+									"name": "TaxCategoryID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Description_2",
+									"type": "String"
+								},
+								"sink": {
+									"name": "TaxCategoryDescription",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ProgressBillingBase",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ProgressBillingBase",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CreatedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "CreatedOn",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CreatedBy",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CreatedBy",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LastModifiedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastModifiedOn",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LastModifiedBy",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LastModifiedBy",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_ERP_PMRevenueBudget",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_ERP_PM_REVENUE_BUDGET",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "Temp/Akshay"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-05-09T09:45:32Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

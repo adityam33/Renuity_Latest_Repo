@@ -1,0 +1,164 @@
+{
+	"name": "df_load_REF_PRODUCT_ZIP_CODES_Windows",
+	"properties": {
+		"folder": {
+			"name": "SRC_to_RDM"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "REF_ZIP_CODES_WINDOWS_FHI",
+						"type": "DatasetReference"
+					},
+					"name": "FHI"
+				},
+				{
+					"dataset": {
+						"referenceName": "REF_ZIP_CODES_WINDOWS_PHI",
+						"type": "DatasetReference"
+					},
+					"name": "PHI"
+				},
+				{
+					"dataset": {
+						"referenceName": "REF_ZIP_CODES_WINDOWS_MXH",
+						"type": "DatasetReference"
+					},
+					"name": "MXH"
+				},
+				{
+					"dataset": {
+						"referenceName": "REF_ZIP_CODES_WINDOWS_MAC",
+						"type": "DatasetReference"
+					},
+					"name": "MAC"
+				},
+				{
+					"dataset": {
+						"referenceName": "REF_ZIP_CODES_WINDOWS_RTW",
+						"type": "DatasetReference"
+					},
+					"name": "RTW"
+				},
+				{
+					"dataset": {
+						"referenceName": "REF_ZIP_CODES_WINDOWS_SWR",
+						"type": "DatasetReference"
+					},
+					"name": "SWR"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "RDM_REF_PRODUCT_ZIP_CODES",
+						"type": "DatasetReference"
+					},
+					"name": "REFPRODUCTZIPCODES",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "addDivisionFHI"
+				},
+				{
+					"name": "unionAllDivisions"
+				},
+				{
+					"name": "addDivisionPHI"
+				},
+				{
+					"name": "addDivisionMXH"
+				},
+				{
+					"name": "addDivisionMAC"
+				},
+				{
+					"name": "addDivisionRTW"
+				},
+				{
+					"name": "addDivisionSWR"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          ZipCode as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> FHI",
+				"source(output(",
+				"          ZipCode as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> PHI",
+				"source(output(",
+				"          ZipCode as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> MXH",
+				"source(output(",
+				"          ZipCode as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> MAC",
+				"source(output(",
+				"          ZipCode as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> RTW",
+				"source(output(",
+				"          ZipCode as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> SWR",
+				"FHI derive(Division = 'FHI',",
+				"          Product = 'Windows') ~> addDivisionFHI",
+				"addDivisionFHI, addDivisionPHI, addDivisionMXH, addDivisionMAC, addDivisionRTW, addDivisionSWR union(byName: true)~> unionAllDivisions",
+				"PHI derive(Division = 'PHI',",
+				"          Product = 'Windows') ~> addDivisionPHI",
+				"MXH derive(Division = 'MXH',",
+				"          Product = 'Windows') ~> addDivisionMXH",
+				"MAC derive(Division = 'MAC',",
+				"          Product = 'Windows') ~> addDivisionMAC",
+				"RTW derive(Division = 'RTW',",
+				"          Product = 'Windows') ~> addDivisionRTW",
+				"SWR derive(Division = 'SWR',",
+				"          Product = 'Windows') ~> addDivisionSWR",
+				"unionAllDivisions sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          Division as string,",
+				"          Product as string,",
+				"          ZipCode as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     staged: true,",
+				"     allowCopyCommand: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          Division,",
+				"          Product,",
+				"          ZipCode",
+				"     )) ~> REFPRODUCTZIPCODES"
+			]
+		}
+	}
+}

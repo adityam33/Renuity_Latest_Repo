@@ -1,0 +1,354 @@
+{
+	"name": "df_load_FACT_MARKETING_COST_DETAIL",
+	"properties": {
+		"folder": {
+			"name": "ODS_to_EDW/FACTS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_FHI_MarketingCostDetail",
+						"type": "DatasetReference"
+					},
+					"name": "FHI",
+					"description": "Import data from SRC_ODS_LP_FHI_mcd_MarketingCostDetail"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_PBC_MarketingCostDetail",
+						"type": "DatasetReference"
+					},
+					"name": "PBC",
+					"description": "Import data from SRC_ODS_LP_PBC_mcd_MarketingCostDetail"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_RTW_MarketingCostDetail",
+						"type": "DatasetReference"
+					},
+					"name": "RTW",
+					"description": "Import data from SRC_ODS_LP_RTW_mcd_MarketingCostDetail"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_MAC_MarketingCostDetail",
+						"type": "DatasetReference"
+					},
+					"name": "MAC",
+					"description": "Import data from SRC_ODS_LP_MAC_mcd_MarketingCostDetail"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_SWR_MarketingCostDetail",
+						"type": "DatasetReference"
+					},
+					"name": "SWR",
+					"description": "Import data from SRC_ODS_LP_SWR_mcd_MarketingCostDetail"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_HSI_MarketingCostDetail",
+						"type": "DatasetReference"
+					},
+					"name": "HSI",
+					"description": "Import data from SRC_ODS_LP_HSI_mcd_MarketingCostDetail"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_MXH_MarketingCostDetail",
+						"type": "DatasetReference"
+					},
+					"name": "MXH",
+					"description": "Import data from SRC_ODS_LP_MXH_mcd_MarketingCostDetail"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_CTA_MarketingCostDetail",
+						"type": "DatasetReference"
+					},
+					"name": "CTA",
+					"description": "Import data from SRC_ODS_LP_CTA_mcd_MarketingCostDetail"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_FACT_MARKETING_COST_DETAIL",
+						"type": "DatasetReference"
+					},
+					"name": "targetFact",
+					"description": "Export data to FACT_MARKETING_COST_DETAIL",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "addOpCoNameFHI"
+				},
+				{
+					"name": "addOpCoNamePBC"
+				},
+				{
+					"name": "addOpCoNameRTW"
+				},
+				{
+					"name": "addOpCoNameMAC"
+				},
+				{
+					"name": "addOpCoNameSWR"
+				},
+				{
+					"name": "addOpCoNameHSI"
+				},
+				{
+					"name": "unionAllOpCos"
+				},
+				{
+					"name": "selectRenameColumns"
+				},
+				{
+					"name": "derivedColumns"
+				},
+				{
+					"name": "addOpCoNameMXH"
+				},
+				{
+					"name": "addOpCoNameCTA"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          id as integer,",
+				"          srs_id as integer,",
+				"          SDate as timestamp,",
+				"          mcc_id as integer,",
+				"          Descr as string,",
+				"          Amount as decimal(19,4),",
+				"          ValidFromDate as timestamp,",
+				"          ValidToDate as timestamp,",
+				"          recordsource as string,",
+				"          ProductID as string,",
+				"          brn_id as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> FHI",
+				"source(output(",
+				"          id as integer,",
+				"          srs_id as integer,",
+				"          SDate as timestamp,",
+				"          mcc_id as integer,",
+				"          Descr as string,",
+				"          Amount as decimal(19,4),",
+				"          ValidFromDate as timestamp,",
+				"          ValidToDate as timestamp,",
+				"          recordsource as string,",
+				"          ProductID as string,",
+				"          brn_id as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> PBC",
+				"source(output(",
+				"          id as integer,",
+				"          srs_id as integer,",
+				"          SDate as timestamp,",
+				"          mcc_id as integer,",
+				"          Descr as string,",
+				"          Amount as decimal(19,4),",
+				"          ValidFromDate as timestamp,",
+				"          ValidToDate as timestamp,",
+				"          recordsource as string,",
+				"          ProductID as string,",
+				"          brn_id as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> RTW",
+				"source(output(",
+				"          id as integer,",
+				"          srs_id as integer,",
+				"          SDate as timestamp,",
+				"          mcc_id as integer,",
+				"          Descr as string,",
+				"          Amount as decimal(19,4),",
+				"          ValidFromDate as timestamp,",
+				"          ValidToDate as timestamp,",
+				"          recordsource as string,",
+				"          ProductID as string,",
+				"          brn_id as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> MAC",
+				"source(output(",
+				"          id as integer,",
+				"          srs_id as integer,",
+				"          SDate as timestamp,",
+				"          mcc_id as integer,",
+				"          Descr as string,",
+				"          Amount as decimal(19,4),",
+				"          ValidFromDate as timestamp,",
+				"          ValidToDate as timestamp,",
+				"          recordsource as string,",
+				"          ProductID as string,",
+				"          brn_id as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> SWR",
+				"source(output(",
+				"          id as integer,",
+				"          srs_id as integer,",
+				"          SDate as timestamp,",
+				"          mcc_id as integer,",
+				"          Descr as string,",
+				"          Amount as decimal(19,4),",
+				"          ValidFromDate as timestamp,",
+				"          ValidToDate as timestamp,",
+				"          recordsource as string,",
+				"          ProductID as string,",
+				"          brn_id as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> HSI",
+				"source(output(",
+				"          id as integer,",
+				"          srs_id as integer,",
+				"          SDate as timestamp,",
+				"          mcc_id as integer,",
+				"          Descr as string,",
+				"          Amount as decimal(19,4),",
+				"          ValidFromDate as timestamp,",
+				"          ValidToDate as timestamp,",
+				"          recordsource as string,",
+				"          ProductID as string,",
+				"          brn_id as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> MXH",
+				"source(output(",
+				"          id as integer,",
+				"          srs_id as integer,",
+				"          SDate as timestamp,",
+				"          mcc_id as integer,",
+				"          Descr as string,",
+				"          Amount as decimal(19,4),",
+				"          ValidFromDate as timestamp,",
+				"          ValidToDate as timestamp,",
+				"          recordsource as string,",
+				"          ProductID as string,",
+				"          brn_id as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> CTA",
+				"FHI derive(Division = 'FHI') ~> addOpCoNameFHI",
+				"PBC derive(Division = 'PBC') ~> addOpCoNamePBC",
+				"RTW derive(Division = 'RTW') ~> addOpCoNameRTW",
+				"MAC derive(Division = 'MAC') ~> addOpCoNameMAC",
+				"SWR derive(Division = 'SWR') ~> addOpCoNameSWR",
+				"HSI derive(Division = 'HSI') ~> addOpCoNameHSI",
+				"addOpCoNameFHI, addOpCoNamePBC, addOpCoNameRTW, addOpCoNameMAC, addOpCoNameSWR, addOpCoNameHSI, addOpCoNameMXH, addOpCoNameCTA union(byName: true)~> unionAllOpCos",
+				"unionAllOpCos select(mapColumn(",
+				"          MarketingCostDetailId = id,",
+				"          LP_LeadSubSourceID = srs_id,",
+				"          SDate,",
+				"          LP_MarketingCostCategoryID = mcc_id,",
+				"          Description = Descr,",
+				"          Amount,",
+				"          ValidFromDate,",
+				"          ValidToDate,",
+				"          Recordsource = recordsource,",
+				"          LP_ProductID = ProductID,",
+				"          LP_BranchID = brn_id,",
+				"          Division",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectRenameColumns",
+				"selectRenameColumns derive(LastUpdateTS = currentTimestamp(),",
+				"          LeadSubSourceID = concat(Division,'-',toString(LP_LeadSubSourceID)),",
+				"          MarketingCostCategoryID = concat(Division,'-',toString(LP_MarketingCostCategoryID)),",
+				"          ProductID = concat(Division,'-',toString(LP_ProductID)),",
+				"          BranchID = concat(Division,'-',toString(LP_BranchID))) ~> derivedColumns",
+				"MXH derive(Division = 'MXH') ~> addOpCoNameMXH",
+				"CTA derive(Division = 'CTA') ~> addOpCoNameCTA",
+				"derivedColumns sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          MarketingCostDetailId as integer,",
+				"          LeadSubSourceID as string,",
+				"          SDate as timestamp,",
+				"          MarketingCostCategoryID as string,",
+				"          Description as string,",
+				"          Amount as decimal(16,2),",
+				"          ValidFromDate as timestamp,",
+				"          ValidToDate as timestamp,",
+				"          Recordsource as string,",
+				"          ProductID as string,",
+				"          BranchID as string,",
+				"          LP_LeadSubSourceID as integer,",
+				"          LP_MarketingCostCategoryID as integer,",
+				"          LP_ProductID as string,",
+				"          LP_BranchID as string,",
+				"          Division as string,",
+				"          LastUpdateTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     truncate:true,",
+				"     format: 'table',",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          MarketingCostDetailId,",
+				"          LeadSubSourceID,",
+				"          SDate,",
+				"          MarketingCostCategoryID,",
+				"          Description,",
+				"          Amount,",
+				"          ValidFromDate,",
+				"          ValidToDate,",
+				"          Recordsource,",
+				"          ProductID,",
+				"          BranchID,",
+				"          LP_LeadSubSourceID,",
+				"          LP_MarketingCostCategoryID,",
+				"          LP_ProductID,",
+				"          LP_BranchID,",
+				"          Division,",
+				"          LastUpdateTS",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> targetFact"
+			]
+		}
+	}
+}

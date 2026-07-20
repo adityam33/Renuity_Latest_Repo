@@ -1,0 +1,20 @@
+{
+	"name": "SQL script 4",
+	"properties": {
+		"folder": {
+			"name": "Temp"
+		},
+		"content": {
+			"query": "SELECT TOP (100) \narr.*\n,arp.*\nFROM \n[ODS].[ERP_AR_REGISTER] arr\nleft join [ODS].[ERP_AR_PAYMENT] arp on\narr.ReferenceNbr = arp.ReferenceNbr\nAND arr.Type = arp.Type\nwhere \narr.ReferenceNbr = '020182' and arr.Type = 'Credit Memo'\n\n select [Type], count(1), sum(ARRegister_docBal), sum(ARRegister_origDocAmt)\n FROM [ODS].[ERP_AR_REGISTER]\n group BY\n [Type] \n order by 2 desc\n\n select top 100 * from [ODS].[ERP_AR_REGISTER] arr",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

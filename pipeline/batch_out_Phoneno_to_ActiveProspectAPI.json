@@ -1,0 +1,354 @@
+{
+	"name": "batch_out_Phoneno_to_ActiveProspectAPI",
+	"properties": {
+		"activities": [
+			{
+				"name": "PhoneNumber count CTA",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Get All API Lists",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:30:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "Select Case when RecCount>0 then RecCount Else 0 end as RecCount From \r\n(SELECT count(distinct Phone) as RecCount FROM EDW.DIM_CUSTOMER where Division='CTA' and Phone <>'' and Phone is NOT NULL \r\nand (Cast(LP_Dateadded as date)>=Dateadd(d,-14,getdate()) or Cast(LP_LastChanged as Date)>=Dateadd(d,-14,getdate()) ))A"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Assign reccount",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "PhoneNumber count CTA",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "RecCount",
+					"value": {
+						"value": "@activity('PhoneNumber count CTA').output.resultSets[0].rows[0].RecCount",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "RecCount Check",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Assign reccount",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@greater(variables('RecCount'),0)",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "Fail1",
+							"type": "Fail",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"message": "Distinct Phone Number count is 0 in DIM_customer table",
+								"errorCode": "000"
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "Post PhoneNo to API",
+							"description": "Post PhoneNo to API list in iterations",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "batch_post_Phoneno_to_API_CTA",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"ListURLName": {
+										"value": "@pipeline().parameters.CTA_ListURLName",
+										"type": "Expression"
+									},
+									"ListName": {
+										"value": "@pipeline().parameters.CTA_ListName",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Get All API Lists",
+				"description": "To retrieve all existing API lists ",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.01:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:01:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "GET",
+						"additionalHeaders": {
+							"Content-Type": "application/json"
+						},
+						"paginationRules": {
+							"supportRFC5988": "true"
+						}
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "$['id']"
+								},
+								"sink": {
+									"name": "id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['name']"
+								},
+								"sink": {
+									"name": "name",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['url_name']"
+								},
+								"sink": {
+									"name": "url_name",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_AP_API_LIST",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "TGT_AP_API_LISTS",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "PhoneNumber count 8 Divs",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Get All API Lists",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:30:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "Select Case when RecCount>0 then RecCount Else 0 end as RecCount From \r\n(SELECT count(distinct Phone) as RecCount FROM EDW.DIM_CUSTOMER where Division<>'CTA' AND Division<>'MXH' and Phone <>'' and Phone is NOT NULL \r\nand (Cast(LP_Dateadded as date)>=Dateadd(d,-30,getdate()) or Cast(LP_LastChanged as Date)>=Dateadd(d,-30,getdate()) ))A"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Assign reccount_copy1",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "PhoneNumber count 8 Divs",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "RecCount",
+					"value": {
+						"value": "@activity('PhoneNumber count 8 Divs').output.resultSets[0].rows[0].RecCount",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "RecCount Check_copy1",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Assign reccount_copy1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@greater(variables('RecCount'),0)",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "Fail1_copy1",
+							"type": "Fail",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"message": "Distinct Phone Number count is 0 in DIM_customer table",
+								"errorCode": "000"
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "Post PhoneNo to API_copy1",
+							"description": "Post PhoneNo to API list in iterations",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "batch_post_Phoneno_to_API_8Divs",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"ListURLName": {
+										"value": "@pipeline().parameters.ListURLName",
+										"type": "Expression"
+									},
+									"ListName": {
+										"value": "@pipeline().parameters.ListName",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"CTA_ListURLName": {
+				"type": "string",
+				"defaultValue": "cla_recent_phone"
+			},
+			"CTA_ListName": {
+				"type": "string",
+				"defaultValue": "CLA_recent_phone"
+			},
+			"ListURLName": {
+				"type": "string",
+				"defaultValue": "renuity__last_30_days__phone"
+			},
+			"ListName": {
+				"type": "string",
+				"defaultValue": "renuity__last_30_days__phone"
+			}
+		},
+		"variables": {
+			"RecCount": {
+				"type": "Integer"
+			}
+		},
+		"folder": {
+			"name": "RDC_to_ActiveProspect"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-01-11T17:31:31Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

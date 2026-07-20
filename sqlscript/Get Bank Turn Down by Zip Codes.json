@@ -1,0 +1,17 @@
+{
+	"name": "Get Bank Turn Down by Zip Codes",
+	"properties": {
+		"content": {
+			"query": "/* Non Rite */\n\nSELECT\njob.Division\n,cst.Zip\n,jsc.JobStatusCategory\n,dsp.Disposition\n,sum(job.GrossAmount) as GrossAmount\n,count(lds.LeadID) as LeadCount\n FROM \n [EDW].[FACT_JOB] job\n,[EDW].[FACT_LEAD] lds\n,[EDW].[DIM_DISPOSITION] dsp\n ,EDW.DIM_JOB_STATUS js\n ,EDW.DIM_JOB_STATUS_CATEGORY jsc\n ,[EDW].[DIM_CUSTOMER] cst\n where \n job.JobStatusID = js.JobStatusID\n and js.JobStatusCategoryID = jsc.JobStatusCategoryID\n and job.LeadID = lds.LeadID\n and lds.CustomerID = cst.CustomerID\n and lds.DispositionID = dsp.DispositionID\n and lds.EntryDate between '2022-12-01' and '2023-02-28'\n and job.Division not in ('RTW')\ngroup by\njob.Division\n,cst.Zip\n,jsc.JobStatusCategory\n,dsp.Disposition\n\n\n/* For Rite */\n\nSELECT\nlds.Division\n,cst.Zip\n,'NA' as JobStatusCategory\n,dsp.Disposition\n,sum(lds.GrossSalesAmount) as GrossAmount\n,count(lds.LeadID) as LeadCount\n FROM \n[EDW].[FACT_LEAD] lds\n,[EDW].[DIM_CUSTOMER] cst\n,[EDW].[DIM_DISPOSITION] dsp\n where \nlds.CustomerID = cst.CustomerID\n and lds.DispositionID = dsp.DispositionID\n and lds.EntryDate between '2022-12-01' and '2023-02-28'\n and lds.Division in ('RTW')\ngroup by\nlds.Division\n,cst.Zip\n,dsp.Disposition\n\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

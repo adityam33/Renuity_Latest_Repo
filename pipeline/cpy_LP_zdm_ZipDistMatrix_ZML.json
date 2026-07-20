@@ -1,0 +1,207 @@
+{
+	"name": "cpy_LP_zdm_ZipDistMatrix_ZML",
+	"properties": {
+		"activities": [
+			{
+				"name": "cpy_FHI_zdm_ZipDistMatrix",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT * FROM dbo.zdm_ZipDistMatrix",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE ZML.LP_FHI_zdm_ZipDistMatrix;",
+						"writeBehavior": "Insert",
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "staging"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Zip1",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Zip1",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Zip2",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Zip2",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Distance",
+									"type": "Double"
+								},
+								"sink": {
+									"name": "Distance",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "DrivingTime",
+									"type": "Double"
+								},
+								"sink": {
+									"name": "DrivingTime",
+									"type": "Decimal"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_ZML_FHI_aph_AlternatePhones",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ZML_ODS_FHI_zdm_ZipDistMatrix",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "cpy_MXH_zdm_ZipDistMatrix",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT * FROM dbo.zdm_ZipDistMatrix",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE ZML.LP_MXH_zdm_ZipDistMatrix;",
+						"writeBehavior": "Insert",
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "staging"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Zip1",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Zip1",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Zip2",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Zip2",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Distance",
+									"type": "Double"
+								},
+								"sink": {
+									"name": "Distance",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "DrivingTime",
+									"type": "Double"
+								},
+								"sink": {
+									"name": "DrivingTime",
+									"type": "Decimal"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_MXH_zdm_ZipDistMatrix",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ZML_ODS_MXH_zdm_ZipDistMatrix",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "Temp/Anuj/ZML/LP_to_ODS_ZML"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-11-06T06:39:36Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

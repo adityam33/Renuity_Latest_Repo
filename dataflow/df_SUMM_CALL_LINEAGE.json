@@ -1,0 +1,178 @@
+{
+	"name": "df_SUMM_CALL_LINEAGE",
+	"properties": {
+		"folder": {
+			"name": "ODS_to_EDW/SUMM"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ODS_INVOCA_FHI_CALLS",
+						"type": "DatasetReference"
+					},
+					"name": "Invoca"
+				},
+				{
+					"dataset": {
+						"referenceName": "ODS_FIVE9_FHI_CALLS",
+						"type": "DatasetReference"
+					},
+					"name": "Five9"
+				},
+				{
+					"dataset": {
+						"referenceName": "EDW_FACT_CALL",
+						"type": "DatasetReference"
+					},
+					"name": "LP"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_SUMM_CALL_LINEAGE",
+						"type": "DatasetReference"
+					},
+					"name": "SummCallLineage"
+				}
+			],
+			"transformations": [
+				{
+					"name": "formatCallerID"
+				},
+				{
+					"name": "joinFive9"
+				},
+				{
+					"name": "joinLP"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          InvocaCallRecordID as string,",
+				"          InvocaCallDate as string,",
+				"          InvocaMediaType as string,",
+				"          InvocaPromoNumberDescription as string,",
+				"          InvocaCallSegmentPath as string,",
+				"          InvocaFinalCampaign as string,",
+				"          InvocaTotalDuration as string,",
+				"          InvocaTotalConnectedDuration as string,",
+				"          InvocaTotalIVRDuration as string,",
+				"          InvocaCity as string,",
+				"          InvocaRegion as string,",
+				"          InvocaCallerID as string,",
+				"          InvocaPhoneType as string,",
+				"          InvocaSignalNames as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT \\n[Call Record ID] as InvocaCallRecordID\\n,[Call Start Time] as InvocaCallDate\\n,[Media Type] as InvocaMediaType\\n,[Promo Number Description] as InvocaPromoNumberDescription\\n,[Call Segment Path] as InvocaCallSegmentPath\\n,[Final Campaign] as InvocaFinalCampaign\\n,[Total Duration] as InvocaTotalDuration\\n,[Total Connected Duration] as InvocaTotalConnectedDuration\\n,[Total IVR Duration] as InvocaTotalIVRDuration\\n,inv.[City] as InvocaCity\\n,[Region] as InvocaRegion\\n,[Caller ID] as InvocaCallerID\\n,[Phone Type] as InvocaPhoneType\\n,[Signal Names] as InvocaSignalNames\\nFROM \\n[ODS].[INVOCA_FHI_CALLS] inv\\nWHERE\\n[Call Start Time] >= \\'2022-07-01\\'\\n',",
+				"     format: 'query',",
+				"     staged: true) ~> Invoca",
+				"source(output(",
+				"          Five9ANI as string,",
+				"          Five9CallID as string,",
+				"          Five9CallDate as string,",
+				"          Five9Campaign as string,",
+				"          Five9CallType as string,",
+				"          Five9Disposition as string,",
+				"          Five9CallTime as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT \\n[ANI] as Five9ANI\\n,[CALL ID] as Five9CallID\\n,[TIMESTAMP] as Five9CallDate\\n,[CAMPAIGN] as Five9Campaign\\n,[CALL TYPE] as Five9CallType\\n,f9.[DISPOSITION] as Five9Disposition\\n,[CALL TIME] as Five9CallTime\\nFROM \\n[ODS].[FIVE9_FHI_CALLS] f9\\nWHERE\\n[CALL TYPE] = \\'Inbound\\'\\nand [TIMESTAMP] > \\'2022-07-01\\'',",
+				"     format: 'query',",
+				"     staged: true) ~> Five9",
+				"source(output(",
+				"          LPPhone as string,",
+				"          LPCallID as string,",
+				"          LPCallTypeID as string,",
+				"          LPCallResultID as string,",
+				"          LPCallDate as timestamp,",
+				"          LPLeadID as string,",
+				"          LPCustomerID as string,",
+				"          LPEntryDate as timestamp,",
+				"          LPLeadSourceID as string,",
+				"          LPLeadSubSourceID as string,",
+				"          LPGrossSalesAmount as decimal(19,4),",
+				"          LPLeadSubSource as string,",
+				"          LPDispositionID as string,",
+				"          LPDisposition as string,",
+				"          LPDivision as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT\\ncls.[Phone] as LPPhone\\n,[CallID] as LPCallID\\n,[CallTypeID] as LPCallTypeID\\n,[CallResultID] as LPCallResultID\\n,[CallDate] as LPCallDate\\n,lds.LeadID as LPLeadID\\n,lds.CustomerID as LPCustomerID\\n,lds.EntryDate as LPEntryDate\\n,lds.LeadSourceID as LPLeadSourceID\\n,lds.LeadSubSourceID as LPLeadSubSourceID\\n,lds.GrossSalesAmount as LPGrossSalesAmount\\n,srs.LeadSubSource as LPLeadSubSource\\n,lds.DispositionID as LPDispositionID\\n,dsp.Disposition as LPDisposition\\n,lds.[Division] as LPDivision\\nFROM \\n[EDW].[FACT_LEAD] lds\\ninner join [EDW].[DIM_CUSTOMER] cst\\non lds.CustomerID = cst.CustomerID\\ninner join [EDW].[DIM_LEAD_SUB_SOURCE] srs\\non lds.LeadSubSourceID = srs.LeadSubSourceID\\ninner join [EDW].[DIM_DISPOSITION] dsp\\non lds.DispositionID = dsp.DispositionID\\nleft join [EDW].[FACT_CALL] cls\\non lds.CustomerID = cls.CustomerID\\nWHERE\\n[EntryDate] >= \\'2022-07-01\\'\\nand lds.[Division] = \\'FHI\\'\\n\\n',",
+				"     format: 'query',",
+				"     staged: true) ~> LP",
+				"Invoca derive(InvocaCallerID = replace(InvocaCallerID, '-', '')) ~> formatCallerID",
+				"formatCallerID, Five9 join(InvocaCallerID == Five9ANI,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> joinFive9",
+				"joinFive9, LP join(InvocaCallerID == LPPhone,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> joinLP",
+				"joinLP sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     truncate:true,",
+				"     format: 'table',",
+				"     staged: true,",
+				"     allowCopyCommand: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          InvocaCallRecordID,",
+				"          InvocaCallDate,",
+				"          InvocaMediaType,",
+				"          InvocaPromoNumberDescription,",
+				"          InvocaCallSegmentPath,",
+				"          InvocaFinalCampaign,",
+				"          InvocaTotalDuration,",
+				"          InvocaTotalConnectedDuration,",
+				"          InvocaTotalIVRDuration,",
+				"          InvocaCity,",
+				"          InvocaRegion,",
+				"          InvocaCallerID,",
+				"          InvocaPhoneType,",
+				"          InvocaSignalNames,",
+				"          Five9ANI,",
+				"          Five9CallID,",
+				"          Five9CallDate,",
+				"          Five9Campaign,",
+				"          Five9CallType,",
+				"          Five9Disposition,",
+				"          Five9CallTime,",
+				"          LPPhone,",
+				"          LPCallID,",
+				"          LPCallTypeID,",
+				"          LPCallResultID,",
+				"          LPCallDate,",
+				"          LPLeadID,",
+				"          LPCustomerID,",
+				"          LPEntryDate,",
+				"          LPLeadSourceID,",
+				"          LPLeadSubSourceID,",
+				"          LPGrossSalesAmount,",
+				"          LPLeadSubSource,",
+				"          LPDispositionID,",
+				"          LPDisposition,",
+				"          LPDivision",
+				"     )) ~> SummCallLineage"
+			]
+		}
+	}
+}

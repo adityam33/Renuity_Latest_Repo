@@ -1,0 +1,926 @@
+{
+	"name": "cpy_Budget_File_Sharepoint",
+	"properties": {
+		"activities": [
+			{
+				"name": "If Condition File exist",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Check file Name",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(activity('Check file Exist').output.exists, true)\n",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "Archive files",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "cpy_BUDGET_FILE_SharePoint_ODS",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "ExcelSource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": false,
+										"enablePartitionDiscovery": false
+									}
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "Budget_File_Sharepoint",
+									"type": "DatasetReference",
+									"parameters": {
+										"p_FileName": {
+											"value": "@variables('FileName')",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "Budget_Sharepoint_Arch",
+									"type": "DatasetReference",
+									"parameters": {
+										"FileName": {
+											"value": "@concat(\n  '2024 Budget Data for PBI_',\n  formatDateTime(utcNow(), 'yyyyMMdd_HHmmss')\n)\n",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "Delete",
+							"type": "Delete",
+							"dependsOn": [
+								{
+									"activity": "Archive files",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "Budget_File_Sharepoint",
+									"type": "DatasetReference",
+									"parameters": {
+										"p_FileName": "@variables('FileName')"
+									}
+								},
+								"enableLogging": false,
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": false,
+									"enablePartitionDiscovery": false
+								}
+							}
+						},
+						{
+							"name": "Get Last Updated Date",
+							"type": "GetMetadata",
+							"dependsOn": [
+								{
+									"activity": "Set variable_FileName",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.6:00:00",
+								"retry": 1,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "Budget_File_Sharepoint",
+									"type": "DatasetReference",
+									"parameters": {
+										"p_FileName": "@variables('FileName')"
+									}
+								},
+								"fieldList": [
+									"lastModified"
+								],
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								}
+							}
+						},
+						{
+							"name": "Set variable_FileName",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "FileName",
+								"value": {
+									"value": "@activity('Check file Name').output.itemName",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "cpy_BUDGET_FILE_SharePoint_ODS",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "Get Last Updated Date",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 1,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "ExcelSource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": true,
+										"enablePartitionDiscovery": false
+									}
+								},
+								"sink": {
+									"type": "SqlPoolSink",
+									"preCopyScript": "TRUNCATE TABLE ODS.SALES_BUDGETS;",
+									"allowCopyCommand": true
+								},
+								"enableStaging": true,
+								"stagingSettings": {
+									"linkedServiceName": {
+										"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+										"type": "LinkedServiceReference"
+									},
+									"path": "staging"
+								},
+								"translator": {
+									"type": "TabularTranslator",
+									"mappings": [
+										{
+											"source": {
+												"name": "Scenario",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Scenario",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Division",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Division",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Market",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Market",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Product",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Product",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Source",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Source",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "BranchID",
+												"type": "String"
+											},
+											"sink": {
+												"name": "BranchID",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "ProductID",
+												"type": "String"
+											},
+											"sink": {
+												"name": "ProductID",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "SourceID",
+												"type": "String"
+											},
+											"sink": {
+												"name": "SourceID",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Rehash",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Rehash",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Date",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Date",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Raw # Budget",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Raw_Count",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Set # Budget",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Set_Count",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Issue # Budget",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Issue_Count",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Demo # Budget",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Demo_Count",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Close # Budget",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Close_Count",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "BTD # Budget",
+												"type": "String"
+											},
+											"sink": {
+												"name": "BTD_Count",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Cancel # Budget",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Cancel_Count",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Net Sales # Budget",
+												"type": "String"
+											},
+											"sink": {
+												"name": "NetSales_Count",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Net Sales $ Budget",
+												"type": "String"
+											},
+											"sink": {
+												"name": "NetSales_Amt",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Marketing Cost $ Budget",
+												"type": "String"
+											},
+											"sink": {
+												"name": "MarketingCost_Amt",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Gross Sales $ Budget",
+												"type": "String"
+											},
+											"sink": {
+												"name": "GrossSales_Amt",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Installs $ Budget",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Installs_Amt",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "SLS - Avg Ticket $",
+												"type": "String"
+											},
+											"sink": {
+												"name": "SLS_AvgTicket_Amt",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "SLS - Sold #",
+												"type": "String"
+											},
+											"sink": {
+												"name": "SLS_Sold_Count",
+												"type": "String"
+											}
+										}
+									]
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "Budget_File_Sharepoint",
+									"type": "DatasetReference",
+									"parameters": {
+										"p_FileName": "@variables('FileName')"
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ODS_SALES_BUDGETS",
+									"type": "DatasetReference"
+								}
+							]
+						},
+						{
+							"name": "cpy_BUDGET_FILE_SharePoint_REF_copy1_copy1",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "Delete",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 1,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlPoolSource",
+									"sqlReaderQuery": "SELECT \nScenario\n,CASE \nWHEN Division ='I.Garage Coating' OR Division='J.Closet America'\tTHEN 'CTA'\nWHEN Division ='G.Pacific Bath'\tOR Division LIKE '%West%'\t\t\tTHEN 'PBC'\nWHEN Division ='C.Mad City'\t\t\t\t\t\t\t\t\t\t\tTHEN 'MAC'\nWHEN Division ='F.Max Home' THEN 'MXH'\nWHEN Division ='A.FHIA' THEN 'FHI'\nWHEN Division ='B.Statewide' THEN 'SWR'\nWHEN Division ='H.Rite Window' THEN 'RTW'\nELSE Division END AS Division\n,Market\n,Product\n,Source\n,BranchID\n,ProductID\n,SourceID\n,Rehash\n,YEAR(CAST(DATE AS DATE)) AS Year\n,CAST(DATE AS DATE) AS DATE\n,Raw_Count\n,Set_Count\n,Issue_Count\n,Demo_Count\n,Close_Count\n,BTD_Count\n,Cancel_Count\n,NetSales_Count\n,NetSales_Amt\n,MarketingCost_Amt\n,GrossSales_Amt\n,Installs_Amt\n,SLS_AvgTicket_Amt\n,SLS_Sold_Count\n,CAST(GETDATE() AS DATE) AS LastUpdatedTS\nFROM [ODS].[SALES_BUDGETS]",
+									"queryTimeout": "02:00:00"
+								},
+								"sink": {
+									"type": "SqlPoolSink",
+									"preCopyScript": "IF EXISTS (SELECT 1 FROM ODS.SALES_BUDGETS)\n\nBEGIN\n    DELETE FROM [RDM].[REF_SALES_BUDGETS] WHERE YEAR IN (SELECT DISTINCT YEAR(CAST(DATE AS DATE)) FROM ODS.SALES_BUDGETS ) \nEND",
+									"allowCopyCommand": true
+								},
+								"enableStaging": true,
+								"stagingSettings": {
+									"linkedServiceName": {
+										"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+										"type": "LinkedServiceReference"
+									},
+									"path": "staging"
+								},
+								"translator": {
+									"type": "TabularTranslator",
+									"mappings": [
+										{
+											"source": {
+												"name": "Scenario",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Scenario",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Division",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Division",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Market",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Market",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Product",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Product",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Source",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Source",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "BranchID",
+												"type": "String"
+											},
+											"sink": {
+												"name": "BranchID",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "ProductID",
+												"type": "String"
+											},
+											"sink": {
+												"name": "ProductID",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "SourceID",
+												"type": "String"
+											},
+											"sink": {
+												"name": "SourceID",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Rehash",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Rehash",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Year",
+												"type": "Int32"
+											},
+											"sink": {
+												"name": "Year",
+												"type": "Int32"
+											}
+										},
+										{
+											"source": {
+												"name": "DATE",
+												"type": "DateTime"
+											},
+											"sink": {
+												"name": "Date",
+												"type": "DateTime"
+											}
+										},
+										{
+											"source": {
+												"name": "Raw_Count",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Raw_Count",
+												"type": "Int32"
+											}
+										},
+										{
+											"source": {
+												"name": "Set_Count",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Set_Count",
+												"type": "Int32"
+											}
+										},
+										{
+											"source": {
+												"name": "Issue_Count",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Issue_Count",
+												"type": "Int32"
+											}
+										},
+										{
+											"source": {
+												"name": "Demo_Count",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Demo_Count",
+												"type": "Int32"
+											}
+										},
+										{
+											"source": {
+												"name": "Close_Count",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Close_Count",
+												"type": "Int32"
+											}
+										},
+										{
+											"source": {
+												"name": "BTD_Count",
+												"type": "String"
+											},
+											"sink": {
+												"name": "BTD_Count",
+												"type": "Int32"
+											}
+										},
+										{
+											"source": {
+												"name": "Cancel_Count",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Cancel_Count",
+												"type": "Int32"
+											}
+										},
+										{
+											"source": {
+												"name": "NetSales_Count",
+												"type": "String"
+											},
+											"sink": {
+												"name": "NetSales_Count",
+												"type": "Int32"
+											}
+										},
+										{
+											"source": {
+												"name": "NetSales_Amt",
+												"type": "String"
+											},
+											"sink": {
+												"name": "NetSales_Amt",
+												"type": "Decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "MarketingCost_Amt",
+												"type": "String"
+											},
+											"sink": {
+												"name": "MarketingCost_Amt",
+												"type": "Decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "GrossSales_Amt",
+												"type": "String"
+											},
+											"sink": {
+												"name": "GrossSales_Amt",
+												"type": "Decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "Installs_Amt",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Installs_Amt",
+												"type": "Decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "SLS_AvgTicket_Amt",
+												"type": "String"
+											},
+											"sink": {
+												"name": "SLS_AvgTicket_Amt",
+												"type": "Decimal"
+											}
+										},
+										{
+											"source": {
+												"name": "SLS_Sold_Count",
+												"type": "String"
+											},
+											"sink": {
+												"name": "SLS_Sold_Count",
+												"type": "Int32"
+											}
+										},
+										{
+											"source": {
+												"name": "LastUpdatedTS",
+												"type": "DateTime"
+											},
+											"sink": {
+												"name": "LastUpdatedTS",
+												"type": "DateTime"
+											}
+										}
+									]
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "ODS_SALES_BUDGETS",
+									"type": "DatasetReference"
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "REF_SALES_BUDGETS",
+									"type": "DatasetReference"
+								}
+							]
+						}
+					]
+				}
+			},
+			{
+				"name": "Check file Exist",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.6:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "Budget_File_Sharepoint",
+						"type": "DatasetReference",
+						"parameters": {
+							"p_FileName": "@variables('FileName')"
+						}
+					},
+					"fieldList": [
+						"exists"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					}
+				}
+			},
+			{
+				"name": "Check file Name",
+				"type": "GetMetadata",
+				"dependsOn": [
+					{
+						"activity": "Check file Exist",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.6:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "Budget_File_Sharepoint",
+						"type": "DatasetReference",
+						"parameters": {
+							"p_FileName": "@variables('FileName')"
+						}
+					},
+					"fieldList": [
+						"itemName"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					}
+				}
+			},
+			{
+				"name": "SendFailureNotification",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "If Condition File exist",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/json"
+					},
+					"url": "https://cc2eba451f17e1c283150e3aa687e0.0f.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/707c194cf9f54378b3fb33cc794c5752/triggers/manual/paths/invoke?api-version=1",
+					"connectVia": {
+						"referenceName": "AutoResolveIntegrationRuntime",
+						"type": "IntegrationRuntimeReference"
+					},
+					"body": {
+						"pipelineName": "@{pipeline().Pipeline}",
+						"runId": "@{pipeline().RunId}",
+						"errorMessage": "@{activity('YourMainActivity').Error.Message}",
+						"factoryName": "@{pipeline().DataFactory}"
+					}
+				}
+			}
+		],
+		"variables": {
+			"FileName": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "ODS_to_EDW/BUDGET_SHAREPOINT"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-10-28T15:29:03Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

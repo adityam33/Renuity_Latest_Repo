@@ -1,0 +1,20 @@
+{
+	"name": "Get Prospect Count and Sold status by OpCo",
+	"properties": {
+		"folder": {
+			"name": "DMLs/Analysis SQL/Performance Marketing"
+		},
+		"content": {
+			"query": "SELECT \ncst.OperatingCompany\n,lds.Sold\n,count(cst.CustomerID) as ProspectCount\n FROM \n [EDW].[DIM_CUSTOMER] cst\n ,[EDW].[FACT_LEAD] lds\n WHERE\n cst.CustomerID = lds.CustomerID\n group by \ncst.OperatingCompany\n,lds.Sold\norder by  \nProspectCount desc",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

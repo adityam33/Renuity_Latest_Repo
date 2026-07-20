@@ -1,0 +1,207 @@
+{
+	"name": "batch_load_Guild_Quality_API_to_FACT",
+	"properties": {
+		"activities": [
+			{
+				"name": "API to ODS By Created Date",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "batch_load_Guild_Quality_APIresponse_toODS_BycreatedDate",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Fact Load",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "API to ODS By Created Date",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "batch_load_Fact_Guild_Quality_CustomerSurvey",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "API to ODS by Updated At",
+				"type": "ExecutePipeline",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Fact Load",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "batch_load_Guild_Quality_APIresponse_toODS_ByUpdatedDate",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Fact Load_copy1",
+				"type": "ExecutePipeline",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "API to ODS by Updated At",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "batch_load_Fact_Guild_Quality_CustomerSurvey",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Update BranchID",
+				"type": "Script",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Fact Load_copy1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "Update A\r\nSet A.BranchID=B.BranchID\r\nfrom EDW.FACT_Medallia_Customer_survey A left join\r\n(Select BranchID,LeadID from EDW.FACT_LEAD) B on A.LeadID=B.LeadID\r\nwhere A.BranchID='' and CAST(A.Response_Date as DATE)>='2024-09-01' and A.Program like 'In-Home%'\r\n\r\nUpdate C\r\nSet C.BranchID=D.ProductionBranchID\r\nfrom EDW.FACT_Medallia_Customer_survey C left join \r\n(Select ProductionBranchID,ContractID from EDW.FACT_JOB) D on C.ContractID=D.ContractID\r\nwhere C.BranchID='' and CAST(C.Response_Date as Date)>='2024-09-01' and C.Program like 'Install%'"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Update ResurveyFlag",
+				"type": "Script",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Update BranchID",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "Update EDW.FACT_Medallia_Customer_survey\r\nSet ResurveyFlag=A.ResurveyFlag\r\n--Select A.*,B.Survey_ID \r\nfrom EDW.FACT_Medallia_Customer_survey B left join\r\n(Select Survey_ID,\r\nCASE WHEN Survey_ID in (Select Survey_ID from EDW.FACT_Medallia_Customer_survey_Invitations where Survey_Status='In progress' and Active_Ind=1 and SurveyFlag='Guild Quality') THEN 'Y'\r\nWHEN  Survey_ID in (Select Survey_ID from EDW.FACT_Medallia_Customer_survey_Invitations where Survey_Status='INVITATION_RESENT' and SurveyFlag='Medallia') THEN 'Y' \r\nELSE 'N' END as ResurveyFlag\r\n from EDW.FACT_Medallia_Customer_survey) A on A.Survey_ID=B.Survey_ID where B.ResurveyFlag!='Y'"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Update Deleted Survey Flag",
+				"type": "Script",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Update ResurveyFlag",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "Update A\r\nSet A.ActiveInd=0\r\nfrom EDW.FACT_Medallia_Customer_Survey A left join ODS.GUILD_QUALITY_DELETED_CUSTOMER_SURVEY B on A.Survey_ID=B.Survey_ID\r\nwhere B.Survey_ID is not null"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/FACTS/GuildQuality/Old Template Adhoc Run"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-11-02T18:33:51Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

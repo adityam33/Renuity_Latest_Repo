@@ -1,0 +1,214 @@
+{
+	"name": "df_load_fve_agent_loggedin",
+	"properties": {
+		"folder": {
+			"name": "Test-Dataflows"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_MAC_F9_AGENT_LOGGED_IN",
+						"type": "DatasetReference"
+					},
+					"name": "MACSource"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_MXH_F9_AGENT_LOGGED_IN",
+						"type": "DatasetReference"
+					},
+					"name": "MXHSource"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_PBC_F9_AGENT_LOGGED_IN",
+						"type": "DatasetReference"
+					},
+					"name": "PBCSource"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_SWR_F9_AGENT_LOGGED_IN",
+						"type": "DatasetReference"
+					},
+					"name": "SWRSource"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_RTW_F9_AGENT_LOGGED_IN",
+						"type": "DatasetReference"
+					},
+					"name": "RTWSource"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_PHI_F9_AGENT_LOGGED_IN",
+						"type": "DatasetReference"
+					},
+					"name": "PHISource"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_HSI_F9_AGENT_LOGGED_IN",
+						"type": "DatasetReference"
+					},
+					"name": "HSISource"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_HSI_F9_AGENT_LOGGED_IN",
+						"type": "DatasetReference"
+					},
+					"name": "FHISource"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ODS_FIVE9_AGENT_LOGGED_IN",
+						"type": "DatasetReference"
+					},
+					"name": "ODSAGENTLOGGEDIN"
+				}
+			],
+			"transformations": [
+				{
+					"name": "union1"
+				},
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "MACDivision"
+				},
+				{
+					"name": "MXHDivision"
+				},
+				{
+					"name": "PBCDivision"
+				},
+				{
+					"name": "SWRDivision"
+				},
+				{
+					"name": "RTWDivision"
+				},
+				{
+					"name": "PHIDivision"
+				},
+				{
+					"name": "HSIDivision"
+				},
+				{
+					"name": "FHIDivision"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          {AGENT NAME} as string,",
+				"          DATE as string,",
+				"          {LOGIN TIME} as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> MACSource",
+				"source(output(",
+				"          {AGENT NAME} as string,",
+				"          DATE as string,",
+				"          {LOGIN TIME} as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> MXHSource",
+				"source(output(",
+				"          {AGENT NAME} as string,",
+				"          DATE as string,",
+				"          {LOGIN TIME} as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> PBCSource",
+				"source(output(",
+				"          {AGENT NAME} as string,",
+				"          DATE as string,",
+				"          {LOGIN TIME} as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> SWRSource",
+				"source(output(",
+				"          {AGENT NAME} as string,",
+				"          DATE as string,",
+				"          {LOGIN TIME} as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> RTWSource",
+				"source(output(",
+				"          {AGENT NAME} as string,",
+				"          DATE as string,",
+				"          {LOGIN TIME} as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> PHISource",
+				"source(output(",
+				"          {AGENT NAME} as string,",
+				"          DATE as string,",
+				"          {LOGIN TIME} as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> HSISource",
+				"source(output(",
+				"          {AGENT NAME} as string,",
+				"          DATE as string,",
+				"          {LOGIN TIME} as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> FHISource",
+				"MACDivision, MXHDivision, PBCDivision, SWRDivision, RTWDivision, PHIDivision, HSIDivision, FHIDivision union(byName: true)~> union1",
+				"union1 derive(LOGIN_LOGOUT = 'LOGGED_IN',",
+				"          TIME = substring({LOGIN TIME},12,8)) ~> derivedColumn1",
+				"MACSource derive(Division = 'MAC') ~> MACDivision",
+				"MXHSource derive(Division = 'MXH') ~> MXHDivision",
+				"PBCSource derive(Division = 'PBC') ~> PBCDivision",
+				"SWRSource derive(Division = 'SWR') ~> SWRDivision",
+				"RTWSource derive(Division = 'RTW') ~> RTWDivision",
+				"PHISource derive(Division = 'PHI') ~> PHIDivision",
+				"HSISource derive(Division = 'HSI') ~> HSIDivision",
+				"FHISource derive(Division = 'FHI') ~> FHIDivision",
+				"derivedColumn1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          AgentName as string,",
+				"          Date as string,",
+				"          Time as string,",
+				"          Login_LogOut as string,",
+				"          Division as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     staged: true,",
+				"     allowCopyCommand: true,",
+				"     dateFormat:'MM-dd-yyyy',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          AgentName = {AGENT NAME},",
+				"          Date = DATE,",
+				"          Time = TIME,",
+				"          Login_LogOut = LOGIN_LOGOUT,",
+				"          Division",
+				"     )) ~> ODSAGENTLOGGEDIN"
+			]
+		}
+	}
+}

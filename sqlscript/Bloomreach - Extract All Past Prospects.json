@@ -1,0 +1,17 @@
+{
+	"name": "Bloomreach - Extract All Past Prospects",
+	"properties": {
+		"content": {
+			"query": "SELECT\nlower([Division]) as division\n,lower([CustomerID]) as prospect_id\n,case \n    when [Phone] is not null then '+1'+Phone\n    else [Phone]\nend as [phone_id]\n,[FirstName] as first_name\n,[LastName] as last_name\n,[Address1] as address1\n,[Address2] as address2\n,[City] as city\n,[State] as [state]\n,[Zip] as zip\n,[Zip4] as zip4\n,[FirstName]+' '+[LastName] as full_name\n,[LP_DateAdded] as lp_dateadded\n,[LP_LastChanged] as lp_datechanged\n,STR([LP_CustomerID]) as lp_customerid\n,cast(getdate() as DATE) as bulk_upload_date\n FROM [EDW].[DIM_CUSTOMER]\nwhere\nDivision = 'FHI'\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

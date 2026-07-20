@@ -1,0 +1,52 @@
+{
+	"name": "df_load_mkt_spen_googlesheet",
+	"properties": {
+		"folder": {
+			"name": "Test-Dataflows"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "MarketSpend_GoogleSheet",
+						"type": "LinkedServiceReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "TGT_Mkt_Spend_GS",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [],
+			"scriptLines": [
+				"source(output(",
+				"          column_1 as date,",
+				"          column_2 as string,",
+				"          column_3 as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     store: 'googlesheets',",
+				"     format: 'rest',",
+				"     spreadSheetId: '1wdYVuvhayRD_oMTKY2Bh_0sEu2XQ_cmrHcnOpcvj2GM',",
+				"     startCell: 'A2',",
+				"     endCell: 'C8',",
+				"     sheetName: 'DoD_Spend') ~> source1",
+				"source1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sink1"
+			]
+		}
+	}
+}

@@ -1,0 +1,20 @@
+{
+	"name": "SWR - Top Zip Codes",
+	"properties": {
+		"folder": {
+			"name": "DMLs/Analysis SQL/Performance Marketing"
+		},
+		"content": {
+			"query": "SELECT distinct\nservZips.Branch\n,servZips.ZipCode\n,CAST(zonda.[Total_Households] as INT) as [Total_Households]\n,CAST(Overall_Remodeling_Composite_Ranking_Index AS DECIMAL (5, 2)) as [Overall_Remodeling_Composite_Ranking_Index]\n,zonda.[Baths_Composite_Ranking_Index]\n,zonda.[Windows_Composite_Ranking_Index]\n,zipPerf.GrossSalesAmount\n,zipPerf.RawLeadCount\n,zipPerf.SoldLeadCount\n,zonda.[MSA]\n,zonda.[State]\n,zonda.[County]\n,zonda.[City]\n,zonda.[Median_Home_Price]\n,zonda.[Median_Year_Built]\nFROM\n(\n    SELECT \n    case \n    when MSA_NAME = 'Corpus Christi TX MSA' then 'CC'\n    when MSA_NAME = 'Fayetteville-Springdale-Rogers AR MSA' then 'ARK'\n    when MSA_NAME = 'San Antonio TX MSA' then 'SA' \n    end as Branch\n    ,[ZipCode]\n    FROM [ODS].[MKTDATA_ZIP_CODES_DB_DELUXE_BUSINESS]\n    where \n    [PrimaryRecord] = 'P'\n    and \n    (\n        MSA_NAME in ('Corpus Christi TX MSA', 'Fayetteville-Springdale-Rogers AR MSA', 'San Antonio TX MSA')\n    )\n    /* SELECT distinct [Zip Code] as ZipCode,[Final Assigned Branch] as Branch FROM [ODS].[REF_MKT_GEOFENCE] where OpCo = 'MAC'*/\n) servZips\nleft join (\n    SELECT\n    [Zip]\n    ,sum(lds.GrossSalesAmount) as GrossSalesAmount\n    ,count(lds.LeadID) as RawLeadCount\n    ,sum(case when lds.Sold = 'True' then 1 else 0 end) as SoldLeadCount\n    FROM \n    [EDW].[DIM_CUSTOMER] cst\n    ,[EDW].[FACT_LEAD] lds\n    WHERE\n    lds.CustomerID = cst.CustomerID\n    and lds.[OperatingCompany] = 'SWR'\n    group BY\n    [Zip]\n) zipPerf\non servZips.ZipCode = zipPerf.Zip\nleft join [ODS].[MKTDATA_ZONDA_ZIP_CODE_INDEX] zonda\non servZips.ZipCode = zonda.ZipCode\norder by\nservZips.Branch\n,Overall_Remodeling_Composite_Ranking_Index desc\n,[Total_Households] desc\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

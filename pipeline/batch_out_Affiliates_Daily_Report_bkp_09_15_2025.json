@@ -1,0 +1,1248 @@
+{
+	"name": "batch_out_Affiliates_Daily_Report_bkp_09_15_2025",
+	"properties": {
+		"activities": [
+			{
+				"name": "out_Stage_Affiliates_Report",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Stage_Affiliates_Report_bkp_09_25_2025",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_Angi",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Stage_Affiliates_Report",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_Angi",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_BlueFire",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Deliver_Affiliates_Report_Angi",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_BlueFire",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_Buyerlink",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Deliver_Affiliates_Report_BlueFire",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_Buyerlink",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_ContractorAppointments",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Deliver_Affiliates_Report_Buyerlink",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_ContractorAppointments",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_CraftJack",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Deliver_Affiliates_Report_ContractorAppointments",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_CraftJack",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_ExactCustomer",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Stage_Affiliates_Report",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_ExactCustomer",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_HomeYou",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Deliver_Affiliates_Report_ExactCustomer",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_HomeYou",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_JBCanvass",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Deliver_Affiliates_Report_HomeYou",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_JBCanvass",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_KeywordConnect",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Deliver_Affiliates_Report_JBCanvass",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_KeywordConnect",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_Lavin",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Deliver_Affiliates_Report_KeywordConnect",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_Lavin",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_LLMedia",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Stage_Affiliates_Report",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_LLMedia",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_MVF",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Deliver_Affiliates_Report_LLMedia",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_MVF",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_Porch",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Deliver_Affiliates_Report_MVF",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_Porch",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_QuinnStreet",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Deliver_Affiliates_Report_Porch",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_QuinnStreet",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_Remodelingdotcom",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Deliver_Affiliates_Report_QuinnStreet",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_Remodelingdotcom",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_Siren",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Stage_Affiliates_Report",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_Siren",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_SocialBlue",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Deliver_Affiliates_Report_Siren",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_SocialBlue",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_SuitedConnector",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Deliver_Affiliates_Report_SocialBlue",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_SuitedConnector",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_ThreeShips",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Deliver_Affiliates_Report_SuitedConnector",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_ThreeShips",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_Zone1Remodeling",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Deliver_Affiliates_Report_ThreeShips",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_Zone1Remodeling",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_DoLead",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Deliver_Affiliates_Report_CraftJack",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_DoLead",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_HelloProject",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Deliver_Affiliates_Report_Lavin",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_HelloProject",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_MrRemodeler",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Deliver_Affiliates_Report_Remodelingdotcom",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_MrRemodeler",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_1800Remodel",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Deliver_Affiliates_Report_Zone1Remodeling",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_1800Remodel",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_RemodelWell",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Stage_Affiliates_Report",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_RemodelWell",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_LWD",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Deliver_Affiliates_Report_RemodelWell",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_LWD",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Invoca_Report_LWD",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Deliver_Affiliates_Report_LWD",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Invoca_Report_LWD",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliate_Report_PX",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Deliver_Invoca_Report_LWD",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_PX",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliate_Report_NDecker",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Deliver_Affiliate_Report_PX",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_NDecker",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_buyology",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Deliver_Affiliate_Report_NDecker",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_Buyology",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_HomeQuote",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Stage_Affiliates_Report",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_HomeQuote",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_GuruDigital",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Deliver_Affiliates_Report_HomeQuote",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_GuruDigital",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_doingthemost",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Deliver_Affiliates_Report_GuruDigital",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_doingthemost",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_Swish",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Deliver_Affiliates_Report_doingthemost",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_Swish",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_Point2Web",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Deliver_Affiliates_Report_Swish",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_Point2Web",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_rgr",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Deliver_Affiliates_Report_Point2Web",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_rgr",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_drivemp",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Stage_Affiliates_Report",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_drivemp",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_ThinxMG",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Deliver_Affiliates_Report_drivemp",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_ThinxMG",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_AlliedDigitalMedia",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Deliver_Affiliates_Report_ThinxMG",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_AlliedDigitalMedia",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_proremodel",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Deliver_Affiliates_Report_AlliedDigitalMedia",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_proremodel",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_BukuLeads",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Deliver_Affiliates_Report_proremodel",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_BukuLeads",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_LightFire",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Deliver_Affiliates_Report_BukuLeads",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_LightFire",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_Networx",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Stage_Affiliates_Report",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_Networx",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_Fixr",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Deliver_Affiliates_Report_Networx",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_Fixr",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_RemodelNow",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Deliver_Affiliates_Report_Fixr",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_RemodelNow",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_DirectMail",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Deliver_Affiliates_Report_RemodelNow",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_DirectMail",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_MyHomePros",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Deliver_Affiliates_Report_DirectMail",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_MyHomePros",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_LuxuryBathSite",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Deliver_Affiliates_Report_MyHomePros",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_LuxuryBathSite",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_Valpak",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Stage_Affiliates_Report",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_Valpak",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_Vize",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Deliver_Affiliates_Report_Valpak",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_Vize",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_Getable",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Deliver_Affiliates_Report_Vize",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_Getable",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_Convert2Appointment",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Deliver_Affiliates_Report_Getable",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_Convert2Appointment",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Deliver_Affiliates_Report_Billy",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "out_Deliver_Affiliates_Report_Convert2Appointment",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Deliver_Affiliates_Report_Billy",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"folder": {
+			"name": "Temp/Archive"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-02-09T10:37:51Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

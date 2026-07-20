@@ -1,0 +1,298 @@
+{
+	"name": "df_load_FACT_JOB_STATUS_LOG",
+	"properties": {
+		"folder": {
+			"name": "ODS_to_EDW/FACTS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_FHI_Log_Job_Status",
+						"type": "DatasetReference"
+					},
+					"name": "FHI"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_PBC_Log_Job_Status",
+						"type": "DatasetReference"
+					},
+					"name": "PBC"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_RTW_Log_Job_Status",
+						"type": "DatasetReference"
+					},
+					"name": "RTW"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_MAC_Log_Job_Status",
+						"type": "DatasetReference"
+					},
+					"name": "MAC"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_SWR_Log_Job_Status",
+						"type": "DatasetReference"
+					},
+					"name": "SWR"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_MXH_Log_Job_Status",
+						"type": "DatasetReference"
+					},
+					"name": "MXH"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_CTA_Log_Job_Status",
+						"type": "DatasetReference"
+					},
+					"name": "CTA"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_FACT_JOB_STATUS_LOG",
+						"type": "DatasetReference"
+					},
+					"name": "targetFact",
+					"description": "Export data to FACT_JOB_STATUS_LOG",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "addOpCoNameFHI"
+				},
+				{
+					"name": "addOpCoNamePBC"
+				},
+				{
+					"name": "addOpCoNameRTW"
+				},
+				{
+					"name": "addOpCoNameMAC"
+				},
+				{
+					"name": "addOpCoNameSWR"
+				},
+				{
+					"name": "unionAllOpCos"
+				},
+				{
+					"name": "selectRenameColumns"
+				},
+				{
+					"name": "derivedColumns"
+				},
+				{
+					"name": "addOpCoNameMXH"
+				},
+				{
+					"name": "addOpCoNameCTA"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          id as integer,",
+				"          Job_ID as integer,",
+				"          OldJbs_id as string,",
+				"          NewJbs_id as string,",
+				"          DateChanged as timestamp,",
+				"          Emp_ID as integer,",
+				"          oldGrossAmount as decimal(19,4),",
+				"          newGrossAmount as decimal(19,4),",
+				"          origin as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> FHI",
+				"source(output(",
+				"          id as integer,",
+				"          Job_ID as integer,",
+				"          OldJbs_id as string,",
+				"          NewJbs_id as string,",
+				"          DateChanged as timestamp,",
+				"          Emp_ID as integer,",
+				"          oldGrossAmount as decimal(19,4),",
+				"          newGrossAmount as decimal(19,4),",
+				"          origin as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> PBC",
+				"source(output(",
+				"          id as integer,",
+				"          Job_ID as integer,",
+				"          OldJbs_id as string,",
+				"          NewJbs_id as string,",
+				"          DateChanged as timestamp,",
+				"          Emp_ID as integer,",
+				"          oldGrossAmount as decimal(19,4),",
+				"          newGrossAmount as decimal(19,4),",
+				"          origin as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> RTW",
+				"source(output(",
+				"          id as integer,",
+				"          Job_ID as integer,",
+				"          OldJbs_id as string,",
+				"          NewJbs_id as string,",
+				"          DateChanged as timestamp,",
+				"          Emp_ID as integer,",
+				"          oldGrossAmount as decimal(19,4),",
+				"          newGrossAmount as decimal(19,4),",
+				"          origin as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> MAC",
+				"source(output(",
+				"          id as integer,",
+				"          Job_ID as integer,",
+				"          OldJbs_id as string,",
+				"          NewJbs_id as string,",
+				"          DateChanged as timestamp,",
+				"          Emp_ID as integer,",
+				"          oldGrossAmount as decimal(19,4),",
+				"          newGrossAmount as decimal(19,4),",
+				"          origin as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> SWR",
+				"source(output(",
+				"          id as integer,",
+				"          Job_ID as integer,",
+				"          OldJbs_id as string,",
+				"          NewJbs_id as string,",
+				"          DateChanged as timestamp,",
+				"          Emp_ID as integer,",
+				"          oldGrossAmount as decimal(19,4),",
+				"          newGrossAmount as decimal(19,4),",
+				"          origin as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> MXH",
+				"source(output(",
+				"          id as integer,",
+				"          Job_ID as integer,",
+				"          OldJbs_id as string,",
+				"          NewJbs_id as string,",
+				"          DateChanged as timestamp,",
+				"          Emp_ID as integer,",
+				"          oldGrossAmount as decimal(19,4),",
+				"          newGrossAmount as decimal(19,4),",
+				"          origin as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> CTA",
+				"FHI derive(Division = 'FHI') ~> addOpCoNameFHI",
+				"PBC derive(Division = 'PBC') ~> addOpCoNamePBC",
+				"RTW derive(Division = 'RTW') ~> addOpCoNameRTW",
+				"MAC derive(Division = 'MAC') ~> addOpCoNameMAC",
+				"SWR derive(Division = 'SWR') ~> addOpCoNameSWR",
+				"addOpCoNameFHI, addOpCoNamePBC, addOpCoNameRTW, addOpCoNameMAC, addOpCoNameSWR, addOpCoNameMXH, addOpCoNameCTA union(byName: true)~> unionAllOpCos",
+				"unionAllOpCos select(mapColumn(",
+				"          LP_JobStatusLogID = id,",
+				"          LP_JobID = Job_ID,",
+				"          LP_Old_JobStatusID = OldJbs_id,",
+				"          LP_New_JobStatusID = NewJbs_id,",
+				"          DateChanged,",
+				"          LP_EmployeeID = Emp_ID,",
+				"          Old_GrossAmount = oldGrossAmount,",
+				"          New_GrossAmount = newGrossAmount,",
+				"          Origin = origin,",
+				"          Division",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectRenameColumns",
+				"selectRenameColumns derive(LastUpdateTS = currentTimestamp(),",
+				"          JobStatusLogID = concat(Division,'-',toString(LP_JobStatusLogID)),",
+				"          JobID = concat(Division,'-',toString(LP_JobID)),",
+				"          Old_JobStatusID = concat(Division,'-',toString(LP_Old_JobStatusID)),",
+				"          New_JobStatusID = concat(Division,'-',toString(LP_New_JobStatusID)),",
+				"          EmployeeID = concat(Division,'-',toString(LP_EmployeeID))) ~> derivedColumns",
+				"MXH derive(Division = 'MXH') ~> addOpCoNameMXH",
+				"CTA derive(Division = 'CTA') ~> addOpCoNameCTA",
+				"derivedColumns sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          JobStatusLogID as string,",
+				"          JobID as string,",
+				"          Old_JobStatusID as string,",
+				"          New_JobStatusID as string,",
+				"          DateChanged as date,",
+				"          EmployeeID as string,",
+				"          Old_GrossAmount as decimal(16,4),",
+				"          New_GrossAmount as decimal(16,4),",
+				"          Origin as string,",
+				"          Division as string,",
+				"          LP_JobStatusLogID as integer,",
+				"          LP_JobID as integer,",
+				"          LP_Old_JobStatusID as string,",
+				"          LP_New_JobStatusID as string,",
+				"          LP_EmployeeID as integer",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     truncate:true,",
+				"     format: 'table',",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          JobStatusLogID,",
+				"          JobID,",
+				"          Old_JobStatusID,",
+				"          New_JobStatusID,",
+				"          DateChanged,",
+				"          EmployeeID,",
+				"          Old_GrossAmount,",
+				"          New_GrossAmount,",
+				"          Origin,",
+				"          Division,",
+				"          LP_JobStatusLogID,",
+				"          LP_JobID,",
+				"          LP_Old_JobStatusID,",
+				"          LP_New_JobStatusID,",
+				"          LP_EmployeeID",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> targetFact"
+			]
+		}
+	}
+}

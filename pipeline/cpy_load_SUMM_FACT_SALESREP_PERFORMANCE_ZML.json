@@ -1,0 +1,175 @@
+{
+	"name": "cpy_load_SUMM_FACT_SALESREP_PERFORMANCE_ZML",
+	"properties": {
+		"activities": [
+			{
+				"name": "Load Sales Rep Level Performance into Summary Fact",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT \n[Division]\n,[SalesRep1_EmployeeID] as SalesRep_EmployeeID\n,1 as SalesRepPosition\n,COUNT([IssuedLeadID]) AS IssuedLeadCount\n,MIN([ApptDate]) as EarliestAppointmentDate\n,sum(case when [NetIssued] = 'True' then 1 else 0 end) as NetIssuedCount\n,sum(case when [Sat] = 'True' then 1 else 0 end) as SatCount\n,sum(case when [Sold] = 'True' then 1 else 0 end) as SoldCount\n,sum([GrossSalesAmount]) as GrossSalesAmount\n FROM [ZML].[FACT_ISSUED_LEAD]\n group BY\n[Division]\n,[SalesRep1_EmployeeID]\n\nUNION\n\nSELECT \n[Division]\n,[SalesRep2_EmployeeID] as SalesRep_EmployeeID\n,2 as SalesRepPosition\n,COUNT([IssuedLeadID]) AS IssuedLeadCount\n,MIN([ApptDate]) as EarliestAppointmentDate\n,sum(case when [NetIssued] = 'True' then 1 else 0 end) as NetIssuedCount\n,sum(case when [Sat] = 'True' then 1 else 0 end) as SatCount\n,sum(case when [Sold] = 'True' then 1 else 0 end) as SoldCount\n,sum([GrossSalesAmount]) as GrossSalesAmount\n FROM [ZML].[FACT_ISSUED_LEAD]\n group BY\n[Division]\n,[SalesRep2_EmployeeID]",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "IF OBJECT_ID('ZML.SUMM_FACT_SALESREP_PERFORMANCE')  IS NOT NULL TRUNCATE TABLE ZML.SUMM_FACT_SALESREP_PERFORMANCE",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"tableOption": "autoCreate",
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "SalesRep_EmployeeID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "SalesRep_EmployeeID",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "SalesRepPosition",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "SalesRepPosition",
+									"type": "Int32",
+									"physicalType": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "IssuedLeadCount",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "IssuedLeadCount",
+									"type": "Int32",
+									"physicalType": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "EarliestAppointmentDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "EarliestAppointmentDate",
+									"type": "DateTime",
+									"physicalType": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "NetIssuedCount",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "NetIssuedCount",
+									"type": "Int32",
+									"physicalType": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "SatCount",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "SatCount",
+									"type": "Int32",
+									"physicalType": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "SoldCount",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "SoldCount",
+									"type": "Int32",
+									"physicalType": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "GrossSalesAmount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 4,
+									"precision": 38
+								},
+								"sink": {
+									"name": "GrossSalesAmount",
+									"type": "Decimal",
+									"physicalType": "Decimal"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_FACT_ISSUED_LEAD",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_SUMM_FACT_SALESREP_PERFORMANCE_ZML",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "Temp/Anuj/ZML/SUMM_FACTS"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-12-22T08:27:18Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

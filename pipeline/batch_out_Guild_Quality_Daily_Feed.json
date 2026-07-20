@@ -1,0 +1,87 @@
+{
+	"name": "batch_out_Guild_Quality_Daily_Feed",
+	"properties": {
+		"activities": [
+			{
+				"name": "out_Guild_Install_Experience_Invite",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Guild_Install_Experience_Invite",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Medallia_Install_Experience_Org",
+				"type": "ExecutePipeline",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "out_Guild_Install_Experience_Invite",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Guild_Sales_Experience_Invite",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Guild_Sales_Experience_Invite",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "out_Medallia_Sales_Experience_Org",
+				"type": "ExecutePipeline",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "out_Guild_Sales_Experience_Invite",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"folder": {
+			"name": "RDC_to_GuildQuality"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-01-11T17:40:57Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

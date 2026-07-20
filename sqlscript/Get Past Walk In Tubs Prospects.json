@@ -1,0 +1,20 @@
+{
+	"name": "Get Past Walk In Tubs Prospects",
+	"properties": {
+		"folder": {
+			"name": "DMLs/Analysis SQL/Walk In Tub"
+		},
+		"content": {
+			"query": "SELECT \nlds.Division\n,lds.[LP_ProductID]\n--,prd.LongDescription as ProductLongDescription\n,lds.CustomerID\n,cst.FirstName\n,cst.LastName\n,cst.Address1\n,cst.City\n,cst.[State]\n,cst.Zip\n,cst.Email\n,cst.Phone\n,lds.[EntryDate]\n,lds.[GrossSalesAmount]\n,lds.[LP_DispositionID]\n,lds.[LP_LeadSourceID]\n,lds.[LP_LeadSubSourceID]\n,srs.LeadSubSource\n,srs.SourceCode\n FROM \n [EDW].[FACT_LEAD] lds\n ,[EDW].[DIM_CUSTOMER] cst\n ,[EDW].[DIM_LEAD_SUB_SOURCE] srs\n WHERE\n lds.CustomerID = cst.CustomerID\n and lds.LeadSubSourceID = srs.LeadSubSourceID\n --and lds.ProductID = prd.ProductID\n --and lds.Division = prd.Division\n --and lds.LP_DispositionID = 'Sale'\n and lds.ProductID in\n ('HSI-KohlerTub',\n'HSI-Tubs',\n'HSI-Tubs2',\n'MXH-WIT',\n'MXH-Tub',\n'MXH-SSWIT',\n'MXH-KWIT',\n'MXH-JWIT',\n'PBC-Tub',\n'PBC-WIB',\n'PHI-WalkIn Tub',\n'SWR-WalkIn Tub',\n'SWR-AusWalkIn',\n'SWR-DlsHDWalk',\n'SWR-DlsWalkIn',\n'SWR-K TUB',\n'SWR-K-CHOREO',\n'SWR-K-NO WIB C',\n'SWR-K-NON WIB')",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

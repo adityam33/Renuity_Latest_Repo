@@ -1,0 +1,17 @@
+{
+	"name": "Get Duplicate Sub Sources",
+	"properties": {
+		"content": {
+			"query": "select  \nsrs.Division\n,srs.LP_LeadSubSourceID\n,srs.SourceCode\n,srs.LeadSubSource\n,srs.Active\n,LeadCount.LeadCount\nfrom [EDW].[DIM_LEAD_SUB_SOURCE] srs\ninner join (\nSELECT\nDivision\n,SourceCode\n,LeadSubSource\n,count(1) as RecordCount\nFROM [EDW].[DIM_LEAD_SUB_SOURCE]\nwhere \nActive = 'True'\ngroup by \nDivision\n,SourceCode\n,LeadSubSource \nhaving count(1) > 1\n) dupes\non \nsrs.LeadSubSource = dupes.LeadSubSource\nand srs.SourceCode = dupes.SourceCode\nand srs.Division = dupes.Division\nleft join\n(\n    select\n    LeadSubSourceID, \n    count(1) LeadCount\n    from EDW.FACT_LEAD\n    group by LeadSubSourceID\n) LeadCount\non \nsrs.LeadSubSourceID = LeadCount.LeadSubSourceID\norder by \nsrs.Division\n,srs.SourceCode\n,srs.LeadSubSource \n,srs.LeadSubSourceID\n\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

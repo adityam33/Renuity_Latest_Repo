@@ -1,0 +1,173 @@
+{
+	"name": "batch_load_OUT_CUBESW_ERP_GL_TRANSACTION",
+	"properties": {
+		"activities": [
+			{
+				"name": "Cpy_CubeSW ERP GL Tran Stage",
+				"description": "Loads last 2 months of GL data into stage table",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Copy_Load_CubeSW ERP GL Stage",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Cpy_CubeSW Summ ERP GL tran Stage",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Cpy_CubeSW ERP GL Tran Stage",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Copy_load_CubeSW_Summ_ERP_GL_tran_Stage",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "df_load_Cubesw_ERP_GL_Transaction",
+				"type": "ExecutePipeline",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Check and Delete Dups from target",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "df_load_Cubesw_ERP_GL_Transaction",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Cpy_CubeSW_Summ_LP_Details",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_load_CubeSW_Summ_LP_Details",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_Load_Cubesw_summary_Lead_job_daily",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Cpy_CubeSW_Summ_LP_Details",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_load_CubeSW_Summ_Job_Lead_daily",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "df_load_Cubesw_erp_GL_transaction_New",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "df_load_Cubesw_ERP_GL_Transaction",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "df_load_Cubesw_ERP_GL_Transaction_New",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Check and Delete Dups from target",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Cpy_CubeSW Summ ERP GL tran Stage",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "-- Declare a variable to store the count of duplicate rows\r\nDECLARE @CubeCounter INT;\r\n\r\n-- Calculate the count of duplicate rows\r\nSET @CubeCounter = (\r\n    SELECT COUNT(*)\r\n    FROM (\r\n        SELECT \r\n            AccountCode, \r\n            AccountClass, \r\n            AccountDescription, \r\n            BranchCode, \r\n            CompanyID, \r\n            FinPeriodID, \r\n            LedgerID, \r\n            DepartmentID, \r\n            MarketingAccountID, \r\n            ProductID, \r\n            COUNT(*) AS countofrow\r\n        FROM OUT.CUBESW_ERP_GL_TRANSACTION_NEW\r\n        WHERE BalanceAmount != '0' \r\n          --AND EOMONTH(CONCAT(SUBSTRING(FinPeriodID, 1, CHARINDEX('-', FinPeriodID)), '01-', \r\n                 -- SUBSTRING(FinPeriodID, CHARINDEX('-', FinPeriodID) + 1, LEN(FinPeriodID)))) >= DATEADD(M, -6, GETDATE())\r\n        GROUP BY \r\n            AccountCode, \r\n            AccountClass, \r\n            AccountDescription, \r\n            BranchCode, \r\n            CompanyID, \r\n            FinPeriodID, \r\n            LedgerID, \r\n            DepartmentID, \r\n            MarketingAccountID, \r\n            ProductID\r\n        HAVING COUNT(*) > 1\r\n    ) A\r\n);\r\n\r\n-- Delete rows if duplicates are found\r\nIF @CubeCounter > 0\r\nBEGIN\r\n    DELETE FROM OUT.CUBESW_ERP_GL_TRANSACTION_NEW\r\n    WHERE EOMONTH(CONCAT(SUBSTRING(FinPeriodID, 1, CHARINDEX('-', FinPeriodID)), '01-', \r\n                  SUBSTRING(FinPeriodID, CHARINDEX('-', FinPeriodID) + 1, LEN(FinPeriodID)))) >= DATEADD(M, -6, GETDATE());\r\nEND;\r\n"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			}
+		],
+		"folder": {
+			"name": "RDC_to_Cube"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-07-22T16:39:58Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

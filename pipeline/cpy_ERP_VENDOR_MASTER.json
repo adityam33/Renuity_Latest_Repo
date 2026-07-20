@@ -1,0 +1,198 @@
+{
+	"name": "cpy_ERP_VENDOR_MASTER",
+	"properties": {
+		"activities": [
+			{
+				"name": "ERP to ODS - Vendor Master",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ODataSource",
+						"httpRequestTimeout": "00:05:00"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.ERP_VENDOR_MASTER')  IS NOT NULL TRUNCATE TABLE ODS.ERP_VENDOR_MASTER;",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"tableOption": "autoCreate",
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Vendor",
+									"type": "String"
+								},
+								"sink": {
+									"name": "VendorID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "VendorName",
+									"type": "String"
+								},
+								"sink": {
+									"name": "VendorName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ExtRefNbr",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Reference",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CreatedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "CreatedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "Type",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Type",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "_1099Vendor",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "1099Vendor",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "VendorClass",
+									"type": "String"
+								},
+								"sink": {
+									"name": "VendorClass",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Description",
+									"type": "String"
+								},
+								"sink": {
+									"name": "VendorClassDescription",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "AccountID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "AccountID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "VendorStatus",
+									"type": "String"
+								},
+								"sink": {
+									"name": "VendorStatus",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LastModifiedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastModifiedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "_1099Box",
+									"type": "String"
+								},
+								"sink": {
+									"name": "1099Box",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Description_2",
+									"type": "String"
+								},
+								"sink": {
+									"name": "1099BoxDescription",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Terms",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Terms",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_ERP_VENDOR_MASTER",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_ERP_VENDOR_MASTER",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "SRC_to_ODS/ERP/Acumatica/MASTER DATA"
+		},
+		"annotations": [],
+		"lastPublishTime": "2023-11-17T12:42:57Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

@@ -1,0 +1,138 @@
+{
+	"name": "cpy_ADP_JSON_CODES",
+	"properties": {
+		"activities": [
+			{
+				"name": "Create_ADP_JSON_CODES Table",
+				"type": "Script",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "IF OBJECT_ID('RDM.ADP_JSON_CODES', 'U') IS NULL\n\nBEGIN\n\n    CREATE TABLE RDM.ADP_JSON_CODES\n\t( Priority \tINT ,\n\t  SNO \t\tINT ,\n\t  TYPE \t\tNVARCHAR(32),\n\t  fullJson\tNVARCHAR(4000),\n\t  CompletedFlag INT\n\t  );\n    \nEND\n\nELSE\n\nBEGIN\n    TRUNCATE TABLE RDM.ADP_JSON_CODES;\nEND;\n\n\n\n\n\nIF OBJECT_ID('RDM.ADP_JSON_CODES_DATA', 'U') IS NULL\n\nBEGIN\n\n    CREATE TABLE RDM.ADP_JSON_CODES_DATA\n\t( Priority \tINT ,\n\t  TYPE \t\tNVARCHAR(32),\n\t  Data_Code\tNVARCHAR(128),\n\t  dependentCode\tNVARCHAR(128),\n\t  DESCRIPTION\t\tNVARCHAR(256)\n\t  );\n    \nEND\n\nELSE\n\nBEGIN\n    TRUNCATE TABLE RDM.ADP_JSON_CODES_DATA;\nEND;\n"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "EXEC_SP_ADP_JSON_RESPONSE_Job_9",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Create_ADP_JSON_CODES Table",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "EXEC EDW.SP_ADP_JSON_RESPONSE_JOB"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "EXEC_SP_ADP_JSON_RESPONSE_SERVICE_10",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "EXEC_SP_ADP_JSON_RESPONSE_Job_9",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "EXEC EDW.SP_ADP_JSON_RESPONSE_SERVICE"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "EXEC_SP_ADP_JSON_RESPONSE_JobService_9",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "EXEC_SP_ADP_JSON_RESPONSE_SERVICE_10",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "EXEC EDW.SP_ADP_JSON_RESPONSE_JOB_SERVICE"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			}
+		],
+		"folder": {
+			"name": "ADP_Employee/LP_to_ADP/ADP_API_Automation"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-06-19T11:24:59Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

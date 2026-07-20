@@ -1,0 +1,78 @@
+{
+	"name": "batch_load_Taxonomy_DimLoad",
+	"properties": {
+		"activities": [
+			{
+				"name": "Exe SubSource Mapping Load",
+				"description": "Executes DIM_MKTNG_SUB_SOURCE_MAPPING Load",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "batch_load_DIM_MKTNG_SUB_SOURCE_MAPPING",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Exe Product Mapping Load",
+				"description": "Executes DIM_MKTNG_PRODUCT_MAPPING Load",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Exe Vendor Costtype Load",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Cpy_Load_dim_MKTNG_ProductMapping",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Exe Vendor Costtype Load",
+				"description": "Executes DIM_MKTNG_VENDOR_COSTTYPE Load",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Exe SubSource Mapping Load",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Cpy_Load_Dim_Mktng_Vendor_costtype",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/DIMENSIONS/TAXONOMY"
+		},
+		"annotations": [],
+		"lastPublishTime": "2023-12-08T08:09:07Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

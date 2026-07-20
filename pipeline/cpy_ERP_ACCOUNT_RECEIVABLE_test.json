@@ -1,0 +1,1159 @@
+{
+	"name": "cpy_ERP_ACCOUNT_RECEIVABLE_test",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy ARRegister",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ODataSource",
+						"httpRequestTimeout": "00:05:00"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Upsert",
+						"upsertSettings": {
+							"keys": [
+								"Type",
+								"ReferenceNbr"
+							],
+							"interimSchemaName": ""
+						},
+						"sqlWriterUseTableLock": false,
+						"tableOption": "autoCreate",
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Type",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Type",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ReferenceNbr",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ReferenceNbr",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ARRegister_Approved",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "ARRegister_approved",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "ARAccount",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ARAccount",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Branch",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Branch",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ClosedDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "ClosedDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "Customer",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Customer",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ARRegister_docBal",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "ARRegister_docBal",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "Date",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "Date",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "DueDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "DueDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "PostPeriod",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PostPeriod",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ARRegister_rejected",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "ARRegister_rejected",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "ARRegister_released",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "ARRegister_released",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "Status",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Status",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ARRegister_tranPeriodID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ARRegister_tranPeriodID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ARRegister_voided",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "ARRegister_voided",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "Description",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Description",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ARRegister_origDocAmt",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "ARRegister_origDocAmt",
+									"type": "Decimal"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ERP_ARRegister",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_ERP_AR_REGISTER",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Copy ARPayment",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Copy ARRegister",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ODataSource",
+						"httpRequestTimeout": "00:05:00"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Upsert",
+						"upsertSettings": {
+							"keys": [
+								"Type",
+								"ReferenceNbr"
+							],
+							"interimSchemaName": ""
+						},
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "ReferenceNbr",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ReferenceNbr",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Description",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Description",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Customer",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Customer",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PaymentMethod",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PaymentMethod",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ARPayment_origDocAmt",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "ARPayment_origDocAmt",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "PaymentDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "PaymentDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "ARPayment_tranPeriodID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ARPayment_tranPeriodID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ClosedDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "ClosedDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "PaymentPeriod",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PaymentPeriod",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Description_2",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Description_2",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Type",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Type",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Status",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Status",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Description_3",
+									"type": "String"
+								},
+								"sink": {
+									"name": "AR_AccountID_Desc",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PaymentRef",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PaymentRef",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PaymentAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "PaymentAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "Balance",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "Balance",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "Currency",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Currency",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CashAccount",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CashAccount",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchNbr",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BatchNbr",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Branch",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Branch",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchName",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BranchName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CreatedBy",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CreatedBy",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CreatedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "CreatedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "LastModifiedBy",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LastModifiedBy",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LastModifiedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastModifiedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "ARAccount",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ARAccount",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LPJob",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LpJob",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LPPmtType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LPPmtType",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Project",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Project",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Selected",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "Selected",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ERP_ARPayment",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_ERP_AR_PAYMENT",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Copy ARInvoice",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Copy ARPayment",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ODataSource",
+						"httpRequestTimeout": "00:05:00"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Upsert",
+						"upsertSettings": {
+							"keys": [
+								"Type",
+								"ReferenceNbr"
+							],
+							"interimSchemaName": ""
+						},
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Type",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Type",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ReferenceNbr",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ReferenceNbr",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Status",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Status",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DueDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "DueDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "ARInvoice_origDocAmt",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "ARInvoice_origDocAmt",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "CustomerOrderNbr",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CustomerOrderNbr",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Customer",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Customer",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ARInvoice_docBal",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "ARInvoice_docBal",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "Date",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "Date",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "PostPeriod",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PostPeriod",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ReasonforCredit",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ReasonForCredit",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Description",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Description",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "TaxTotal",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "TaxTotal",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "CashDiscount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "CashDiscount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "Currency",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Currency",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "RetainageDocument",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "RetainageDocument",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "OrigRefNbr",
+									"type": "String"
+								},
+								"sink": {
+									"name": "OrigRefNbr",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchNbr",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BatchNbr",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Branch",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Branch",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchName",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BranchName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CreatedBy",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CreatedBy",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CreatedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "CreatedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "LastModifiedBy",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LastModifiedBy",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LastModifiedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastModifiedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "ARInvoice_isUnderCorrection",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "ARInvoice_isUnderCorrection",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "Source",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Source",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ARInvoice_released",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "ArInvoice_released",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "Project",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ProjectID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Description_2",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ProjectDesc",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ERP_ARInvoice",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_ERP_AR_INVOICE",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Copy ARAdjust",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ODataSource",
+						"httpRequestTimeout": "00:05:00"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE ODS.ERP_AR_ADJUST",
+						"allowCopyCommand": true,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "DocType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Invoice_Tran_type",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ReferenceNbr",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Invoice_Tran_ReferenceNbr",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "AdjgDocType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Payment_SOAdjust_type",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "AdjgRefNbr",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Payment_SOAdjust_ReferenceNbr",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "AdjustmentNbr",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "AdjustmentNbr",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchNumber",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BatchNumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Account",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Account",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Subaccount",
+									"type": "String"
+								},
+								"sink": {
+									"name": "SubAccount",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Branch",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Branch",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Customer",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Customer",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ARAdjust_createdDateTime",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "Createdon",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "ARAdjust_lastModifiedDateTime",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastModifiedon",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "ARAdjust_adjAmt",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "AdjAmount",
+									"type": "Decimal"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ERP_ARAdjust",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_ERP_AR_ADJUST",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Update Paymenttype",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Copy ARAdjust",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "Update ODS.ERP_AR_ADJUST set PAYMENT_SOADJUST_TYPE=\ncase when PAYMENT_SOADJUST_TYPE ='INV' then 'Invoice'\n\t when PAYMENT_SOADJUST_TYPE ='DRM' then 'Debit Memo'\n\t when PAYMENT_SOADJUST_TYPE ='FCH' then 'Financial Charge'\n\t when PAYMENT_SOADJUST_TYPE ='CSL' then 'Cash Sales'\n\t when PAYMENT_SOADJUST_TYPE ='RCS' then 'Cash Sales Returns'\n\t when PAYMENT_SOADJUST_TYPE ='SMC' then 'Credit WO'\n\t when PAYMENT_SOADJUST_TYPE ='CRM' then 'Credit Memo'\n\t when PAYMENT_SOADJUST_TYPE ='PMT' then 'Payment'\n\t when PAYMENT_SOADJUST_TYPE ='RPM' then 'Voided Payment'\n\t when PAYMENT_SOADJUST_TYPE ='REF' then 'Customer Refund'\n\t when PAYMENT_SOADJUST_TYPE ='PPM' then 'Prepayment'\n\t when PAYMENT_SOADJUST_TYPE ='SMB' then 'Balance WO'\n\t when PAYMENT_SOADJUST_TYPE ='VRF' then 'Voided Refund'\n\t else PAYMENT_SOADJUST_TYPE\nend\nwhere 1=1\n\n\nUpdate ODS.ERP_AR_ADJUST set Invoice_tran_type=\ncase when Invoice_tran_type ='INV' then 'Invoice'\n\t when Invoice_tran_type ='DRM' then 'Debit Memo'\n\t when Invoice_tran_type ='FCH' then 'Financial Charge'\n\t when Invoice_tran_type ='CSL' then 'Cash Sales'\n\t when Invoice_tran_type ='RCS' then 'Cash Sales Returns'\n\t when Invoice_tran_type ='SMC' then 'Credit WO'\n\t when Invoice_tran_type ='CRM' then 'Credit Memo'\n\t when Invoice_tran_type ='PMT' then 'Payment'\n\t when Invoice_tran_type ='RPM' then 'Voided Payment'\n\t when Invoice_tran_type ='REF' then 'Customer Refund'\n\t when Invoice_tran_type ='PPM' then 'Prepayment'\n\t when Invoice_tran_type ='SMB' then 'Balance WO'\n\t when Invoice_tran_type ='VRF' then 'Voided Refund'\n\t else Invoice_tran_type\nend\nwhere 1=1\n"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			}
+		],
+		"folder": {
+			"name": "SRC_to_ODS/ERP/Acumatica/TRANSACTIONS"
+		},
+		"annotations": [],
+		"lastPublishTime": "2024-09-11T14:44:10Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

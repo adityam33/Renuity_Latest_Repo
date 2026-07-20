@@ -1,0 +1,408 @@
+{
+	"name": "df_load_DIM_LEAD_SOURCE",
+	"properties": {
+		"folder": {
+			"name": "ODS_to_EDW/DIMENSIONS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_FHI_src_SourceCodes",
+						"type": "DatasetReference"
+					},
+					"name": "FHI"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_HSI_src_SourceCodes",
+						"type": "DatasetReference"
+					},
+					"name": "HSI"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_MAC_src_SourceCodes",
+						"type": "DatasetReference"
+					},
+					"name": "MAC"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_PBC_src_SourceCodes",
+						"type": "DatasetReference"
+					},
+					"name": "PBC"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_SWR_src_SourceCodes",
+						"type": "DatasetReference"
+					},
+					"name": "SWR"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_RTW_src_SourceCodes",
+						"type": "DatasetReference"
+					},
+					"name": "RTW"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_MXH_src_SourceCodes",
+						"type": "DatasetReference"
+					},
+					"name": "MXH"
+				},
+				{
+					"dataset": {
+						"referenceName": "ODS_vw_lkp_LP_SourceGroups",
+						"type": "DatasetReference"
+					},
+					"name": "SrcODSvwlkpLPSourceGroups"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_CTA_src_SourceCodes",
+						"type": "DatasetReference"
+					},
+					"name": "CTA"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_DIM_LEAD_SOURCE",
+						"type": "DatasetReference"
+					},
+					"name": "targetDim",
+					"description": "Export data to EDW_DIM_LEAD_SOURCE",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "selectColsFHI"
+				},
+				{
+					"name": "createIDsFHI"
+				},
+				{
+					"name": "selectColsHSI"
+				},
+				{
+					"name": "selectColsMAC"
+				},
+				{
+					"name": "selectPBC"
+				},
+				{
+					"name": "selectSWR"
+				},
+				{
+					"name": "createIDsHSI"
+				},
+				{
+					"name": "createIDsMAC"
+				},
+				{
+					"name": "createIDsPBC"
+				},
+				{
+					"name": "createIDsSWR"
+				},
+				{
+					"name": "unionAllOpCos"
+				},
+				{
+					"name": "addLastUpdateTimestamp"
+				},
+				{
+					"name": "selectRTW"
+				},
+				{
+					"name": "createIDsRTW"
+				},
+				{
+					"name": "selectMXH"
+				},
+				{
+					"name": "createIDsMXH"
+				},
+				{
+					"name": "lookupLPSourceGroupID"
+				},
+				{
+					"name": "selectCTA"
+				},
+				{
+					"name": "createIDsCTA"
+				},
+				{
+					"name": "AlterRow"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          SourceCode as string,",
+				"          SourceGroup as string,",
+				"          Descr as string,",
+				"          Active as boolean,",
+				"          TimeSched as boolean,",
+				"          id as integer,",
+				"          GLAcct as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> FHI",
+				"source(output(",
+				"          SourceCode as string,",
+				"          SourceGroup as string,",
+				"          Descr as string,",
+				"          Active as boolean,",
+				"          TimeSched as boolean,",
+				"          id as integer,",
+				"          GLAcct as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> HSI",
+				"source(output(",
+				"          SourceCode as string,",
+				"          SourceGroup as string,",
+				"          Descr as string,",
+				"          Active as boolean,",
+				"          TimeSched as boolean,",
+				"          id as integer,",
+				"          GLAcct as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> MAC",
+				"source(output(",
+				"          SourceCode as string,",
+				"          SourceGroup as string,",
+				"          Descr as string,",
+				"          Active as boolean,",
+				"          TimeSched as boolean,",
+				"          id as integer,",
+				"          GLAcct as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> PBC",
+				"source(output(",
+				"          SourceCode as string,",
+				"          SourceGroup as string,",
+				"          Descr as string,",
+				"          Active as boolean,",
+				"          TimeSched as boolean,",
+				"          id as integer,",
+				"          GLAcct as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> SWR",
+				"source(output(",
+				"          SourceCode as string,",
+				"          SourceGroup as string,",
+				"          Descr as string,",
+				"          Active as boolean,",
+				"          TimeSched as boolean,",
+				"          id as integer,",
+				"          GLAcct as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> RTW",
+				"source(output(",
+				"          SourceCode as string,",
+				"          SourceGroup as string,",
+				"          Descr as string,",
+				"          Active as boolean,",
+				"          TimeSched as boolean,",
+				"          id as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> MXH",
+				"source(output(",
+				"          Division as string,",
+				"          id as integer,",
+				"          SourceGroup as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> SrcODSvwlkpLPSourceGroups",
+				"source(output(",
+				"          SourceCode as string,",
+				"          SourceGroup as string,",
+				"          Descr as string,",
+				"          Active as boolean,",
+				"          TimeSched as boolean,",
+				"          id as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> CTA",
+				"FHI select(mapColumn(",
+				"          SourceCode,",
+				"          SourceGroup,",
+				"          LeadSource = Descr,",
+				"          Active,",
+				"          LP_LeadSourceID = id",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColsFHI",
+				"selectColsFHI derive(LeadSourceID = concat('FHI-',toString(LP_LeadSourceID)),",
+				"          Division = 'FHI') ~> createIDsFHI",
+				"HSI select(mapColumn(",
+				"          SourceCode,",
+				"          SourceGroup,",
+				"          LeadSource = Descr,",
+				"          Active,",
+				"          LP_LeadSourceID = id",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColsHSI",
+				"MAC select(mapColumn(",
+				"          SourceCode,",
+				"          SourceGroup,",
+				"          LeadSource = Descr,",
+				"          Active,",
+				"          LP_LeadSourceID = id",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColsMAC",
+				"PBC select(mapColumn(",
+				"          SourceCode,",
+				"          SourceGroup,",
+				"          LeadSource = Descr,",
+				"          Active,",
+				"          LP_LeadSourceID = id",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectPBC",
+				"SWR select(mapColumn(",
+				"          SourceCode,",
+				"          SourceGroup,",
+				"          LeadSource = Descr,",
+				"          Active,",
+				"          LP_LeadSourceID = id",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectSWR",
+				"selectColsHSI derive(LeadSourceID = concat('HSI-',toString(LP_LeadSourceID)),",
+				"          Division = 'HSI') ~> createIDsHSI",
+				"selectColsMAC derive(LeadSourceID = concat('MAC-',toString(LP_LeadSourceID)),",
+				"          Division = 'MAC') ~> createIDsMAC",
+				"selectPBC derive(LeadSourceID = concat('PBC-',toString(LP_LeadSourceID)),",
+				"          Division = 'PBC') ~> createIDsPBC",
+				"selectSWR derive(LeadSourceID = concat('SWR-',toString(LP_LeadSourceID)),",
+				"          Division = 'SWR') ~> createIDsSWR",
+				"createIDsFHI, createIDsHSI, createIDsMAC, createIDsPBC, createIDsSWR, createIDsRTW, createIDsMXH, createIDsCTA union(byName: true)~> unionAllOpCos",
+				"lookupLPSourceGroupID derive(LastUpdateTS = currentTimestamp(),",
+				"          LP_SourceGroupID = id,",
+				"          SourceGroupID = unionAllOpCos@Division + '-' + toString(id)) ~> addLastUpdateTimestamp",
+				"RTW select(mapColumn(",
+				"          SourceCode,",
+				"          SourceGroup,",
+				"          LeadSource = Descr,",
+				"          Active,",
+				"          LP_LeadSourceID = id",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectRTW",
+				"selectRTW derive(LeadSourceID = concat('RTW-',toString(LP_LeadSourceID)),",
+				"          Division = 'RTW') ~> createIDsRTW",
+				"MXH select(mapColumn(",
+				"          SourceCode,",
+				"          SourceGroup,",
+				"          LeadSource = Descr,",
+				"          Active,",
+				"          LP_LeadSourceID = id",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectMXH",
+				"selectMXH derive(LeadSourceID = concat('MXH-',toString(LP_LeadSourceID)),",
+				"          Division = 'MXH') ~> createIDsMXH",
+				"unionAllOpCos, SrcODSvwlkpLPSourceGroups lookup(unionAllOpCos@Division == SrcODSvwlkpLPSourceGroups@Division",
+				"     && unionAllOpCos@SourceGroup == SrcODSvwlkpLPSourceGroups@SourceGroup,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> lookupLPSourceGroupID",
+				"CTA select(mapColumn(",
+				"          SourceCode,",
+				"          SourceGroup,",
+				"          LeadSource = Descr,",
+				"          Active,",
+				"          LP_LeadSourceID = id",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectCTA",
+				"selectCTA derive(LeadSourceID = concat('CTA-',toString(LP_LeadSourceID)),",
+				"          Division = 'CTA') ~> createIDsCTA",
+				"addLastUpdateTimestamp alterRow(upsertIf(true())) ~> AlterRow",
+				"AlterRow sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          LeadSourceID as string,",
+				"          SourceGroupID as string,",
+				"          SourceCode as string,",
+				"          LeadSource as string,",
+				"          Active as boolean,",
+				"          LP_LeadSourceID as integer,",
+				"          LP_SourceGroupID as integer,",
+				"          Division as string,",
+				"          LastUpdateTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['LeadSourceID'],",
+				"     format: 'table',",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          LeadSourceID,",
+				"          SourceGroupID,",
+				"          SourceCode,",
+				"          LeadSource,",
+				"          Active,",
+				"          LP_LeadSourceID,",
+				"          LP_SourceGroupID,",
+				"          Division = unionAllOpCos@Division,",
+				"          LastUpdateTS",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> targetDim"
+			]
+		}
+	}
+}

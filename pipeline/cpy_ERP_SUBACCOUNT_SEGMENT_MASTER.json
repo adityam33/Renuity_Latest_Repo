@@ -1,0 +1,108 @@
+{
+	"name": "cpy_ERP_SUBACCOUNT_SEGMENT_MASTER",
+	"properties": {
+		"activities": [
+			{
+				"name": "ERP to ODS - Subaccount Segment Master",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ODataSource",
+						"httpRequestTimeout": "00:05:00"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.ERP_SUBACCOUNT_SEGMENT_MASTER')  IS NOT NULL TRUNCATE TABLE ODS.ERP_SUBACCOUNT_SEGMENT_MASTER;",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"tableOption": "autoCreate",
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "SegmentID",
+									"type": "Int16"
+								},
+								"sink": {
+									"name": "SegmentID",
+									"type": "Int16"
+								}
+							},
+							{
+								"source": {
+									"name": "Value",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Value",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Description",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Description",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Active",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "Active",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "SegmentedKeyID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "SegmentedKeyID",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_ERP_SUBACCOUNT_SEGMENT_MASTER",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_ERP_SUBACCOUNT_SEGMENT_MASTER",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "SRC_to_ODS/ERP/Acumatica/MASTER DATA"
+		},
+		"annotations": [],
+		"lastPublishTime": "2022-07-20T23:25:17Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

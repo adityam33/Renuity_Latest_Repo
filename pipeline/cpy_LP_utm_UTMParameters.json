@@ -1,0 +1,2306 @@
+{
+	"name": "cpy_LP_utm_UTMParameters",
+	"properties": {
+		"activities": [
+			{
+				"name": "FHI",
+				"description": "Loading the UTM parameters into ODS for FHI division ",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 300,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"additionalColumns": [
+							{
+								"name": "TrustedFormURL",
+								"value": ""
+							}
+						],
+						"sqlReaderQuery": "SELECT * FROM dbo.utm_UTMParameters WITH (NOLOCK)",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.LP_FHI_utm_UTMParameters')  IS NOT NULL TRUNCATE TABLE ODS.LP_FHI_utm_UTMParameters",
+						"allowCopyCommand": true,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "staging"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "inq_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "inq_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "lds_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "lds_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "GCLID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "GCLID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMAccount",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMAccount",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMMedium",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMMedium",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMSource",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMSource",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMCampaign",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMCampaign",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMContent",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMContent",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMTerm",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMTerm",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PropertyType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PropertyType",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMCampaignID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMCampaignID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMAdID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMAdID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMAdSetID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMAdSetID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "MarketingID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "MarketingID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CustomerID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "MarketingCustomerID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "gbraid",
+									"type": "String"
+								},
+								"sink": {
+									"name": "GbraID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UnitCPL",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "UnitCPL",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ProductSubCat1",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ProductSubCat1",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ProductSubCat2",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ProductSubCat2",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "TrustedFormURL",
+									"type": "String"
+								},
+								"sink": {
+									"name": "TrustedFormURL",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "InternalMarketingID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "InternalMarketingId",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_FHI_utm_UTMParameters",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_LP_FHI_utm_UTMParameters",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "HSI",
+				"description": "Loading the UTM parameters into ODS for HSI division ",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 300,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"additionalColumns": [
+							{
+								"name": "ProductSubCat1",
+								"value": ""
+							},
+							{
+								"name": "ProductSubCat2",
+								"value": ""
+							}
+						],
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.LP_HSI_utm_UTMParameters')  IS NOT NULL TRUNCATE TABLE ODS.LP_HSI_utm_UTMParameters",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "ID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "ID",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "inq_id",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "inq_id",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "lds_id",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "lds_id",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "GCLID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "GCLID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMAccount",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "UTMAccount",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMMedium",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "UTMMedium",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMSource",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "UTMSource",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMCampaign",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "UTMCampaign",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMContent",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "UTMContent",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMTerm",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "UTMTerm",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PropertyType",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PropertyType",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMCampaignID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "UTMCampaignID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMAdID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "UTMAdID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMAdSetID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "UTMAdSetID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "MarketingID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "MarketingID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CustomerID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "MarketingCustomerID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "gbraid",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "GbraID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "UnitCPL",
+									"type": "Decimal",
+									"physicalType": "money",
+									"scale": 4,
+									"precision": 19
+								},
+								"sink": {
+									"name": "UnitCPL",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ProductSubCat1",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ProductSubCat1",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ProductSubCat2",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ProductSubCat2",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "TrustedFormURL",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "TrustedFormURL",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_HSI_utm_UTMParameters",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_LP_HSI_utm_UTMParameters",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "MAC",
+				"description": "Loading the UTM parameters into ODS for MAC division ",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 300,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"additionalColumns": [
+							{
+								"name": "ProductSubCat1",
+								"value": ""
+							},
+							{
+								"name": "ProductSubCat2",
+								"value": ""
+							},
+							{
+								"name": "TrustedFormURL",
+								"value": ""
+							}
+						],
+						"sqlReaderQuery": "SELECT * FROM dbo.utm_UTMParameters WITH (NOLOCK)",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.LP_MAC_utm_UTMParameters')  IS NOT NULL TRUNCATE TABLE ODS.LP_MAC_utm_UTMParameters",
+						"allowCopyCommand": true,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "staging"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "inq_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "inq_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "lds_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "lds_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "GCLID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "GCLID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMAccount",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMAccount",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMMedium",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMMedium",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMSource",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMSource",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMCampaign",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMCampaign",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMContent",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMContent",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMTerm",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMTerm",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PropertyType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PropertyType",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMCampaignID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMCampaignID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMAdID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMAdID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMAdSetID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMAdSetID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "MarketingID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "MarketingID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CustomerID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "MarketingCustomerID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "gbraid",
+									"type": "String"
+								},
+								"sink": {
+									"name": "GbraID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UnitCPL",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "UnitCPL",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ProductSubCat1",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ProductSubCat1",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ProductSubCat2",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ProductSubCat2",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "TrustedFormURL",
+									"type": "String"
+								},
+								"sink": {
+									"name": "TrustedFormURL",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "InternalMarketingID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "InternalMarketingId",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_MAC_utm_UTMParameters",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_LP_MAC_utm_UTMParameters",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "MXH",
+				"description": "Loading the UTM parameters into ODS for FHI division ",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 300,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"additionalColumns": [
+							{
+								"name": "ProductSubCat1",
+								"value": ""
+							},
+							{
+								"name": "ProductSubCat2",
+								"value": ""
+							},
+							{
+								"name": "TrustedFormURL",
+								"value": ""
+							}
+						],
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.LP_MXH_utm_UTMParameters')  IS NOT NULL TRUNCATE TABLE ODS.LP_MXH_utm_UTMParameters",
+						"allowCopyCommand": true,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "staging"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "inq_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "inq_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "lds_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "lds_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "GCLID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "GCLID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMAccount",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMAccount",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMMedium",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMMedium",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMSource",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMSource",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMCampaign",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMCampaign",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMContent",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMContent",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMTerm",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMTerm",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PropertyType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PropertyType",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMCampaignID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMCampaignID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMAdID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMAdID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMAdSetID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMAdSetID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "MarketingID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "MarketingID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CustomerID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "MarketingCustomerID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "gbraid",
+									"type": "String"
+								},
+								"sink": {
+									"name": "GbraID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UnitCPL",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "UnitCPL",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ProductSubCat1",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ProductSubCat1",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ProductSubCat2",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ProductSubCat2",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "TrustedFormURL",
+									"type": "String"
+								},
+								"sink": {
+									"name": "TrustedFormURL",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_MXH_utm_UTMParameters",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_LP_MXH_utm_UTMParameters",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "PBC",
+				"description": "Loading the UTM parameters into ODS for PBC division ",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 300,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"additionalColumns": [
+							{
+								"name": "ProductSubCat1",
+								"value": ""
+							},
+							{
+								"name": "ProductSubCat2",
+								"value": ""
+							}
+						],
+						"sqlReaderQuery": "SELECT * FROM dbo.utm_UTMParameters WITH (NOLOCK)",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.LP_PBC_utm_UTMParameters')  IS NOT NULL TRUNCATE TABLE ODS.LP_PBC_utm_UTMParameters",
+						"allowCopyCommand": true,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "staging"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "inq_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "inq_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "lds_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "lds_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "GCLID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "GCLID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMAccount",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMAccount",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMMedium",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMMedium",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMSource",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMSource",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMCampaign",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMCampaign",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMContent",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMContent",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMTerm",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMTerm",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PropertyType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PropertyType",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMCampaignID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMCampaignID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMAdID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMAdID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMAdSetID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMAdSetID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "MarketingID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "MarketingID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CustomerID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "MarketingCustomerID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "TrustedFormURL",
+									"type": "String"
+								},
+								"sink": {
+									"name": "TrustedFormURL",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "gbraid",
+									"type": "String"
+								},
+								"sink": {
+									"name": "GbraId",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UnitCPL",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "UnitCPL",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "InternalMarketingID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "InternalMarketingId",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ProductSubCat1",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ProductSubCat1",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ProductSubCat2",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ProductSubCat2",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_PBC_utm_UTMParameters",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_LP_PBC_utm_UTMParameters",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "RTW",
+				"description": "Loading the UTM parameters into ODS for RTW division ",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 300,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"additionalColumns": [
+							{
+								"name": "ProductSubCat1",
+								"value": ""
+							},
+							{
+								"name": "ProductSubCat2",
+								"value": ""
+							}
+						],
+						"sqlReaderQuery": "SELECT * FROM dbo.utm_UTMParameters WITH (NOLOCK)",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.LP_RTW_utm_UTMParameters')  IS NOT NULL TRUNCATE TABLE ODS.LP_RTW_utm_UTMParameters",
+						"allowCopyCommand": true,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "staging"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "inq_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "inq_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "lds_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "lds_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "GCLID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "GCLID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMAccount",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMAccount",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMMedium",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMMedium",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMSource",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMSource",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMCampaign",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMCampaign",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMContent",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMContent",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMTerm",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMTerm",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PropertyType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PropertyType",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMCampaignID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMCampaignID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMAdID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMAdID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMAdSetID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMAdSetID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "MarketingID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "MarketingID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CustomerID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "MarketingCustomerID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "gbraid",
+									"type": "String"
+								},
+								"sink": {
+									"name": "GbraID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UnitCPL",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "UnitCPL",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ProductSubCat1",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ProductSubCat1",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ProductSubCat2",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ProductSubCat2",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "TrustedFormURL",
+									"type": "String"
+								},
+								"sink": {
+									"name": "TrustedFormURL",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "InternalMarketingID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "InternalMarketingId",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_RTW_utm_UTMParameters",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_LP_RTW_utm_UTMParameters",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "CTA",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"additionalColumns": [
+							{
+								"name": "ProductSubCat1",
+								"value": ""
+							},
+							{
+								"name": "ProductSubCat2",
+								"value": ""
+							},
+							{
+								"name": "TrustedFormURL",
+								"value": ""
+							}
+						],
+						"sqlReaderQuery": "SELECT * FROM dbo.utm_UTMParameters WITH (NOLOCK)",
+						"queryTimeout": "00:30:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.LP_CTA_utm_UTMParameters')  IS NOT NULL TRUNCATE TABLE ODS.LP_CTA_utm_UTMParameters",
+						"allowCopyCommand": true,
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "staging"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "inq_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "inq_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "lds_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "lds_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "GCLID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "GCLID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMAccount",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMAccount",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMMedium",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMMedium",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMSource",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMSource",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMCampaign",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMCampaign",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMContent",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMContent",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMTerm",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMTerm",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PropertyType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PropertyType",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMCampaignID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMCampaignID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMAdID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMAdID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMAdSetID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMAdSetID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "MarketingID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "MarketingID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CustomerID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "MarketingCustomerID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "gbraid",
+									"type": "String"
+								},
+								"sink": {
+									"name": "GbraID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UnitCPL",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "UnitCPL",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ProductSubCat1",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ProductSubCat1",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ProductSubCat2",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ProductSubCat2",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "TrustedFormURL",
+									"type": "String"
+								},
+								"sink": {
+									"name": "TrustedFormURL",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "InternalMarketingID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "InternalMarketingId",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_CTA_utm_UTMParameters",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_LP_CTA_utm_UTMParameters",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "SWR",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"additionalColumns": [
+							{
+								"name": "ProductSubCat1",
+								"value": ""
+							},
+							{
+								"name": "ProductSubCat2",
+								"value": ""
+							}
+						],
+						"sqlReaderQuery": "SELECT * FROM dbo.utm_UTMParameters WITH (NOLOCK)",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.LP_SWR_utm_UTMParameters')  IS NOT NULL TRUNCATE TABLE ODS.LP_SWR_utm_UTMParameters",
+						"allowCopyCommand": true,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "staging"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "inq_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "inq_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "lds_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "lds_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "GCLID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "GCLID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMAccount",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMAccount",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMMedium",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMMedium",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMSource",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMSource",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMCampaign",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMCampaign",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMContent",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMContent",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMTerm",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMTerm",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PropertyType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PropertyType",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMCampaignID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMCampaignID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMAdID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMAdID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UTMAdSetID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UTMAdSetID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "MarketingID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "MarketingID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CustomerID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "MarketingCustomerID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "gbraid",
+									"type": "String"
+								},
+								"sink": {
+									"name": "GbraID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UnitCPL",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "UnitCPL",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ProductSubCat1",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ProductSubCat1",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ProductSubCat2",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ProductSubCat2",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "TrustedFormURL",
+									"type": "String"
+								},
+								"sink": {
+									"name": "TrustedFormURL",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "InternalMarketingID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "InternalMarketingId",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_SWR_utm_UTMParameters",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_LP_SWR_utm_UTMParameters",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "SRC_to_ODS/CRM/LP"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-04-09T15:03:35Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

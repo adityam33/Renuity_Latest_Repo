@@ -1,0 +1,144 @@
+{
+	"name": "df_load_FACT_JOB_CHANGE_ORDER_ZML",
+	"properties": {
+		"folder": {
+			"name": "ZML_ODS_to_EDW/FACTS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ZML_ODS_FHI_jco_JobChangeOrders",
+						"type": "DatasetReference"
+					},
+					"name": "FHI"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_FACT_JOB_CHANGE_ORDER_ZML",
+						"type": "DatasetReference"
+					},
+					"name": "targetFact",
+					"description": "Export data to EDW_FACT_JOB_CHANGE_ORDER",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "addOpCoNameFHI"
+				},
+				{
+					"name": "unionAllOpCos"
+				},
+				{
+					"name": "selectRenameColumns"
+				},
+				{
+					"name": "derivedColumns"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          ID as integer,",
+				"          Job_ID as integer,",
+				"          Amount as decimal(19,4),",
+				"          cot_ID as integer,",
+				"          EnteredOn as timestamp,",
+				"          EnteredBy as integer,",
+				"          UpdatedOn as timestamp,",
+				"          UpdatedBy as integer,",
+				"          BatchFlag as boolean,",
+				"          BatchNo as integer,",
+				"          BatchDate as timestamp,",
+				"          Comments as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> FHI",
+				"FHI derive(Division = 'FHI') ~> addOpCoNameFHI",
+				"addOpCoNameFHI union(byName: true)~> unionAllOpCos",
+				"unionAllOpCos select(mapColumn(",
+				"          LP_JobChangeOrderID = ID,",
+				"          LP_JobID = Job_ID,",
+				"          Amount,",
+				"          LP_JobChangeOrderTypeID = cot_ID,",
+				"          EnteredOn,",
+				"          EnteredBy,",
+				"          UpdatedOn,",
+				"          UpdatedBy,",
+				"          BatchFlag,",
+				"          BatchNo,",
+				"          BatchDate,",
+				"          Comments,",
+				"          Division",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectRenameColumns",
+				"selectRenameColumns derive(LastUpdateTS = currentTimestamp(),",
+				"          JobChangeOrderID = concat(Division,'-',toString(LP_JobChangeOrderID)),",
+				"          JobID = concat(Division,'-',toString(LP_JobID)),",
+				"          JobChangeOrderTypeID = concat(Division,'-',toString(LP_JobChangeOrderTypeID))) ~> derivedColumns",
+				"derivedColumns sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          JobChangeOrderID as string,",
+				"          JobID as string,",
+				"          JobChangeOrderTypeID as string,",
+				"          Amount as decimal(38,18),",
+				"          BatchFlag as boolean,",
+				"          BatchNo as integer,",
+				"          BatchDate as timestamp,",
+				"          Comments as string,",
+				"          EnteredOn as timestamp,",
+				"          EnteredBy as integer,",
+				"          UpdatedOn as timestamp,",
+				"          UpdatedBy as integer,",
+				"          LP_JobChangeOrderID as integer,",
+				"          LP_JobID as integer,",
+				"          LP_JobChangeOrderTypeID as integer,",
+				"          Division as string,",
+				"          LastUpdateTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     truncate:true,",
+				"     format: 'table',",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          LP_JobChangeOrderID,",
+				"          LP_JobID,",
+				"          Amount,",
+				"          LP_JobChangeOrderTypeID,",
+				"          EnteredOn,",
+				"          EnteredBy,",
+				"          UpdatedOn,",
+				"          UpdatedBy,",
+				"          BatchFlag,",
+				"          BatchNo,",
+				"          BatchDate,",
+				"          Comments,",
+				"          Division,",
+				"          LastUpdateTS,",
+				"          JobChangeOrderID,",
+				"          JobID,",
+				"          JobChangeOrderTypeID",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> targetFact"
+			]
+		}
+	}
+}

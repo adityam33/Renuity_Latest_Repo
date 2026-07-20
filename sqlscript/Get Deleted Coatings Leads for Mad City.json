@@ -1,0 +1,17 @@
+{
+	"name": "Get Deleted Coatings Leads for Mad City",
+	"properties": {
+		"content": {
+			"query": "SELECT\nin1.[Division]\n,in1.[InboundQueueLogID]\n,in1.[LP_LeadID]\n,ikr.[LP_InboundKillReasonID]\n,ikr.InboundKillReason\n,srs.[LP_LeadSubSourceID]\n,srs.[LeadSubSource]\n,in1.[LP_BranchID]\n,in1.[FirstName]\n,in1.[LastName]\n,in1.[Address1]\n,in1.[Address2]\n,in1.[City]\n,in1.[State]\n,in1.[Zip]\n,in1.[Phone]\n,in1.[Email]\n,in1.[ProductID]\n,in1.[ProductDescription]\n,in1.[Sender]\n,in1.[DateReceived]\n,in1.[Source]\n,in1.[Notes]\n FROM \n [EDW].[FACT_INBOUND_QUEUE_LOG] in1\n left join EDW.DIM_LEAD_SUB_SOURCE srs \n on in1.LeadSubSourceID = srs.LeadSubSourceID\n left join EDW.DIM_INBOUND_KILL_REASON ikr\n on in1.InboundKillReasonID = ikr.InboundKillReasonID\n left join [EDW].[FACT_LEAD] lds\n on in1.LeadID = lds.LeadID\n where \n in1.Division = 'MAC'\n and in1.ProductID = 'Coat'\n and lds.LeadID is null\n and Email not like '%xivic%'\n and Email not like '%test.com%'",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

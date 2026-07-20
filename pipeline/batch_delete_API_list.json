@@ -1,0 +1,139 @@
+{
+	"name": "batch_delete_API_list",
+	"properties": {
+		"activities": [
+			{
+				"name": "Get list ID",
+				"description": "To get the zipcode/Phoneno suppression list ID from API",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.01:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_ToGet_AP_Phoneno_ZipcodeListID",
+						"type": "DataFlowReference",
+						"parameters": {
+							"ListURLName": {
+								"value": "'@{pipeline().parameters.ListURLName}'",
+								"type": "Expression"
+							}
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "None",
+					"cacheSinks": {
+						"firstRowOnly": true
+					}
+				}
+			},
+			{
+				"name": "Set ListID",
+				"description": "Assign the Zipcode/PhoneNo list ID ",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Get list ID",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "ListID",
+					"value": {
+						"value": "@activity('Get list ID').output.runStatus.output.sink1.value[0].ID",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Delete List",
+				"description": "Delete the Zipcode/PhoneNo list from API",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "Set ListID",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.01:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "DELETE",
+					"headers": {
+						"Content-Type": "application/json",
+						"Accept": "*/*",
+						"Accept-Encoding": "gzip, deflate, br"
+					},
+					"url": {
+						"value": "@concat('https://app.suppressionlist.com/lists/',variables('ListID'))",
+						"type": "Expression"
+					},
+					"connectVia": {
+						"referenceName": "RDC-SelfHostedIntegrationRunTime",
+						"type": "IntegrationRuntimeReference"
+					},
+					"authentication": {
+						"type": "Basic",
+						"username": {
+							"value": "@pipeline().parameters.APIUserName",
+							"type": "Expression"
+						},
+						"password": {
+							"type": "AzureKeyVaultSecret",
+							"store": {
+								"referenceName": "AzureKeyVaultDataCore",
+								"type": "LinkedServiceReference"
+							},
+							"secretName": "api"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"APIUserName": {
+				"type": "string",
+				"defaultValue": "API"
+			},
+			"ListURLName": {
+				"type": "string",
+				"defaultValue": "renuity__last_30_days__phone"
+			}
+		},
+		"variables": {
+			"ListID": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "RDC_to_ActiveProspect"
+		},
+		"annotations": [],
+		"lastPublishTime": "2024-01-16T06:21:23Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

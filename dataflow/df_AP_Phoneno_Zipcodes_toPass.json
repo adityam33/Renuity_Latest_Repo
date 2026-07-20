@@ -1,0 +1,51 @@
+{
+	"name": "df_AP_Phoneno_Zipcodes_toPass",
+	"properties": {
+		"folder": {
+			"name": "RDC_to_ActiveProspect"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "EDW_DIM_BRANCH_ZIP",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [
+				{
+					"name": "sink1"
+				}
+			],
+			"transformations": [],
+			"scriptLines": [
+				"parameters{",
+				"     SchemaName as string ('ODS'),",
+				"     TableName as string ('ACTIVEPROSPECT_PHONENO')",
+				"}",
+				"source(output(",
+				"          ZIPCODE as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: (concat('Select * from ', $SchemaName,'.',$TableName)),",
+				"     format: 'query',",
+				"     staged: true) ~> source1",
+				"source1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     store: 'cache',",
+				"     format: 'inline',",
+				"     output: true,",
+				"     saveOrder: 1,",
+				"     preCommands: [],",
+				"     postCommands: []) ~> sink1"
+			]
+		}
+	}
+}

@@ -1,0 +1,944 @@
+{
+	"name": "batch_out_Employee_list_to_Qualtrics",
+	"properties": {
+		"activities": [
+			{
+				"name": "Qualtrics export",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:30:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"sqlReaderQuery": "Select \na.AssociateId, a.FirstName, a.LastName, a.WorkEmail, a.JobTitleDescription, a.IsManagementPosition, \na.HomeDepartmentDescription, \na.ReportsToEmail, a.ReportsToLegalFirstName, a.ReportsToLegalLastName, a.BusinessUnitDescription, \na.Level, a.HireDate, a.YearsofService, a.NewHire, a.PositionEffectiveDate, \na.Division, a.PayrollCompanyName, \na.Associate_Id, a.Is_Management_Position, \na.Reports_To_Associate_ID, a.IsNewManager, \na.JobStatus, a.TerminationDate, a.SystemStatus , a.[NAICSWorkers'CompCode], \na.Race, a.Gender, a.HomePhone,\nCoalesce(b.No_Of_Direct_Reports,0) as No_Of_Direct_Reports ,\nCASE\n    WHEN Age < 10 THEN '0-9'\n    WHEN Age BETWEEN 10 AND 19 THEN '10-19'\n    WHEN Age BETWEEN 20 AND 29 THEN '20-29'\n    WHEN Age BETWEEN 30 AND 39 THEN '30-39'\n    WHEN Age BETWEEN 40 AND 49 THEN '40-49'\n    WHEN Age BETWEEN 50 AND 59 THEN '50-59'\n    WHEN Age BETWEEN 60 AND 69 THEN '60-69'\n    WHEN Age BETWEEN 70 AND 79 THEN '70-79'\n    WHEN Age >= 80 THEN '80+'\nEND AS Age_Range,\n[Leading Teams] as [Leading Teams Graduation Date],[Emerging Leader Program Cohort Certificate] as [ELP Graduation Date],[RLAP] as [RLAP Graduation Date]\nfrom ( \n\tSelect  T1.EmployeeId as [AssociateID], T1.Firstname as [FirstName],  T1.LastName as [LastName],\n\tRTrim(T1.WorkEmail,'  ') as [WorkEmail],\n\tT1.JobTitleDescription as [JobTitleDescription],\n\tConcat(T1.StateTaxCode,' - ', T1.STateTaxDescription) as [LocationState/Territory], T1.IsManagementPosition, T1.HomeDepartmentDescription as [HomeDepartmentDescription],\n\tT1.ManagerId as [ReportsToAssociate ID], Rtrim(T2.WorkEmail,'  ')  as [ReportsToEmail], T2.Firstname as [ReportsToLegalFirstName], T2.LastName as [ReportsToLegalLastName], \n\tT1.BusinessUnitDescription as [BusinessUnitDescription], T1.Level, T1.HireDate as [HireDate], T1.YearsOfService as [YearsofService],\n\tcase when T1.Hiredate >= Dateadd(D,-90,Getdate()) then 'Yes' else 'No' end [NewHire],\n\tT1.PositionEffectiveDate as [PositionEffectiveDate], T1.Division, T1.PayrollCompanyName as [PayrollCompanyName], \n\tT1.EmployeeId as  [Associate_ID], T1.IsManagementPosition as Is_Management_Position, T1.ManagerId as [Reports_To_Associate_ID],\n\tCoalesce(T2.IsNewManager,'No') as IsNewManager, \n\tT1.PositionStatus as [JobStatus] , T1.TerminationDate  as [TerminationDate],\n\tCase when T1.Positionstatus in ('Active','Leave') then '1' else '0' end as [SystemStatus],\n\tT1.NAICSWorkersCompCode as [NAICSWorkers'CompCode],\n\tT1.Race, T1.Gender, T1.HomePhone,\n\t\n\tDATEDIFF(YEAR, NULLIF(T1.birthdate,'1900-01-01'), GETDATE())\n\t- CASE \n\t    WHEN DATEADD(YEAR, DATEDIFF(YEAR, T1.birthdate, GETDATE()), T1.birthdate) > GETDATE()\n\t    THEN 1 \n\t    ELSE 0 \n\t  END AS Age\n\t\n\tFrom EDW.DIM_HR_Employee T1 \n\t--Left join EDW.DIM_HR_Employee T2 on T1.ManagerId=T2.EmployeeId\n\tLeft join EDW.DIM_HR_Employee_Manager T2 On T1. ManagerId=T2.EmployeeId\n\t\n\twhere T1.POsitionStatus='Active' and T1.CurrentRecordFlag='Y'\n\n\nUnion \n\n\tSelect  T1.EmployeeId as [AssociateID], T1.JobTitleDescription as [JobTitleDescription], T1.LastName as [LastName], T1.Firstname as [FirstName], \n\tRTrim(T1.WorkEmail,'  ') as [Work Contact: Work Email],\n\tConcat(T1.StateTaxCode,' - ', T1.STateTaxDescription) as [LocationState/Territory], T1.IsManagementPosition, T1.HomeDepartmentDescription as [HomeDepartmentDescription],\n\tT1.ManagerId as [ReportsToAssociate ID], Rtrim(T2.WorkEmail,'  ') as [ReportstoEmail], T2.Firstname as [ReportsToLegalFirstName], T2.LastName as [ReportsToLegalLastName], \n\tT1.BusinessUnitDescription as [BusinessUnitDescription], T1.Level, T1.HireDate as [HireDate], T1.YearsOfService as [YearsofService],\n\tcase when T1.Hiredate >= Dateadd(D,-90,Getdate()) then 'Yes' else 'No' end [NewHire],\n\tT1.PositionEffectiveDate as [PositionEffectiveDate], T1.Division, T1.PayrollCompanyName as [PayrollCompanyName], \n\tT1.EmployeeId as  [Associate_ID], T1.IsManagementPosition as Is_Management_Position, T1.ManagerId as [Reports_To_Associate_ID],\n\tCoalesce(T2.IsNewManager,'No') as IsNewManager, \n\tT1.PositionStatus as [JobStatus] , T1.TerminationDate  as [TerminationDate],\n\tCase when T1.Positionstatus in ('Active','Leave') then '1' else '0' end as [SystemStatus],\n\tT1.NAICSWorkersCompCode as [NAICSWorkers'CompCode],\n\tT1.Race, T1.Gender, T1.HomePhone,\n\t\n\tDATEDIFF(YEAR, Nullif(T1.birthdate,'1900-01-01'), GETDATE())\n\t- CASE \n\t    WHEN DATEADD(YEAR, DATEDIFF(YEAR, T1.birthdate, GETDATE()), T1.birthdate) > GETDATE()\n\t    THEN 1 \n\t    ELSE 0 \n\t  END AS Age\n\tFrom EDW.DIM_HR_Employee T1 \n\t--Left join EDW.DIM_HR_Employee T2 on T1.ManagerId=T2.EmployeeId\n\tLeft join EDW.DIM_HR_Employee_Manager T2 On T1. ManagerId=T2.EmployeeId\n\t\n\twhere T1.POsitionStatus<>'Active' and T1.CurrentRecordFlag='Y'\n\tAnd ( T1.HireDate>'2025-07-23' or T1.TerminationDate>'2025-07-30')-- Hardcoded to consider base data as of 31-07\n\n)a Left join \n\t(\n\tSelect M.EmployeeID,\n\tcount(distinct E.EmployeeId )As No_Of_Direct_Reports\n\tfrom EDW.DIM_HR_Employee_Manager M Left join EDW.DIM_HR_Employee E  on M.EmployeeId=E.ManagerId\n\tGroup by M.EmployeeID\n\t)b on a.[AssociateID]=EmployeeID\n\n\tLeft join \n\t(\n\tSELECT * FROM\n\t\t( SELECT EmployeeId, CertificationTitle, IssuedOn FROM  EDW.DIM_EMPLOYEE_CERTIFICATES ) AS S\n\t\tPIVOT\n\t\t( Max(IssuedOn) FOR CertificationTitle IN ([Leading Teams],[Emerging Leader Program Cohort Certificate],[RLAP] )) AS P\n\t) c  on a.[AssociateID]=c.EmployeeID\n--where A.[AssociateID]='HCYTCMT4K'\n\n\n",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "AssociateId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "AssociateId",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "FirstName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "FirstName",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LastName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "LastName",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "WorkEmail",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "WorkEmail",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "JobTitleDescription",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "JobTitleDescription",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "IsManagementPosition",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "IsManagementPosition",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "HomeDepartmentDescription",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "HomeDepartmentDescription",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ReportsToEmail",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ReportsToEmail",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ReportsToLegalFirstName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ReportsToLegalFirstName",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ReportsToLegalLastName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ReportsToLegalLastName",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "BusinessUnitDescription",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "BusinessUnitDescription",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Level",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Level",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "HireDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "HireDate",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "YearsofService",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "YearsofService",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "NewHire",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "NewHire",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PositionEffectiveDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "PositionEffectiveDate",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PayrollCompanyName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "PayrollCompanyName",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Associate_Id",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Associate_Id",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Is_Management_Position",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Is_Management_Position",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Reports_To_Associate_ID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Reports_To_Associate_ID",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "IsNewManager",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "IsNewManager",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "JobStatus",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "JobStatus",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "TerminationDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "TerminationDate",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "SystemStatus",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SystemStatus",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "NAICSWorkers'CompCode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "NAICSWorkers'CompCode",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Race",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Race",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Gender",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Gender",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "HomePhone",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "HomePhone",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "No_Of_Direct_Reports",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "No_Of_Direct_Reports",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Age_Range",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Age_Range",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Leading Teams Graduation Date",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "Leading Teams Graduation Date",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ELP Graduation Date",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "ELP Graduation Date",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "RLAP Graduation Date",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "RLAP Graduation Date",
+									"type": "String",
+									"physicalType": "String"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_EDW_ADP_EMPLOYEE_TIMECARD",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "TGT_QUALTRICS_EMPLOYEE_Export",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Qualtrics export_Archive",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Qualtrics export",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:30:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"sqlReaderQuery": "Select \na.AssociateId, a.FirstName, a.LastName, a.WorkEmail, a.JobTitleDescription, a.IsManagementPosition, \na.HomeDepartmentDescription, \na.ReportsToEmail, a.ReportsToLegalFirstName, a.ReportsToLegalLastName, a.BusinessUnitDescription, \na.Level, a.HireDate, a.YearsofService, a.NewHire, a.PositionEffectiveDate, \na.Division, a.PayrollCompanyName, \na.Associate_Id, a.Is_Management_Position, \na.Reports_To_Associate_ID, a.IsNewManager, \na.JobStatus, a.TerminationDate, a.SystemStatus , a.[NAICSWorkers'CompCode], \na.Race, a.Gender, a.HomePhone,\nCoalesce(b.No_Of_Direct_Reports,0) as No_Of_Direct_Reports ,\nCASE\n    WHEN Age < 10 THEN '0-9'\n    WHEN Age BETWEEN 10 AND 19 THEN '10-19'\n    WHEN Age BETWEEN 20 AND 29 THEN '20-29'\n    WHEN Age BETWEEN 30 AND 39 THEN '30-39'\n    WHEN Age BETWEEN 40 AND 49 THEN '40-49'\n    WHEN Age BETWEEN 50 AND 59 THEN '50-59'\n    WHEN Age BETWEEN 60 AND 69 THEN '60-69'\n    WHEN Age BETWEEN 70 AND 79 THEN '70-79'\n    WHEN Age >= 80 THEN '80+'\nEND AS Age_Range,\n[Leading Teams] as [Leading Teams Graduation Date],[Emerging Leader Program Cohort Certificate] as [ELP Graduation Date],[RLAP] as [RLAP Graduation Date]\nfrom ( \n\tSelect  T1.EmployeeId as [AssociateID], T1.Firstname as [FirstName],  T1.LastName as [LastName],\n\tRTrim(T1.WorkEmail,'  ') as [WorkEmail],\n\tT1.JobTitleDescription as [JobTitleDescription],\n\tConcat(T1.StateTaxCode,' - ', T1.STateTaxDescription) as [LocationState/Territory], T1.IsManagementPosition, T1.HomeDepartmentDescription as [HomeDepartmentDescription],\n\tT1.ManagerId as [ReportsToAssociate ID], Rtrim(T2.WorkEmail,'  ')  as [ReportsToEmail], T2.Firstname as [ReportsToLegalFirstName], T2.LastName as [ReportsToLegalLastName], \n\tT1.BusinessUnitDescription as [BusinessUnitDescription], T1.Level, T1.HireDate as [HireDate], T1.YearsOfService as [YearsofService],\n\tcase when T1.Hiredate >= Dateadd(D,-90,Getdate()) then 'Yes' else 'No' end [NewHire],\n\tT1.PositionEffectiveDate as [PositionEffectiveDate], T1.Division, T1.PayrollCompanyName as [PayrollCompanyName], \n\tT1.EmployeeId as  [Associate_ID], T1.IsManagementPosition as Is_Management_Position, T1.ManagerId as [Reports_To_Associate_ID],\n\tCoalesce(T2.IsNewManager,'No') as IsNewManager, \n\tT1.PositionStatus as [JobStatus] , T1.TerminationDate  as [TerminationDate],\n\tCase when T1.Positionstatus in ('Active','Leave') then '1' else '0' end as [SystemStatus],\n\tT1.NAICSWorkersCompCode as [NAICSWorkers'CompCode],\n\tT1.Race, T1.Gender, T1.HomePhone,\n\t\n\tDATEDIFF(YEAR, NULLIF(T1.birthdate,'1900-01-01'), GETDATE())\n\t- CASE \n\t    WHEN DATEADD(YEAR, DATEDIFF(YEAR, T1.birthdate, GETDATE()), T1.birthdate) > GETDATE()\n\t    THEN 1 \n\t    ELSE 0 \n\t  END AS Age\n\t\n\tFrom EDW.DIM_HR_Employee T1 \n\t--Left join EDW.DIM_HR_Employee T2 on T1.ManagerId=T2.EmployeeId\n\tLeft join EDW.DIM_HR_Employee_Manager T2 On T1. ManagerId=T2.EmployeeId\n\t\n\twhere T1.POsitionStatus='Active' and T1.CurrentRecordFlag='Y'\n\n\nUnion \n\n\tSelect  T1.EmployeeId as [AssociateID], T1.JobTitleDescription as [JobTitleDescription], T1.LastName as [LastName], T1.Firstname as [FirstName], \n\tRTrim(T1.WorkEmail,'  ') as [Work Contact: Work Email],\n\tConcat(T1.StateTaxCode,' - ', T1.STateTaxDescription) as [LocationState/Territory], T1.IsManagementPosition, T1.HomeDepartmentDescription as [HomeDepartmentDescription],\n\tT1.ManagerId as [ReportsToAssociate ID], Rtrim(T2.WorkEmail,'  ') as [ReportstoEmail], T2.Firstname as [ReportsToLegalFirstName], T2.LastName as [ReportsToLegalLastName], \n\tT1.BusinessUnitDescription as [BusinessUnitDescription], T1.Level, T1.HireDate as [HireDate], T1.YearsOfService as [YearsofService],\n\tcase when T1.Hiredate >= Dateadd(D,-90,Getdate()) then 'Yes' else 'No' end [NewHire],\n\tT1.PositionEffectiveDate as [PositionEffectiveDate], T1.Division, T1.PayrollCompanyName as [PayrollCompanyName], \n\tT1.EmployeeId as  [Associate_ID], T1.IsManagementPosition as Is_Management_Position, T1.ManagerId as [Reports_To_Associate_ID],\n\tCoalesce(T2.IsNewManager,'No') as IsNewManager, \n\tT1.PositionStatus as [JobStatus] , T1.TerminationDate  as [TerminationDate],\n\tCase when T1.Positionstatus in ('Active','Leave') then '1' else '0' end as [SystemStatus],\n\tT1.NAICSWorkersCompCode as [NAICSWorkers'CompCode],\n\tT1.Race, T1.Gender, T1.HomePhone,\n\t\n\tDATEDIFF(YEAR, Nullif(T1.birthdate,'1900-01-01'), GETDATE())\n\t- CASE \n\t    WHEN DATEADD(YEAR, DATEDIFF(YEAR, T1.birthdate, GETDATE()), T1.birthdate) > GETDATE()\n\t    THEN 1 \n\t    ELSE 0 \n\t  END AS Age\n\tFrom EDW.DIM_HR_Employee T1 \n\t--Left join EDW.DIM_HR_Employee T2 on T1.ManagerId=T2.EmployeeId\n\tLeft join EDW.DIM_HR_Employee_Manager T2 On T1. ManagerId=T2.EmployeeId\n\t\n\twhere T1.POsitionStatus<>'Active' and T1.CurrentRecordFlag='Y'\n\tAnd ( T1.HireDate>'2025-07-23' or T1.TerminationDate>'2025-07-30')-- Hardcoded to consider base data as of 31-07\n\n)a Left join \n\t(\n\tSelect M.EmployeeID,\n\tcount(distinct E.EmployeeId )As No_Of_Direct_Reports\n\tfrom EDW.DIM_HR_Employee_Manager M Left join EDW.DIM_HR_Employee E  on M.EmployeeId=E.ManagerId\n\tGroup by M.EmployeeID\n\t)b on a.[AssociateID]=EmployeeID\n\n\tLeft join \n\t(\n\tSELECT * FROM\n\t\t( SELECT EmployeeId, CertificationTitle, IssuedOn FROM  EDW.DIM_EMPLOYEE_CERTIFICATES ) AS S\n\t\tPIVOT\n\t\t( Max(IssuedOn) FOR CertificationTitle IN ([Leading Teams],[Emerging Leader Program Cohort Certificate],[RLAP] )) AS P\n\t) c  on a.[AssociateID]=c.EmployeeID\n--where A.[AssociateID]='HCYTCMT4K'\n\n\n",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "AssociateId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "AssociateId",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "FirstName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "FirstName",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LastName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "LastName",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "WorkEmail",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "WorkEmail",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "JobTitleDescription",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "JobTitleDescription",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "IsManagementPosition",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "IsManagementPosition",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "HomeDepartmentDescription",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "HomeDepartmentDescription",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ReportsToEmail",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ReportsToEmail",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ReportsToLegalFirstName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ReportsToLegalFirstName",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ReportsToLegalLastName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ReportsToLegalLastName",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "BusinessUnitDescription",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "BusinessUnitDescription",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Level",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Level",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "HireDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "HireDate",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "YearsofService",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "YearsofService",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "NewHire",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "NewHire",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PositionEffectiveDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "PositionEffectiveDate",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PayrollCompanyName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "PayrollCompanyName",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Associate_Id",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Associate_Id",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Is_Management_Position",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Is_Management_Position",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Reports_To_Associate_ID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Reports_To_Associate_ID",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "IsNewManager",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "IsNewManager",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "JobStatus",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "JobStatus",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "TerminationDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "TerminationDate",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "SystemStatus",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SystemStatus",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "NAICSWorkers'CompCode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "NAICSWorkers'CompCode",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Race",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Race",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Gender",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Gender",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "HomePhone",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "HomePhone",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "No_Of_Direct_Reports",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "No_Of_Direct_Reports",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Age_Range",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Age_Range",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Leading Teams Graduation Date",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "Leading Teams Graduation Date",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ELP Graduation Date",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "ELP Graduation Date",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "RLAP Graduation Date",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "RLAP Graduation Date",
+									"type": "String",
+									"physicalType": "String"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_EDW_ADP_EMPLOYEE_TIMECARD",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "TGT_Qualtrics_EMPLOYEE_Export_Archive",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "ADP_Employee/LP_to_Qualtrics"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-03-05T13:02:49Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

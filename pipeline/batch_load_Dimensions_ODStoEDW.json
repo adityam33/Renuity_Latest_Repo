@@ -1,0 +1,1654 @@
+{
+	"name": "batch_load_Dimensions_ODStoEDW",
+	"properties": {
+		"activities": [
+			{
+				"name": "df_load_DIM_EMPLOYEE",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_load_DIM_RANK",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "1.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_DIM_EMPLOYEE",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/DIMENSIONS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse"
+				}
+			},
+			{
+				"name": "df_load_DIM_INSTALLER",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_load_DIM_EMPLOYEE",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "1.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_DIM_INSTALLER",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/DIMENSIONS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse"
+				}
+			},
+			{
+				"name": "df_load_DIM_PRODUCTION_BRANCH",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_load_DIM_HOLD_REASON",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "1.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_DIM_PRODUCTION_BRANCH",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/DIMENSIONS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse"
+				}
+			},
+			{
+				"name": "df_load_DIM_SALES_DISTRICT",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_load_DIM_JOB_STATUS_CATEGORY",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "1.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_DIM_SALES_DISTRICT",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/DIMENSIONS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse"
+				}
+			},
+			{
+				"name": "df_load_DIM_RANK",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_load_DIM_VND_VENDORS",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "1.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_DIM_RANK",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/DIMENSIONS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse"
+				}
+			},
+			{
+				"name": "df_load_DIM_HOLD_REASON",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_load_DIM_MARKETING_COST_CATEGORY",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "1.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_DIM_HOLD_REASON",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/DIMENSIONS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse"
+				}
+			},
+			{
+				"name": "df_load_DIM_DISPOSITION_CATEGORY",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "1.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_DIM_DISPOSITION_CATEGORY",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/DIMENSIONS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse"
+				}
+			},
+			{
+				"name": "df_load_DIM_BRANCH_ZIP",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_load_DIM_HOA_STATUS",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "1.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_DIM_BRANCH_ZIP",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/DIMENSIONS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse"
+				}
+			},
+			{
+				"name": "df_load_DIM_COMMISSION_PAYMENT_TYPE",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "DEL_Duplicate_CustomerID_JobID",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "1.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_DIM_COMMISSION_PAYMENT_TYPE",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/DIMENSIONS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse"
+				}
+			},
+			{
+				"name": "df_load_DIM_HOMEOWNERS_ASSOCIATION",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "1.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_DIM_HOMEOWNERS_ASSOCIATION",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/DIMENSIONS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse"
+				}
+			},
+			{
+				"name": "df_load_DIM_JOB_CHANGE_ORDER_TYPE",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_load_DIM_HOMEOWNERS_ASSOCIATION",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "1.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_DIM_JOB_CHANGE_ORDER_TYPE",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/DIMENSIONS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse"
+				}
+			},
+			{
+				"name": "df_load_DIM_JOB_PERMIT_STATUS",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_load_DIM_JOB_CHANGE_ORDER_TYPE",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "1.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_DIM_JOB_PERMIT_STATUS",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/DIMENSIONS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse"
+				}
+			},
+			{
+				"name": "df_load_DIM_JOB_PERMIT_TYPE",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_load_DIM_REPORTING_MARKET",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "1.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_DIM_JOB_PERMIT_TYPE",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/DIMENSIONS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse"
+				}
+			},
+			{
+				"name": "df_load_DIM_MATERIAL",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "1.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_DIM_MATERIAL",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/DIMENSIONS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse"
+				}
+			},
+			{
+				"name": "df_load_DIM_INBOUND_KILL_REASON",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_load_DIM_JOB_PERMIT_STATUS",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "1.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_DIM_INBOUND_KILL_REASON",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/DIMENSIONS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse"
+				}
+			},
+			{
+				"name": "df_load_DIM_JOB_STATUS_CATEGORY",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_load_DIM_MATERIAL",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "1.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_DIM_JOB_STATUS_CATEGORY",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/DIMENSIONS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse"
+				}
+			},
+			{
+				"name": "df_load_DIM_TIME_SLOTS",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_load_DIM_PHONES",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "1.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_DIM_TIME_SLOTS",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse"
+				}
+			},
+			{
+				"name": "df_load_DIM_PHONES",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_load_DIM_INBOUND_KILL_REASON",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.6:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 300,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_DIM_PHONES",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "df_load_DIM_REPORTING_MARKET",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_load_DIM_PUNCH_LIST",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_DIM_REPORTING_MARKET",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/DIMENSIONS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse"
+				}
+			},
+			{
+				"name": "df_load_DIM_CUSTOMER",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "1.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_DIM_CUSTOMER",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/DIMENSIONS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse"
+				}
+			},
+			{
+				"name": "df_load_DIM_PUNCH_LIST",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_load_DIM_ALTERNATE_PHONES",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_DIM_PUNCH_LIST",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/DIMENSIONS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse"
+				}
+			},
+			{
+				"name": "df_load_DIM_ALTERNATE_PHONES",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_load_DIM_DISPOSITION_CATEGORY",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_DIM_ALTERNATE_PHONES",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "df_load_DIM_HOA_STATUS",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_load_DIM_JOB_PERMIT_TYPE",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_DIM_HOA_STATUS",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "GenerateMasterCustomerId",
+				"type": "Script",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "df_EDW_DIM_PRODUCT_ON_ORDER",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:30:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "\nIF OBJECT_ID('tempdb..#T_Customer') IS NOT NULL\n    DROP TABLE #T_Customer;\n\n\n\nSelect Distinct  C.CustomerID,\n\tLtrim(Rtrim(Firstname)) as FirstName, \n\tLtrim(Rtrim(Lastname))  as LastName,\n\tConcat(Ltrim(Rtrim(Firstname)),' ',Ltrim(Rtrim(Lastname))) as Fullname,\n\tAddress1,Address2,City,State, \n\tLtrim(Rtrim(Zip))   as ZIp, \n\tLtrim(Rtrim(Phone)) as Phone,\n\tEmail,\n\tC.Division,\n\tLP_DateAdded\n\tinto #T_Customer\n\tfrom \n\tEDW.Dim_customer C\n\twhere \n\t\t  Firstname is not null and lastName is not null \n\t\t  and Firstname !='' and lastName !='' \n\t\t  and Firstname !='-' and lastName !='-'\n\t\t  and Firstname not like '%--%' and lastName  not like '%--%'\n\t\t  and Lower(Firstname) not in ('na','private','unknown','lead','mrs.','called in hung up ','working','first','test','Lucian')\n\t\t  and lower(lastName)  not in ('na','caller','unknown','lead','mrs.','working-tv','last','test','TEST5','test coat','test 3','Test 2','Test1','Cernauteanu')\n\t\t  \n\t\t  and Phone is not null and phone not in ('',' ','1111111','#ERROR!','+','0000000','000000000','0000000000')\n\t\t  \n\t\t  and Email IS NOT NULL AND Email LIKE '%@%'  \n\t\t  AND Email NOT IN (\n\t\t\t\t\t\t'', \n\t\t\t\t\t\t'test@test.com'\t\t\t\t\t, \n\t\t\t\t\t\t'test@gmail.com'\t\t\t\t,\n\t\t\t\t\t\t'test@fb.com'\t\t\t\t\t,\n\t\t\t\t\t\t'N@A.COM'\t\t\t\t\t\t,\n\t\t\t\t\t\t'NA@NA.COM'\t\t\t\t\t\t,\n\t\t\t\t\t\t'NO.HOMEDEPOT@GMAIL.COM'\t\t,\n\t\t\t\t\t\t'noemail@noemail.com'\t\t\t,\n\t\t\t\t\t\t'non@yahoo.com'\t\t\t\t\t,\n\t\t\t\t\t\t'none@none.com'\t\t\t\t\t,\n\t\t\t\t\t\t'NA@NA'\t\t\t\t\t\t\t,\n\t\t\t\t\t\t'noemail@noemail.com.prod'\t\t,\n\t\t\t\t\t\t'noemail@yahoo.com'\t\t\t\t,\n\t\t\t\t\t\t'no@gmail.com'                  ,\n\t\t\t\t\t\t'NO_EMAIL@GMAIL.COM'            ,\n\t\t\t\t\t\t'NO_EMAIL@HOMEDEPOT.COM'        ,\n\t\t\t\t\t\t'NO_MAIL@NOMAIL.COM'            ,\n\t\t\t\t\t\t'noaddress123@yahoo.com'        ,\n\t\t\t\t\t\t'noemail@email.com.prod'        ,\n\t\t\t\t\t\t'noemail@gmail.com'             ,\n\t\t\t\t\t\t'NO-EMAIL@GMAIL.COM'            ,\n\t\t\t\t\t\t'NOEMAIL@HOMEDEPOT.NET'         ,\n\t\t\t\t\t\t'Noemail@no.com'                ,\n\t\t\t\t\t\t'noemail@noemail.com'           ,\n\t\t\t\t\t\t'noemail@noemail.com.prod'      ,\n\t\t\t\t\t\t'NOEMAIL@NOMAIL.COM'            ,\n\t\t\t\t\t\t'NOEMAIL@YAHOO.CO'              ,\n\t\t\t\t\t\t'noemail@yahoo.com'             ,\n\t\t\t\t\t\t'nomoretermite@yahoo.com.prod'  ,\n\t\t\t\t\t\t'non@non.com'                   ,\n\t\t\t\t\t\t'non@non.com.prod'              ,\n\t\t\t\t\t\t'non@yahoo.com'                 ,\n\t\t\t\t\t\t'none@nomail.com'               ,\n\t\t\t\t\t\t'none@none'                     ,\n\t\t\t\t\t\t'none@none.com'                 ,\n\t\t\t\t\t\t'NOREPLY@YAHOO.COM'\n\t\t\t\t\t\t)\t\n\t    \n\t\tand Zip is not null and Zip not in ('','0');\n\t\t\n--------------------------------------------------------------------------------------------------------------------------------------------------------\n\n\n\nIF OBJECT_ID('tempdb..#T_1') IS NOT NULL\n    DROP TABLE #T_1;\n\nIF OBJECT_ID('tempdb..#T_Unique_Customer_ByPhone') IS NOT NULL\n   DROP TABLE #T_Unique_Customer_ByPhone;\n\n\t\nSelect * ,Concat('GID-',Row_number() over(order by LP_dateadded desc)) as MasterID \ninto #T_Unique_Customer_ByPhone\nfrom (\nSelect * , \nRow_number() over(partition by Fullname,Phone order by LP_dateadded desc ) as Rownumber \nfrom #T_Customer\n)a where Rownumber=1;\n\n\n\nSelect  C.CustomerID,C.FirstName,C.LastName,C.Fullname,\n\tC.Address1,C.Address2,C.City,C.State,C.ZIp,C.Phone,C.Email,C.Division,C.LP_DateAdded\n\t,T.masterid as masterid_ByPhone --\ninto #T_1\nfrom #T_Customer C  Join #T_Unique_Customer_ByPhone T\non C.Fullname =T.Fullname and C.Phone=T.Phone;\n\n\t\n\n--------------------------------------------------------------------------------------------------------------------------------------------------------\n\nIF OBJECT_ID('tempdb..#T_Unique_ByPhone') IS NOT NULL\n    DROP TABLE #T_Unique_ByPhone;\n\n\t\nIF OBJECT_ID('tempdb..#T_Unique_ByPhone_PerCustomer') IS NOT NULL\n    DROP TABLE #T_Unique_ByPhone_PerCustomer;\n\t\nSelect t1.* \ninto #T_Unique_ByPhone \nfrom #T_1 t1 join ( SELECT t.MasterID_byPhone FROM #T_1 t Group by t.MasterID_byPhone HAVING COUNT(t.CustomerID) > 1\t) t2 \n\t\t\t\t\t\ton t1.Masterid_ByPhone = t2.Masterid_ByPhone;\n\n\nSelect t1.* \ninto #T_Unique_ByPhone_PerCustomer\nfrom #T_1 t1 join ( SELECT t.MasterID_byPhone FROM #T_1 t Group by t.MasterID_byPhone HAVING COUNT(t.CustomerID) = 1\t) t2 \n\t\t\t\t\t\ton t1.Masterid_ByPhone = t2.Masterid_ByPhone;\n \n\n\t\t\t\n--------------------------------------------------------------------------------------------------------------------------------------------------------\n\n\nWhile exists (\n\t\t\t\tSelect  Fullname,Phone,max(MasterID_ByPhone) as MasterID_ByPhone from  #T_Unique_ByPhone  Group by Fullname,Phone having count(distinct MasterID_ByPhone)>1\n\t\t\t\tUNION ALL \n\t\t\t\tSelect  Fullname,Email,max(MasterID_ByPhone) as MasterID_ByPhone  from  #T_Unique_ByPhone Group by Fullname,Email having count(distinct MasterID_ByPhone)>1\n\t\t\t\tUNION ALL\n\t\t\t\tSelect  Fullname,Concat(Zip,' ',Address1) Address ,max(MasterID_ByPhone) as MasterID_ByPhone from  #T_Unique_ByPhone Where Address1 is not null  Group by Fullname,Concat(Zip,' ', Address1) having count(distinct MasterID_ByPhone)>1\n\t\t\t)\nBegin\n\n\t\tUpdate #T_Unique_ByPhone set MasterID_ByPhone = t2.MasterID_ByPhone\n\t\t\t\tfrom #T_Unique_ByPhone t1  join \n\t\t\t\t\t\t\t( Select  Fullname,Email,max(MasterID_ByPhone) as MasterID_ByPhone\n\t\t\t\t\t\t\tfrom  #T_Unique_ByPhone \n\t\t\t\t\t\t\t-- Where Email='histoire963@gmail.com'\n\t\t\t\t\t\t\tGroup by Fullname,Email having count(distinct MasterID_ByPhone)>1\n\t\t\t\t\t\t\t) t2 on t1.fullname=t2.fullname and t1.email=t2.email ;\n\t\t\t\t\t\t\t\n\t\n\t\t\t\n\t\tUpdate #T_Unique_ByPhone set MasterID_ByPhone = t2.MasterID_ByPhone\n\t\t\t\tfrom #T_Unique_ByPhone t1  join \n\t\t\t\t\t\t\t(  Select  Fullname,Phone,max(MasterID_ByPhone) as MasterID_ByPhone\n\t\t\t\t\t\t\tfrom  #T_Unique_ByPhone \n\t\t\t\t\t\t\t-- Where Email='trinilady02@yahoo.com'\n\t\t\t\t\t\t\tGroup by Fullname,Phone having count(distinct MasterID_ByPhone)>1\n\t\t\t\t\t\t\t) t2 on t1.fullname=t2.fullname and t1.Phone=t2.Phone; \n\t\t\n\t\t\n\t\tUpdate #T_Unique_ByPhone set MasterID_ByPhone = t2.MasterID_ByPhone\n\t\t\tfrom #T_Unique_ByPhone t1  join \n\t\t\t\t\t\t(   Select  Fullname,Zip,Address1,max(MasterID_ByPhone) as MasterID_ByPhone\n\t\t\t\t\t\t\tfrom  #T_Unique_ByPhone \n\t\t\t\t\t\t\tWhere Address1 is not null \n\t\t\t\t\t\t\tGroup by Fullname,Zip,Address1 having count(distinct MasterID_ByPhone)>1\n\t\t\t\t\t\t) t2 on t1.fullname=t2.fullname and t1.Zip=t2.Zip and \n\t\t\t\t\t\t--COALESCE(t1.Address1,'none')=COALESCE(t2.Address1,'none')\n\t\t\t\t\t\tsubstring(Ltrim(t1.Address1,'\t'),1,charindex(' ',Ltrim(t1.Address1,'\t')) ) = substring(Ltrim(t2.Address1,'\t'),1,charindex(' ',Ltrim(t2.Address1,'\t')) );\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\n\t\t\n\t\t\n\t\t\nEnd\n\n\t\t\n\n\n\t\t\t\n--------------------------------------------------------------------------------------------------------------------------------------------------------\n\n\n\nWhile Exists ( Select Distinct T1.CustomerId, T2.MasterID_ByPhone\n\t\t\t   from #T_Unique_ByPhone_PerCustomer T1  join #T_Unique_ByPhone T2 \n\t\t\t\t\ton T1.Fullname=T2.FullName and  T1.Email = T2.Email \n\t\t\t   Union All\n\t\t\t   Select Distinct T1.CustomerId, T2.MasterID_ByPhone\n\t\t\t   from #T_Unique_ByPhone_PerCustomer T1  join #T_Unique_ByPhone T2 \n\t\t\t\t\ton T1.Fullname=T2.FullName and  T1.Zip = T2.Zip and \n\t\t\t\t\tCoalesce(substring(Ltrim(T1.Address1,'\t'),1,charindex(' ',Ltrim(T1.Address1,'\t')) ),'None')=Coalesce(substring(Ltrim(T2.Address1,'\t'),1,charindex(' ',Ltrim(T2.Address1,'\t')) ),'None')\n\t\t\t\t\t\t--( ( T1.Address1 is NULL or T2.Address1 is NULL ) \n\t\t\t\t\t\t--or \n\t\t\t\t\t\t--substring(Ltrim(T1.Address1,'\t'),1,charindex(' ',Ltrim(T1.Address1,'\t')) ) = substring(Ltrim(T2.Address1,'\t'),1,charindex(' ',Ltrim(T2.Address1,'\t')) )\n\t\t\t\t\t\t--)\n\t\t\t )\n\t\tand \n\t  Not exists (Select MasterID_ByPhone from #T_Unique_ByPhone_PerCustomer group by MasterID_bYPhone having count(Distinct CustomerID)>1)\n\nBegin\n\n\t\tInsert into #T_Unique_ByPhone\n\t\tSelect Distinct\n\t\t\tT1.CustomerId, T1.Firstname,T1.LastName,T1.Fullname,T1.Address1,T1.Address2,T1.City,T1.State,T1.Zip,T1.Phone,T1.Email,T1.Division,T1.Lp_DateAdded,\n\t\t\tmax(T2.MasterID_byPhone) as MasterID_byPhone\n\t\t\tfrom #T_Unique_ByPhone_PerCustomer T1 Left join #T_Unique_ByPhone T2 \n\t\t\t\ton T1.Fullname=T2.FullName and  T1.Email = T2.Email \n\t\t\tWhere T2.CustomerId is not null \n\t\t\tgroup by T1.CustomerId, T1.Firstname,T1.LastName,T1.Fullname,T1.Address1,T1.Address2,T1.City,T1.State,T1.Zip,T1.Phone,T1.Email,T1.Division,T1.Lp_DateAdded\n\t\t\t;\n\t\t\t\t\t\t\n\t\t\n\t\tDELETE T1\n\t\tFROM #T_Unique_ByPhone_PerCustomer T1\n\t\tLEFT JOIN #T_Unique_ByPhone T2\n\t\t\tON T1.CustomerID = T2.CustomerID \n\t\tWHERE T2.CustomerId IS NOT NULL ;\n\t\t\n\t\t\n\t\tInsert into #T_Unique_ByPhone\n\t\tSelect Distinct\n\t\t\tT1.CustomerId, T1.Firstname,T1.LastName,T1.Fullname,T1.Address1,T1.Address2,T1.City,T1.State,T1.Zip,T1.Phone,T1.Email,T1.Division,T1.Lp_DateAdded,\n\t\t\tMax(T2.MasterID_byPhone) as MasterID_byPhone\n\t\t\tfrom #T_Unique_ByPhone_PerCustomer T1 Left join #T_Unique_ByPhone T2 \n\t\t\t\ton T1.Fullname=T2.FullName and  T1.Zip = T2.Zip \n\t\t\tWhere T2.CustomerId is not null and \n\t\t\tCoalesce(substring(Ltrim(T1.Address1,'\t'),1,charindex(' ',Ltrim(T1.Address1,'\t')) ),'None')=Coalesce(substring(Ltrim(T2.Address1,'\t'),1,charindex(' ',Ltrim(T2.Address1,'\t')) ),'None')\n\t\t\t\t\t--( ( T1.Address1 is NULL or T2.Address1 is NULL ) \n\t\t\t\t\t--\tor \n\t\t\t\t\t--\tsubstring(Ltrim(T1.Address1,'\t'),1,charindex(' ',Ltrim(T1.Address1,'\t')) ) = substring(Ltrim(T2.Address1,'\t'),1,charindex(' ',Ltrim(T2.Address1,'\t')) )\n\t\t\t\t\t--)\n\t\t\tGroup by T1.CustomerId, T1.Firstname,T1.LastName,T1.Fullname,T1.Address1,T1.Address2,T1.City,T1.State,T1.Zip,T1.Phone,T1.Email,T1.Division,T1.Lp_DateAdded\n\t\t\t;\n\t\t\t\t\t\t\n\t\tDELETE T1\n\t\tFROM #T_Unique_ByPhone_PerCustomer T1\n\t\tLEFT JOIN #T_Unique_ByPhone T2\n\t\t\tON T1.CustomerID = T2.CustomerID \n\t\tWHERE T2.CustomerId IS NOT NULL ;\n\t\t\n\t\t\nEnd \n\n\n\n\n\n\t\t\t\n--------------------------------------------------------------------------------------------------------------------------------------------------------\n\n\n\n\nIF OBJECT_ID('tempdb..#T_2') IS NOT NULL\n    DROP TABLE #T_2;\n\n\t\nIF OBJECT_ID('tempdb..#T_Unique_Customer_ByEmail') IS NOT NULL\n    DROP TABLE #T_Unique_Customer_ByEmail;\n\t\n\nSelect * ,Concat('GID-',Row_number() over(order by LP_dateadded)) as MasterID  \ninto #T_Unique_Customer_ByEmail\nfrom \n\t(\n\t\tSelect  C.* ,ROW_NUMBER() OVER( PARTITION BY C.FullName,C.Email ORDER BY C.LP_DateAdded DESC ) AS Rownumber \n\t\t\t\t\t\tFROM #T_Customer C\n\t\t\t\t\t\tLEFT JOIN  #T_Unique_ByPhone_PerCustomer T1  ON  C.CustomerID = T1.CustomerID\n\t\t\t\t\t\tWHERE \n\t\t\t\t\t\t \tT1.Masterid_ByPhone IS NOT NULL\n\t\t\t\t\t\t\t\n\t)a  \n\twhere Rownumber=1;\n\n\nSelect C.CustomerID,C.FirstName,C.LastName,C. Fullname,\n\t C.Address1,C.Address2,C.City,C.State,C.ZIp,C.Phone,C.Email,C.Division,C.LP_DateAdded, T.masterid as Masterid_ByEmail \ninto #T_2\nfrom #T_Customer C  Join #T_Unique_Customer_ByEmail T\n\t\ton C.Fullname =T.Fullname and C.Email=T.Email; \n\n--------------------------------------------------------------------------------------------------------------------------------------------------------\n\t\n\t\nIF OBJECT_ID('tempdb..#T_Unique_ByEmail') IS NOT NULL\n    DROP TABLE #T_Unique_ByEmail;\n\n\t\nIF OBJECT_ID('tempdb..#T_Unique_ByEmail_PerCustomer') IS NOT NULL\n    DROP TABLE #T_Unique_ByEmail_PerCustomer;\n\t\nSelect t1.* \ninto #T_Unique_ByEmail \nfrom #T_2 t1 join ( SELECT t.MasterID_byEmail FROM #T_2 t Group by t.MasterID_byEmail HAVING COUNT(t.CustomerID) > 1\t) t2 \n\t\t\t\t\t\ton t1.MasterID_byEmail = t2.MasterID_byEmail;\n\n\nSelect t1.* \ninto #T_Unique_ByEmail_PerCustomer\nfrom #T_2 t1 join ( SELECT t.MasterID_byEmail FROM #T_2 t Group by t.MasterID_byEmail HAVING COUNT(t.CustomerID) = 1\t) t2 \n\t\t\t\t\t\ton t1.MasterID_byEmail = t2.MasterID_byEmail;\n \t\t\n\n--------------------------------------------------------------------------------------------------------------------------------------------------------\n\n\n\nWhile exists (\t\n\t\t\t\tSelect  Fullname,Phone,max(MasterID_ByPhone) as MasterID_ByPhone from  #T_Unique_ByPhone  Group by Fullname,Phone having count(distinct MasterID_ByPhone)>1\n\t\t\t\tUNION ALL\n\t\t\t\tSelect  Fullname,Email,max(MasterID_byEmail) as MasterID_byEmail  from  #T_Unique_ByEmail Group by Fullname,Email having count(distinct MasterID_byEmail)>1\n\t\t\t\tUNION ALL\n\t\t\t\tSelect  Fullname,Concat(Zip,' ',Address1) Address ,max(MasterID_byEmail) as MasterID_byEmail from  #T_Unique_ByEmail Where Address1 is not null  Group by Fullname,Concat(Zip,' ', Address1) having count(distinct MasterID_byEmail)>1\n\t\t\t )\n\t\t\t\nBegin\t\n\t\t\t\n\tUpdate #T_Unique_ByEmail set MasterID_ByEmail = t2.MasterID_ByEmail\n\t\tfrom #T_Unique_ByEmail t1  join \n\t\t\t\t\t(   Select fullname, Zip,Address1,max(MasterID_ByEmail) as MasterID_ByEmail\n\t\t\t\t\t\tfrom #T_Unique_ByEmail\n\t\t\t\t\t\twhere Address1 is not null\n\t\t\t\t\t\tgroup by fullname, Zip,Address1 having count(distinct MasterID_byEmail)>1\n\t\t\t\t\t) t2 on t1.fullname=t2.fullname and t1.Zip=t2.Zip and \n\t\t\t\t\t--COALESCE(t1.Address1,'none')=COALESCE(t2.Address1,'none')\n\t\t\t\t\tsubstring(Ltrim(t1.Address1,'\t'),1,charindex(' ',Ltrim(t1.Address1,'\t')) ) = substring(Ltrim(t2.Address1,'\t'),1,charindex(' ',Ltrim(t2.Address1,'\t')) );\n\t\n\t\n\tUpdate #T_Unique_ByEmail set MasterID_ByEmail = t2.MasterID_ByEmail\n\t\tfrom #T_Unique_ByEmail t1  join \n\t\t\t\t\t(  Select  Fullname,Phone,max(MasterID_ByEmail) as MasterID_ByEmail\n\t\t\t\t\tfrom  #T_Unique_ByEmail \n\t\t\t\t\t-- Where Email='trinilady02@yahoo.com'\n\t\t\t\t\tGroup by Fullname,Phone having count(distinct MasterID_ByEmail)>1\n\t\t\t\t\t) t2 on t1.fullname=t2.fullname and t1.Phone=t2.Phone; \n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\n\tUpdate #T_Unique_ByEmail set MasterID_ByEmail = t2.MasterID_ByEmail\n\t\t\tfrom #T_Unique_ByEmail t1  join \n\t\t\t\t\t\t(  Select  Fullname,Email,max(MasterID_ByEmail) as MasterID_ByEmail\n\t\t\t\t\t\tfrom  #T_Unique_ByEmail \n\t\t\t\t\t\t-- Where Email='trinilady02@yahoo.com'\n\t\t\t\t\t\tGroup by Fullname,Email having count(distinct MasterID_ByEmail)>1\n\t\t\t\t\t\t) t2 on t1.fullname=t2.fullname and t1.Email=t2.Email;\n\n\nEnd\n\n\n--------------------------------------------------------------------------------------------------------------------------------------------------------\n\t\n\nInsert into #T_Unique_ByEmail\nSelect Distinct\n\tT1.CustomerId, T1.Firstname,T1.LastName,T1.Fullname,T1.Address1,T1.Address2,T1.City,T1.State,T1.Zip,T1.Phone,T1.Email,T1.Division,T1.Lp_DateAdded,\n\tMax(T2.MasterID_byEmail) as MasterID_byEmail\n\tfrom #T_Unique_ByEmail_PerCustomer T1 Left join #T_Unique_ByEmail T2 \n\t\ton T1.Fullname=T2.FullName and  T1.Zip = T2.Zip \n\tWhere T2.CustomerId is not null and\n\tCoalesce(substring(Ltrim(T1.Address1,'\t'),1,charindex(' ',Ltrim(T1.Address1,'\t')) ),'None')=Coalesce(substring(Ltrim(T2.Address1,'\t'),1,charindex(' ',Ltrim(T2.Address1,'\t')) ),'None')\n\t\t\t--( ( T1.Address1 is NULL or T2.Address1 is NULL ) \n\t\t\t--\t\t\tor \n\t\t\t--\t\t\tsubstring(Ltrim(T1.Address1,'\t'),1,charindex(' ',Ltrim(T1.Address1,'\t')) ) = substring(Ltrim(T2.Address1,'\t'),1,charindex(' ',Ltrim(T2.Address1,'\t')) )\n\t\t\t--) \n\tGroup by T1.CustomerId, T1.Firstname,T1.LastName,T1.Fullname,T1.Address1,T1.Address2,T1.City,T1.State,T1.Zip,T1.Phone,T1.Email,T1.Division,T1.Lp_DateAdded\n\t;\n\t\t\t    \n\nDELETE T1\nFROM #T_Unique_ByEmail_PerCustomer T1\nLEFT JOIN #T_Unique_ByEmail T2\n    ON T1.CustomerID = T2.CustomerID \nWHERE T2.CustomerId IS NOT NULL ;\n\n \n\n\t\n\t\n--------------------------------------------------------------------------------------------------------------------------------------------------------\n\t\t\n\n\t\t\n\nIF OBJECT_ID('tempdb..#T_3') IS NOT NULL\n    DROP TABLE #T_3;\n\n\t\nIF OBJECT_ID('tempdb..#T_Unique_Customer_ByZip') IS NOT NULL\n    DROP TABLE #T_Unique_Customer_ByZip;\n\t\n\n\nSelect * ,Concat('GID-',Row_number() over(order by LP_dateadded)) as MasterID  \ninto #T_Unique_Customer_ByZip\nfrom \n\t(\n\t\tSelect  C.* ,ROW_NUMBER() OVER( PARTITION BY C.FullName,C.Zip,substring(Ltrim(C.Address1,'\t'),1,charindex(' ',Ltrim(C.Address1,'\t')) )\n\t\t\t\t\t\t\t\t\t\t\tORDER BY C.LP_DateAdded DESC ) AS Rownumber \n\t\t\t\t\t\tFROM #T_Customer C\n\t\t\t\t\t\tLEFT JOIN  #T_Unique_ByEmail_PerCustomer T1  ON  C.CustomerID = T1.CustomerID\n\t\t\t\t\t\tWHERE \n\t\t\t\t\t\t \tT1.Masterid_ByEmail IS NOT NULL \t\t\t\t\t\t\t\n\t)a  \n\twhere Rownumber=1;\n\t\n\t\nSelect C.CustomerID,C.FirstName,C.LastName,C. Fullname,\n\t C.Address1,C.Address2,C.City,C.State,C.ZIp,C.Phone,C.Email,C.Division,C.LP_DateAdded, T.masterid as Masterid_ByZip \ninto #T_3\nfrom #T_Customer C  Join #T_Unique_Customer_ByZip T\n\t\ton C.Fullname =T.Fullname and C.Zip=T.Zip   \n\tWhere\t--( --( C.Address1 is NULL And T.Address1 is NULL ) \n\t\t\tCoalesce(substring(Ltrim(C.Address1,'\t'),1,charindex(' ',Ltrim(C.Address1,'\t')) ),'None')=Coalesce(substring(Ltrim(T.Address1,'\t'),1,charindex(' ',Ltrim(T.Address1,'\t')) ),'None')\n\t\t\t\t\t\t\t\t\t\n\t\t\t--)\n\t\t\t; \n\t\t\t\n\t\t\n\n--------------------------------------------------------------------------------------------------------------------------------------------------------\n\n\n\t\nIF OBJECT_ID('tempdb..#T_Unique_ByPhone_Final') IS NOT NULL\n   DROP TABLE #T_Unique_ByPhone_Final;\n\t\nSelect * , Dense_rank() over(order by MasterID_ByPhone ) as MasterID \ninto #T_Unique_ByPhone_Final\nfrom #T_Unique_ByPhone ;\n\n\n\nDeclare @Rownumber Int;\nSelect @Rownumber= max(MasterID) from #T_Unique_ByPhone_Final ;\n\n\nIF OBJECT_ID('tempdb..#T_Unique_ByEmail_Final') IS NOT NULL\n   DROP TABLE #T_Unique_ByEmail_Final;\n\t\nSelect * , Dense_rank() over(order by MasterID_ByEmail ) +@Rownumber as MasterID \ninto #T_Unique_ByEmail_Final \nfrom #T_Unique_ByEmail ;\n\n\n\n\nSelect @Rownumber= Isnull(max(MasterID),(Select max(MasterID) from #T_Unique_ByPhone_Final)\n\t\t\t\t\t\t )\n from #T_Unique_ByEmail_Final ;\n\n\n\nIF OBJECT_ID('tempdb..#T_3_Final') IS NOT NULL\n   DROP TABLE #T_3_Final;\n\t\nSelect * , Dense_rank() over(order by MasterID_ByZip ) +@Rownumber as MasterID \ninto #T_3_Final \nfrom #T_3 ;\n\n--------------------------------------------------------------------------------------------------------------------------------------------------------\n\n\n\n\n\nIF OBJECT_ID('tempdb..#T_Final') IS NOT NULL\n   DROP TABLE #T_Final;\n\n\nSelect * into #T_Final from  \n(\n\n\t\tSelect  *, 'Phone' as Type from #T_Unique_ByPhone_Final\n\t\t\n\t\tUnion all\n\t\t\n\t\tSelect  * ,'Email' as Type  from #T_Unique_ByEmail_Final \n\t\t\n\t\tUnion all\n\t\t\n\t\tSelect  * ,'Zip' as Type  from #T_3_Final \n)a1 ;\n\n--------------------------------------------------------------------------------------------------------------------------------------------------------\n\n\n\n\n\n\nUpdate EDW.Dim_customer Set MasterID=NULL where 1=1;\nUpdate EDW.Dim_customer set MasterID =t2.masterID\nfrom EDW.Dim_customer t1 join \n\t\t\t\t\t\t(Select CustomerID, Concat('GID-',dense_rank() over(Order by MasterID )) as MasterID from #T_Final) t2\n\t\t\t\t\t\ton t1.customerID=t2.CustomerID\n\t\t\t\t\t\tWhere t1.MasterID is null ;\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "df_load_DIM_MARKETING_COST_CATEGORY",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_load_DIM_COMMISSION_PAYMENT_TYPE",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "1.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_DIM_MARKETING_COST_CATEGORY",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/DIMENSIONS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse"
+				}
+			},
+			{
+				"name": "df_load_DIM_VND_VENDORS",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_load_DIM_PROJECTS",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "1.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_DIM_VENDORS",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse"
+				}
+			},
+			{
+				"name": "df_load_DIM_VENDOR_LOG",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_load_DIM_PRODUCTION_BRANCH",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "1.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_DIM_VENDORLOG",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse"
+				}
+			},
+			{
+				"name": "df_load_DIM_PLANITEM",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_load_DIM_TIME_SLOTS",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "1.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_DIM_PLANITEM",
+						"type": "DataFlowReference",
+						"datasetParameters": {
+							"FHI": {
+								"Tablename": "LP_FHI_PlanItem"
+							},
+							"MAC": {
+								"Tablename": "LP_MAC_PlanItem"
+							},
+							"PBC": {
+								"Tablename": "LP_PBC_PlanItem"
+							},
+							"SWR": {
+								"Tablename": "LP_SWR_PlanItem"
+							},
+							"RTW": {
+								"Tablename": "LP_RTW_PlanItem"
+							},
+							"MXH": {
+								"Tablename": "LP_MXH_PlanItem"
+							},
+							"CTA": {
+								"Tablename": "LP_CTA_PlanItem"
+							}
+						}
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/DIMENSIONS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse"
+				}
+			},
+			{
+				"name": "df_load_DIM_PROJECTS",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_load_DIM_PLANITEM",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "1.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_DIM_PROJECTS",
+						"type": "DataFlowReference",
+						"datasetParameters": {
+							"FHI": {
+								"Tablename": "LP_FHI_Projects"
+							},
+							"MAC": {
+								"Tablename": "LP_MAC_Projects"
+							},
+							"PBC": {
+								"Tablename": "LP_PBC_Projects"
+							},
+							"SWR": {
+								"Tablename": "LP_SWR_Projects"
+							},
+							"RTW": {
+								"Tablename": "LP_RTW_Projects"
+							},
+							"MXH": {
+								"Tablename": "LP_MXH_Projects"
+							},
+							"CTA": {
+								"Tablename": "LP_CTA_Projects"
+							}
+						}
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/DIMENSIONS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse"
+				}
+			},
+			{
+				"name": "df_EDW_DIM_PRODUCT_ON_ORDER",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_load_DIM_SALES_DISTRICT",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_DIM_PRODUCT_ON_ORDER",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse"
+				}
+			},
+			{
+				"name": "df_load_DIM_EMPLOYEE_JOB_TYPE",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "GenerateMasterCustomerId",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "1.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_DIM_EMPLOYEE_JOB_TYPE",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/DIMENSIONS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse"
+				}
+			},
+			{
+				"name": "df_load_DIM_CALL_CENTER_DEPARTMENT",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_load_DIM_EMPLOYEE_JOB_TYPE",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "1.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_DIM_CALL_CENTER_DEPARTMENT",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/DIMENSIONS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse"
+				}
+			},
+			{
+				"name": "df_load_DIM_CALL_CENTER_MANAGER",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_load_DIM_CALL_CENTER_DEPARTMENT",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "1.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_DIM_CALL_CENTER_MANAGER",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/DIMENSIONS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse"
+				}
+			},
+			{
+				"name": "cpy_DIM_JOB_CUSTOMER_NOTES",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "df_load_DIM_CUSTOMER",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "--************************ Customer ID ******************************\n\n\nSELECT  * FROM \n(\n\tSELECT\n\tCONCAT('FHI-',Id)\t\t\tAS NotesID\t,\n\tRecType\t,\n\tCAST(NULL\tAS NVARCHAR(100))\tAS JobID,\n\tCONCAT('FHI-',RecID)\t\tAS CustomerID\t,\n\tCONCAT('FHI-',EnteredBy)\tAS EnteredBy_EmployeeID\t,\n\tEnteredOn\t,\n\tCONCAT('FHI-',UpdatedBy)\tAS UpdatedBy_EmployeeID\t,\n\tUpdatedOn\t,\n\tnotes\t,\n\timportant\t,\n\tCONCAT('FHI-',nct_id) \t\tAS NotesCategoryID,\n\tnct_Desc\t\t\t\t\tAS NotesCategoryDesc,\n\t\n\tNULL\t\t\tAS [LP_JobID]\t\t\t\t\t,\n\tRecID\t\t\tAS [LP_CustomerID]\t\t\t\t,\n\tEnteredBy\t\tAS [LP_EnteredBy_EmployeeID]\t,\n\tUpdatedBy\t\tAS [LP_UpdatedBy_EmployeeID]\t,\n\tnct_id\t\t\tAS LP_NotesCategoryID\t\t\t,\n\t'FHI'\t\t\tAS [Division]\t\t\t\t\t\t\t\t\t\t,\n\tGETDATE()\t\tAS LastUpdateTS,\n\tROW_NUMBER() OVER (PARTITION BY RecID ORDER BY  COALESCE(EnteredOn,'1900-01-01') DESC ) AS RW\n\t\n\tFROM [ODS].[LP_FHI_not_Notes] WHERE RecType='cst'\n\n\t) M1\nWHERE RW=1\n\n\nUNION ALL\n\n\nSELECT  * FROM \n(\n\tSELECT\n\tCONCAT('PBC-',Id)\t\t\tAS NotesID\t,\n\tRecType\t,\n\tCAST(NULL\tAS NVARCHAR(100))\t\tAS JobID,\n\tCONCAT('PBC-',RecID)\t\tAS CustomerID\t,\n\tCONCAT('PBC-',EnteredBy)\tAS EnteredBy_EmployeeID\t,\n\tEnteredOn\t,\n\tCONCAT('PBC-',UpdatedBy)\tAS UpdatedBy_EmployeeID\t,\n\tUpdatedOn\t,\n\tnotes\t,\n\timportant\t,\n\tCONCAT('PBC-',nct_id) \t\tAS NotesCategoryID,\n\tnct_Desc\t\t\t\t\tAS NotesCategoryDesc,\n\t\n\tNULL\t\t\tAS [LP_JobID]\t\t\t\t\t,\n\tRecID\t\t\tAS [LP_CustomerID]\t\t\t\t,\n\tEnteredBy\t\tAS [LP_EnteredBy_EmployeeID]\t,\n\tUpdatedBy\t\tAS [LP_UpdatedBy_EmployeeID]\t,\n\tnct_id\t\t\tAS LP_NotesCategoryID\t\t\t,\n\t'PBC'\t\t\tAS [Division]\t\t\t\t\t\t\t\t\t\t,\n\tGETDATE()\t\tAS LastUpdateTS,\n\tROW_NUMBER() OVER (PARTITION BY RecID ORDER BY  COALESCE(EnteredOn,'1900-01-01') DESC ) AS RW\n\t\n\tFROM [ODS].[LP_PBC_not_Notes] WHERE RecType='cst'\n\n\t) M1\nWHERE RW=1\n\n\n\nUNION ALL\n\n\nSELECT  * FROM \n(\n\tSELECT\n\tCONCAT('RTW-',Id)\t\t\tAS NotesID\t,\n\tRecType\t,\n\tCAST(NULL\tAS NVARCHAR(100))\t\tAS JobID,\n\tCONCAT('RTW-',RecID)\t\tAS CustomerID\t,\n\tCONCAT('RTW-',EnteredBy)\tAS EnteredBy_EmployeeID\t,\n\tEnteredOn\t,\n\tCONCAT('RTW-',UpdatedBy)\tAS UpdatedBy_EmployeeID\t,\n\tUpdatedOn\t,\n\tnotes\t,\n\timportant\t,\n\tCONCAT('RTW-',nct_id) \t\tAS NotesCategoryID,\n\tnct_Desc\t\t\t\t\tAS NotesCategoryDesc,\n\t\n\tNULL\t\t\tAS [LP_JobID]\t\t\t\t\t,\n\tRecID\t\t\tAS [LP_CustomerID]\t\t\t\t,\n\tEnteredBy\t\tAS [LP_EnteredBy_EmployeeID]\t,\n\tUpdatedBy\t\tAS [LP_UpdatedBy_EmployeeID]\t,\n\tnct_id\t\t\tAS LP_NotesCategoryID\t\t\t,\n\t'RTW'\t\t\tAS [Division]\t\t\t\t\t\t\t\t\t\t,\n\tGETDATE()\t\tAS LastUpdateTS,\n\tROW_NUMBER() OVER (PARTITION BY RecID ORDER BY  COALESCE(EnteredOn,'1900-01-01') DESC ) AS RW\n\t\n\tFROM [ODS].[LP_RTW_not_Notes] WHERE RecType='cst'\n\n\t) M1\nWHERE RW=1\n\n\nUNION ALL\n\n\nSELECT  * FROM \n(\n\tSELECT\n\tCONCAT('SWR-',Id)\t\t\tAS NotesID\t,\n\tRecType\t,\n\tCAST(NULL\tAS NVARCHAR(100))\t\tAS JobID,\n\tCONCAT('SWR-',RecID)\t\tAS CustomerID\t,\n\tCONCAT('SWR-',EnteredBy)\tAS EnteredBy_EmployeeID\t,\n\tEnteredOn\t,\n\tCONCAT('SWR-',UpdatedBy)\tAS UpdatedBy_EmployeeID\t,\n\tUpdatedOn\t,\n\tnotes\t,\n\timportant\t,\n\tCONCAT('SWR-',nct_id) \t\tAS NotesCategoryID,\n\tnct_Desc\t\t\t\t\tAS NotesCategoryDesc,\n\t\n\tNULL\t\t\tAS [LP_JobID]\t\t\t\t\t,\n\tRecID\t\t\tAS [LP_CustomerID]\t\t\t\t,\n\tEnteredBy\t\tAS [LP_EnteredBy_EmployeeID]\t,\n\tUpdatedBy\t\tAS [LP_UpdatedBy_EmployeeID]\t,\n\tnct_id\t\t\tAS LP_NotesCategoryID\t\t\t,\n\t'SWR'\t\t\tAS [Division]\t\t\t\t\t\t\t\t\t\t,\n\tGETDATE()\t\tAS LastUpdateTS,\n\tROW_NUMBER() OVER (PARTITION BY RecID ORDER BY  COALESCE(EnteredOn,'1900-01-01') DESC ) AS RW\n\t\n\tFROM [ODS].[LP_SWR_not_Notes] WHERE RecType='cst'\n\n\t) M1\nWHERE RW=1\n\n\nUNION ALL\n\n\nSELECT  * FROM \n(\n\tSELECT\n\tCONCAT('MAC-',Id)\t\t\tAS NotesID\t,\n\tRecType\t,\n\tCAST(NULL\tAS NVARCHAR(100))\t\tAS JobID,\n\tCONCAT('MAC-',RecID)\t\tAS CustomerID\t,\n\tCONCAT('MAC-',EnteredBy)\tAS EnteredBy_EmployeeID\t,\n\tEnteredOn\t,\n\tCONCAT('MAC-',UpdatedBy)\tAS UpdatedBy_EmployeeID\t,\n\tUpdatedOn\t,\n\tnotes\t,\n\timportant\t,\n\tCONCAT('MAC-',nct_id) \t\tAS NotesCategoryID,\n\tnct_Desc\t\t\t\t\tAS NotesCategoryDesc,\n\t\n\tNULL\t\t\tAS [LP_JobID]\t\t\t\t\t,\n\tRecID\t\t\tAS [LP_CustomerID]\t\t\t\t,\n\tEnteredBy\t\tAS [LP_EnteredBy_EmployeeID]\t,\n\tUpdatedBy\t\tAS [LP_UpdatedBy_EmployeeID]\t,\n\tnct_id\t\t\tAS LP_NotesCategoryID\t\t\t,\n\t'MAC'\t\t\tAS [Division]\t\t\t\t\t\t\t\t\t\t,\n\tGETDATE()\t\tAS LastUpdateTS,\n\tROW_NUMBER() OVER (PARTITION BY RecID ORDER BY  COALESCE(EnteredOn,'1900-01-01') DESC ) AS RW\n\t\n\tFROM [ODS].[LP_MAC_not_Notes] WHERE RecType='cst'\n\n\t) M1\nWHERE RW=1\n\n\nUNION ALL\n\n\nSELECT  * FROM \n(\n\tSELECT\n\tCONCAT('MXH-',Id)\t\t\tAS NotesID\t,\n\tRecType\t,\n\tCAST(NULL\tAS NVARCHAR(100))\t\tAS JobID,\n\tCONCAT('MXH-',RecID)\t\tAS CustomerID\t,\n\tCONCAT('MXH-',EnteredBy)\tAS EnteredBy_EmployeeID\t,\n\tEnteredOn\t,\n\tCONCAT('MXH-',UpdatedBy)\tAS UpdatedBy_EmployeeID\t,\n\tUpdatedOn\t,\n\tnotes\t,\n\timportant\t,\n\tCONCAT('MXH-',nct_id) \t\tAS NotesCategoryID,\n\tnct_Desc\t\t\t\t\tAS NotesCategoryDesc,\n\t\n\tNULL\t\t\tAS [LP_JobID]\t\t\t\t\t,\n\tRecID\t\t\tAS [LP_CustomerID]\t\t\t\t,\n\tEnteredBy\t\tAS [LP_EnteredBy_EmployeeID]\t,\n\tUpdatedBy\t\tAS [LP_UpdatedBy_EmployeeID]\t,\n\tnct_id\t\t\tAS LP_NotesCategoryID\t\t\t,\n\t'MXH'\t\t\tAS [Division]\t\t\t\t\t\t\t\t\t\t,\n\tGETDATE()\t\tAS LastUpdateTS,\n\tROW_NUMBER() OVER (PARTITION BY RecID ORDER BY  COALESCE(EnteredOn,'1900-01-01') DESC ) AS RW\n\t\n\tFROM [ODS].[LP_MXH_not_Notes] WHERE RecType='cst'\n\n\t) M1\nWHERE RW=1\n\n\n\nUNION ALL\n\n\nSELECT  * FROM \n(\n\tSELECT\n\tCONCAT('CTA-',Id)\t\t\tAS NotesID\t,\n\tRecType\t,\n\tCAST(NULL\tAS NVARCHAR(100))\t\tAS JobID,\n\tCONCAT('CTA-',RecID)\t\tAS CustomerID\t,\n\tCONCAT('CTA-',EnteredBy)\tAS EnteredBy_EmployeeID\t,\n\tEnteredOn\t,\n\tCONCAT('CTA-',UpdatedBy)\tAS UpdatedBy_EmployeeID\t,\n\tUpdatedOn\t,\n\tnotes\t,\n\timportant\t,\n\tCONCAT('CTA-',nct_id) \t\tAS NotesCategoryID,\n\tnct_Desc\t\t\t\t\tAS NotesCategoryDesc,\n\t\n\tNULL\t\t\tAS [LP_JobID]\t\t\t\t\t,\n\tRecID\t\t\tAS [LP_CustomerID]\t\t\t\t,\n\tEnteredBy\t\tAS [LP_EnteredBy_EmployeeID]\t,\n\tUpdatedBy\t\tAS [LP_UpdatedBy_EmployeeID]\t,\n\tnct_id\t\t\tAS LP_NotesCategoryID\t\t\t,\n\t'CTA'\t\t\tAS [Division]\t\t\t\t\t\t\t\t\t\t,\n\tGETDATE()\t\tAS LastUpdateTS,\n\tROW_NUMBER() OVER (PARTITION BY RecID ORDER BY  COALESCE(EnteredOn,'1900-01-01') DESC ) AS RW\n\t\n\tFROM [ODS].[LP_CTA_not_Notes] WHERE RecType='cst'\n\n\t) M1\nWHERE RW=1\n\n\nUNION ALL\n\n--************************ Job ID ******************************\n\nSELECT  * FROM \n(\n\tSELECT\n\tCONCAT('FHI-',Id)\t\t\tAS NotesID\t,\n\tRecType\t,\n\tCONCAT('FHI-',RecID)\t\tAS JobID,\n\tNULL\t\t\t\t\t\tAS CustomerID\t,\n\tCONCAT('FHI-',EnteredBy)\tAS EnteredBy_EmployeeID\t,\n\tEnteredOn\t,\n\tCONCAT('FHI-',UpdatedBy)\tAS UpdatedBy_EmployeeID\t,\n\tUpdatedOn\t,\n\tnotes\t,\n\timportant\t,\n\tCONCAT('FHI-',nct_id) \t\tAS NotesCategoryID,\n\tnct_Desc\t\t\t\t\tAS NotesCategoryDesc,\n\t\n\tRecID\t\t\tAS [LP_JobID]\t\t\t\t\t,\n\tNULL\t\t\tAS [LP_CustomerID]\t\t\t\t,\n\tEnteredBy\t\tAS [LP_EnteredBy_EmployeeID]\t,\n\tUpdatedBy\t\tAS [LP_UpdatedBy_EmployeeID]\t,\n\tnct_id\t\t\tAS LP_NotesCategoryID\t\t\t,\n\t'FHI'\t\t\tAS [Division]\t\t\t\t\t\t\t\t\t\t,\n\tGETDATE()\t\tAS LastUpdateTS,\n\tROW_NUMBER() OVER (PARTITION BY RecID ORDER BY  COALESCE(EnteredOn,'1900-01-01') DESC ) AS RW\n\t\n\tFROM [ODS].[LP_FHI_not_Notes] WHERE RecType='job'\n\n\t) M1\nWHERE RW=1\n\n\nUNION ALL\n\n\nSELECT  * FROM \n(\n\tSELECT\n\tCONCAT('PBC-',Id)\t\t\tAS NotesID\t,\n\tRecType\t,\n\tCONCAT('PBC-',RecID)\t\tAS JobID,\n\tNULL\t\t\t\t\t\tAS CustomerID\t,\n\tCONCAT('PBC-',EnteredBy)\tAS EnteredBy_EmployeeID\t,\n\tEnteredOn\t,\n\tCONCAT('PBC-',UpdatedBy)\tAS UpdatedBy_EmployeeID\t,\n\tUpdatedOn\t,\n\tnotes\t,\n\timportant\t,\n\tCONCAT('PBC-',nct_id) \t\tAS NotesCategoryID,\n\tnct_Desc\t\t\t\t\tAS NotesCategoryDesc,\n\t\n\tRecID\t\t\tAS [LP_JobID]\t\t\t\t\t,\n\tNULL\t\t\tAS [LP_CustomerID]\t\t\t\t,\n\tEnteredBy\t\tAS [LP_EnteredBy_EmployeeID]\t,\n\tUpdatedBy\t\tAS [LP_UpdatedBy_EmployeeID]\t,\n\tnct_id\t\t\tAS LP_NotesCategoryID\t\t\t,\n\t'PBC'\t\t\tAS [Division]\t\t\t\t\t\t\t\t\t\t,\n\tGETDATE()\t\tAS LastUpdateTS,\n\tROW_NUMBER() OVER (PARTITION BY RecID ORDER BY  COALESCE(EnteredOn,'1900-01-01') DESC ) AS RW\n\t\n\tFROM [ODS].[LP_PBC_not_Notes] WHERE RecType='job'\n\n\t) M1\nWHERE RW=1\n\n\n\nUNION ALL\n\n\nSELECT  * FROM \n(\n\tSELECT\n\tCONCAT('RTW-',Id)\t\t\tAS NotesID\t,\n\tRecType\t,\n\tCONCAT('RTW-',RecID)\t\tAS JobID,\n\tNULL\t\t\t\t\t\tAS CustomerID\t,\n\tCONCAT('RTW-',EnteredBy)\tAS EnteredBy_EmployeeID\t,\n\tEnteredOn\t,\n\tCONCAT('RTW-',UpdatedBy)\tAS UpdatedBy_EmployeeID\t,\n\tUpdatedOn\t,\n\tnotes\t,\n\timportant\t,\n\tCONCAT('RTW-',nct_id) \t\tAS NotesCategoryID,\n\tnct_Desc\t\t\t\t\tAS NotesCategoryDesc,\n\t\n\tRecID\t\t\tAS [LP_JobID]\t\t\t\t\t,\n\tNULL\t\t\tAS [LP_CustomerID]\t\t\t\t,\n\tEnteredBy\t\tAS [LP_EnteredBy_EmployeeID]\t,\n\tUpdatedBy\t\tAS [LP_UpdatedBy_EmployeeID]\t,\n\tnct_id\t\t\tAS LP_NotesCategoryID\t\t\t,\n\t'RTW'\t\t\tAS [Division]\t\t\t\t\t\t\t\t\t\t,\n\tGETDATE()\t\tAS LastUpdateTS,\n\tROW_NUMBER() OVER (PARTITION BY RecID ORDER BY  COALESCE(EnteredOn,'1900-01-01') DESC ) AS RW\n\t\n\tFROM [ODS].[LP_RTW_not_Notes] WHERE RecType='job'\n\n\t) M1\nWHERE RW=1\n\n\nUNION ALL\n\n\nSELECT  * FROM \n(\n\tSELECT\n\tCONCAT('SWR-',Id)\t\t\tAS NotesID\t,\n\tRecType\t,\n\tCONCAT('SWR-',RecID)\t\tAS JobID,\n\tNULL\t\t\t\t\t\tAS CustomerID\t,\n\tCONCAT('SWR-',EnteredBy)\tAS EnteredBy_EmployeeID\t,\n\tEnteredOn\t,\n\tCONCAT('SWR-',UpdatedBy)\tAS UpdatedBy_EmployeeID\t,\n\tUpdatedOn\t,\n\tnotes\t,\n\timportant\t,\n\tCONCAT('SWR-',nct_id) \t\tAS NotesCategoryID,\n\tnct_Desc\t\t\t\t\tAS NotesCategoryDesc,\n\t\n\tRecID\t\t\tAS [LP_JobID]\t\t\t\t\t,\n\tNULL\t\t\tAS [LP_CustomerID]\t\t\t\t,\n\tEnteredBy\t\tAS [LP_EnteredBy_EmployeeID]\t,\n\tUpdatedBy\t\tAS [LP_UpdatedBy_EmployeeID]\t,\n\tnct_id\t\t\tAS LP_NotesCategoryID\t\t\t,\n\t'SWR'\t\t\tAS [Division]\t\t\t\t\t\t\t\t\t\t,\n\tGETDATE()\t\tAS LastUpdateTS,\n\tROW_NUMBER() OVER (PARTITION BY RecID ORDER BY  COALESCE(EnteredOn,'1900-01-01') DESC ) AS RW\n\t\n\tFROM [ODS].[LP_SWR_not_Notes] WHERE RecType='job'\n\n\t) M1\nWHERE RW=1\n\n\nUNION ALL\n\n\nSELECT  * FROM \n(\n\tSELECT\n\tCONCAT('MAC-',Id)\t\t\tAS NotesID\t,\n\tRecType\t,\n\tCONCAT('MAC-',RecID)\t\tAS JobID,\n\tNULL\t\t\t\t\t\tAS CustomerID\t,\n\tCONCAT('MAC-',EnteredBy)\tAS EnteredBy_EmployeeID\t,\n\tEnteredOn\t,\n\tCONCAT('MAC-',UpdatedBy)\tAS UpdatedBy_EmployeeID\t,\n\tUpdatedOn\t,\n\tnotes\t,\n\timportant\t,\n\tCONCAT('MAC-',nct_id) \t\tAS NotesCategoryID,\n\tnct_Desc\t\t\t\t\tAS NotesCategoryDesc,\n\t\n\tRecID\t\t\tAS [LP_JobID]\t\t\t\t\t,\n\tNULL\t\t\tAS [LP_CustomerID]\t\t\t\t,\n\tEnteredBy\t\tAS [LP_EnteredBy_EmployeeID]\t,\n\tUpdatedBy\t\tAS [LP_UpdatedBy_EmployeeID]\t,\n\tnct_id\t\t\tAS LP_NotesCategoryID\t\t\t,\n\t'MAC'\t\t\tAS [Division]\t\t\t\t\t\t\t\t\t\t,\n\tGETDATE()\t\tAS LastUpdateTS,\n\tROW_NUMBER() OVER (PARTITION BY RecID ORDER BY  COALESCE(EnteredOn,'1900-01-01') DESC ) AS RW\n\t\n\tFROM [ODS].[LP_MAC_not_Notes] WHERE RecType='job'\n\n\t) M1\nWHERE RW=1\n\n\nUNION ALL\n\n\nSELECT  * FROM \n(\n\tSELECT\n\tCONCAT('MXH-',Id)\t\t\tAS NotesID\t,\n\tRecType\t,\n\tCONCAT('MXH-',RecID)\t\tAS JobID,\n\tNULL\t\t\t\t\t\tAS CustomerID\t,\n\tCONCAT('MXH-',EnteredBy)\tAS EnteredBy_EmployeeID\t,\n\tEnteredOn\t,\n\tCONCAT('MXH-',UpdatedBy)\tAS UpdatedBy_EmployeeID\t,\n\tUpdatedOn\t,\n\tnotes\t,\n\timportant\t,\n\tCONCAT('MXH-',nct_id) \t\tAS NotesCategoryID,\n\tnct_Desc\t\t\t\t\tAS NotesCategoryDesc,\n\t\n\tRecID\t\t\tAS [LP_JobID]\t\t\t\t\t,\n\tNULL\t\t\tAS [LP_CustomerID]\t\t\t\t,\n\tEnteredBy\t\tAS [LP_EnteredBy_EmployeeID]\t,\n\tUpdatedBy\t\tAS [LP_UpdatedBy_EmployeeID]\t,\n\tnct_id\t\t\tAS LP_NotesCategoryID\t\t\t,\n\t'MXH'\t\t\tAS [Division]\t\t\t\t\t\t\t\t\t\t,\n\tGETDATE()\t\tAS LastUpdateTS,\n\tROW_NUMBER() OVER (PARTITION BY RecID ORDER BY  COALESCE(EnteredOn,'1900-01-01') DESC ) AS RW\n\t\n\tFROM [ODS].[LP_MXH_not_Notes] WHERE RecType='job'\n\n\t) M1\nWHERE RW=1\n\n\n\nUNION ALL\n\n\nSELECT  * FROM \n(\n\tSELECT\n\tCONCAT('CTA-',Id)\t\t\tAS NotesID\t,\n\tRecType\t,\n\tCONCAT('CTA-',RecID)\t\tAS JobID,\n\tNULL\t\t\t\t\t\tAS CustomerID\t,\n\tCONCAT('CTA-',EnteredBy)\tAS EnteredBy_EmployeeID\t,\n\tEnteredOn\t,\n\tCONCAT('CTA-',UpdatedBy)\tAS UpdatedBy_EmployeeID\t,\n\tUpdatedOn\t,\n\tnotes\t,\n\timportant\t,\n\tCONCAT('CTA-',nct_id) \t\tAS NotesCategoryID,\n\tnct_Desc\t\t\t\t\tAS NotesCategoryDesc,\n\t\n\tRecID\t\t\tAS [LP_JobID]\t\t\t\t\t,\n\tNULL\t\t\tAS [LP_CustomerID]\t\t\t\t,\n\tEnteredBy\t\tAS [LP_EnteredBy_EmployeeID]\t,\n\tUpdatedBy\t\tAS [LP_UpdatedBy_EmployeeID]\t,\n\tnct_id\t\t\tAS LP_NotesCategoryID\t\t\t,\n\t'CTA'\t\t\tAS [Division]\t\t\t\t\t\t\t\t\t\t,\n\tGETDATE()\t\tAS LastUpdateTS,\n\tROW_NUMBER() OVER (PARTITION BY RecID ORDER BY  COALESCE(EnteredOn,'1900-01-01') DESC ) AS RW\n\t\n\tFROM [ODS].[LP_CTA_not_Notes] WHERE RecType='job'\n\n\t) M1\nWHERE RW=1\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "\nDELETE T\nFROM [EDW].[DIM_JOB_CUSTOMER_NOTES] T\nINNER JOIN (\n    SELECT 'FHI' AS Division, CONCAT('FHI-',ID) AS NotesID FROM ODS.LP_FHI_not_Notes WHERE RecType='job'\n    UNION ALL\n    SELECT 'CTA', CONCAT('CTA-',ID) FROM ODS.LP_CTA_not_Notes WHERE RecType='job'\n    UNION ALL\n    SELECT 'MAC', CONCAT('MAC-',ID) FROM ODS.LP_MAC_not_Notes WHERE RecType='job'\n    UNION ALL\n    SELECT 'PBC', CONCAT('PBC-',ID) FROM ODS.LP_PBC_not_Notes WHERE RecType='job'\n    UNION ALL\n    SELECT 'RTW', CONCAT('RTW-',ID) FROM ODS.LP_RTW_not_Notes WHERE RecType='job'\n    UNION ALL\n    SELECT 'SWR', CONCAT('SWR-',ID) FROM ODS.LP_SWR_not_Notes WHERE RecType='job'\n) S\nON T.NotesID = S.NotesID\nAND T.Division = S.Division\nWHERE T.RecType = 'job';\n\n\n\n\n\nDELETE T\nFROM [EDW].[DIM_JOB_CUSTOMER_NOTES] T\nINNER JOIN (\n    SELECT 'FHI' AS Division, CONCAT('FHI-',ID) AS NotesID   FROM ODS.LP_FHI_not_Notes   WHERE RecType='cst'\n    UNION ALL\n    SELECT 'CTA', CONCAT('CTA-',ID) FROM ODS.LP_CTA_not_Notes  WHERE RecType='cst'\n    UNION ALL\n    SELECT 'MAC', CONCAT('MAC-',ID) FROM ODS.LP_MAC_not_Notes  WHERE RecType='cst'\n    UNION ALL\n    SELECT 'PBC', CONCAT('PBC-',ID) FROM ODS.LP_PBC_not_Notes  WHERE RecType='cst'\n    UNION ALL\n    SELECT 'RTW', CONCAT('RTW-',ID) FROM ODS.LP_RTW_not_Notes  WHERE RecType='cst'\n    UNION ALL\n    SELECT 'SWR', CONCAT('SWR-',ID) FROM ODS.LP_SWR_not_Notes  WHERE RecType='cst'\n) S\nON T.NotesID = S.NotesID\nAND T.Division = S.Division\nWHERE T.RecType = 'cst';",
+						"allowCopyCommand": true
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "staging"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "NotesID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "NotesID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "RecType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "RecType",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "JobID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "JobID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CustomerID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CustomerID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredBy_EmployeeID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "EnteredBy_EmployeeID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedBy_EmployeeID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UpdatedBy_EmployeeID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "UpdatedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "notes",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Notes",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "important",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Important",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "NotesCategoryID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "NotesCategoryID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "NotesCategoryDesc",
+									"type": "String"
+								},
+								"sink": {
+									"name": "NotesCategoryDesc",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_JobID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "LP_JobID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_CustomerID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "LP_CustomerID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_EnteredBy_EmployeeID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "LP_EnteredBy_EmployeeID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_UpdatedBy_EmployeeID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "LP_UpdatedBy_EmployeeID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_NotesCategoryID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "LP_NotesCategoryID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Division",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LastUpdateTS",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastUpdateTS",
+									"type": "DateTime"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ODS_LP_CTA_not_Notes",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_DIM_JOB_CUSTOMER_NOTES",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "df_load_DIM Sales Type",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_load_DIM_CALL_CENTER_MANAGER",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_dim_slt_Saletype",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "cpy_DIM_LEAD_LOGS",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "df_load_DIM_VENDOR_LOG",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT \nCONCAT('SWR-',A.id)\t\t\tAS LeadLogID\t\t\t\t   ,\nCONCAT('SWR-',A.cst_id)\t\tAS CustomerID\t\t\t\t   ,\nCONCAT('SWR-',A.lds_id)\t\tAS LeadID\t\t\t\t\t   ,\nCONCAT('SWR-',A.ChangedBy)\tAS ChangedBy_EmployeeID\t\t   ,\nB_OLD.DispositionID\t\t\tAS Old_DispositionID\t\t   ,\nB_NEW.DispositionID\t\t\tAS New_DispositionID\t\t   ,\nA.DateChanged\t\t\t\t\t\t\t\t\t\t\t   ,\n'SWR'\t\t\t\t\t\tAS Division\t\t\t\t\t   ,\nA.id\t\t\t\t\t\tAS LP_LeadLogID\t\t\t\t   ,\nA.cst_id\t\t\t\t\tAS LP_CustomerID\t\t\t   ,\nA.lds_id\t\t\t\t\tAS LP_LeadID\t\t\t\t   ,\nA.ChangedBy\t\t\t\t\tAS LP_ChangedBy_EmployeeID\t   ,\nGETDATE()\t\t\t\t\tAS LastUpdatedTS\n\nFROM [ODS].[LP_SWR_log_Lead] A \nLEFT JOIN (SELECT * FROM EDW.DIM_DISPOSITION WHERE Division='SWR') B_OLD\nON A.oldDsp_id = B_OLD.Disposition\nLEFT JOIN (SELECT * FROM EDW.DIM_DISPOSITION WHERE Division='SWR') B_NEW\nON A.newDsp_id = B_NEW.Disposition\nWHERE oldDsp_id !=newDsp_id",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "TRUNCATE TABLE  EDW.DIM_LEAD_LOGS",
+						"allowCopyCommand": true
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "staging"
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ODS_SWR_log_Lead",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_DIM_LEAD_LOGS",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "DEL_Duplicate_CustomerID_JobID",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "cpy_DIM_JOB_CUSTOMER_NOTES",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "\n-- Delete Duplicate cases due to incremental which pick 1 record out of 2 due to 7 day incremental\n\nSELECT NotesID\nINTO #T_1\nFROM\n(\n\tSELECT  *,\n\tROW_NUMBER() OVER (PARTITION BY RecType,CustomerID ORDER BY EnteredOn DESC) AS RW\n\tFROM  EDW.DIM_JOB_CUSTOMER_NOTES \n\tWHERE RecType='cst'\n\t) M1\nWHERE RW>1\n\nUNION\n\nSELECT NotesID\nFROM\n(\n\tSELECT  *,\n\tROW_NUMBER() OVER (PARTITION BY RecType,JobID ORDER BY EnteredOn DESC) AS RW\n\tFROM  EDW.DIM_JOB_CUSTOMER_NOTES \n\tWHERE RecType='job'\n\t) M1\nWHERE RW>1\n\n\n\nDELETE FROM EDW.DIM_JOB_CUSTOMER_NOTES  WHERE NotesID IN (SELECT NotesID FROM #T_1) ;"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/DIMENSIONS/LP"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-04-21T19:51:57Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

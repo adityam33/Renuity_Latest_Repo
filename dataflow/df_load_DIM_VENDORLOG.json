@@ -1,0 +1,406 @@
+{
+	"name": "df_load_DIM_VENDORLOG",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_FHI_vlg_VendorLog",
+						"type": "DatasetReference"
+					},
+					"name": "FHI"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_SWR_vlg_VendorLog",
+						"type": "DatasetReference"
+					},
+					"name": "SWR"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_MAC_vlg_VendorLog",
+						"type": "DatasetReference"
+					},
+					"name": "MAC"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_MXH_vlg_VendorLog",
+						"type": "DatasetReference"
+					},
+					"name": "MXH"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_CTA_vlg_VendorLog",
+						"type": "DatasetReference"
+					},
+					"name": "CTA"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_RTW_vlg_VendorLog",
+						"type": "DatasetReference"
+					},
+					"name": "RTW"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_PBC_vlg_VendorLog",
+						"type": "DatasetReference"
+					},
+					"name": "PBC"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "vlg_vendor_target",
+						"type": "DatasetReference"
+					},
+					"name": "targetDim",
+					"description": "Export data to EDW.DIM_VendorLog",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "createDsSWR"
+				},
+				{
+					"name": "createDsMAC"
+				},
+				{
+					"name": "selectSWR"
+				},
+				{
+					"name": "selectMAC"
+				},
+				{
+					"name": "unionAllDivisions"
+				},
+				{
+					"name": "AddUpdateTimestamp"
+				},
+				{
+					"name": "alterRow"
+				},
+				{
+					"name": "selectFHI"
+				},
+				{
+					"name": "selectMXH"
+				},
+				{
+					"name": "selectCTA"
+				},
+				{
+					"name": "selectRTW"
+				},
+				{
+					"name": "selectPBC"
+				},
+				{
+					"name": "createDsFHI"
+				},
+				{
+					"name": "createDsMXH"
+				},
+				{
+					"name": "createDsCTA"
+				},
+				{
+					"name": "createDsRTW"
+				},
+				{
+					"name": "createDsPBC"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          id as integer,",
+				"          job_id as integer,",
+				"          vnd_id as integer,",
+				"          ETA as timestamp,",
+				"          REC as timestamp,",
+				"          Notes as string,",
+				"          EnteredOn as timestamp,",
+				"          EnteredBy as integer,",
+				"          UpdatedOn as timestamp,",
+				"          UpdatedBy as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> FHI",
+				"source(output(",
+				"          id as integer,",
+				"          job_id as integer,",
+				"          vnd_id as integer,",
+				"          ETA as timestamp,",
+				"          REC as timestamp,",
+				"          Notes as string,",
+				"          EnteredOn as timestamp,",
+				"          EnteredBy as integer,",
+				"          UpdatedOn as timestamp,",
+				"          UpdatedBy as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> SWR",
+				"source(output(",
+				"          id as integer,",
+				"          job_id as integer,",
+				"          vnd_id as integer,",
+				"          ETA as timestamp,",
+				"          REC as timestamp,",
+				"          Notes as string,",
+				"          EnteredOn as timestamp,",
+				"          EnteredBy as integer,",
+				"          UpdatedOn as timestamp,",
+				"          UpdatedBy as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> MAC",
+				"source(output(",
+				"          id as integer,",
+				"          job_id as integer,",
+				"          vnd_id as integer,",
+				"          ETA as timestamp,",
+				"          REC as timestamp,",
+				"          Notes as string,",
+				"          EnteredOn as timestamp,",
+				"          EnteredBy as integer,",
+				"          UpdatedOn as timestamp,",
+				"          UpdatedBy as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> MXH",
+				"source(output(",
+				"          id as integer,",
+				"          job_id as integer,",
+				"          vnd_id as integer,",
+				"          ETA as timestamp,",
+				"          REC as timestamp,",
+				"          Notes as string,",
+				"          EnteredOn as timestamp,",
+				"          EnteredBy as integer,",
+				"          UpdatedOn as timestamp,",
+				"          UpdatedBy as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> CTA",
+				"source(output(",
+				"          id as integer,",
+				"          job_id as integer,",
+				"          vnd_id as integer,",
+				"          ETA as timestamp,",
+				"          REC as timestamp,",
+				"          Notes as string,",
+				"          EnteredOn as timestamp,",
+				"          EnteredBy as integer,",
+				"          UpdatedOn as timestamp,",
+				"          UpdatedBy as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> RTW",
+				"source(output(",
+				"          id as integer,",
+				"          job_id as integer,",
+				"          vnd_id as integer,",
+				"          ETA as timestamp,",
+				"          REC as timestamp,",
+				"          Notes as string,",
+				"          EnteredOn as timestamp,",
+				"          EnteredBy as integer,",
+				"          UpdatedOn as timestamp,",
+				"          UpdatedBy as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> PBC",
+				"selectSWR derive(Division = 'SWR',",
+				"          VendorLogID = concat('SWR-',toString(LP_VendorLogID)),",
+				"          JobID = concat('SWR-',toString(LP_JobID)),",
+				"          VendorID = concat('SWR-',toString(LP_VendorID))) ~> createDsSWR",
+				"selectMAC derive(Division = 'MAC',",
+				"          VendorID = concat('MAC-',toString(LP_VendorID)),",
+				"          JobID = concat('MAC-',toString(LP_JobID)),",
+				"          VendorLogID = concat('MAC-',toString(LP_VendorLogID))) ~> createDsMAC",
+				"SWR select(mapColumn(",
+				"          LP_VendorLogID = id,",
+				"          LP_JobID = job_id,",
+				"          LP_VendorID = vnd_id,",
+				"          ETA,",
+				"          REC,",
+				"          Notes,",
+				"          EnteredOn,",
+				"          EnteredBy,",
+				"          UpdatedOn,",
+				"          UpdatedBy",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectSWR",
+				"MAC select(mapColumn(",
+				"          LP_VendorLogID = id,",
+				"          LP_JobID = job_id,",
+				"          LP_VendorID = vnd_id,",
+				"          ETA,",
+				"          REC,",
+				"          Notes,",
+				"          EnteredOn,",
+				"          EnteredBy,",
+				"          UpdatedOn,",
+				"          UpdatedBy",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectMAC",
+				"createDsFHI, createDsSWR, createDsMAC, createDsMXH, createDsCTA, createDsRTW, createDsPBC union(byName: true)~> unionAllDivisions",
+				"unionAllDivisions derive(LastUpdateTS = currentTimestamp()) ~> AddUpdateTimestamp",
+				"AddUpdateTimestamp alterRow(upsertIf(true())) ~> alterRow",
+				"FHI select(mapColumn(",
+				"          LP_VendorLogID = id,",
+				"          LP_JobID = job_id,",
+				"          LP_VendorID = vnd_id,",
+				"          ETA,",
+				"          REC,",
+				"          Notes,",
+				"          EnteredOn,",
+				"          EnteredBy,",
+				"          UpdatedOn,",
+				"          UpdatedBy",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectFHI",
+				"MXH select(mapColumn(",
+				"          LP_VendorLogID = id,",
+				"          LP_JobID = job_id,",
+				"          LP_VendorID = vnd_id,",
+				"          ETA,",
+				"          REC,",
+				"          Notes,",
+				"          EnteredOn,",
+				"          EnteredBy,",
+				"          UpdatedOn,",
+				"          UpdatedBy",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectMXH",
+				"CTA select(mapColumn(",
+				"          LP_VendorLogID = id,",
+				"          LP_JobID = job_id,",
+				"          LP_VendorID = vnd_id,",
+				"          ETA,",
+				"          REC,",
+				"          Notes,",
+				"          EnteredOn,",
+				"          EnteredBy,",
+				"          UpdatedOn,",
+				"          UpdatedBy",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectCTA",
+				"RTW select(mapColumn(",
+				"          LP_VendorLogID = id,",
+				"          LP_JobID = job_id,",
+				"          LP_VendorID = vnd_id,",
+				"          ETA,",
+				"          REC,",
+				"          Notes,",
+				"          EnteredOn,",
+				"          EnteredBy,",
+				"          UpdatedOn,",
+				"          UpdatedBy",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectRTW",
+				"PBC select(mapColumn(",
+				"          LP_VendorLogID = id,",
+				"          LP_JobID = job_id,",
+				"          LP_VendorID = vnd_id,",
+				"          ETA,",
+				"          REC,",
+				"          Notes,",
+				"          EnteredOn,",
+				"          EnteredBy,",
+				"          UpdatedOn,",
+				"          UpdatedBy",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectPBC",
+				"selectFHI derive(Division = 'FHI',",
+				"          VendorLogID = concat('FHI-',toString(LP_VendorLogID)),",
+				"          JobID = concat('FHI-',toString(LP_JobID)),",
+				"          VendorID = concat('FHI-',toString(LP_VendorID))) ~> createDsFHI",
+				"selectMXH derive(Division = 'MXH',",
+				"          VendorLogID = concat('MXH-',toString(LP_VendorLogID)),",
+				"          JobID = concat('MXH-',toString(LP_JobID)),",
+				"          VendorID = concat('MXH-',toString(LP_VendorID))) ~> createDsMXH",
+				"selectCTA derive(Division = 'CTA',",
+				"          VendorLogID = concat('CTA-',toString(LP_VendorLogID)),",
+				"          JobID = concat('CTA-',toString(LP_JobID)),",
+				"          VendorID = concat('CTA-',toString(LP_VendorID))) ~> createDsCTA",
+				"selectRTW derive(Division = 'RTW',",
+				"          VendorLogID = concat('RTW-',toString(LP_VendorLogID)),",
+				"          JobID = concat('RTW-',toString(LP_JobID)),",
+				"          VendorID = concat('RTW-',toString(LP_VendorID))) ~> createDsRTW",
+				"selectPBC derive(Division = 'PBC',",
+				"          VendorLogID = concat('PBC-',toString(LP_VendorLogID)),",
+				"          JobID = concat('PBC-',toString(LP_JobID)),",
+				"          VendorID = concat('PBC-',toString(LP_VendorID))) ~> createDsPBC",
+				"alterRow sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['VendorLogID'],",
+				"     format: 'table',",
+				"     staged: true,",
+				"     allowCopyCommand: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          LP_VendorLogID,",
+				"          LP_JobID,",
+				"          LP_VendorID,",
+				"          ETA,",
+				"          REC,",
+				"          Notes,",
+				"          EnteredOn,",
+				"          EnteredBy,",
+				"          UpdatedOn,",
+				"          UpdatedBy,",
+				"          Division,",
+				"          VendorLogID,",
+				"          JobID,",
+				"          VendorID,",
+				"          LastUpdateTS",
+				"     )) ~> targetDim"
+			]
+		}
+	}
+}

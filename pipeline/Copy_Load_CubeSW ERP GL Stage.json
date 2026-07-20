@@ -1,0 +1,441 @@
+{
+	"name": "Copy_Load_CubeSW ERP GL Stage",
+	"properties": {
+		"activities": [
+			{
+				"name": "Cpy CubeSW ERP GL Stage load",
+				"description": "Loads last 2 months of GL data into stage table",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "select \nGL.GL_LINE_KEY\n,GL.AccountCode\n,ACC.AccountClass \n,ACC.AccountDescription\t\n,GL.BalanceAmount \n,GL.BatchNumber \n,GL.BranchCode\n,BRANCH.CompanyID \n--,ORG.CompanyName\n,GL.ReferenceNumber \n--,GL.Posted\t\n,GL.FinPeriodID \n,GL.LedgerID \n,GL.CustomerVendor\t\n,C.CustomerClass \n--,C.CustomerClassDescription \n,C.CustomerID \n,C.CustomerName\n,VEN.VendorName\n,VEN.VendorID\n--,VEN.VendorClassDescription\n,VEN.VendorClass \n,GL.DepartmentID \n,DEPT.Department\n,GL.MarketingAccountID\n,MACC.MarketingAccount\n,GL.ProductID \n,PRO.Product\n,GL.ProjectID \n--,GL.SourceID \n--,SRC.Source\n--,GL.SourceVendorID\t\n--,SRCV.SourceVendor\n,GL.TransactionDescription\n,GL.Createdby\n,GL.CreatedDateTime\n,GL.LastModifiedDateTime\n,BAT.BatchDescription\nfrom  EDW.FACT_ERP_GL_TRANSACTION GL\nLeft Outer Join EDW.DIM_ERP_ACCOUNT ACC on GL.AccountCode = ACC.AccountCode\nLeft Outer Join EDW.DIM_ERP_BRANCH BRANCH on GL.BranchCode = BRANCH.BranchCode\nLeft Outer Join EDW.DIM_ERP_CUSTOMER C on GL.CustomerVendor = C.CustomerID\nLeft Outer Join EDW.DIM_ERP_DEPARTMENT DEPT on GL.DepartmentID = DEPT.DepartmentID\nLeft Outer Join EDW.DIM_ERP_MARKETING_ACCOUNT MACC on GL.MarketingAccountID = MACC.MarketingAccountID\nLeft Outer Join EDW.DIM_ERP_ORGANIZATION ORG on BRANCH.CompanyID=ORG.CompanyId\nLeft Outer Join EDW.DIM_ERP_PRODUCT PRO on PRO.ProductID = GL.ProductID\nLeft Outer Join EDW.DIM_ERP_SOURCE SRC on SRC.SourceID = GL.SourceID\nLeft Outer Join EDW.DIM_ERP_SOURCE_VENDOR SRCV  on SRCV.SourceVendorID = GL.SourceVendorID\nLeft Outer Join EDW.DIM_ERP_VENDOR VEN on GL.CustomerVendor = VEN.VendorID\nLeft Outer JOin EDW.DIM_ERP_BATCH BAT on GL.BatchNUmber=BAT.BatchNumber\nwhere Posted='1' and --GL.AccountCode in (\n--'60000',\n--'60002',\n--'62000',\n--'62002',\n--'63000',\n--'64000',\n--'65000',\n--'66000',\n--'67000',\n--'67002',\n--'67003',\n--'67004',\n--'67005',\n--'67006',\n--'67007',\n--'67008',\n--'67009',\n--'67010',\n--'67011',\n--'67050',\n--'67055',\n--'67060',\n--'67061',\n--'67062',\n--'68000'\n--) and RIGHT(FinPeriodID,4) IN ('2022','2023')-- and FinPeriodID<='12-2024'\nEomonth(concat(substring(finperiodid,1,charindex('-',finperiodid)),'01-',substring(finperiodid,charindex('-',finperiodid)+1,len(finperiodid))))>=dateadd(M,-6,getdate())",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Upsert",
+						"upsertSettings": {
+							"keys": [
+								"GL_LINE_KEY",
+								"CompanyID"
+							],
+							"interimSchemaName": ""
+						},
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/EDW/FACTS"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "GL_LINE_KEY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "GL_LINE_KEY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AccountCode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "AccountCode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AccountClass",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "AccountClass",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AccountDescription",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "AccountDescription",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchNumber",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "BatchNumber",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ReferenceNumber",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ReferenceNumber",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "BalanceAmount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								},
+								"sink": {
+									"name": "BalanceAmount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								}
+							},
+							{
+								"source": {
+									"name": "BranchCode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "BranchCode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CompanyID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CompanyID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "FinPeriodID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "FinPeriodID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LedgerID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "LedgerID",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "CustomerVendor",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CustomerVendor",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CustomerID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CustomerID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CustomerName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CustomerName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CustomerClass",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CustomerClass",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "VendorID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "VendorID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "VendorName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "VendorName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "VendorClass",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "VendorClass",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DepartmentID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "DepartmentID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Department",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Department",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "MarketingAccountID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "MarketingAccountID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "MarketingAccount",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "MarketingAccount",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ProductID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ProductID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Product",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Product",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ProjectID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ProjectID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "TransactionDescription",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "TransactionDescription",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Createdby",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CreatedBy",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CreatedDateTime",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "CreatedDateTime",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "LastModifiedDateTime",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "LastModifiedDateTime",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchDescription",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "BatchDescription",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_FACT_ERP_GL_TRANSACTION",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "OUT_CUBESW_ERP_GL_TRANSACTION_STAGE",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "RDC_to_Cube"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-07-25T12:04:04Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

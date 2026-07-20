@@ -1,0 +1,163 @@
+{
+	"name": "batch_Load_ADP_API_POST",
+	"properties": {
+		"activities": [
+			{
+				"name": "EXEC_ADP_Post_WebAPICall_Job_9",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "EXEC_ADP_JSON_CODES",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "ADP_POST_WebAPICall",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"p_Priority": {
+							"value": "@variables('v_JOB')",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "EXEC_ADP_JSON_CODES",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_ADP_JSON_CODES",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "EXEC_ADP_Post_WebAPICall_Service_10",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "EXEC_ADP_Post_WebAPICall_Job_9",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "ADP_POST_WebAPICall",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"p_Priority": {
+							"value": "@variables('v_SERVICE')",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "EXEC_ADP_Post_WebAPICall_Job_Service_9",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "EXEC_ADP_Post_WebAPICall_Service_10",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "ADP_POST_WebAPICall",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"p_Priority": {
+							"value": "@variables('v_JOB_SERVICE_1')",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "EXEC_ADP_Post_WebAPICall_Job_Service_9_copy1",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "EXEC_ADP_Post_WebAPICall_Job_Service_9",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "ADP_POST_WebAPICall",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"p_Priority": {
+							"value": "@variables('v_JOB_SERVICE_2')",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"variables": {
+			"v_JOB": {
+				"type": "Integer",
+				"defaultValue": 1
+			},
+			"v_SERVICE": {
+				"type": "Integer",
+				"defaultValue": 2
+			},
+			"v_JOB_SERVICE_1": {
+				"type": "Integer",
+				"defaultValue": 3
+			},
+			"v_JOB_SERVICE_2": {
+				"type": "Integer",
+				"defaultValue": 4
+			}
+		},
+		"folder": {
+			"name": "ADP_Employee/LP_to_ADP/ADP_API_Automation"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-02-12T17:15:26Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

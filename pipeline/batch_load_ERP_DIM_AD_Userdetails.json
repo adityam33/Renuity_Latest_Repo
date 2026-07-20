@@ -1,0 +1,184 @@
+{
+	"name": "batch_load_ERP_DIM_AD_Userdetails",
+	"properties": {
+		"activities": [
+			{
+				"name": "GET AD user data from ODS to EDW",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"additionalColumns": [
+							{
+								"name": "createdBy",
+								"value": "admin"
+							},
+							{
+								"name": "createdTS",
+								"value": {
+									"value": "@utcNow()",
+									"type": "Expression"
+								}
+							},
+							{
+								"name": "updatedTS",
+								"value": {
+									"value": "@utcNow()",
+									"type": "Expression"
+								}
+							}
+						],
+						"sqlReaderQuery": "SELECT \n    CASE \n        WHEN division = 'Closet America' THEN 'CTA'\n        WHEN division = 'Home Smart' THEN 'HSI'\n        WHEN division = 'Mad City' THEN 'MAC'\n        WHEN division = 'MaxHome' OR division LIKE '%Gulf%' THEN 'FHI'\n        WHEN division = 'Pacific Bath' OR division='West Division' THEN 'PBC'\n        WHEN division = 'Rite Window'  OR division LIKE '%Northeast%' THEN 'RTW'\n        WHEN division = 'Statewide Remodeling' THEN 'SWR'\n        WHEN division = 'FHIA' OR division='East Division' OR division LIKE '%Florida%' THEN 'FHI'\n        ELSE division\n    END AS division,\n    FullName,\n    accountStatus,\n    jobTitle,\n    mail,\n    mobilePhone,\n    adp_associate_id\nFROM ODS.AD_USERDETAILS",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "truncate table EDW.DIM_AD_USERDETAILS",
+						"allowCopyCommand": true,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "AzureBlobStorage1",
+							"type": "LinkedServiceReference"
+						}
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "FullName",
+									"type": "String"
+								},
+								"sink": {
+									"name": "FullName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "accountStatus",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "accountStatus",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "jobTitle",
+									"type": "String"
+								},
+								"sink": {
+									"name": "jobTitle",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "mail",
+									"type": "String"
+								},
+								"sink": {
+									"name": "mail",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "mobilePhone",
+									"type": "String"
+								},
+								"sink": {
+									"name": "mobilePhone",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "adp_associate_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "adp_associate_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "division",
+									"type": "String"
+								},
+								"sink": {
+									"name": "division",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "createdBy",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CreatedBy",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "createdTS",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CreatedDateTime",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "updatedTS",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LastModifiedDateTime",
+									"type": "DateTime"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "Azure_AD_Data_ods_To_EDW",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_DIM_AD_USERDETAILS",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/DIMENSIONS/AZURE_AD_USERDETAILS"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-01-13T08:00:49Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

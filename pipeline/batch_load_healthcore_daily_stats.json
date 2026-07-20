@@ -1,0 +1,250 @@
+{
+	"name": "batch_load_healthcore_daily_stats",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy to ODS_LP_Variance",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"sqlReaderQuery": "SELECT TableName,\r\n       Division,\r\n       TransactionDate,\r\n       KPI_Count\r\nINTO #TempData\r\nFROM (\r\n    SELECT 'Customer' AS TableName,\r\n           Division,\r\n           CAST(LP_DateAdded AS DATE) AS TransactionDate,\r\n           COUNT(CustomerID) AS KPI_Count\r\n    FROM EDW.DIM_CUSTOMER\r\n    WHERE LP_DateAdded >= CAST(GETDATE()-30 AS DATE) AND LP_DateAdded < CAST(GETDATE() AS DATE)\r\n    GROUP BY division, CAST(LP_DateAdded AS DATE)\r\n    UNION ALL\r\n    SELECT 'Lead' AS TableName,\r\n           Division,\r\n           CAST(EntryDate AS DATE) AS TransactionDate,\r\n           COUNT(LeadID) AS KPI_Count\r\n    FROM EDW.FACT_Lead\r\n    WHERE EntryDate >= CAST(GETDATE()-30 AS DATE) AND EntryDate < CAST(GETDATE() AS DATE)\r\n    GROUP BY division, CAST(EntryDate AS DATE)\r\n    UNION ALL\r\n    SELECT 'Job' AS TableName,\r\n           Division,\r\n           CAST(ContractDate AS DATE) AS TransactionDate,\r\n           COUNT(JobID) AS KPI_Count\r\n    FROM EDW.FACT_JOB\r\n    WHERE ContractDate >= CAST(GETDATE()-30 AS DATE) AND ContractDate < CAST(GETDATE() AS DATE)\r\n    GROUP BY division, CAST(ContractDate AS DATE)\r\n) AS subquery;\r\n\r\n-- Temp Table for possible Date, LP & Division Combinations\r\n\r\nSELECT PComb.Division, \r\n\t   PComb.TableName,\r\n\t   PComb.TransactionDate,\r\n       TempD.KPI_Count\r\n\r\nINTO #PossibleCombination\r\nFROM\r\n\t(\r\n\tSELECT poss_div.division AS Division,\r\n\t       poss_div.LP AS TableName,\r\n\t\t   poss_dt.TransactionDate\r\n\t\tFROM (\r\n\t\t\tSELECT DATEADD(DAY,-rn ,CAST(GETDATE()-1 AS DATE)) AS TransactionDate\r\n\t\t\t\tFROM ( SELECT ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) - 1 AS rn\r\n\t\t\tFROM sys.objects ) AS Numbers\r\n\t\tWHERE rn< 30\r\n\t) AS poss_dt\r\n\tCROSS JOIN \r\n\t(\r\n\t\tSELECT DISTINCT division, 'Customer' AS LP FROM EDW.DIM_CUSTOMER\r\n\t\tUNION\r\n\t\tSELECT DISTINCT division, 'Lead' AS LP FROM EDW.FACT_LEAD\r\n\t\tUNION\r\n\t\tSELECT DISTINCT division, 'Job' AS LP FROM EDW.FACT_JOB\r\n\r\n\t) AS poss_div\r\n\r\n) AS PComb \r\n\r\nLEFT JOIN #TempData AS TempD\r\nON PComb.TableName=TempD.TableName \r\nAND PComb.Division=TempD.Division \r\nAND PComb.TransactionDate=TempD.TransactionDate\r\n\r\n-- final selection\r\nSELECT  CAST(GETDATE() As Date) AS SnapshotDate,\r\n\t\tCAST(TransactionDate As Date) AS TransactionDate,\r\n\t\t'T-' + CONVERT(NVARCHAR, (ROW_NUMBER() OVER (PARTITION BY TableName, Division ORDER BY TransactionDate desc))-1) AS T_Lag,\r\n\t\tTableName,\r\n        Division,\r\n\t\tCOALESCE(KPI_Count,0) AS KPI_Count,\r\n        NULL AS Variance,\r\n        NULL AS Variance_decimal,\r\n        Getdate() AS LastUpdateTS\r\n        \r\nFROM #PossibleCombination\r\n\r\n-- Drop the temporary table\r\nDROP TABLE #TempData;\r\nDROP TABLE #PossibleCombination;\r\n\r\n",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.LP_VARIANCE') IS NOT NULL TRUNCATE TABLE ODS.LP_VARIANCE",
+						"writeBehavior": "Insert"
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_LP_KEY_OBJECTS",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_LP_VARIANCE",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Copy to Daily Division Load",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"sqlReaderQuery": "WITH Customer_Check as (\r\n\tSELECT  \r\n\t\t'Customer' as LP_Name,division,count(CustomerID) as Division_Count\r\n\tFROM EDW.DIM_CUSTOMER\r\n\tWHERE LP_DateAdded >=CAST(GETDATE()-1 as DATE) and LP_DateAdded < CAST(GETDATE() as DATE)\r\n\tGROUP BY Division\r\n), \r\nLead_Check as (\r\n\tSELECT  \r\n\t\t'Lead' as LP_Name,division,count(LeadID) as Division_Count\r\n\tFROM EDW.FACT_LEAD\r\n\tWHERE EntryDate >=CAST(GETDATE()-1 as DATE) and EntryDate <CAST(GETDATE() as DATE)\r\n\tGROUP BY Division\r\n), \r\nJob_Check as (\r\n\tSELECT  \r\n\t\t'Job' as LP_Name,division,count(JobID) as Division_Count\r\n\tFROM EDW.FACT_JOB\r\n\tWHERE ContractDate >=CAST(GETDATE()-1 as DATE) and ContractDate <CAST(GETDATE() as DATE)\r\n\tGROUP BY Division\r\n), \r\nAll_Divisions as (\r\n\tSELECT DISTINCT Division, 'Customer' as LP FROM EDW.DIM_CUSTOMER\r\n\tUNION\r\n\tSELECT DISTINCT Division, 'Lead' as LP FROM EDW.FACT_LEAD\r\n\tUNION\r\n\tSELECT DISTINCT Division, 'Job' as LP FROM EDW.FACT_JOB\r\n), \r\nLP_Union as (\r\n\tSELECT * FROM Customer_Check\r\n\tUNION\r\n\tSELECT * FROM Lead_Check\r\n\tUNION\r\n\tSELECT * FROM Job_Check\r\n)\r\nSELECT \r\n\tCONCAT(Div.LP,'-',Div.Division) as LP_TableDivisionID,\r\n\tDiv.LP as LP_TableName,\r\n\tDiv.Division,\r\n\tCASE WHEN LP.Division is not null THEN 1 ELSE 0 END as Is_LastRunSuccess,\r\n\tCOALESCE(LP.Division_Count,0) as LastDateCount,\r\n\tGetdate() as LastUpdateTS\r\nFROM All_Divisions Div\r\nLeft JOIN LP_Union LP\r\nON Div.Division=LP.Division and Div.LP=LP.LP_Name\r\n\r\n\r\n",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.Daily_Division_Load')  IS NOT NULL TRUNCATE TABLE ODS.Daily_Division_Load",
+						"writeBehavior": "Insert"
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": true
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_LP_KEY_OBJECTS",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_Daily_Division_Load",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Copy to LP Duplicates Check",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Copy to Daily Division Load",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"sqlReaderQuery": "SELECT \r\n\tdaily.LP_TableName, \r\n\tSUM(CASE WHEN daily.Is_LastRunSuccess = 1 THEN 1 ELSE 0 END) as LastDateDivisions,\r\n\tSUM(daily.LastDateCount) as LastDateDataCount,\r\n\t(9 - SUM(CASE WHEN daily.Is_LastRunSuccess = 1 THEN 1 ELSE 0 END)) as LastDateUnCheckDivisions,\r\n\tCOALESCE(MAX(dp.DuplicatesExists),0) as LastDateDuplicatesCount,\r\n\tGetdate() as LastUpdateTS\r\nFROM ODS.Daily_Division_Load as daily\r\n\tLEFT JOIN (\r\n\t\tselect SUM(Duplicates) as DuplicatesExists, LP\r\n\t\tFROM (\r\n\t\t\tSELECT COUNT(CustomerID) as Duplicates, 'Customer' as LP FROM EDW.DIM_CUSTOMER\r\n\t\t\tGROUP BY CustomerID HAVING COUNT(*)>1\r\n\t\t\tUNION ALL\r\n\t\t\tSELECT COUNT(LeadID) as Duplicates, 'Lead' as LP FROM EDW.FACT_LEAD\r\n\t\t\tGROUP BY LeadID HAVING COUNT(*)>1\r\n\t\t\tUNION ALL\r\n\t\t\tSELECT COUNT(JobID) as Duplicates, 'Job' as LP FROM EDW.FACT_JOB\r\n\t\t\tGROUP BY JobID,ContractID HAVING COUNT(*)>1\r\n\t\t\t\t) as subq\r\n\t\tGROUP BY LP\r\n\t\t) dp\r\nON daily.LP_TableName=dp.LP\r\nGROUP BY daily.LP_TableName",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.LP_Duplicates_Check')  IS NOT NULL TRUNCATE TABLE ODS.LP_Duplicates_Check",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ODS_Daily_Division_Load",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_LP_DUPLICATES_CHECK",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Update Variance",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Copy to ODS_LP_Variance",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "UPDATE ODS.LP_VARIANCE\r\nSET Variance=kvar.KPI_Count-kvar.KPI_Lag,\r\n    Variance_decimal = CASE WHEN kvar.KPI_Lag <>0 Then\r\n\t   Round(CONVERT(DECIMAL(18, 4), ((kvar.KPI_Count - kvar.KPI_Lag)))/CONVERT(DECIMAL(18, 4), (kvar.KPI_Lag)),4)\r\n\t\tElse 0\r\n\t\tEnd\r\nFROM (\r\nSELECT TableName,Division,SnapshotDate,TransactionDate,T_Lag,KPI_Count,\r\nLAG(KPI_COUNT) OVER (PARTITION BY TransactionDate,TableName,Division ORDER BY SnapshotDate) as KPI_Lag\r\nFROM ODS.LP_VARIANCE\r\n) as kvar\r\n\r\nWHERE ODS.LP_VARIANCE.TableName=kvar.TableName\r\nAND ODS.LP_VARIANCE.Division=kvar.Division\r\nAND ODS.LP_VARIANCE.SnapshotDate=kvar.SnapshotDate\r\nAND ODS.LP_VARIANCE.TransactionDate=kvar.TransactionDate\r\nAND ODS.LP_VARIANCE.T_Lag=kvar.T_Lag;\r\n\r\n\r\nUPDATE ODS.LP_VARIANCE\r\nSET Variance = 0\r\nWHERE Variance is NULL;"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Copy to EDW_FACT_LP_VARIANCE_SNAPSHOT",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Update Variance",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "delete from edw.FACT_LP_VARIANCE_SNAPSHOT where snapshotDate=CAST(GETDATE() as date)",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ODS_LP_VARIANCE",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_FACT_LP_VARIANCE_SNAPSHOT",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"variables": {
+			"medallia_guild_quality_archive_exists": {
+				"type": "Array"
+			}
+		},
+		"folder": {
+			"name": "ODS_to_EDW/FACTS/LP"
+		},
+		"annotations": [],
+		"lastPublishTime": "2024-05-09T15:34:49Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

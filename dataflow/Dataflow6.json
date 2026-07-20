@@ -1,0 +1,88 @@
+{
+	"name": "Dataflow6",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DelimitedText9",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "test_powerautomate",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [],
+			"scriptLines": [
+				"source(output(",
+				"          {Business Group} as string,",
+				"          {Dealer Name} as string,",
+				"          {Lead Created Date} as string,",
+				"          {Lead Status} as string,",
+				"          {Unqualified Reason} as string,",
+				"          Stage as string,",
+				"          {Appointment Status} as string,",
+				"          {Job Status} as string,",
+				"          {Loss Reason} as string,",
+				"          {Appointment Date} as date,",
+				"          {Gross Sale} as double,",
+				"          {Net Sale} as double,",
+				"          Source as string,",
+				"          {Campaign Name} as string,",
+				"          {Charge Back Price} as short,",
+				"          {Cost Per Sale} as double,",
+				"          {LP External ID} as integer,",
+				"          Phone as long,",
+				"          {Zip/Postal Code} as short,",
+				"          {State/Province} as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> source1",
+				"source1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     staged: true,",
+				"     allowCopyCommand: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          Business_Group = {Business Group},",
+				"          Dealer_Name = {Dealer Name},",
+				"          Lead_Created_Date = {Lead Created Date},",
+				"          Lead_Status = {Lead Status},",
+				"          Unqualified_Reason = {Unqualified Reason},",
+				"          Stage,",
+				"          Appointment_Status = {Appointment Status},",
+				"          Job_Status = {Job Status},",
+				"          Loss_Reason = {Loss Reason},",
+				"          Appointment_Date = {Appointment Date},",
+				"          Gross_Sale = {Gross Sale},",
+				"          Net_Sale = {Net Sale},",
+				"          Source,",
+				"          Campaign_Name = {Campaign Name},",
+				"          Charge_Back_Price = {Charge Back Price},",
+				"          Cost_Per_Sale = {Cost Per Sale},",
+				"          LP_External_ID = {LP External ID},",
+				"          Phone,",
+				"          Zip_Postal_Code = {Zip/Postal Code},",
+				"          StateProvince = {State/Province}",
+				"     )) ~> sink1"
+			]
+		}
+	}
+}

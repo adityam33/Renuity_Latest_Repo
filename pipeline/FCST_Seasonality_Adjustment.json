@@ -1,0 +1,39 @@
+{
+	"name": "FCST_Seasonality_Adjustment",
+	"properties": {
+		"activities": [
+			{
+				"name": "EDW_FCST_Adjustment_Seasonality_copy1",
+				"type": "Script",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "TRUNCATE TABLE [EDW_FCST].[DIM_ADJUSTMENT_SEASONALITY];\n\n\nSELECT \nA.CalendarDate,\nB.Division,\nB.BranchID,\nB.ProductID\nINTO #T_DIV_PROD_BRANCH\nFROM\n\t(SELECT DISTINCT CalendarDate  FROM [EDW_FCST].[FACT_SALES_ACTUAL] ) A\n\tJOIN \n\t(SELECT DISTINCT DIVISION,BranchID,ProductID FROM [EDW_FCST].[FACT_SALES_ACTUAL] \n\tWHERE BranchID IS NOT NULL) B\n\tON 1=1;\n\n\n\nINSERT INTO [EDW_FCST].[DIM_ADJUSTMENT_SEASONALITY]\n\n\nSELECT \nDivision,\nBranchID,\nProductID,\nCalendarDate_EOM AS CalendarDate,\n--PCT_NET_ISSUED,\n--NET_ISSUED_PCT_12,\n--PCT_NET_ISSUED_24,\n--PCT_NET_ISSUED_36,\nCAST(\n\n(\n        ISNULL(PCT_NET_ISSUED, 0) +\n        ISNULL(NET_ISSUED_PCT_12, 0) +\n        ISNULL(PCT_NET_ISSUED_24, 0) +\n        ISNULL(PCT_NET_ISSUED_36, 0)\n    ) / \n    NULLIF(\n        (CASE WHEN PCT_NET_ISSUED IS NOT NULL AND PCT_NET_ISSUED!=0 THEN 1 ELSE 0 END) +\n        (CASE WHEN NET_ISSUED_PCT_12 IS NOT NULL AND NET_ISSUED_PCT_12!=0 THEN 1 ELSE 0 END) +\n        (CASE WHEN PCT_NET_ISSUED_24 IS NOT NULL AND PCT_NET_ISSUED_24!=0 THEN 1 ELSE 0 END) +\n        (CASE WHEN PCT_NET_ISSUED_36 IS NOT NULL AND PCT_NET_ISSUED_36!=0 THEN 1 ELSE 0 END),\n        0\n    )  \n\tAS DECIMAL(8,4) )\tAS SEASONALITY_ADJ, -- Pct Increate AVG of Last 4 Years\n\nGETDATE() AS LastUpdatedTS\nFROM\n(\t\n\t\n\tSELECT \n\tDIVISION,\n\tBranchID,\n\tProductID,\n\tCalendarDate_EOM,\n\tPCT_NET_ISSUED ,\n\tLAG(PCT_NET_ISSUED,12) OVER (PARTITION BY DIVISION,BranchID,ProductID ORDER BY CalendarDate_EOM) AS NET_ISSUED_PCT_12,\n\tLAG(PCT_NET_ISSUED,24) OVER (PARTITION BY DIVISION,BranchID,ProductID ORDER BY CalendarDate_EOM) AS PCT_NET_ISSUED_24,\n\tLAG(PCT_NET_ISSUED,36) OVER (PARTITION BY DIVISION,BranchID,ProductID ORDER BY CalendarDate_EOM) AS PCT_NET_ISSUED_36\n\tFROM\n\t(\n\t\tSELECT \n\t\tDIVISION,\n\t\tBranchID,\n\t\tProductID,\n\t\tCalendarDate_EOM,\n\t\t--NET_ISSUED,\n\t\t--NET_ISSUED_LM,\n\t\tCASE WHEN  NET_ISSUED_LM=0 THEN 0 ELSE NET_ISSUED*1.00/NET_ISSUED_LM*1.00 END AS PCT_NET_ISSUED\n\t\tFROM \n\t\t(\n\t\t\tSELECT \n\t\t\tDIVISION,\n\t\t\tBranchID,\n\t\t\tProductID,\n\t\t\tCalendarDate_EOM,\n\t\t\tNET_ISSUED,\n\t\t\tLAG(NET_ISSUED,1) OVER (PARTITION BY DIVISION,BranchID,ProductID ORDER BY CalendarDate_EOM) AS NET_ISSUED_LM\n\t\t\tFROM\n\t\t\t(\n\t\t\t\tSELECT \n\t\t\t\tA.DIVISION,\n\t\t\t\tA.BranchID,\n\t\t\t\tA.ProductID,\n\t\t\t\tEOMONTH(A.CalendarDate) AS CalendarDate_EOM,\n\t\t\t\tAVG(COALESCE(B.NET_ISSUED,0)) AS NET_ISSUED\n\t\t\t\tFROM #T_DIV_PROD_BRANCH A \n\t\t\t\tLEFT JOIN [EDW_FCST].[FACT_SALES_ACTUAL] B \n\t\t\t\tON A.Division = B.DIVISION\n\t\t\t\tAND A.CalendarDate = B.CalendarDate\n\t\t\t\tAND A.BranchID = B.BranchID\n\t\t\t\tAND A.ProductID = B.ProductID\n\t\t\t\tWHERE A.CalendarDate>='2019-01-01'\n\t\t\t\tGROUP BY EOMONTH(A.CalendarDate),\n\t\t\t\tA.DIVISION,\n\t\t\t\tA.BranchID,\n\t\t\t\tA.ProductID\n\t\t\t\t) M1\n\t\t\t) M2\n\t\t) M3\n\t\t\n\t) M4;\n\n\n/*\nUPDATE [EDW_FCST].[DIM_ADJUSTMENT_SEASONALITY] SET SEASONALITY_ADJ = 1.00 WHERE CalendarDate='2025-01-31'  ;\nUPDATE [EDW_FCST].[DIM_ADJUSTMENT_SEASONALITY] SET SEASONALITY_ADJ = 1.00 WHERE CalendarDate='2025-02-28'  ;\nUPDATE [EDW_FCST].[DIM_ADJUSTMENT_SEASONALITY] SET SEASONALITY_ADJ = 1.00 WHERE CalendarDate='2025-03-31'  ;\nUPDATE [EDW_FCST].[DIM_ADJUSTMENT_SEASONALITY] SET SEASONALITY_ADJ = 1.00 WHERE CalendarDate='2025-04-30'  ;\nUPDATE [EDW_FCST].[DIM_ADJUSTMENT_SEASONALITY] SET SEASONALITY_ADJ = 1.00 WHERE CalendarDate='2025-05-31'  ;\nUPDATE [EDW_FCST].[DIM_ADJUSTMENT_SEASONALITY] SET SEASONALITY_ADJ = 1.00 WHERE CalendarDate='2025-06-30'  ;\nUPDATE [EDW_FCST].[DIM_ADJUSTMENT_SEASONALITY] SET SEASONALITY_ADJ = 1.00 WHERE CalendarDate='2025-07-31'  ;\n*/\n\n--Override SEASONALITY_ADJ\n\nUPDATE [EDW_FCST].[DIM_ADJUSTMENT_SEASONALITY] SET SEASONALITY_ADJ = 1.00 ;"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/SALES_FORECAST"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-10-04T09:28:04Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

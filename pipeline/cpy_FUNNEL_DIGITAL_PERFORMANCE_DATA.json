@@ -1,0 +1,1393 @@
+{
+	"name": "cpy_FUNNEL_DIGITAL_PERFORMANCE_DATA",
+	"properties": {
+		"activities": [
+			{
+				"name": "Campaign with Geo location",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"additionalColumns": [
+							{
+								"name": "Datasourcetype",
+								"value": "adwords"
+							},
+							{
+								"name": "Filename",
+								"value": "$$FILENAME"
+							}
+						],
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"modifiedDatetimeStart": {
+								"value": "@addDays(utcNow(),-7)",
+								"type": "Expression"
+							},
+							"modifiedDatetimeEnd": {
+								"value": "@utcNow()",
+								"type": "Expression"
+							},
+							"wildcardFolderPath": "funnel/data/ad_performance_metrics",
+							"wildcardFileName": "ad_performance_metrics_*.tsv",
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.FUNNEL_AD_PERFORMANCE_METRICS')  IS NOT NULL TRUNCATE TABLE ODS.FUNNEL_AD_PERFORMANCE_METRICS",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"tableOption": "autoCreate",
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Date",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Date",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Data_Source_type",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Data_Source_type",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Currency",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Currency",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Cost",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Cost",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Clicks",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Clicks",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Impressions",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Impressions",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Account",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Account",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Ad",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Ad",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Ad_Group",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Ad_Group",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Campaign",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Campaign",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Media_type",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Media_type",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Paid__Organic",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Paid__Organic",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Traffic_source",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Traffic_source",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Data_Source_name",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Data_Source_name",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Data_Source",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Data_Source",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Data_Source_type_name",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Data_Source_type_name",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Day_of_week",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Day_of_week",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Month",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Month",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Week",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Week",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Year",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Year",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Week_number",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Week_number",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Conversions",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Conversions",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Campaign_ID",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "CampaignID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Ad_Group_ID",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "AdGroupID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AD_ID",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "AdID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Market",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Market",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Filename",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Filename",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_FUNNEL_AD_PERFORMANCE_METRICS",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_CTA_TEST_DYN_DIM_CUSTOMER",
+						"type": "DatasetReference",
+						"parameters": {
+							"SchemaName": "ODS",
+							"TableName": "FUNNEL_AD_PERFORMANCE_METRICS"
+						}
+					}
+				]
+			},
+			{
+				"name": "Ad details",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.01:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": false,
+							"modifiedDatetimeStart": {
+								"value": "@adddays(utcNow(),-7)",
+								"type": "Expression"
+							},
+							"modifiedDatetimeEnd": {
+								"value": "@utcNow()",
+								"type": "Expression"
+							},
+							"wildcardFolderPath": "funnel/data/ad_performance_metrics_detail",
+							"wildcardFileName": "*.tsv",
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE ODS.FUNNEL_AD_PERFORMANCE_METRICS_DETAILS",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Date",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Date",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "Data_Source_type",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Data_Source_type",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Data_Source",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Data_Source",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Data_Source_name",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Data_Source_name",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Traffic_source",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Traffic_source",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Account",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Account",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Campaign",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Campaign",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Ad_Group",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Ad_Group",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Ad",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Ad",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Campaign_ID",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Campaign_ID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Ad_Group_ID",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Ad_Group_ID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AD_ID",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "AD_ID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Paid__Organic",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Paid__Organic",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Media_type",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Media_type",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Currency",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Currency",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Cost",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Cost",
+									"type": "Double",
+									"physicalType": "float"
+								}
+							},
+							{
+								"source": {
+									"name": "Clicks",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Clicks",
+									"type": "Int64",
+									"physicalType": "bigint"
+								}
+							},
+							{
+								"source": {
+									"name": "Impressions",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Impressions",
+									"type": "Int64",
+									"physicalType": "bigint"
+								}
+							},
+							{
+								"source": {
+									"name": "Conversions",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Conversions",
+									"type": "Double",
+									"physicalType": "float"
+								}
+							},
+							{
+								"source": {
+									"name": "Link_Clicks",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "LinkClicks",
+									"type": "Int64",
+									"physicalType": "bigint"
+								}
+							},
+							{
+								"source": {
+									"name": "Day_of_week",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Day_of_week",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Month",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Month",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Week",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Week",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Year",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Year",
+									"type": "Int64",
+									"physicalType": "bigint"
+								}
+							},
+							{
+								"source": {
+									"name": "Week_number",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Week_number",
+									"type": "Int64",
+									"physicalType": "bigint"
+								}
+							},
+							{
+								"source": {
+									"name": "RZID",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "RZID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SRSID",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "SRSID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Ad_Link",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "ADLink",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_FACEBOOK_ADSETS_FUNNEL",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_FUNNEL_FACEBOOK_AD_PERFORMANCE_METRICS",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "FB campaigns with Placement",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"additionalColumns": [
+							{
+								"name": "Filename",
+								"value": "$$FILENAME"
+							}
+						],
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"modifiedDatetimeStart": {
+								"value": "@adddays(utcNow(),-60)",
+								"type": "Expression"
+							},
+							"modifiedDatetimeEnd": {
+								"value": "@utcNow()",
+								"type": "Expression"
+							},
+							"wildcardFolderPath": "funnel/data/ad_performance_metrics_fb_attribute",
+							"wildcardFileName": "ad_performance_metrics_fb_attribute_*.tsv",
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "Truncate Table ODS.FUNNEL_FACEBOOK_AD_PERFORMANCE_METRICS",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Date",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Date",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Data_Source_type",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Data_Source_type",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Traffic_source",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Traffic_source",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Currency",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Currency",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Data_Source_name",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Data_Source_name",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Account",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Account",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Campaign",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Campaign",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Ad_Group",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Ad_Group",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Ad",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Ad",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Platform__Facebook_Ads",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Platform__Facebook_Ads",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Placement__Facebook_Ads",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Placement__Facebook_Ads",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Paid__Organic",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Paid__Organic",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Media_type",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Media_type",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Campaign_ID",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Campaign_ID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Ad_Group_ID",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Ad_Group_ID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AD_ID",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "AD_ID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Cost",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Cost",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Clicks",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Clicks",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Link_Clicks",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "LinkClicks",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Conversions",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Conversions",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Impressions",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Impressions",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Year",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Year",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Month",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Month",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Week",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Week",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Week_number",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Week_number",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Day_of_week",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Day_of_week",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Filename",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Filename",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_FUNNEL_FB_AD_PERFORMANCE_METRICS",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_CTA_TEST_DYN_DIM_CUSTOMER",
+						"type": "DatasetReference",
+						"parameters": {
+							"SchemaName": "ODS",
+							"TableName": "FUNNEL_FACEBOOK_AD_PERFORMANCE_METRICS"
+						}
+					}
+				]
+			},
+			{
+				"name": "Ad Details ODS",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"additionalColumns": [
+							{
+								"name": "Filename",
+								"value": "$$FILENAME"
+							}
+						],
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"modifiedDatetimeStart": {
+								"value": "@adddays(utcNow(),-7)",
+								"type": "Expression"
+							},
+							"modifiedDatetimeEnd": {
+								"value": "@utcNow()",
+								"type": "Expression"
+							},
+							"wildcardFolderPath": "funnel/data/ad_performance_metrics_detail",
+							"wildcardFileName": "ad_performance_metrics_detail_*.tsv",
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "Truncate table ODS.FUNNEL_AD_PERFORMANCE_METRICS_DETAIL",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_FUNNEL_FB_AD_PERFORMANCE_METRICS",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_CTA_TEST_DYN_DIM_CUSTOMER",
+						"type": "DatasetReference",
+						"parameters": {
+							"SchemaName": "ODS",
+							"TableName": "FUNNEL_AD_PERFORMANCE_METRICS_DETAIL"
+						}
+					}
+				]
+			},
+			{
+				"name": "update PCB accountname Temp",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Campaign with Geo location",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "Update  ODS.FUNNEL_AD_Performance_metrics   Set Data_source_Name='IHM | Renuity | Bath' where Traffic_Source='Facebook' and Data_source_Name='IHM | PCB | Pacific Bath';\r\n\r\n\r\nUpdate  ODS.FUNNEL_AD_Performance_Metrics  Set  data_source_name = Case When account='446062704832816' then 'Closet America - Guru'\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tWhen account='1383520679433146' then 'FHIA Remodeling - Guru' \r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tWhen account='1162359722291918' then 'MAD CITY - Guru' \r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tWhen account='1117945462471184' then 'Pacific Bath - Guru' \r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tWhen account='727724543532061' then 'Statewide Remodeling - Guru' \r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tend\r\nwhere Traffic_Source='Facebook' and Account in (\r\n'1117945462471184',\r\n'1162359722291918',\r\n'1383520679433146',\r\n'446062704832816',\r\n'727724543532061'\r\n);\r\n\r\n\r\nUpdate ODS.Funnel_ad_performance_metrics \r\nSet Account= case when Account ='ClosetAmerica/4021/Classic/Closets/ClosetAmerica/MD&VA' then 'ClosetAmerica/4021/Platinum/Closets/ClosetAmerica/MD&VA'\r\n\t\t\t\t  when Account='ClosetAmerica/5063/Classic/Closets/ClosetAmerica/SC,NC&GA' then 'ClosetAmerica/5063/Platinum/Closets/ClosetAmerica/SC,NC&GA'  end \r\nwhere Traffic_source='Google' and Account like '%Classic%';"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "PCB accountname update",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Ad Details ODS",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "Update [ODS].[FUNNEL_AD_PERFORMANCE_METRICS_DETAIL] Set Data_source_Name='IHM | Renuity | Bath | Ad' where Traffic_Source='Facebook' and Data_source_Name='IHM | PCB | Pacific Bath | Ad';\n\n\n\nUpdate  ODS.FUNNEL_Facebook_AD_Performance_Metrics   Set Data_source_Name='IHM | Renuity East | Windows & Kitchen' where Traffic_Source='Facebook' and Data_source_Name='FHIA Windows - Swish';\nUpdate [ODS].[FUNNEL_AD_PERFORMANCE_METRICS_DETAIL] Set Data_source_Name='IHM | Renuity East | Windows & Kitchen | Ad' where Traffic_Source='Facebook' and Data_source_Name='FHIA Windows - Swish | Ad';"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "PCB account name update",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "FB campaigns with Placement",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "Update  ODS.FUNNEL_Facebook_AD_Performance_Metrics   Set Data_source_Name='IHM | Renuity | Bath' where Traffic_Source='Facebook' and Data_source_Name='IHM | PCB | Pacific Bath'"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			}
+		],
+		"folder": {
+			"name": "SRC_to_ODS/FUNNEL"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-01-27T07:38:24Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

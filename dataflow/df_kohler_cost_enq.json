@@ -1,0 +1,163 @@
+{
+	"name": "df_kohler_cost_enq",
+	"properties": {
+		"folder": {
+			"name": "Test-Dataflows"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "kohler_cost_enq",
+						"type": "DatasetReference"
+					},
+					"name": "sourceBlob"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ODS_KOHLER_LEAD_COST_INQUIRIES",
+						"type": "DatasetReference"
+					},
+					"name": "KohlerLeadCostEnq",
+					"rejectedDataLinkedService": {
+						"referenceName": "AzureBlobStorage1",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "derivedColumnDivision",
+					"description": "Creating div column the columns "
+				},
+				{
+					"name": "selectReqFields"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          {Business Group} as string,",
+				"          {Dealer Name} as string,",
+				"          {Lead Created Date} as string,",
+				"          {Lead Status} as string,",
+				"          {Unqualified Reason} as string,",
+				"          Stage as string,",
+				"          {Appointment Status} as string,",
+				"          {Job Status} as string,",
+				"          {Loss Reason} as string,",
+				"          {Appointment Date} as string,",
+				"          {Opportunity Amount} as string,",
+				"          {Gross Sale} as string,",
+				"          {Net Sale} as string,",
+				"          Source as string,",
+				"          {Campaign Name} as string,",
+				"          {Charge Back Price} as string,",
+				"          {Cost Per Sale} as string,",
+				"          {LP External ID} as string,",
+				"          Phone as string,",
+				"          {Lead Source} as string",
+				"     ),",
+				"     allowSchemaDrift: false,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     wildcardPaths:['testCostKohler/*']) ~> sourceBlob",
+				"selectReqFields derive(division = case( {Dealer Name} == 'Statewide Remodeling', \"SWR\"  ,\r",
+				"      {Dealer Name} == 'Rite Windows', \"RTW\"  ,\r",
+				"      {Dealer Name} == 'Home Smart Industries', \"HSI\" ,\r",
+				"      {Dealer Name} == 'Pacific Bath', \"PBC\",\r",
+				"      {Dealer Name} == 'Pacific Bath - Chicago', \"PBC\",\r",
+				"      {Dealer Name} == 'Pacific Bath - South', \"PBC\"),",
+				"          lastUpdated = currentTimestamp(),",
+				"          {LP External ID} = iif(length({LP External ID})==7, {LP External ID},'' )) ~> derivedColumnDivision",
+				"sourceBlob select(mapColumn(",
+				"          {Business Group},",
+				"          {Dealer Name},",
+				"          {Lead Created Date},",
+				"          {Lead Status},",
+				"          {Unqualified Reason},",
+				"          Stage,",
+				"          {Appointment Status},",
+				"          {Job Status},",
+				"          {Loss Reason},",
+				"          {Appointment Date},",
+				"          {Opportunity Amount},",
+				"          {Gross Sale},",
+				"          {Net Sale},",
+				"          Source,",
+				"          {Campaign Name},",
+				"          {Charge Back Price},",
+				"          {Cost Per Sale},",
+				"          {LP External ID},",
+				"          Phone,",
+				"          {Lead Source}",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectReqFields",
+				"derivedColumnDivision sink(allowSchemaDrift: false,",
+				"     validateSchema: false,",
+				"     input(",
+				"          BusinessGroup as string,",
+				"          DealerName as string,",
+				"          LeadCreatedDate as string,",
+				"          LeadStatus as string,",
+				"          UnqualifiedReason as string,",
+				"          Stage as string,",
+				"          AppointmentStatus as string,",
+				"          JobStatus as string,",
+				"          LossReason as string,",
+				"          AppointmentDate as date,",
+				"          OpportunityAmount as decimal(18,2),",
+				"          GrossSale as decimal(18,2),",
+				"          NetSale as decimal(18,2),",
+				"          Source as string,",
+				"          CampaignName as string,",
+				"          ChargeBackPrice as decimal(18,2),",
+				"          CostPerSale as decimal(18,2),",
+				"          LPExternalID as string,",
+				"          Phone as string,",
+				"          LeadSource as string,",
+				"          Division as string,",
+				"          LastUpdated as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     truncate:true,",
+				"     format: 'table',",
+				"     staged: true,",
+				"     allowCopyCommand: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          BusinessGroup = {Business Group},",
+				"          DealerName = {Dealer Name},",
+				"          LeadCreatedDate = {Lead Created Date},",
+				"          LeadStatus = {Lead Status},",
+				"          UnqualifiedReason = {Unqualified Reason},",
+				"          Stage,",
+				"          AppointmentStatus = {Appointment Status},",
+				"          JobStatus = {Job Status},",
+				"          LossReason = {Loss Reason},",
+				"          AppointmentDate = {Appointment Date},",
+				"          OpportunityAmount = {Opportunity Amount},",
+				"          GrossSale = {Gross Sale},",
+				"          NetSale = {Net Sale},",
+				"          Source,",
+				"          CampaignName = {Campaign Name},",
+				"          ChargeBackPrice = {Charge Back Price},",
+				"          CostPerSale = {Cost Per Sale},",
+				"          Phone,",
+				"          Division = division,",
+				"          LastUpdated = lastUpdated,",
+				"          LPExternalID = {LP External ID},",
+				"          LeadSource = {Lead Source}",
+				"     )) ~> KohlerLeadCostEnq"
+			]
+		}
+	}
+}

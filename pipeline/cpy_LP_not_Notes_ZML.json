@@ -1,0 +1,325 @@
+{
+	"name": "cpy_LP_not_Notes_ZML",
+	"properties": {
+		"activities": [
+			{
+				"name": "FHI",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:40:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT \nA.Id\n,A.RecType\n,A.RecID\n,A.EnteredBy \n,A.EnteredOn \n,A.UpdatedBy \n,A.UpdatedOn \n,A.notes\n,CAST(A.important AS int) AS important\n,A.nct_id\n,B.Descr AS nct_Desc\nFROM dbo.not_notes A\nLEFT JOIN [dbo].[nct_NoteCategory] B\nON A.nct_id = B.Id",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE [ZML].[LP_FHI_not_Notes]",
+						"writeBehavior": "Insert",
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Id"
+								}
+							},
+							{
+								"source": {
+									"name": "RecType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "RecType"
+								}
+							},
+							{
+								"source": {
+									"name": "RecID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "RecID"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EnteredBy"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "EnteredOn"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "UpdatedBy"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "UpdatedOn"
+								}
+							},
+							{
+								"source": {
+									"name": "notes",
+									"type": "String"
+								},
+								"sink": {
+									"name": "notes"
+								}
+							},
+							{
+								"source": {
+									"name": "important",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "important"
+								}
+							},
+							{
+								"source": {
+									"name": "nct_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "nct_id"
+								}
+							},
+							{
+								"source": {
+									"name": "nct_Desc",
+									"type": "String"
+								},
+								"sink": {
+									"name": "nct_Desc"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_ZML_FHI_aph_AlternatePhones",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ZML_ODS_FHI_not_Notes",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "MXH",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:40:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT \nA.Id\n,A.RecType\n,A.RecID\n,A.EnteredBy \n,A.EnteredOn \n,A.UpdatedBy \n,A.UpdatedOn \n,A.notes\n,CAST(A.important AS int) AS important\n,A.nct_id\n,B.Descr AS nct_Desc\nFROM dbo.not_notes A\nLEFT JOIN [dbo].[nct_NoteCategory] B\nON A.nct_id = B.Id",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE [ZML].[LP_MXH_not_Notes]",
+						"writeBehavior": "Insert",
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Id"
+								}
+							},
+							{
+								"source": {
+									"name": "RecType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "RecType"
+								}
+							},
+							{
+								"source": {
+									"name": "RecID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "RecID"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EnteredBy"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "EnteredOn"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "UpdatedBy"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "UpdatedOn"
+								}
+							},
+							{
+								"source": {
+									"name": "notes",
+									"type": "String"
+								},
+								"sink": {
+									"name": "notes"
+								}
+							},
+							{
+								"source": {
+									"name": "important",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "important"
+								}
+							},
+							{
+								"source": {
+									"name": "nct_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "nct_id"
+								}
+							},
+							{
+								"source": {
+									"name": "nct_Desc",
+									"type": "String"
+								},
+								"sink": {
+									"name": "nct_Desc"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_ZML_MXH_aph_AlternatePhones",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ZML_ODS_MXH_not_Notes",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "Temp/Anuj/ZML/LP_to_ODS_ZML"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-11-05T16:15:10Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

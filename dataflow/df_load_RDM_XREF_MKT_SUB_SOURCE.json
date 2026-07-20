@@ -1,0 +1,134 @@
+{
+	"name": "df_load_RDM_XREF_MKT_SUB_SOURCE",
+	"properties": {
+		"folder": {
+			"name": "SRC_to_RDM"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "SRC_RDM_XREF_MKT_SUB_SOURCE",
+						"type": "DatasetReference"
+					},
+					"name": "XRefSubSourceFile"
+				},
+				{
+					"dataset": {
+						"referenceName": "EDW_DIM_LEAD_SUB_SOURCE",
+						"type": "DatasetReference"
+					},
+					"name": "EdwDimLeadSubSource"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "RDM_XREF_MKT_SUB_SOURCE",
+						"type": "DatasetReference"
+					},
+					"name": "RDMXRefMktSubSource"
+				}
+			],
+			"transformations": [
+				{
+					"name": "selectRenameColumns"
+				},
+				{
+					"name": "joinDimLeadSubSource"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          Source as string,",
+				"          {Lead Acquisiting Channels} as string,",
+				"          {Source Final} as string,",
+				"          SourceG as string,",
+				"          {Source for OpCo Reporting} as string,",
+				"          {Dup Check} as string,",
+				"          {Manuafactuer Lead} as string,",
+				"          {Sub-Source} as string,",
+				"          {Source 3} as string,",
+				"          Vendor as string,",
+				"          {old source id} as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> XRefSubSourceFile",
+				"source(output(",
+				"          LeadSubSourceID as string,",
+				"          LeadSourceID as string,",
+				"          SourceCode as string,",
+				"          Description as string,",
+				"          Active as boolean,",
+				"          LP_LeadSubSourceID as integer,",
+				"          LP_LeadSourceID as string,",
+				"          OperatingCompany as string,",
+				"          LastUpdateTS as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: false) ~> EdwDimLeadSubSource",
+				"joinDimLeadSubSource select(mapColumn(",
+				"          OperatingCompany,",
+				"          LeadSubSourceID = {Source Final},",
+				"          MarketingLeadSourceGroup = SourceG,",
+				"          MarketingLeadSourceDescription = {Source for OpCo Reporting},",
+				"          MarketingLeadSubSource = {Sub-Source},",
+				"          Active,",
+				"          LP_LeadSubSourceDescription = Description,",
+				"          LP_LeadSubSourceID",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectRenameColumns",
+				"XRefSubSourceFile, EdwDimLeadSubSource join({Source Final} == LeadSubSourceID,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> joinDimLeadSubSource",
+				"selectRenameColumns sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          OperatingCompany as string,",
+				"          LeadSubSourceID as string,",
+				"          Active as boolean,",
+				"          LP_LeadSubSourceDescription as string,",
+				"          MarketingChannel as string,",
+				"          MarketingLeadSourceGroup as string,",
+				"          MarketingLeadSubSource as string,",
+				"          GLAccount as string,",
+				"          CostType as string,",
+				"          CostPerLead as string,",
+				"          RevShareAmount as string,",
+				"          InstallSaleFee as string,",
+				"          CostPerDemo as string,",
+				"          LP_LeadSourceCode as string,",
+				"          LP_LeadSubSourceID as integer",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     truncate:true,",
+				"     format: 'table',",
+				"     staged: true,",
+				"     allowCopyCommand: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          OperatingCompany,",
+				"          LeadSubSourceID,",
+				"          Active,",
+				"          LP_LeadSubSourceDescription,",
+				"          MarketingLeadSourceGroup,",
+				"          MarketingLeadSubSource,",
+				"          LP_LeadSubSourceID",
+				"     )) ~> RDMXRefMktSubSource"
+			]
+		}
+	}
+}

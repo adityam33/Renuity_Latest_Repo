@@ -1,0 +1,20 @@
+{
+	"name": "DML - Medallia - Install Exp Invite",
+	"properties": {
+		"folder": {
+			"name": "DMLs/Medallia/Install Experience"
+		},
+		"content": {
+			"query": "SELECT distinct\ncst.FirstName as [FIRST_NAME]\n,cst.LastName as [LAST_NAME]\n,cst.Email as [EMAIL_ADDRESS]\n,cst.Phone as [PHONE_NUMBER]\n,'English' as [LANGUAGE]\n,'US' as [COUNTRY]\n,'MXH' as [BRAND_NAME]\n,'' AS CHANNEL\n,job.contractid AS CONTRACT_ID\n,job.cst_id AS ACCOUNT_ID\n,job.ins_installer1 AS SERVICE_TECHNICIAN_1_ID\n,job.ins_installer2 AS SERVICE_TECHNICIAN_2_ID\n,job.ins_installer3 AS SERVICE_TECHNICIAN_3_ID\n,job.ins_installer4 AS SERVICE_TECHNICIAN_4_ID\n,brp.LongName as PRODUCTION_BRANCH_NAME\n,mld.ActDate as SERVICE_DATETIME\n,prg.Descr as PRODUCT_LINE\nFROM \n[ODS].[LP_MXH_job_Jobs] job\n,[ODS].[LP_MXH_cst_Customers] cst\n,[ODS].[LP_MXH_prd_Products] prd\n,[ODS].[LP_MXH_prg_Product_Groups] prg\n,[ODS].[LP_MXH_brp_ProductionBranches] brp\n,[ODS].[LP_MXH_mld_MilestoneDetail] mld\nWHERE \njob.cst_id = cst.id\nand job.ProductID = prd.ProductID\nand prd.prg_id = prg.id\nand job.id = mld.job_id\nand job.brp_id = brp.id\nand mld.mdt_id = 'C'\nand mld.ActDate is NOT NULL\nAND datediff(DAY, mld.ActDate, dbo.fnConvertUTCtoPST (getdate())) between 0 and 1\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

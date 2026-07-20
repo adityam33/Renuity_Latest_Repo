@@ -1,0 +1,20 @@
+{
+	"name": "Customer Account - Debits and Credits",
+	"properties": {
+		"folder": {
+			"name": "DMLs/Analysis SQL/Acumatica Recon Analysis"
+		},
+		"content": {
+			"query": "select \ngltran.CustomerVendor as CustomerID,\ncm.CustomerName,\ncm.CustomerClass,\nsum(gltran.GLTran_debitAmt) as TotalDebit,\nsum(gltran.GLTran_creditAmt) as TotalCredit,\nsum(gltran.GLTran_creditAmt) -  sum(gltran.GLTran_debitAmt) as TotalOutstanding\nfrom \n[ODS].[ERP_GL_TRANSACTIONS] gltran\nleft join [ODS].[ERP_CUSTOMER_MASTER] cm\non gltran.CustomerVendor = cm.CustomerID\nwhere\ngltran.[module] = 'AR'\ngroup BY\ngltran.CustomerVendor,\ncm.CustomerName,\ncm.CustomerClass\norder by \nTotalOutstanding desc,\nTotalCredit desc\n\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

@@ -1,0 +1,210 @@
+{
+	"name": "Fetch_Asana_Data_Test_Aks",
+	"properties": {
+		"activities": [
+			{
+				"name": "Web_Fetch_Asana_Data",
+				"type": "WebActivity",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "GET",
+					"headers": {
+						"Authorization": "Bearer 2/1206811754909797/1209394627593670:3c1c8b17bdc5a7d3248096634a2ba728",
+						"Content-Type": "application/json"
+					},
+					"url": "https://app.asana.com/api/1.0/tasks?assignee=me&workspace=1200381543941744",
+					"connectVia": {
+						"referenceName": "AutoResolveIntegrationRuntime",
+						"type": "IntegrationRuntimeReference"
+					}
+				}
+			},
+			{
+				"name": "Get_Asana_Workspace_Goals",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "GET",
+					"headers": {
+						"Authorization": "Bearer 2/1206811754909797/1209394627593670:3c1c8b17bdc5a7d3248096634a2ba728",
+						"Content-Type": "application/json"
+					},
+					"url": "https://app.asana.com/api/1.0/goals?workspace=1200381543941744",
+					"connectVia": {
+						"referenceName": "AutoResolveIntegrationRuntime",
+						"type": "IntegrationRuntimeReference"
+					}
+				}
+			},
+			{
+				"name": "GetDatafromAsana",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Get_Asana_Workspace_Goals",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "JsonSource",
+						"storeSettings": {
+							"type": "HttpReadSettings",
+							"requestMethod": "GET"
+						},
+						"formatSettings": {
+							"type": "JsonReadSettings"
+						}
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "truncate table ODS.ODS_ASANA_GOALS;",
+						"allowCopyCommand": true,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "AzureBlobStorage1",
+							"type": "LinkedServiceReference"
+						},
+						"path": "api-asana"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "['gid']"
+								},
+								"sink": {
+									"name": "goal_gid",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['resource_type']"
+								},
+								"sink": {
+									"name": "goal_resource_type",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['owner']['gid']"
+								},
+								"sink": {
+									"name": "owner_gid",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['owner']['name']"
+								},
+								"sink": {
+									"name": "owner_name",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['owner']['resource_type']"
+								},
+								"sink": {
+									"name": "owner_resource_type",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['name']"
+								},
+								"sink": {
+									"name": "goal_name",
+									"type": "String"
+								}
+							}
+						],
+						"collectionReference": "$['data']"
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "Json4",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "AzureSynapseAnalyticsTable2",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Stored procedure1",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "GetDatafromAsana",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "EDW.sp_Upsert_Asana_Goals"
+				},
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"folder": {
+			"name": "Temp/Sameen"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-02-18T15:59:48Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

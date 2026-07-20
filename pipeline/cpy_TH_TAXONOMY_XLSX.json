@@ -1,0 +1,655 @@
+{
+	"name": "cpy_TH_TAXONOMY_XLSX",
+	"properties": {
+		"activities": [
+			{
+				"name": "cpy_TH_TAXONOMY_MC_PAY",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ExcelSource",
+						"additionalColumns": [
+							{
+								"name": "LastUpdatedTS",
+								"value": {
+									"value": "@{formatDateTime(utcNow(), 'yyyy-MM-dd HH:mm:ss')}",
+									"type": "Expression"
+								}
+							}
+						],
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						}
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE  [ODS].[STG_TH_TAXONOMY_XLSX_MC_PAY]",
+						"allowCopyCommand": true,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "staging"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Dup Check",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Dup_Check",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Lead id Key",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LeadID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Company",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Company",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Source 1",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Source1",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Source 2",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Source2",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Source 3",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Source3",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Acct Sub-Source",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Acct_SubSource",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Home Base Managed",
+									"type": "String"
+								},
+								"sink": {
+									"name": "HomeBaseManaged",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Channel",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Channel",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Source Group",
+									"type": "String"
+								},
+								"sink": {
+									"name": "SourceGroup",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Subsource",
+									"type": "String"
+								},
+								"sink": {
+									"name": "SubSource",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Cost Type",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CostType",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CPL $",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CPL_Dollar",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Rev Share Amount",
+									"type": "String"
+								},
+								"sink": {
+									"name": "RevShareAmt",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Install Sale Fee",
+									"type": "String"
+								},
+								"sink": {
+									"name": "InstallSaleFee",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Cost Per Demo",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CostPerDemo",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Vendor",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Vendor",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "OpCo|Acct Sub-Source",
+									"type": "String"
+								},
+								"sink": {
+									"name": "OpCo_Acct_SubSource",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "MC Model %",
+									"type": "String"
+								},
+								"sink": {
+									"name": "MC_ModelPct",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Approver (Marketing Lead)",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Approver",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Payment",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Payment",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "GL",
+									"type": "String"
+								},
+								"sink": {
+									"name": "GL",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "SubAccount",
+									"type": "String"
+								},
+								"sink": {
+									"name": "SubAccount",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Vendor ID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "VendorID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Market Detail",
+									"type": "String"
+								},
+								"sink": {
+									"name": "MarketDetail",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "New Source Group",
+									"type": "String"
+								},
+								"sink": {
+									"name": "NewSourceGroup",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "New SubSource",
+									"type": "String"
+								},
+								"sink": {
+									"name": "NewSubSource",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Budget Set Rate",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BudgetSetRate",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Agency Fee (% Spend)",
+									"type": "String"
+								},
+								"sink": {
+									"name": "AgencyFee",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Agency Vendor Name",
+									"type": "String"
+								},
+								"sink": {
+									"name": "AgencyVendorName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Agency Vendor ID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "AgencyVendorID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LastUpdatedTS",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "TX_Test",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "SRC_ODS_TAXONOMY_XLSX_MC_PAY",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "UPD_MKTNG_TAXONOMY_MC_PAY",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "cpy_TH_TAXONOMY_MC_PAY",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "INSERT INTO [EDW].[DIM_MKTNG_SUB_SOURCE_MAPPING_TX_XLSX]\n(Division\t,\nLeadSourceGroupID\t,\nLeadSourceID\t,\nLeadSubSourceID\t,\nSourceGroup\t,\nSourceCode\t,\nLeadSubSource\t,\nActive\t,\nEntryDate\t,\nTX_Channel\t,\nTX_SourceGroup\t,\nTX_SourceCode\t,\nMappingInd\t,\nCreatedTS\t,\nLastUpdatedTS\t,\nACU_AccountCode\t,\nACU_MarketingAccountID\t,\nACU_MarketingAccount\t,\nVendor\t\n)\n\nSELECT \nA.Division\t,\nA.LeadSourceGroupID\t,\nA.LeadSourceID\t,\nA.LeadSubSourceID\t,\nA.SourceGroup\t,\nA.SourceCode\t,\nA.LeadSubSource\t,\nA.Active\t,\nA.EntryDate\t,\nA.TX_Channel\t,\nA.TX_SourceGroup\t,\nA.TX_SourceCode\t,\nA.MappingInd\t,\nA.CreatedTS\t,\nA.LastUpdatedTS\t,\nA.ACU_AccountCode\t,\nA.ACU_MarketingAccountID\t,\nA.ACU_MarketingAccount\t,\nA.Vendor\t\nFROM EDW.DIM_MKTNG_SUB_SOURCE_MAPPING A\nLEFT JOIN [EDW].[DIM_MKTNG_SUB_SOURCE_MAPPING_TX_XLSX] B \nON A.LeadSubSourceID = B.LeadSubSourceID\nWHERE A.MappingInd NOT IN ('UNMAP')\nAND B.LeadSubSourceID IS NULL;\n\n\n\n--*************************************\n--*************************************\n\n\n\nWITH A AS \n(\nSELECT \nLeadID,\nHomeBaseManaged,\nCostType,\nCAST(REPLACE(TRIM(CPL_Dollar), '$', '') AS DECIMAL(10,2)) AS CPL_Dollar,\nRevShareAmt,\nInstallSaleFee,\nCostPerDemo,\nVendor,\nMC_ModelPct,\nApprover,\nPayment,\nVendorID,\nMarketDetail,\nBudgetSetRate,\nAgencyFee\nFROM [ODS].[STG_TH_TAXONOMY_XLSX_MC_PAY]\n)\n\nUPDATE M1\nSET \nM1.XL_HomeBaseManaged        =  A.HomeBaseManaged\n,M1.XL_CostType               =  A.CostType\n,M1.XL_CPL_AMT                =  A.CPL_Dollar\n,M1.XL_RevShare_AMT           =  A.RevShareAmt\n,M1.XL_InstallSaleFee         =  A.InstallSaleFee\n,M1.XL_CostPerDemo            =  A.CostPerDemo\n,M1.XL_Vendor                 =  A.Vendor\n,M1.XL_MC_Model               =  A.MC_ModelPct\n,M1.XL_Approver_MktgLead      =  A.Approver\n,M1.XL_Payment                =  A.Payment\n,M1.XL_VendorID               =  A.VendorID\n,M1.XL_MarketDetail           =  A.MarketDetail\n,M1.XL_BudgetSetRate          =  A.BudgetSetRate\n,M1.XL_AgencyFeePctSpend      =  A.AgencyFee\nFROM  [EDW].[DIM_MKTNG_SUB_SOURCE_MAPPING_TX_XLSX] M1\nJOIN A \nON M1.LeadSubSourceID = A.LeadID;"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "cpy_TAXONOMY_COST_MATRIX",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ExcelSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						}
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "TRUNCATE TABLE ODS.STG_TH_TAXONOMY_XLSX_COST_MATRIX",
+						"allowCopyCommand": true
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "staging"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Source Group",
+									"type": "String"
+								},
+								"sink": {
+									"name": "SourceGroup",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Product for OpCo Reporting",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ProductForOpCo_Reporting",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "srs_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Srs_Id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "srs ID Cost Type",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Srs_Id_CostType",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Vendor",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Vendor",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Unit Prod CPL",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UnitProd_CPL",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Unit Prod Rev Share %",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UnitProd_RevShare",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "EntryDate to ApptDate Cutoff",
+									"type": "String"
+								},
+								"sink": {
+									"name": "EntryDate_To_ApptDateCutOff",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Unit Affil CPI $",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Unit_Affil_CPL_AMT",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Unit CPD $",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Unit_CPD_AMT",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Unit CPL $",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Unit_CPL_AMT",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Mrkt Cost",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Mrkt_Cost",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "dupkey",
+									"type": "String"
+								},
+								"sink": {
+									"name": "DupKey",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "dup check",
+									"type": "String"
+								},
+								"sink": {
+									"name": "dup_check",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_Taxonomy_Cost_Matrix",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_STG_TH_TAXONOMY_XLSX_COST_MATRIX",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Ins_DIM_MKTNG_COST_MATRIX",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "cpy_TAXONOMY_COST_MATRIX",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "UPDATE tgt\r\nSET \r\n    tgt.Division = SUBSTRING(src.Srs_ID,1,3),\r\n    tgt.SourceGroup = src.SourceGroup,\r\n    tgt.CostType = src.Srs_Id_CostType,\r\n    tgt.Vendor = src.Vendor,\r\n    tgt.UnitProd_CPL = src.UnitProd_CPL,\r\n    tgt.UnitProd_RevShare = src.UnitProd_RevShare,\r\n    tgt.EntryDate_To_ApptDateCutOff = src.EntryDate_To_ApptDateCutOff,\r\n    tgt.Unit_Affil_CPI_AMT = src.Unit_Affil_CPL_AMT,\r\n    tgt.Unit_CPD_AMT = src.Unit_CPD_AMT,\r\n    tgt.Unit_CPL_AMT = src.Unit_CPL_AMT,\r\n    tgt.Mrkt_Cost = src.Mrkt_Cost,\r\n    tgt.LastUpdatedTS = GETDATE()\r\nFROM [EDW].[DIM_MKTNG_COST_MATRIX] tgt\r\nJOIN ODS.[STG_TH_TAXONOMY_XLSX_COST_MATRIX] src\r\n    ON tgt.LeadSubSourceID = src.Srs_ID\r\n   AND tgt.ProductForOpCo_Reporting = src.ProductForOpCo_Reporting;\r\n\r\n\r\nINSERT INTO [EDW].[DIM_MKTNG_COST_MATRIX] (\r\n    Division,\r\n    LeadSubSourceID,\r\n    SourceGroup,\r\n    ProductForOpCo_Reporting,\r\n    CostType,\r\n    Vendor,\r\n    UnitProd_CPL,\r\n    UnitProd_RevShare,\r\n    EntryDate_To_ApptDateCutOff,\r\n    Unit_Affil_CPI_AMT,\r\n    Unit_CPD_AMT,\r\n    Unit_CPL_AMT,\r\n    Mrkt_Cost,\r\n    LastUpdatedTS\r\n)\r\nSELECT \r\n    SUBSTRING(src.Srs_ID,1,3) AS Division,\r\n    src.Srs_ID,\r\n    src.SourceGroup,\r\n    src.ProductForOpCo_Reporting,\r\n    src.Srs_Id_CostType,\r\n    src.Vendor,\r\n    src.UnitProd_CPL,\r\n    src.UnitProd_RevShare,\r\n    src.EntryDate_To_ApptDateCutOff,\r\n    src.Unit_Affil_CPL_AMT,\r\n    src.Unit_CPD_AMT,\r\n    src.Unit_CPL_AMT,\r\n    src.Mrkt_Cost,\r\n    GETDATE()\r\nFROM ODS.[STG_TH_TAXONOMY_XLSX_COST_MATRIX] src\r\nLEFT JOIN [EDW].[DIM_MKTNG_COST_MATRIX] tgt\r\n    ON tgt.LeadSubSourceID = src.Srs_ID\r\n   AND tgt.ProductForOpCo_Reporting = src.ProductForOpCo_Reporting\r\nWHERE tgt.LeadSubSourceID IS NULL;\r\n"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/DIMENSIONS/TAXONOMY"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-01-05T11:26:47Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

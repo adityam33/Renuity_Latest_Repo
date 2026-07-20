@@ -1,0 +1,101 @@
+{
+	"name": "df_load_DIM_VENDORS_ZML",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ZML_ODS_FHI_vnd_vendors",
+						"type": "DatasetReference"
+					},
+					"name": "FHI"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_DIM_VENDORS_ZML",
+						"type": "DatasetReference"
+					},
+					"name": "targetDim",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "createDsFHI"
+				},
+				{
+					"name": "selectColFHI"
+				},
+				{
+					"name": "unionAllDivisions"
+				},
+				{
+					"name": "updateTimestamp"
+				},
+				{
+					"name": "alterRow"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          id as integer,",
+				"          ShortDescr as string,",
+				"          MediumDescr as string,",
+				"          LongDescr as string,",
+				"          Active as boolean,",
+				"          SortOrder as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> FHI",
+				"selectColFHI derive(Division = 'FHI',",
+				"          VendorID = concat('FHI-',toString(LP_VendorID))) ~> createDsFHI",
+				"FHI select(mapColumn(",
+				"          LP_VendorID = id,",
+				"          ShortDescr,",
+				"          MediumDescr,",
+				"          LongDescr,",
+				"          Active,",
+				"          SortOrder",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColFHI",
+				"createDsFHI union(byName: true)~> unionAllDivisions",
+				"unionAllDivisions derive(LastUpdateTimeStamp = currentTimestamp()) ~> updateTimestamp",
+				"updateTimestamp alterRow(upsertIf(true())) ~> alterRow",
+				"alterRow sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['VendorID'],",
+				"     format: 'table',",
+				"     staged: true,",
+				"     allowCopyCommand: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          LP_VendorID,",
+				"          ShortDescr,",
+				"          MediumDescr,",
+				"          LongDescr,",
+				"          Active,",
+				"          SortOrder,",
+				"          Division,",
+				"          VendorID,",
+				"          LastUpdateTimeStamp",
+				"     )) ~> targetDim"
+			]
+		}
+	}
+}

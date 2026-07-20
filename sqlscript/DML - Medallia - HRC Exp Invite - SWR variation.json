@@ -1,0 +1,20 @@
+{
+	"name": "DML - Medallia - HRC Exp Invite - SWR variation",
+	"properties": {
+		"folder": {
+			"name": "DMLs/Medallia/HRC Experience"
+		},
+		"content": {
+			"query": "SELECT distinct\ncalls.id as CALL_ID\n,calls.CallDate as CALL_DATETIME\n,callTypes.Descr as CALL_TYPE\n,calls.emp_id as AGENT_ID\n,emp.FirstName + ' ' + emp.LastName as AGENT_DISPLAY_NAME\n,calls.cst_id as CUSTOMER_ID\n,cust.FirstName as FIRST_NAME\n,cust.LastName as LAST_NAME\n,cust.Email as EMAIL_ADDRESS\n,cust.Phone as PHONE_NUMBER\n,'US' as COUNTRY\n,'Sales' as JOURNEY_SEGMENT\n,callResults.Descr as CALL_DISPO\n,CASE WHEN callResults.Descr = 'TEXT SENT' THEN 'Text' ELSE 'Call' END as CONTACT_METHOD\n,'English' as LANGUAGE\n,'SWR' as BRAND_NAME\n,emp.Email as AGENT_EMAIL\nFROM\nODS.LP_SWR_cls_calls calls\nINNER JOIN ODS.LP_SWR_clr_CallResults callResults\nON calls.ResultCode = callResults.ID\nINNER JOIN ODS.LP_SWR_Lds_Leads leads\nON calls.lds_id = leads.id\nLEFT JOIN ODS.LP_SWR_cty_CallTypes callTypes\nON calls.cty_id = callTypes.ID\nLEFT JOIN ODS.LP_SWR_cst_Customers cust\nON calls.cst_id = cust.id\nLEFT JOIN ODS.LP_SWR_emp_Employees emp\nON calls.emp_id = emp.id\nWHERE\ndatediff(HOUR, dbo.fnConvertCSTToUTC(calls.CallDate), getdate())  between 0 and 2\nand callResults.Descr = 'Appointment Set'\nand LEFT(leads.src_id, 2) <> 'HD'\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

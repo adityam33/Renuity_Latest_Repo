@@ -1,0 +1,336 @@
+{
+	"name": "df_load_DIM_EMPLOYEE_JOB_TYPE",
+	"properties": {
+		"folder": {
+			"name": "ODS_to_EDW/DIMENSIONS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_FHI_ejt_EmployeeJobType",
+						"type": "DatasetReference"
+					},
+					"name": "FHI"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_HSI_ejt_EmployeeJobType",
+						"type": "DatasetReference"
+					},
+					"name": "HSI"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_MAC_ejt_EmployeeJobType",
+						"type": "DatasetReference"
+					},
+					"name": "MAC"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_PBC_ejt_EmployeeJobType",
+						"type": "DatasetReference"
+					},
+					"name": "PBC"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_SWR_ejt_EmployeeJobType",
+						"type": "DatasetReference"
+					},
+					"name": "SWR"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_RTW_ejt_EmployeeJobType",
+						"type": "DatasetReference"
+					},
+					"name": "RTW"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_MXH_ejt_EmployeeJobType",
+						"type": "DatasetReference"
+					},
+					"name": "MXH"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_CTA_ejt_EmployeeJobType",
+						"type": "DatasetReference"
+					},
+					"name": "CTA"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_DIM_EMPLOYEE_JOB_TYPE",
+						"type": "DatasetReference"
+					},
+					"name": "targetDim",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "selectColsFHI"
+				},
+				{
+					"name": "createIDsFHI"
+				},
+				{
+					"name": "selectColsHSI"
+				},
+				{
+					"name": "selectColsMAC"
+				},
+				{
+					"name": "selectPBC"
+				},
+				{
+					"name": "selectSWR"
+				},
+				{
+					"name": "createIDsHSI"
+				},
+				{
+					"name": "createIDsMAC"
+				},
+				{
+					"name": "createIDsPBC"
+				},
+				{
+					"name": "createIDsSWR"
+				},
+				{
+					"name": "unionAllOpCos"
+				},
+				{
+					"name": "addLastUpdateTimestamp"
+				},
+				{
+					"name": "selectRTW"
+				},
+				{
+					"name": "createIDsRTW"
+				},
+				{
+					"name": "selectMXH"
+				},
+				{
+					"name": "createIDsMXH"
+				},
+				{
+					"name": "selectCTA"
+				},
+				{
+					"name": "createIDsCTA"
+				},
+				{
+					"name": "AlterRow"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          Id as integer,",
+				"          Descr as string,",
+				"          SortOrder as integer,",
+				"          Active as boolean",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> FHI",
+				"source(output(",
+				"          Id as integer,",
+				"          Descr as string,",
+				"          SortOrder as integer,",
+				"          Active as boolean",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> HSI",
+				"source(output(",
+				"          Id as integer,",
+				"          Descr as string,",
+				"          SortOrder as integer,",
+				"          Active as boolean",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> MAC",
+				"source(output(",
+				"          Id as integer,",
+				"          Descr as string,",
+				"          SortOrder as integer,",
+				"          Active as boolean",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> PBC",
+				"source(output(",
+				"          Id as integer,",
+				"          Descr as string,",
+				"          SortOrder as integer,",
+				"          Active as boolean",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> SWR",
+				"source(output(",
+				"          Id as integer,",
+				"          Descr as string,",
+				"          SortOrder as integer,",
+				"          Active as boolean",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> RTW",
+				"source(output(",
+				"          Id as integer,",
+				"          Descr as string,",
+				"          SortOrder as integer,",
+				"          Active as boolean",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> MXH",
+				"source(output(",
+				"          Id as integer,",
+				"          Descr as string,",
+				"          SortOrder as integer,",
+				"          Active as boolean",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> CTA",
+				"FHI select(mapColumn(",
+				"          LP_EmployeeJobTypeD = Id,",
+				"          EmployeeJobType = Descr,",
+				"          Active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColsFHI",
+				"selectColsFHI derive(EmployeeJobTypeID = concat('FHI-',toString(LP_EmployeeJobTypeD)),",
+				"          Division = 'FHI') ~> createIDsFHI",
+				"HSI select(mapColumn(",
+				"          LP_EmployeeJobTypeID = Id,",
+				"          EmployeeJobType = Descr,",
+				"          Active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColsHSI",
+				"MAC select(mapColumn(",
+				"          LP_EmployeeJobTypeID = Id,",
+				"          EmployeeJobType = Descr,",
+				"          Active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColsMAC",
+				"PBC select(mapColumn(",
+				"          LP_EmployeeJobTypeID = Id,",
+				"          EmployeeJobType = Descr,",
+				"          Active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectPBC",
+				"SWR select(mapColumn(",
+				"          LP_EmployeeJobTypeID = Id,",
+				"          EmployeeJobType = Descr,",
+				"          Active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectSWR",
+				"selectColsHSI derive(EmployeeJobTypeID = concat('HSI-',toString(LP_EmployeeJobTypeID)),",
+				"          Division = 'HSI') ~> createIDsHSI",
+				"selectColsMAC derive(EmployeeJobTypeID = concat('MAC-',toString(LP_EmployeeJobTypeID)),",
+				"          Division = 'MAC') ~> createIDsMAC",
+				"selectPBC derive(EmployeeJobTypeID = concat('PBC-',toString(LP_EmployeeJobTypeID)),",
+				"          Division = 'PBC') ~> createIDsPBC",
+				"selectSWR derive(EmployeeJobTypeID = concat('SWR-',toString(LP_EmployeeJobTypeID)),",
+				"          Division = 'SWR') ~> createIDsSWR",
+				"createIDsFHI, createIDsHSI, createIDsMAC, createIDsPBC, createIDsSWR, createIDsRTW, createIDsMXH, createIDsCTA union(byName: true)~> unionAllOpCos",
+				"unionAllOpCos derive(LastUpdateTS = currentTimestamp()) ~> addLastUpdateTimestamp",
+				"RTW select(mapColumn(",
+				"          LP_EmployeeJobTypeID = Id,",
+				"          EmployeeJobType = Descr,",
+				"          Active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectRTW",
+				"selectRTW derive(EmployeeJobTypeID = concat('RTW-',toString(LP_EmployeeJobTypeID)),",
+				"          Division = 'RTW') ~> createIDsRTW",
+				"MXH select(mapColumn(",
+				"          LP_EmployeeJobTypeID = Id,",
+				"          EmployeeJobType = Descr,",
+				"          Active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectMXH",
+				"selectMXH derive(EmployeeJobTypeID = concat('MXH-',toString(LP_EmployeeJobTypeID)),",
+				"          Division = 'MXH') ~> createIDsMXH",
+				"CTA select(mapColumn(",
+				"          LP_EmployeeJobTypeID = Id,",
+				"          EmployeeJobType = Descr,",
+				"          Active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectCTA",
+				"selectCTA derive(EmployeeJobTypeID = concat('CTA-',toString(LP_EmployeeJobTypeID)),",
+				"          Division = 'CTA') ~> createIDsCTA",
+				"addLastUpdateTimestamp alterRow(upsertIf(true())) ~> AlterRow",
+				"AlterRow sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          EmpJobTypeID as string,",
+				"          EmpJobType as string,",
+				"          Active as boolean,",
+				"          LP_EmpJobTypeID as integer,",
+				"          Division as string,",
+				"          LastUpdateTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['EmpJobTypeID'],",
+				"     format: 'table',",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          EmpJobTypeID = EmployeeJobTypeID,",
+				"          EmpJobType = EmployeeJobType,",
+				"          Active,",
+				"          LP_EmpJobTypeID = LP_EmployeeJobTypeD,",
+				"          Division,",
+				"          LastUpdateTS",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> targetDim"
+			]
+		}
+	}
+}

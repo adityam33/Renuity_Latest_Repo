@@ -1,0 +1,93 @@
+{
+	"name": "df_load_DIM_REPORTING_MARKET_ZML",
+	"properties": {
+		"folder": {
+			"name": "ZML_ODS_to_EDW/DIMENSIONS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ZML_ODS_FHI_rpm_ReportingMarket",
+						"type": "DatasetReference"
+					},
+					"name": "srcFHI"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_DIM_REPORTING_MARKET_ZML",
+						"type": "DatasetReference"
+					},
+					"name": "TargetSTG",
+					"description": "Export data to EDW_DIM_REPORTING_MARKET",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "unionAll"
+				},
+				{
+					"name": "deriveCol"
+				},
+				{
+					"name": "AlterRow"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          LP_Reporting_Market_ID as integer,",
+				"          Reporting_Market_Descr as string,",
+				"          Active as integer,",
+				"          Division as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT [id] as LP_Reporting_Market_ID\\n,[descr] as Reporting_Market_Descr\\n,CAST([active] AS INT) as Active\\n,\\'FHI\\' as Division\\n FROM [ODS].[LP_FHI_rpm_ReportingMarket]',",
+				"     format: 'query',",
+				"     staged: true) ~> srcFHI",
+				"srcFHI union(byName: true)~> unionAll",
+				"unionAll derive(Reporting_Market_ID = concat(Division,'-',toString(LP_Reporting_Market_ID)),",
+				"          LastUpdateTS = currentTimestamp()) ~> deriveCol",
+				"deriveCol alterRow(upsertIf(true())) ~> AlterRow",
+				"AlterRow sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          ReportingMarketId as string,",
+				"          MarketDescription as string,",
+				"          Active as integer,",
+				"          LP_ReportingMarketId as string,",
+				"          Division as string,",
+				"          LastUpdatedTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['ReportingMarketId'],",
+				"     format: 'table',",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          LP_ReportingMarketId = LP_Reporting_Market_ID,",
+				"          MarketDescription = Reporting_Market_Descr,",
+				"          Active,",
+				"          Division,",
+				"          ReportingMarketId = Reporting_Market_ID,",
+				"          LastUpdatedTS = LastUpdateTS",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> TargetSTG"
+			]
+		}
+	}
+}

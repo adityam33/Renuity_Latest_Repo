@@ -1,0 +1,270 @@
+{
+	"name": "df_load_DIM_BRANCH_ZIP",
+	"properties": {
+		"folder": {
+			"name": "ODS_to_EDW/DIMENSIONS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_FHI_brz_BranchZips",
+						"type": "DatasetReference"
+					},
+					"name": "FHI"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_HSI_brz_BranchZips",
+						"type": "DatasetReference"
+					},
+					"name": "HSI"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_MAC_brz_BranchZips",
+						"type": "DatasetReference"
+					},
+					"name": "MAC"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_PBC_brz_BranchZips",
+						"type": "DatasetReference"
+					},
+					"name": "PBC"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_SWR_brz_BranchZips",
+						"type": "DatasetReference"
+					},
+					"name": "SWR"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_RTW_brz_BranchZips",
+						"type": "DatasetReference"
+					},
+					"name": "RTW"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_MXH_brz_BranchZips",
+						"type": "DatasetReference"
+					},
+					"name": "MXH"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_CTA_brz_BranchZips",
+						"type": "DatasetReference"
+					},
+					"name": "CTA"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_DIM_BRANCH_ZIP",
+						"type": "DatasetReference"
+					},
+					"name": "targetDim",
+					"description": "Export data to EDW_DIM_BRANCH_ZIP",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "addOpCoNameFHI"
+				},
+				{
+					"name": "addOpCoNameHSI"
+				},
+				{
+					"name": "addOpCoNameMAC"
+				},
+				{
+					"name": "addOpCoNamePBC"
+				},
+				{
+					"name": "addOpCoNameSWR"
+				},
+				{
+					"name": "unionAllOpCos"
+				},
+				{
+					"name": "derivedColumns"
+				},
+				{
+					"name": "addOpCoNameRTW"
+				},
+				{
+					"name": "addOpCoNameMXH"
+				},
+				{
+					"name": "selectRenameColumns"
+				},
+				{
+					"name": "addOpCoNameCTA"
+				},
+				{
+					"name": "AlterRow"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          brn_id as string,",
+				"          prg_id as string,",
+				"          zip as string,",
+				"          id as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> FHI",
+				"source(output(",
+				"          brn_id as string,",
+				"          prg_id as string,",
+				"          zip as string,",
+				"          id as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> HSI",
+				"source(output(",
+				"          brn_id as string,",
+				"          prg_id as string,",
+				"          zip as string,",
+				"          id as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> MAC",
+				"source(output(",
+				"          brn_id as string,",
+				"          prg_id as string,",
+				"          zip as string,",
+				"          id as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> PBC",
+				"source(output(",
+				"          brn_id as string,",
+				"          prg_id as string,",
+				"          zip as string,",
+				"          id as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> SWR",
+				"source(output(",
+				"          brn_id as string,",
+				"          prg_id as string,",
+				"          zip as string,",
+				"          id as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> RTW",
+				"source(output(",
+				"          brn_id as string,",
+				"          prg_id as string,",
+				"          zip as string,",
+				"          id as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> MXH",
+				"source(output(",
+				"          brn_id as string,",
+				"          prg_id as string,",
+				"          zip as string,",
+				"          id as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> CTA",
+				"FHI derive(Division = 'FHI') ~> addOpCoNameFHI",
+				"HSI derive(Division = 'HSI') ~> addOpCoNameHSI",
+				"MAC derive(Division = 'MAC') ~> addOpCoNameMAC",
+				"PBC derive(Division = 'PBC') ~> addOpCoNamePBC",
+				"SWR derive(Division = 'SWR') ~> addOpCoNameSWR",
+				"addOpCoNameFHI, addOpCoNameHSI, addOpCoNameMAC, addOpCoNamePBC, addOpCoNameSWR, addOpCoNameRTW, addOpCoNameMXH, addOpCoNameCTA union(byName: true)~> unionAllOpCos",
+				"selectRenameColumns derive(LastUpdateTS = currentTimestamp(),",
+				"          BranchID = concat(Division,'-',toString(LP_BranchID)),",
+				"          ProductGroupID = concat(Division,'-',toString(LP_ProductGroupID)),",
+				"          BranchZipID = concat(Division,'-',toString(LP_BranchZipID))) ~> derivedColumns",
+				"RTW derive(Division = 'RTW') ~> addOpCoNameRTW",
+				"MXH derive(Division = 'MXH') ~> addOpCoNameMXH",
+				"unionAllOpCos select(mapColumn(",
+				"          LP_BranchID = brn_id,",
+				"          LP_ProductGroupID = prg_id,",
+				"          ZipCode = zip,",
+				"          LP_BranchZipID = id,",
+				"          Division",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectRenameColumns",
+				"CTA derive(Division = 'CTA') ~> addOpCoNameCTA",
+				"derivedColumns alterRow(upsertIf(true())) ~> AlterRow",
+				"AlterRow sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          BranchZipID as string,",
+				"          BranchID as string,",
+				"          ProductGroupID as string,",
+				"          ZipCode as string,",
+				"          LP_BranchZipID as integer,",
+				"          LP_BranchID as string,",
+				"          LP_ProductGroupID as string,",
+				"          Division as string,",
+				"          LastUpdateTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['BranchZipID'],",
+				"     format: 'table',",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          LP_BranchID,",
+				"          LP_ProductGroupID,",
+				"          ZipCode,",
+				"          LP_BranchZipID,",
+				"          Division,",
+				"          LastUpdateTS,",
+				"          BranchID,",
+				"          ProductGroupID,",
+				"          BranchZipID",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> targetDim"
+			]
+		}
+	}
+}

@@ -1,0 +1,17 @@
+{
+	"name": "Bloomreach - Extract All Past Leads",
+	"properties": {
+		"content": {
+			"query": "SELECT\nlower(lds.Division) as division\n,lower(lds.LeadID) as lead_id\n,lower(lds.CustomerID) as prospect_id\n,lower(lds.ProductID) as product_id\n,prd.LongDescription as product\n,lower(lds.DispositionID) as disposition_id\n,dsp.Disposition as disposition\n,lower(lds.BranchID) as branch_id\n,brn.LongName as branch\n,lower(lds.LeadSubSourceID) as lead_subsource_id\n,srs.LeadSubSource as lead_subsource\n,lower(srs.LeadSourceID) as lead_source_id\n,srs.SourceCode as lead_sourcecode\n,lds.EntryDate as entry_date\n,lds.DateEntered as date_entered\n,lds.[EverSet] as ever_set\n,lds.[EverVerified] as ever_verified\n,lds.[EverIssued] as ever_issued\n,lds.[EverNetIssued] as ever_net_issued\n,lds.[EverSat] as ever_sat\n,lds.[EverConfirmed] as ever_confirmed\n,lds.LastCallDate as last_call_date\n,clr.CallResult as last_call_result\n,lds.[LeadScore_ExpectedValueRank] as leadscore_expected_value_rank\n,lds.[LeadScore_Initial_LikelihoodToBuy] as leadscore_initial_likelihood_to_buy\n,lds.[LeadScore_Initial_LikelySaleAmount] as leadscore_initial_likely_sale_amount\n,lds.[LeadScore_Initial_ExpectedValue] as leadscore_initial_expected_value\n,lds.[LeadScore_Current_LikelihoodToBuy] as leadScore_current_likelihood_to_buy\n,lds.[LeadScore_Current_LikelySaleAmount] as leadScore_current_likely_sale_amount\n,lds.[LeadScore_Current_ExpectedValue] as leadScore_Current_expected_value\n,cast(getdate() as DATE) as bulk_upload_date\nFROM\nEDW.FACT_LEAD lds\nleft join EDW.DIM_PRODUCT prd\non lds.ProductID = prd.ProductID\nleft join EDW.DIM_DISPOSITION dsp\non lds.DispositionID = dsp.DispositionID\nleft join EDW.DIM_BRANCH brn\non lds.BranchID = brn.BranchID\nleft join EDW.DIM_LEAD_SUB_SOURCE srs\non lds.LeadSubSourceID = srs.LeadSubSourceID\nleft join EDW.DIM_CALL_RESULT clr\non lds.LastCallResultID = clr.CallResultID\nWHERE\nlds.Division = 'FHI'\norder by \nlds.EntryDate asc\n\n\n/*\n\nSELECT\n'HSI' as division\n,'HSI'+'-'+str(lds.[id]) as leadid\n,'HSI'+'-'+str(lds.[cst_id]) as customerid\n,lds.[Productid] as product\n,lds.[EntryDate] as entrydate\n,lds.[dsp_id] as disposition\n,lds.[brn_id] as market\n,lds.[srs_id]\n,srs.SourceCode as sourcecode\n,srs.Descr as subsource\n FROM \n [ODS].[LP_HSI_Lds_Leads] lds\n,[ODS].[LP_HSI_srs_SourceSubs] srs\nWHERE\nlds.srs_id = srs.id\norder by \nlds.DateEntered asc\n\n*/\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

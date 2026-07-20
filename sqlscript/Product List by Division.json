@@ -1,0 +1,17 @@
+{
+	"name": "Product List by Division",
+	"properties": {
+		"content": {
+			"query": "SELECT\nprd.[Division]\n,prd.[ProductName] as ProductID\n,prd.LongDescription as ProductDescription\n,prd.Active\n,prd.Division + '-' + prd.LP_ProductGroupID\n,prg.ProductGroup\n,count(lds.LeadID) as LeadCount\n,cast(dbo.fnConvertUtcToEST(getdate()) as Date) as AsOfDate\n FROM \n [EDW].[DIM_PRODUCT] prd\n left join [EDW].[DIM_PRODUCT_GROUP] prg\n on prd.Division + '-' + prd.LP_ProductGroupID = prg.ProductGroupID\n left join EDW.FACT_LEAD lds\n on prd.ProductID = lds.ProductID\n group BY\n prd.[Division]\n,prd.[ProductName]\n,prd.LongDescription\n,prd.Active\n,prd.Division + '-' + prd.LP_ProductGroupID\n,prg.ProductGroup\n order by\n prd.Division,\n LeadCount desc",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

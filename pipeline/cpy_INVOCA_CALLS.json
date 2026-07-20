@@ -1,0 +1,349 @@
+{
+	"name": "cpy_INVOCA_CALLS",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy data from Invoca",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "JsonSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"modifiedDatetimeStart": {
+								"value": "@formatDateTime(addDays(utcnow(), -5), 'yyyy-MM-ddTHH:mm:ssZ')\n",
+								"type": "Expression"
+							},
+							"modifiedDatetimeEnd": {
+								"value": "@utcnow()",
+								"type": "Expression"
+							},
+							"wildcardFolderPath": "invoca",
+							"wildcardFileName": "postcall_cdr*.json",
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "JsonReadSettings"
+						}
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Upsert",
+						"upsertSettings": {
+							"keys": [
+								"transaction_id"
+							],
+							"interimSchemaName": ""
+						},
+						"tableOption": "autoCreate",
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "staging/ODS"
+					},
+					"parallelCopies": 3,
+					"dataIntegrationUnits": 4,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "$['transaction_id']"
+								},
+								"sink": {
+									"name": "transaction_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['transaction_type']"
+								},
+								"sink": {
+									"name": "transaction_type",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['media_type']"
+								},
+								"sink": {
+									"name": "media_type",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['call_source_description']"
+								},
+								"sink": {
+									"name": "call_source_description",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['promo_line_description']"
+								},
+								"sink": {
+									"name": "promo_line_description",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['virtual_line_id']"
+								},
+								"sink": {
+									"name": "virtual_line_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['city']"
+								},
+								"sink": {
+									"name": "city",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['region']"
+								},
+								"sink": {
+									"name": "region",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['qualified_regions']"
+								},
+								"sink": {
+									"name": "qualified_regions",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['repeat_calling_phone_number']"
+								},
+								"sink": {
+									"name": "repeat_calling_phone_number",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['calling_phone_number']"
+								},
+								"sink": {
+									"name": "calling_phone_number",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['mobile']"
+								},
+								"sink": {
+									"name": "mobile",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['start_time_utc']"
+								},
+								"sink": {
+									"name": "start_time_utc",
+									"type": "Int64"
+								}
+							},
+							{
+								"source": {
+									"path": "$['start_time_network_timezone']"
+								},
+								"sink": {
+									"name": "start_time_network_timezone",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['complete_call_id']"
+								},
+								"sink": {
+									"name": "complete_call_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['transfer_from_type']"
+								},
+								"sink": {
+									"name": "transfer_from_type",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['verified_zip']"
+								},
+								"sink": {
+									"name": "verified_zip",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['hangup_cause']"
+								},
+								"sink": {
+									"name": "hangup_cause",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['destination_phone_number']"
+								},
+								"sink": {
+									"name": "destination_phone_number",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['advertiser_id']"
+								},
+								"sink": {
+									"name": "advertiser_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['advertiser_id_from_network']"
+								},
+								"sink": {
+									"name": "advertiser_id_from_network",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['advertiser_name']"
+								},
+								"sink": {
+									"name": "advertiser_name",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['advertiser_campaign_id']"
+								},
+								"sink": {
+									"name": "advertiser_campaign_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['advertiser_campaign_id_from_network']"
+								},
+								"sink": {
+									"name": "advertiser_campaign_id_from_network",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['advertiser_campaign_name']"
+								},
+								"sink": {
+									"name": "advertiser_campaign_name",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['duration']"
+								},
+								"sink": {
+									"name": "duration",
+									"type": "Int64"
+								}
+							},
+							{
+								"source": {
+									"path": "$['connect_duration']"
+								},
+								"sink": {
+									"name": "connect_duration",
+									"type": "Int64"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ivr_duration']"
+								},
+								"sink": {
+									"name": "ivr_duration",
+									"type": "Int64"
+								}
+							},
+							{
+								"source": {
+									"path": "$['keypresses']"
+								},
+								"sink": {
+									"name": "keypresses",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_INVOCA_CALL_DETAIL_RECORDS",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_INVOCA_CALL_DETAIL_RECORD",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "SRC_to_ODS/INVOCA"
+		},
+		"annotations": [],
+		"lastPublishTime": "2024-12-26T10:42:02Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

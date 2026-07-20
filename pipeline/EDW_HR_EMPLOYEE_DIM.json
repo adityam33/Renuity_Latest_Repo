@@ -1,0 +1,1778 @@
+{
+	"name": "EDW_HR_EMPLOYEE_DIM",
+	"properties": {
+		"activities": [
+			{
+				"name": "cpy_DIM_HR_EMPLOYEE_LOCATION",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:30:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"sqlReaderQuery": "SELECT  \nCOALESCE((SELECT MAX(Location_PK) FROM EDW.DIM_HR_EMPLOYEE_LOCATION),2000) + \nROW_NUMBER() OVER (ORDER BY M1.LocationName DESC) AS Location_PK,\nCASE \n\tWHEN M1.Division = 'E.Home Smart'\t\t\tTHEN 'HSI'\n\tWHEN M1.Division = 'G.Pacific Bath'\t\tTHEN 'PBC'\n\tWHEN M1.Division = 'D.Paradise'\t\t\tTHEN 'PHI'\n\tWHEN M1.Division = 'C.Mad City'\t\t\tTHEN 'MAC'\n\tWHEN M1.Division = '0.Renuity'\t\t\t\tTHEN 'REN'\n\tWHEN M1.Division = 'G.Pacific Gutter'\t\tTHEN 'PBC'\n\tWHEN M1.Division = 'H.Rite Window'\t\t\tTHEN 'RTW'\n\tWHEN M1.Division = 'B.Statewide'\t\t\tTHEN 'SWR'\n\tWHEN M1.Division = 'I.Home Organization'\tTHEN 'CTA'\n\tWHEN M1.Division = 'A.FHIA'\t\t\t\tTHEN 'FHI'\n\tWHEN M1.Division = 'F.Max Home'\t\t\tTHEN 'MXH'\n\tEND AS Division,\n\t'Employee HeadCount File' AS DataSource,\n\t'NA' AS LocationType,\n\tM1.LocationName AS LocationName,\n\tM1.Market,\n\tM1.MarketFinancialReporting,\n\tM1.Acumatica,\n\tM1.DivisionFinancialReporting,\n\tM1.Regions,\n\tGETDATE() AS RecordCreatedDate,\n\tGETDATE() AS RecordUpdatedDate\nFROM  \n\t(\n\t\tSELECT * FROM \n\t\t\t(\n\t\t\t\tSELECT ROW_NUMBER() OVER (PARTITION BY LocationName ORDER BY ReportDate DESC) AS RW,* \n\t\t\t\tFROM ODS.HR_EMPLOYEE_LOCATION\n\t\t\t\t\t) MX\n\t\t\t\tWHERE RW=1\n\n\t\t\t) M1 \n\t\t\t\nLEFT JOIN EDW.DIM_HR_EMPLOYEE_LOCATION ME \n\tON M1.LocationName = ME.LocationName\n\tAND ME.DataSource = 'Employee HeadCount File'\n\n\tWHERE ME.LocationName IS NULL ",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "TRUNCATE TABLE EDW.DIM_HR_EMPLOYEE_LOCATION",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Location_PK",
+									"type": "Int64",
+									"physicalType": "bigint"
+								},
+								"sink": {
+									"name": "Location_PK",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DataSource",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "DataSource",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LocationType",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LocationType",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LocationName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "LocationName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Market",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Market",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "MarketFinancialReporting",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "MarketFinancialReporting",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Acumatica",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Acumatica",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DivisionFinancialReporting",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "DivisionFinancialReporting",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Regions",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Regions",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "RecordCreatedDate",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "RecordCreatedDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "RecordUpdatedDate",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "RecordUpdatedDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_EDW_ADP_EMPLOYEE_TIMECARD",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_DIM_HR_EMPLOYEE_LOCATION",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "cpy_DIM_HR_EMPLOYEE_LOCATION_Timecard",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "cpy_DIM_HR_EMPLOYEE_LOCATION",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:30:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"sqlReaderQuery": "SELECT \nCOALESCE((SELECT MAX(Location_PK) FROM EDW.DIM_HR_EMPLOYEE_LOCATION),2000) + \nROW_NUMBER() OVER (ORDER BY M1.LocationName DESC) AS Location_PK,\n'ALL' AS Division,\n'Employee Timecard File' AS DataSource,\nM1.LocationType,\nM1.LocationName,\nNULL AS Market,\nNULL AS MarketFinancialReporting,\nNULL AS Acumatica,\nNULL AS DivisionFinancialReporting,\nNULL AS Regions,\n\nGETDATE()  AS RecordCreatedDate,\nGETDATE()  AS RecordUpdatedDate\nFROM \n(\n\tSELECT \n\tTIMECARD_WORK_LOCATION\tAS LocationName,\n\t'TIMECARD' AS LocationType\n\tFROM  [ODS].[ADP_EMPLOYEE_TIMECARD] \n\tWHERE TIMECARD_WORK_LOCATION IS NOT NULL\n\t\n\tUNION \n\t\n\tSELECT \n\tTIMECARD_WORK_FHIA_BJS_LOCATIONS\tAS LocationName,\n\t'FHIA_BJS' AS LocationType\n\tFROM  [ODS].[ADP_EMPLOYEE_TIMECARD] \n\tWHERE TIMECARD_WORK_FHIA_BJS_LOCATIONS IS NOT NULL\n\t\n\tUNION \n\t\n\tSELECT \n\tTIMECARD_WORK_GO_SOUTHERN_LOCATION\tAS LocationName,\n\t'GO_SOUTHERN' AS LocationType\n\tFROM  [ODS].[ADP_EMPLOYEE_TIMECARD] \n\tWHERE TIMECARD_WORK_GO_SOUTHERN_LOCATION IS NOT NULL\n\t\n\tUNION\n\t\n\tSELECT \n\tTIMECARD_WORK_MADCITY_LOCATION\tAS LocationName,\n\t'MADCITY' AS LocationType\n\tFROM  [ODS].[ADP_EMPLOYEE_TIMECARD] \n\tWHERE TIMECARD_WORK_MADCITY_LOCATION IS NOT NULL\n\t\n\tUNION \n\t\n\tSELECT \n\tTIMECARD_WORK_MAXHOME_LOCATION\tAS LocationName,\n\t'MAXHOME' AS LocationType\n\tFROM  [ODS].[ADP_EMPLOYEE_TIMECARD] \n\tWHERE TIMECARD_WORK_MAXHOME_LOCATION IS NOT NULL\n\t\n\t) M1\n\nLEFT JOIN EDW.DIM_HR_EMPLOYEE_LOCATION ME \n\tON M1.LocationName = ME.LocationName\n\tAND ME.DataSource = 'Employee Timecard File'\n\tWHERE ME.LocationName IS NULL ;",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Location_PK",
+									"type": "Int64",
+									"physicalType": "bigint"
+								},
+								"sink": {
+									"name": "Location_PK",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DataSource",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "DataSource",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LocationType",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LocationType",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LocationName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "LocationName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Market",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Market",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "MarketFinancialReporting",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "MarketFinancialReporting",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Acumatica",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Acumatica",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DivisionFinancialReporting",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "DivisionFinancialReporting",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Regions",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Regions",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "RecordCreatedDate",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "RecordCreatedDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "RecordUpdatedDate",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "RecordUpdatedDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_EDW_ADP_EMPLOYEE_TIMECARD",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_DIM_HR_EMPLOYEE_LOCATION",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "cpy_DIM_HR_EMPLOYEE_SUB_LOCATION",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "cpy_DIM_HR_EMPLOYEE_LOCATION_Timecard",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:30:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"sqlReaderQuery": "SELECT  \nCOALESCE((SELECT MAX(SubLocation_PK) FROM EDW.DIM_HR_EMPLOYEE_SUB_LOCATION),3000) + \nROW_NUMBER() OVER (ORDER BY M1.SubLocation DESC) AS SubLocation_PK,\nCASE \n\tWHEN M1.Division = 'E.Home Smart'\t\t\tTHEN 'HSI'\n\tWHEN M1.Division = 'G.Pacific Bath'\t\t\tTHEN 'PBC'\n\tWHEN M1.Division = 'D.Paradise'\t\t\t\tTHEN 'PHI'\n\tWHEN M1.Division = 'C.Mad City'\t\t\t\tTHEN 'MAC'\n\tWHEN M1.Division = '0.Renuity'\t\t\t\tTHEN 'REN'\n\tWHEN M1.Division = 'G.Pacific Gutter'\t\tTHEN 'PBC'\n\tWHEN M1.Division = 'H.Rite Window'\t\t\tTHEN 'RTW'\n\tWHEN M1.Division = 'B.Statewide'\t\t\tTHEN 'SWR'\n\tWHEN M1.Division = 'I.Home Organization'\tTHEN 'CTA'\n\tWHEN M1.Division = 'A.FHIA'\t\t\t\t\tTHEN 'FHI'\n\tWHEN M1.Division = 'F.Max Home'\t\t\t\tTHEN 'MXH'\n\tEND AS Division,\n\tM1.SubLocation AS SubLocation,\n\tM1.PayrollCompanyCode,\n\tM1.PayrollCompanyName,\n\tM1.ACUID,\n\tM1.ACUBranch,\n\tM1.Market,\n\tGETDATE() AS RecordCreatedDate,\n\tGETDATE() AS RecordUpdatedDate\nFROM  \n\t(\n\t\tSELECT * FROM \n\t\t\t(\n\t\t\t\tSELECT ROW_NUMBER() OVER (PARTITION BY SubLocation ORDER BY ReportDate DESC) AS RW,* \n\t\t\t\tFROM ODS.HR_EMPLOYEE_SUB_LOCATION\n\t\t\t\t\t) MX\n\t\t\t\tWHERE RW=1\n\n\t\t\t) M1 \n\t\t\t\nLEFT JOIN [EDW].[DIM_HR_EMPLOYEE_SUB_LOCATION] ME \n\tON M1.SubLocation = ME.SubLocation\n\tWHERE ME.SubLocation IS NULL ;",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "TRUNCATE TABLE  [EDW].[DIM_HR_EMPLOYEE_SUB_LOCATION]",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "SubLocation_PK",
+									"type": "Int64",
+									"physicalType": "bigint"
+								},
+								"sink": {
+									"name": "SubLocation_PK",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SubLocation",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "SubLocation",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PayrollCompanyCode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "PayrollCompanyCode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PayrollCompanyName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "PayrollCompanyName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ACUID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ACUID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ACUBranch",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ACUBranch",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Market",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Market",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "RecordCreatedDate",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "RecordCreatedDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "RecordUpdatedDate",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "RecordUpdatedDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_EDW_ADP_EMPLOYEE_TIMECARD",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_DIM_HR_EMPLOYEE_SUB_LOCATION",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Upd_Email_and Current_RecordFlag",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "cpy_DIM_HR_EMPLOYEE_Timecard_copy1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "UPDATE M1\r\nSET M1.WorkEmail = A.Mail\r\nFROM EDW.DIM_HR_EMPLOYEE M1\r\nJOIN EDW.DIM_AD_USERDETAILS A  ON M1.EmployeeID = A.ADP_ASSOCIATE_ID\r\nLEFT JOIN \r\n\t(\r\n\t\tSELECT adp_associate_id from \r\n\t\t\t(\r\n\t\t\t\tSELECT adp_Associate_Id,COUNT(1) ct \r\n\t\t\t\tFROM EDW.DIM_AD_USERDETAILS\r\n\t\t\t\tGROUP BY adp_Associate_Id\r\n\t\t\t\tHAVING COUNT(1)>1\r\n\t\t\t\t) M1\r\n\t\t) B\r\nON A.adp_associate_id = B.adp_associate_id\r\nWHERE B.adp_Associate_Id IS NULL \r\nAND A.adp_Associate_Id IS NOT NULL \r\nAND (M1.WorkEmail IS NULL OR M1.WorkEmail='')\r\nAND A.Mail NOT IN (SELECT DISTINCT WorkEmail FROM EDW.DIM_HR_EMPLOYEE)\r\n\r\n\r\n\r\n-- UPdate Email = NULL where Duplicate EMail exist Sorted by Position Status\r\n\r\nUPDATE A\r\nSET A.WorkEmail=''\r\nFROM EDW.DIM_HR_EMPLOYEE A \r\nJOIN \r\n\t(\r\n\t\tSELECT ROW_NUMBER() OVER (PARTITION BY WOrkEmail ORDER BY PositionStatus) AS RW,\r\n\t\tWOrkEmail as WE,* FROM EDW.DIM_HR_EMPLOYEE\r\n\t\tWHERE WOrkEmail IN \r\n\t\t(\r\n\t\tSELECT WorkEmail FROM \r\n\t\t(\r\n\t\tSELECT  WorkEmail,Count(DISTINCT EmployeeID) as ct FROM EDW.DIM_HR_EMPLOYEE\r\n\t\tGROUP BY WorkEmail\r\n\t\tHAVING Count(DISTINCT EmployeeID)>1\r\n\t\t) M1\r\n\t\t) AND WorkEmail !=''\r\n\t) B\r\n\r\n\tON A.EmployeeID = B.EmployeeID\r\n\tAND A.WOrkEmail = B.WOrkEmail\r\n\r\nWHERE B.RW > 1;\r\n\r\n\r\n-----------------------------\r\n\r\n\r\n--************ UPDATE CURRENT RECORD FLAG *************\r\n\r\n\r\nUPDATE EDW.DIM_HR_EMPLOYEE SET CurrentRecordFlag = 'N';\r\n\r\n\r\nWITH M1 AS \r\n(\r\nSELECT * FROM \r\n(\r\nSELECT ROW_NUMBER() OVER (PARTITION BY EmployeeID ORDER BY PositionStatus,COALESCE(TerminationDate,'2099-01-01') DESC,StateTaxCode,EEOC_JobClassification) AS RW,\r\n* FROM EDW.DIM_HR_EMPLOYEE\r\n) A\r\nWHERE RW=1\r\n)\r\n\r\n\r\nUPDATE AX \r\nSET AX.CurrentRecordFlag='Y'\r\nFROM EDW.DIM_HR_EMPLOYEE AX \r\nJOIN M1\r\nON AX.Employee_PK = M1.Employee_PK;\r\n\r\n\r\n--********************************\r\n-- UPDATE Employee Termination Date\r\n\r\nUPDATE EDW.DIM_HR_EMPLOYEE \r\nSET TerminationDate = NULL\r\nWHERE TerminationDate ='2099-01-01';"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Upd_EmployeeID_REF_LP",
+				"type": "Script",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Upd_Email_and Current_RecordFlag",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "UPDATE EDW.DIM_HR_EMPLOYEE SET EmployeeID_LP_REF=NULL;\r\n\r\n\r\n--Manual\r\nUPDATE EDW.DIM_HR_EMPLOYEE SET EmployeeID_LP_Ref='MAC-3302' WHERE EmployeeID='EWGSLIJSN';\r\n\r\nUPDATE EDW.DIM_HR_EMPLOYEE SET EmployeeID_LP_REF='SWR-3544' WHERE EmployeeID='WQSQR6QOK';\r\nUPDATE EDW.DIM_HR_EMPLOYEE SET EmployeeID_LP_REF='SWR-7503' WHERE EmployeeID='ALTP0OY5K';\r\nUPDATE EDW.DIM_HR_EMPLOYEE SET EmployeeID_LP_REF='SWR-4917' WHERE EmployeeID='7455D3Y5N';\r\nUPDATE EDW.DIM_HR_EMPLOYEE SET EmployeeID_LP_REF='SWR-4768' WHERE EmployeeID='UJXB9VU82';\r\n\r\n\r\n\r\n-- ***** First Update based on Division and Email *******\r\nUPDATE E1 \r\nSET E1.EmployeeID_LP_REF = M3.EmployeeID\r\nFROM\r\nEDW.DIM_HR_EMPLOYEE E1\r\nJOIN\r\n\r\n(\r\n\r\nSELECT * FROM \r\n\r\n\t(\r\n\t\t\tSELECT \r\n\t\t\tEmail,\r\n\t\t\tDivision,\r\n\t\t\tEmployeeID,\r\n\t\t\tROW_NUMBER() OVER (PARTITION BY Email,Division ORDER BY LP_EmployeeID DESC) AS RW\r\n\t\t\tFROM \r\n\t\t\t(\r\n\t\t\t\t\r\n\t\t\t\tSELECT \r\n\t\t\t\tEmail,\r\n\t\t\t\tDivision,\r\n\t\t\t\tEmployeeID,\r\n\t\t\t\tLP_EmployeeID\r\n\t\t\t\tFROM\r\n\t\t\t\t(\r\n\t\t\t\t\r\n\t\t\t\t\tSELECT \r\n\t\t\t\t\t\tEmail,\r\n\t\t\t\t\t\tDivision,\r\n\t\t\t\t\t\tEmployeeID,\r\n\t\t\t\t\t\tActive,\r\n\t\t\t\t\t\tLP_EmployeeID,\r\n\t\t\t\t\t\tMAX(CAST(Active AS INT)) OVER (PARTITION BY Email) AS Active_Check\r\n\t\t\t\t\tFROM EDW.DIM_EMPLOYEE \r\n\t\t\t\t\tWHERE Email IS NOT NULL\r\n\t\t\t\t\tAND Email NOT LIKE '%inactive%'\r\n\t\t\t\t\tAND Email NOT LIKE '%test%'\r\n\t\t\t\t\t\r\n\t\t\t\t\t) M \r\n\t\t\t\t--WHERE Active = Active_Check\r\n\t\t\t\t\r\n\t\t\t\t) M1\r\n\t\t\t\r\n\t\t\t) M2\r\n\t\t\r\n\tWHERE RW=1\r\n\t) M3\r\n\r\nON E1.WorkEmail = M3.Email\r\nAND E1.Division = M3.Division;\r\n\r\n\r\n\r\n\r\n\r\n--***************** UPDATE PBC LP_EmployeeID after Migration Activity *******************\r\n\r\n\r\nSELECT *\r\nINTO #T_PBC_EMAIL\r\nFROM \r\n(\r\n\t\tSELECT A.*,B.*,\r\n\t\tROW_NUMBER() OVER (PARTITION BY EmployeeID_1 ORDER BY Active DESC,LP_EmployeeID DESC) AS RW\r\n\t\t\r\n\t\tFROM\r\n\t\t(\r\n\t\t\tSELECT DISTINCT EMAIL,LEFT(Email, CHARINDEX('@', Email) - 1) AS Email_1 ,\r\n\t\t\tEmployeeID,\r\n\t\t\tLP_EmployeeID,\r\n\t\t\tActive\r\n\t\t\tFROM EDW.DIM_EMPLOYEE \r\n\t\t\tWHERE DIVISION='PBC' \r\n\t\t\t)A\r\n\t\tJOIN\r\n\t\t(\r\n\t\t\tSELECT DISTINCT WorkEmail,LEFT(WorkEmail, CHARINDEX('@', WorkEmail) - 1) AS Email_12 ,\r\n\t\t\tEmployeeID AS EmployeeID_1\r\n\t\t\tFROM EDW.DIM_HR_EMPLOYEE \r\n\t\t\tWHERE DIVISION='PBC' \r\n\t\t\tAND WorkEmail IS NOT NULL \r\n\t\t\tAND WorkEmail!=''\r\n\t\t) B\r\n\t\tON A.Email_1 = B.Email_12\r\n) M1\r\nWHERE RW=1;\r\n\r\n\r\n\r\nUPDATE E1 \r\nSET E1.EmployeeID_LP_REF = M3.EmployeeID\r\nFROM\r\nEDW.DIM_HR_EMPLOYEE E1\r\nJOIN #T_PBC_EMAIL M3\r\nON E1.EmployeeID = M3.EmployeeID_1;\r\n\r\n\r\n\r\n--************************************Update based on exact FN, like LN\r\n\r\n\r\nUPDATE MX \r\nSET MX.EmployeeID_LP_REF = M1.EmployeeID_To_UPD\r\nFROM\r\nEDW.DIM_HR_EMPLOYEE MX\r\nJOIN\r\n\r\n(\r\n\tSELECT E.EmployeeID , E1.EmployeeID AS EmployeeID_To_UPD FROM EDW.DIM_HR_EMPLOYEE  E\r\n\tJOIN \r\n\t\t(\r\n\t\tSELECT * FROM \r\n\t\t\t\t\t(\r\n\t\t\t\t\tSELECT ROW_NUMBER() OVER (PARTITION BY CONCAT(Ltrim(Rtrim(E.FirstName)),' ',Ltrim(Rtrim(E.LastName))),Division  ORDER BY Active DESC,Email DESC) AS RW, \r\n\t\t\t\t\tFirstname,LastName,CONCAT(Ltrim(Rtrim(E.FirstName)),' ',Ltrim(Rtrim(E.LastName)))as Fullname, EmployeeId, Division, Email, Zip, Active\r\n\t\t\t\t\tFROM EDW.DIM_EMPLOYEE E\r\n\t\t\t\t\t--WHERE Active=1\r\n\t\t\t\t\t) EX\r\n\t\t\tWHERE RW=1\r\n\t\t\t\r\n\t\t\t) E1\r\n\tON \t\tE.Division = E1.Division\r\n\tAND  \tE.Firstname = E1.Firstname \r\n\tAND \t(E.Lastname LIKE '%' + E1.Lastname + '%')\r\n\tWHERE \tE.EmployeeID_LP_REF IS NULL\r\n\t\r\n\t) M1\r\n\r\nON MX.EmployeeID = M1.EmployeeID\r\n\r\nWHERE M1.EmployeeID_To_UPD IS NOT NULL;\r\n\r\n\r\n\r\n--*************************************Update based on exact LN, like FN\r\n\r\n\r\n\r\nUPDATE MX \r\nSET MX.EmployeeID_LP_REF = M1.EmployeeID_To_UPD\r\nFROM\r\nEDW.DIM_HR_EMPLOYEE MX\r\nJOIN\r\n\r\n(\r\n\tSELECT E.EmployeeID , E1.EmployeeID AS EmployeeID_To_UPD FROM EDW.DIM_HR_EMPLOYEE  E\r\n\tJOIN \r\n\t\t(\r\n\t\tSELECT * FROM \r\n\t\t\t\t\t(\r\n\t\t\t\t\tSELECT ROW_NUMBER() OVER (PARTITION BY CONCAT(Ltrim(Rtrim(E.FirstName)),' ',Ltrim(Rtrim(E.LastName))),Division  ORDER BY Active DESC,Email DESC) AS RW, \r\n\t\t\t\t\tFirstname,LastName,CONCAT(Ltrim(Rtrim(E.FirstName)),' ',Ltrim(Rtrim(E.LastName)))as Fullname, EmployeeId, Division, Email, Zip, Active\r\n\t\t\t\t\tFROM EDW.DIM_EMPLOYEE E\r\n\t\t\t\t\t--WHERE Active=1\r\n\t\t\t\t\t) EX\r\n\t\t\tWHERE RW=1\r\n\t\t\t\r\n\t\t\t) E1\r\n\tON \t\tE.Division = E1.Division\r\n\tAND  \tE.Lastname = E1.Lastname \r\n\tAND \t(E.Firstname LIKE '%' + E1.Firstname + '%')\r\n\tWHERE \tE.EmployeeID_LP_REF IS NULL\r\n\t\r\n\t) M1\r\n\r\nON MX.EmployeeID = M1.EmployeeID\r\n\r\nWHERE M1.EmployeeID_To_UPD IS NOT NULL;\r\n\r\n\r\n\r\n\r\n--****************************** By Active Directory Name match\r\n\r\n\r\n\r\n\r\nUPDATE MX \r\nSET MX.EmployeeID_LP_REF = M1.EmployeeID_To_UPD\r\nFROM\r\nEDW.DIM_HR_EMPLOYEE MX\r\nJOIN\r\n\r\n\t(\r\n\r\n\t\tSELECT \r\n\t\tE1.EmployeeID,\r\n\t\tE2.EmployeeID AS EmployeeID_To_UPD\r\n\t\tFROM \r\n\t\t\r\n\t\t(\r\n\t\t\tSELECT \r\n\t\t\t\tE.Division,\r\n\t\t\t\tE.EmployeeID,\r\n\t\t\t\tE.FirstName,\r\n\t\t\t\tE.LastName,\r\n\t\t\t\tCHARINDEX(' ', UD.FullName) AS SpacePosition,\r\n\t\t\t\tCASE \r\n\t\t\t\t\tWHEN CHARINDEX(' ', UD.FullName) > 0 \r\n\t\t\t\t\tTHEN SUBSTRING(UD.FullName, 1, CHARINDEX(' ', UD.FullName) - 1)\r\n\t\t\t\t\tELSE UD.FullName \r\n\t\t\t\tEND AS UD_FirstName,\r\n\t\t\t\tCASE \r\n\t\t\t\t\tWHEN CHARINDEX(' ', UD.FullName) > 0 \r\n\t\t\t\t\tTHEN SUBSTRING(UD.FullName, CHARINDEX(' ', UD.FullName) + 1, LEN(UD.FullName))\r\n\t\t\t\t\tELSE ''\r\n\t\t\t\tEND AS UD_LastName\r\n\t\t\tFROM EDW.DIM_HR_EMPLOYEE E\r\n\t\t\tJOIN EDW.DIM_AD_UserDetails UD ON E.EmployeeID = UD.adp_Associate_Id\r\n\t\t\tWHERE E.EmployeeID_LP_REF IS NULL\r\n\t\t\t\r\n\t\t\t) E1\r\n\t\t\t\r\n\t\t\tJOIN \r\n\t\t\t\t(\r\n\t\t\t\tSELECT * FROM \r\n\t\t\t\t\t\t\t(\r\n\t\t\t\t\t\t\tSELECT ROW_NUMBER() OVER (PARTITION BY CONCAT(Ltrim(Rtrim(E.FirstName)),' ',Ltrim(Rtrim(E.LastName))),Division  ORDER BY Active DESC,Email DESC) AS RW, \r\n\t\t\t\t\t\t\tFirstname,LastName,CONCAT(Ltrim(Rtrim(E.FirstName)),' ',Ltrim(Rtrim(E.LastName)))as Fullname, EmployeeId, Division, Email, Zip, Active\r\n\t\t\t\t\t\t\tFROM EDW.DIM_EMPLOYEE E\r\n\t\t\t\t\t\t\t--WHERE Active=1\r\n\t\t\t\t\t\t\t) EX\r\n\t\t\t\t\tWHERE RW=1\r\n\t\t\t\t\t\r\n\t\t\t\t\t) E2\r\n\t\t\t\r\n\t\t\tON \t\tE1.Division = E2.Division\r\n\t\t\tAND  \tE1.UD_LastName = E2.LastName\r\n\t\t\tAND \t(E1.UD_FirstName LIKE '%' + E2.FirstName + '%')\r\n\t\t\t\r\n\t\t\t\r\n\t\t\t)  M1 \r\n\r\nON MX.EmployeeID = M1.EmployeeID\r\n\r\nWHERE M1.EmployeeID_To_UPD IS NOT NULL;\r\n\r\n\r\n--************************ By Active Directory Name match\r\n\r\n\r\n\r\n\r\n\r\n\r\nUPDATE MX \r\nSET MX.EmployeeID_LP_REF = M1.EmployeeID_To_UPD\r\nFROM\r\nEDW.DIM_HR_EMPLOYEE MX\r\nJOIN\r\n\r\n\t(\r\n\r\n\t\tSELECT \r\n\t\tE1.EmployeeID,\r\n\t\tE2.EmployeeID AS EmployeeID_To_UPD\r\n\t\tFROM \r\n\t\t\r\n\t\t(\r\n\t\t\tSELECT \r\n\t\t\t\tE.Division,\r\n\t\t\t\tE.EmployeeID,\r\n\t\t\t\tE.FirstName,\r\n\t\t\t\tE.LastName,\r\n\t\t\t\tCHARINDEX(' ', UD.FullName) AS SpacePosition,\r\n\t\t\t\tCASE \r\n\t\t\t\t\tWHEN CHARINDEX(' ', UD.FullName) > 0 \r\n\t\t\t\t\tTHEN SUBSTRING(UD.FullName, 1, CHARINDEX(' ', UD.FullName) - 1)\r\n\t\t\t\t\tELSE UD.FullName \r\n\t\t\t\tEND AS UD_FirstName,\r\n\t\t\t\tCASE \r\n\t\t\t\t\tWHEN CHARINDEX(' ', UD.FullName) > 0 \r\n\t\t\t\t\tTHEN SUBSTRING(UD.FullName, CHARINDEX(' ', UD.FullName) + 1, LEN(UD.FullName))\r\n\t\t\t\t\tELSE ''\r\n\t\t\t\tEND AS UD_LastName\r\n\t\t\tFROM EDW.DIM_HR_EMPLOYEE E\r\n\t\t\tJOIN EDW.DIM_AD_UserDetails UD ON E.EmployeeID = UD.adp_Associate_Id\r\n\t\t\tWHERE E.EmployeeID_LP_REF IS NULL\r\n\t\t\t\r\n\t\t\t) E1\r\n\t\t\t\r\n\t\t\tJOIN \r\n\t\t\t\t(\r\n\t\t\t\tSELECT * FROM \r\n\t\t\t\t\t\t\t(\r\n\t\t\t\t\t\t\tSELECT ROW_NUMBER() OVER (PARTITION BY CONCAT(Ltrim(Rtrim(E.FirstName)),' ',Ltrim(Rtrim(E.LastName))),Division  ORDER BY Active DESC,Email DESC) AS RW, \r\n\t\t\t\t\t\t\tFirstname,LastName,CONCAT(Ltrim(Rtrim(E.FirstName)),' ',Ltrim(Rtrim(E.LastName)))as Fullname, EmployeeId, Division, Email, Zip, Active\r\n\t\t\t\t\t\t\tFROM EDW.DIM_EMPLOYEE E\r\n\t\t\t\t\t\t\t--WHERE Active=1\r\n\t\t\t\t\t\t\t) EX\r\n\t\t\t\t\tWHERE RW=1\r\n\t\t\t\t\t\r\n\t\t\t\t\t) E2\r\n\t\t\t\r\n\t\t\tON \t\tE1.Division = E2.Division\r\n\t\t\tAND  \tE1.UD_FirstName = E2.FirstName\r\n\t\t\tAND \t(E1.UD_LastName LIKE '%' + E2.LastName + '%')\r\n\t\t\t\r\n\t\t\t\r\n\t\t\t)  M1 \r\n\r\nON MX.EmployeeID = M1.EmployeeID\r\n\r\nWHERE M1.EmployeeID_To_UPD IS NOT NULL;\r\n\r\n\r\n--************************ By address and firstname\r\n\r\n\r\nWith ADP as \r\n\t(Select Division,EmployeeId, FirstName, Lastname, WorkEmail, AddressLine1, City, County, Zip, Homephone ,TerritoryCode, PositionStatus , CurrentRecordFlag \r\n\t from EDW.DIM_HR_employee where EmployeeID_LP_Ref is null \r\n\t), \r\nFinal as (\r\n\tSelect A.*, E.EmployeeId as LPID\r\n\t--Select A.*, E.EmployeeId, E.Address, E.city, E.state, E.Zip, E.Homephone, E.CellPhone, E.Firstname, E.lastname, E.Email\r\n\tfrom ADP A left join EDW.DIM_employee E on A.Division=E.Division and A.AddressLine1=E.Address and A.Zip=E.Zip and A.Firstname like '%' + E.Firstname + '%'\r\n\twhere E.Division is not null \r\n\t) \r\n--Select T1.EmployeeId, T2.* \r\nUpdate T1 Set EmployeeId_LP_Ref =T2.LPID\r\nfrom EDW.DIM_HR_Employee T1 join Final T2 on T1.EmployeeId=T2.EmployeeId and T1.CurrentRecordFlag=T2.CurrentRecordFlag;\r\n--Order by T1.EmployeeId\r\n\r\n\r\n\r\n\r\n--************************ By address and last name\r\n\r\nWith ADP as \r\n\t( Select Division,EmployeeId, FirstName, Lastname, WorkEmail, AddressLine1, City,County, Zip, Homephone ,TerritoryCode, PositionStatus , CurrentRecordFlag from EDW.DIM_HR_employee where EmployeeID_LP_Ref is null --and EmployeeId='00RND908M'\r\n\t),\r\nFinal as (\r\n\tSelect A.*, E.EmployeeId as LPID\r\n\t--E.EmployeeId, E.Address, E.city, E.state, E.Zip,  E.Homephone, E.CellPhone,E.Firstname, E.lastname, E.Email\r\n\tfrom ADP A left join EDW.DIM_employee E on A.Division=E.Division and A.AddressLine1=E.Address and A.Zip=E.Zip and A.Lastname like '%' + E.Lastname + '%' \r\n\t\t\t\t\t\t\t\t\t\t and Replace(Replace(Replace(Replace(Replace(A.Homephone,'+1',''),'(',''),')',''),'-',''),' ','')= Replace(Replace(Replace(Replace(Replace(E.CellPhone,'+1',''),'(',''),')',''),'-',''),' ','')\r\n\twhere E.Division is not null \r\n\t)\r\nUpdate T1 Set EmployeeId_LP_Ref =T2.LPID\r\nfrom EDW.DIM_HR_Employee T1 join Final T2 on T1.EmployeeId=T2.EmployeeId and T1.CurrentRecordFlag=T2.CurrentRecordFlag;\r\n--Order by A.EmployeeId\r\n\r\n\r\n--********************** like FN, LN and address\r\n\r\nUPDATE MX \r\nSET MX.EmployeeID_LP_REF = M1.EmployeeID_To_UPD\r\nFROM\r\nEDW.DIM_HR_EMPLOYEE MX\r\nJOIN\r\n\r\n(\r\n\tSELECT E.EmployeeID ,  E1.EmployeeID AS EmployeeID_To_UPD\r\n\t--SELECT E.EmployeeID , E.FirstName, E.LastName,E.AddressLine1, E1.EmployeeID AS EmployeeID_To_UPD\t,E1.FirstName, E1.LastName, E1.Address\r\n\tFROM EDW.DIM_HR_EMPLOYEE  E\r\n\t JOIN \r\n\t\t(\r\n\t\tSELECT * FROM \r\n\t\t\t\t\t(\r\n\t\t\t\t\tSELECT ROW_NUMBER() OVER (PARTITION BY CONCAT(Ltrim(Rtrim(E.FirstName)),' ',Ltrim(Rtrim(E.LastName))),Division  ORDER BY Active DESC,Email DESC) AS RW, \r\n\t\t\t\t\tFirstname,LastName,CONCAT(Ltrim(Rtrim(E.FirstName)),' ',Ltrim(Rtrim(E.LastName)))as Fullname, EmployeeId, Division, Email, Zip, Active, Address\r\n\t\t\t\t\tFROM EDW.DIM_EMPLOYEE E\r\n\t\t\t\t\t--WHERE Active=1\r\n\t\t\t\t\t) EX\r\n\t\t\tWHERE RW=1\r\n\t\t\t\r\n\t\t\t) E1\r\n\tON \t\tE.Division = E1.Division\r\n\tAND  \t(E.Firstname LIKE '%' + E1.Firstname + '%') \r\n\tAND \t(E.Lastname LIKE '%' + E1.Lastname + '%')\r\n\tand   Left(Replace(E.AddressLine1,' ',''),3)= Left(Replace(E1.Address,' ',''), 3)\r\n\tWHERE \tE.EmployeeID_LP_REF IS NULL\r\n\t\r\n\t) M1\r\n\r\nON MX.EmployeeID = M1.EmployeeID\r\n\r\nWHERE M1.EmployeeID_To_UPD IS NOT NULL;\r\n\r\n\r\n-- ***** Second Update based on Email for pending ones without Division match *******\r\n\r\n\r\nUPDATE E1 \r\nSET E1.EmployeeID_LP_REF = M3.EmployeeID\r\nFROM\r\nEDW.DIM_HR_EMPLOYEE E1\r\nJOIN\r\n\r\n(\r\n\r\nSELECT * FROM \r\n\r\n\t(\r\n\t\t\tSELECT \r\n\t\t\tEmail,\r\n\t\t\tDivision,\r\n\t\t\tEmployeeID,\r\n\t\t\tROW_NUMBER() OVER (PARTITION BY Email,Division ORDER BY LP_EmployeeID DESC) AS RW\r\n\t\t\tFROM \r\n\t\t\t(\r\n\t\t\t\t\r\n\t\t\t\tSELECT \r\n\t\t\t\tEmail,\r\n\t\t\t\tDivision,\r\n\t\t\t\tEmployeeID,\r\n\t\t\t\tLP_EmployeeID\r\n\t\t\t\tFROM\r\n\t\t\t\t(\r\n\t\t\t\t\r\n\t\t\t\t\tSELECT \r\n\t\t\t\t\t\tEmail,\r\n\t\t\t\t\t\tDivision,\r\n\t\t\t\t\t\tEmployeeID,\r\n\t\t\t\t\t\tActive,\r\n\t\t\t\t\t\tLP_EmployeeID,\r\n\t\t\t\t\t\tMAX(CAST(Active AS INT)) OVER (PARTITION BY Email) AS Active_Check\r\n\t\t\t\t\tFROM EDW.DIM_EMPLOYEE \r\n\t\t\t\t\tWHERE Email IS NOT NULL\r\n\t\t\t\t\tAND Email NOT LIKE '%inactive%'\r\n\t\t\t\t\tAND Email NOT LIKE '%test%'\r\n\t\t\t\t\t\r\n\t\t\t\t\t) M \r\n\t\t\t\t--WHERE Active = Active_Check\r\n\t\t\t\t\r\n\t\t\t\t) M1\r\n\t\t\t\r\n\t\t\t) M2\r\n\t\t\r\n\tWHERE RW=1\r\n\t) M3\r\n\r\nON E1.WorkEmail = M3.Email\r\n\r\nWHERE E1.EmployeeID_LP_REF IS NULL;\r\n"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "UPD_Division",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Upd_EmployeeID_REF_LP",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Upd_EmployeeID_REF_LP_v1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "-- Priority 2 From Email\n\nUPDATE A \nSET A.Division = B.Div_NEW\nFROM EDW.DIM_HR_EMPLOYEE A \nJOIN\n(\nSELECT EmployeeID,\nCASE \n\tWHEN WorkEMail_Domain LIKE '%closetamerica%'\t\tTHEN 'CTA'\n\tWHEN WorkEMail_Domain LIKE '%madcitywindows%'\t\tTHEN 'MAC'\n\tWHEN WorkEMail_Domain LIKE '%homesmartind%'\t\t\tTHEN 'HSI'\n\tWHEN WorkEMail_Domain LIKE '%paradisehomeimprove%' \tTHEN 'PHI'\n\tWHEN WorkEMail_Domain LIKE '%paradisehomepro%'\t\tTHEN 'PHI'\n\tWHEN WorkEMail_Domain LIKE '%ritewindow%'\t\t\tTHEN 'RTW'\n\tWHEN WorkEMail_Domain LIKE '%pacificbath%'\t\t\tTHEN 'PBC'\n\tWHEN WorkEMail_Domain LIKE '%renuityhome%'\t\t\tTHEN 'REN'\n\tWHEN WorkEMail_Domain LIKE '%fhiaremodeling%'\t\tTHEN 'FHI'\n\tWHEN WorkEMail_Domain LIKE '%maxhomenow%'\t\t\tTHEN 'FHI'\n\tWHEN WorkEMail_Domain LIKE '%statewideremodeling%' \tTHEN 'SWR'\n\tWHEN WorkEMail_Domain LIKE '%homeforeverbaths%'\t\tTHEN 'PBC'\n\tWHEN WorkEMail_Domain LIKE '%titanhomeimprovement%'\tTHEN 'REN'\n\tEND AS Div_NEW\nFROM\n(\n\tSELECT \n    EmployeeID,\n\tCASE \n\tWHEN WorkEMail IS NULL OR LTRIM(RTRIM(WorkEMail)) = '' THEN NULL\n\tWHEN CHARINDEX('@', WorkEMail) > 0 AND CHARINDEX('.', WorkEMail, CHARINDEX('@', WorkEMail)) > 0 THEN\n    LEFT(\n      SUBSTRING(WorkEMail, CHARINDEX('@', WorkEMail) + 1, LEN(WorkEMail)),\n      CHARINDEX('.', SUBSTRING(WorkEMail, CHARINDEX('@', WorkEMail) + 1, LEN(WorkEMail))) - 1\n    )\n\tELSE NULL\n\tEND AS WorkEMail_Domain,\n\t \n\t DIvision\n\tFROM EDW.DIM_HR_EMPLOYEE\n) M1\n\n) B \n\nON A.EmployeeID = B.EmployeeID\nWHERE Div_NEW IS NOT NULL\nAND A.Division IS NULL;\n\n\n--Priority3 From Location\nUPDATE A \nSET A.Division = B.Division\nFROM EDW.DIM_HR_EMPLOYEE A \nJOIN [EDW].[DIM_HR_EMPLOYEE_LOCATION] B \nON A.Location_PK = B.Location_PK\nWHERE B.Division IS NOT NULL\nAND A.Division IS NULL;\n\n\n\n--************************************** OVERRIDE ALL DIVISION by GIVING Highest Priority to BusinessUnitDescription ***********************************\n\nUPDATE A\nSET A.Division = B.Division\nFROM EDW.DIM_HR_EMPLOYEE A\nJOIN\n(\n\tSELECT DISTINCT EmployeeID,BusinessUnitDescription,\n\tCASE \n\t\tWHEN BusinessUnitDescription LIKE '%FHIA%'\t\t\t\tOR BusinessUnitDescription LIKE '%Florida%'\t\tTHEN 'FHI'\n\t\tWHEN BusinessUnitDescription LIKE '%Closet America%'\tOR BusinessUnitDescription LIKE '%HomeBase%'\tTHEN 'CTA'\n\t\tWHEN BusinessUnitDescription LIKE '%HomeSmart%'\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tTHEN 'RTW'\n\t\tWHEN BusinessUnitDescription LIKE '%Mad City%'\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tTHEN 'MAC'\n\t\tWHEN BusinessUnitDescription LIKE '%Max Home%'\tOR BusinessUnitDescription LIKE '%East Division%'\t\tTHEN 'FHI'\n\t\tWHEN BusinessUnitDescription LIKE '%Rite Window%'\t\t\t\t\t\t\t\t\t\t\t\t\t\tTHEN 'RTW'\n\t\tWHEN BusinessUnitDescription LIKE '%Statewide Remodeling%'\t\t\t\t\t\t\t\t\t\t\t\tTHEN 'SWR'\n\t\tWHEN BusinessUnitDescription LIKE '%West Division%'\t\t\t\t\t\t\t\t\t\t\t\t\t\tTHEN 'PBC'\n\t\tWHEN BusinessUnitDescription LIKE '%Charlotte%'\t\t\tOR BusinessUnitDescription LIKE '%Remote%'\t\tTHEN 'REN'\n\t\tELSE 'NA' END AS Division\n\tFROM EDW.DIM_HR_EMPLOYEE\n\t) B\nON A.EmployeeID = B.EmployeeID\nAND A.BusinessUnitDescription = B.BusinessUnitDescription\nWHERE B.Division !='NA';\n\n\n\n\nUPDATE EDW.DIM_HR_EMPLOYEE SET Division='CTA' WHERE Division='PHI';\nUPDATE EDW.DIM_HR_EMPLOYEE SET Division='RTW' WHERE Division='HSI';\nUPDATE EDW.DIM_HR_EMPLOYEE SET Division='FHI' WHERE Division='MXH';"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "INS_EMPLOYEE_LOCATION",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "cpy_DIM_HR_EMPLOYEE_Timecard_copy1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "INSERT INTO EDW.DIM_HR_EMPLOYEE_LOCATION \r\n(Location_PK,\r\nDivision,\r\nDataSource,\r\nLocationType,\r\nLocationName,\r\nRecordCreatedDate,\r\nRecordUpdatedDate)\r\n\r\n--*\r\nSELECT \r\nRW + ( SELECT MAX(Location_PK) FROM EDW.DIM_HR_EMPLOYEE_LOCATION ) AS Location_PK,\r\n--Division,\r\nCASE \r\n\t\t\t\tWHEN Division IN ('FHIA','Renuity - Florida')\t\t\t\t\tTHEN 'FHI'\r\n\t\t\t\tWHEN Division IN ('Closet America','Paradise Home Improvement','Renuity Home Base')\tTHEN 'CTA'\r\n\t\t\t\tWHEN Division='MaxHome'\t\t\t\t\t\t\t\t\t\t\tTHEN 'MXH'\r\n\t\t\t\tWHEN Division='Statewide Remodeling'\t\t\t\t\t\t\tTHEN 'SWR'\r\n\t\t\t\tWHEN Division IN ('Rite Window','Home Smart')\t\t\t\t\tTHEN 'RTW'\r\n\t\t\t\tWHEN Division='Pacific Bath' OR Division LIKE '%WEST%'\t\t\tTHEN 'PBC'\r\n\t\t\t\tWHEN Division='Mad City'\t\t\t\t\t\t\t\t\t\tTHEN 'MAC'\r\n\t\t\t\tWHEN Division IN ('Renuity-Remote','Renuity-Charlotte',\t'Renuity Call Center')\tTHEN 'REN'\r\n\t\t\t\tELSE NULL END AS Division_Mod,\r\n'Employee HeadCount Data' AS Division,\r\n\r\n'NA' AS LocationType,\r\nLocationDescription AS LocationName,\r\nCAST(GETDATE() AS DATE) AS RecordCreatedDate,\r\nCAST(GETDATE() AS DATE) AS RecordUpdatedDate\r\nFROM\r\n(\r\n\tSELECT \r\n\tROW_NUMBER() OVER (ORDER BY LocationDescription)  AS RW,\r\n\tDivision,\r\n\tLocationDescription\r\n\tFROM \r\n\t(\r\n\tSELECT DISTINCT A.Division,A.LocationDescription FROM [ODS].[ADP_EMPLOYEE_HEADCOUNT]  A \r\n\tLEFT JOIN EDW.DIM_HR_EMPLOYEE_LOCATION B \r\n\tON A.LocationDescription = B.LocationName\r\n\tWHERE B.LocationName IS NULL\r\n\tAND A.LocationDescription IS NOT NULL AND A.LocationDescription !=''\r\n\t) M1\r\n) M2;"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "DEL_EMPLOYEES",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "cpy_DIM_HR_EMPLOYEE_SUB_LOCATION",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "-- Step 1: Create a temp table to store unmatched EmployeeIDs\n\nIF OBJECT_ID('tempdb..#UnmatchedEmployees') IS NOT NULL\n    DROP TABLE #UnmatchedEmployees;\n\nSELECT EmployeeID\nINTO #UnmatchedEmployees\nFROM EDW.DIM_HR_EMPLOYEE WHERE Data_Identifier='HEADCOUNT'\n\nEXCEPT\n\nSELECT AssociateID\nFROM ODS.ADP_EMPLOYEE_HEADCOUNT;\n\n-- Step 2: Check count and delete if < 20\nIF (SELECT COUNT(*) FROM #UnmatchedEmployees) < 20\nBEGIN\n    DELETE A\n    FROM EDW.DIM_HR_EMPLOYEE A\n    JOIN #UnmatchedEmployees B\n      ON A.EmployeeID = B.EmployeeID;\nEND\n\n\n\n--****************************************\n\n-- Delete Employees from Timecard Employee to process from Headcount file\n\nSELECT \nEmployeeID\nINTO #UnmatchedEmployees_TIMECARD\nFROM EDW.DIM_HR_EMPLOYEE A \nJOIN  ODS.ADP_EMPLOYEE_HEADCOUNT B \nON A.EmployeeID = B.AssociateID\nWHERE Data_Identifier='TIMECARD';\n\n\n\nDELETE A\n    FROM EDW.DIM_HR_EMPLOYEE A\n    JOIN #UnmatchedEmployees_TIMECARD B\n      ON A.EmployeeID = B.EmployeeID;\n\n\n\n-- *****************************************\n\n\nUPDATE EDW.DIM_HR_EMPLOYEE \nSET TerminationDate = '2099-01-01'\nWHERE TerminationDate IS NULL OR TerminationDate='';\n\n\nUPDATE EDW.DIM_HR_EMPLOYEE \nSet CurrentRecordFlag='N';"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "UPD_WBR_Columns",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "TEMP_DIV_UPD_TIMECARD",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "\nSELECT * INTO #T_SRC FROM \n\t(\n\tSELECT DISTINCT\n\tAssociateID\n\t,PositionStatus\n    ,CASE WHEN TerminationDate IS NULL OR TerminationDate='' THEN NULL ELSE CONVERT(varchar(10), TRY_CONVERT(date, TerminationDate, 101), 23) END AS TerminationDate\n\t,LocationDesc\n\t,SubLocation\n\t,Recruiter\n\t,Race_Desc\n\t,WorkerCategoryDesc\n\t,City\n\t,State\n\t,PositionID\n\t,CONVERT(varchar(10), TRY_CONVERT(date,Hire_Rehire_Date, 101), 23) AS Hire_Rehire_Date\n\t,CONVERT(varchar(10), TRY_CONVERT(date, BirthDate, 101), 23) AS BirthDate\n\n\t,CONVERT(varchar(10), TRY_CONVERT(date,RehireDate, 101), 23) AS RehireDate\n\t,EmployeeEligibleForRehire  \t\t\t\n\t,Rehire_EligibilityComments  \n\t,Rehire_ReasonDescription\t\n\t,PersonalEmail\n\t,WorkEmail\n\t,YearsOfService\n\n\t,ROW_NUMBER() OVER (PARTITION BY AssociateID,PositionStatus,COALESCE(TerminationDate,'2099-01-01') ORDER BY WorkerCategoryDesc DESC) AS RW\n\tFROM ODS.ADP_EMPLOYEE_WBR\n\t\t) MX\n\tWHERE RW=1;\n\t\n\n\n--*****************************\n\n\n\nUPDATE TGT\nSET \nTGT.LocationDesc        =  CASE WHEN TGT.LocationDesc IS NULL OR TGT.LocationDesc='' THEN SRC.LocationDesc ELSE TGT.LocationDesc END        ,\nTGT.SubLocation         =  CASE WHEN TGT.SubLocation  IS NULL OR TGT.SubLocation ='' THEN SRC.SubLocation  ELSE TGT.SubLocation  END        ,\nTGT.Recruiter           =  SRC.Recruiter             ,\nTGT.Race                =  SRC.Race_Desc             ,\nTGT.WorkerCategoryDesc  =  SRC.WorkerCategoryDesc    ,\nTGT.City                =  SRC.City                  ,\nTGT.State               =  SRC.State                 ,\nTGT.PositionID          =  SRC.PositionID            ,\nTGT.Hire_Rehire_Date    =  SRC.Hire_Rehire_Date      ,\nTGT.BirthDate           =  SRC.BirthDate\t\t\t,\t \nTGT.RehireDate\t\t\t=  SRC.RehireDate\t\t\t ,\nTGT.EmployeeEligibleForRehire  =  SRC.EmployeeEligibleForRehire,\nTGT.Rehire_EligibilityComments =  SRC.Rehire_EligibilityComments,\nTGT.Rehire_ReasonDescription  =   SRC.Rehire_ReasonDescription,\nTGT.PersonalEmail              =  SRC.PersonalEmail\nFROM\nEDW.DIM_HR_EMPLOYEE TGT\nJOIN #T_SRC  SRC\nON TGT.EmployeeID      = SRC.AssociateID\nAND TGT.PositionStatus  = SRC.PositionStatus\nAND COALESCE(TGT.TerminationDate,'2099-01-01') = COALESCE(SRC.TerminationDate,'2099-01-01');\n\n\n\n--*****************************\n\n\n\nUPDATE TGT\nSET \nTGT.BirthDate           =  SRC.BirthDate\nFROM\nEDW.DIM_HR_EMPLOYEE TGT\nJOIN (SELECT DISTINCT AssociateID,BirthDate FROM #T_SRC ) SRC\nON TGT.EmployeeID      = SRC.AssociateID\nWHERE TGT.BirthDate ='1900-01-01';\n\n\n--*****************************\n\n\nUPDATE TGT\nSET \nTGT.Hire_Rehire_Date    =  SRC.Hire_Rehire_Date      \nFROM\nEDW.DIM_HR_EMPLOYEE TGT\nJOIN (SELECT DISTINCT AssociateID,Hire_Rehire_Date FROM #T_SRC ) SRC\nON TGT.EmployeeID      = SRC.AssociateID\nWHERE TGT.Hire_Rehire_Date ='1900-01-01';\n\n\n\n--*******************************\n\n\nUPDATE TGT\nSET \nTGT.WorkEmail    =  SRC.WorkEmail      \nFROM\nEDW.DIM_HR_EMPLOYEE TGT\nJOIN (SELECT DISTINCT AssociateID,WorkEmail FROM #T_SRC ) SRC\nON TGT.EmployeeID      = SRC.AssociateID\nWHERE TGT.WorkEmail IS NULL\n\n\n--*************************\n\n\nUPDATE EDW.DIM_HR_EMPLOYEE SET RehireDate='1900-01-01' \t\t\tWHERE RehireDate IS NULL;\nUPDATE EDW.DIM_HR_EMPLOYEE SET EmployeeEligibleForRehire='' \tWHERE EmployeeEligibleForRehire IS NULL;\nUPDATE EDW.DIM_HR_EMPLOYEE SET Rehire_EligibilityComments='' \tWHERE Rehire_EligibilityComments IS NULL;\nUPDATE EDW.DIM_HR_EMPLOYEE SET Rehire_ReasonDescription='' \t\tWHERE Rehire_ReasonDescription IS NULL;\nUPDATE EDW.DIM_HR_EMPLOYEE SET PersonalEmail='' \t\t\t\tWHERE PersonalEmail IS NULL;"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "TEMP_DIV_UPD_TIMECARD",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "UPD_Division",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "-- Override Division from Timecard\n\nUPDATE M2 \nSET M2.Division = M1.Division\nFROM EDW.DIM_HR_EMPLOYEE M2\nJOIN\n(\n\tSELECT EmployeeID,Division FROM\n\t(\n\tSELECT EmployeeID,Division,ROW_NUMBER() OVER (PARTITION BY EmployeeID ORDER BY PayDate DESC) AS RW\n\tFROM EDW.FACT_HR_EMPLOYEE_TIMECARD\n\tWHERE Division IS NOT NULL \n\tAND Division NOT IN ('NA','REN')\n\t) A\n\tWHERE RW=1\n\t) M1\n\nON  M2.EmployeeID = M1.EmployeeID\nWHERE M1.Division!=M2.Division;\n\n\n\n--***************************************\n\n\nUPDATE EDW.DIM_HR_EMPLOYEE \nSET Division = CASE \n\t\t\t\t\tWHEN PayrollCompanyName LIKE '%STATEWIDE%'\t\t\t\t\t\t\t\t\t\t\t\tTHEN 'SWR'\n\t\t\t\t\tWHEN PayrollCompanyName LIKE '%FHI%' OR PayrollCompanyName LIKE '%MAX HOME%'\t\t\tTHEN 'FHI'\n\t\t\t\t\tWHEN PayrollCompanyName LIKE '%Rite Window%'\t\t\t\t\t\t\t\t\t\t\tTHEN 'RTW'\n\t\t\t\t\tWHEN PayrollCompanyName LIKE '%Rite Window%' OR PayrollCompanyName LIKE '%HOMESMART%'\tTHEN 'RTW'\n\t\t\t\t\tWHEN PayrollCompanyName LIKE '%Renuity Operation%'\t\t\t\t\t\t\t\t\t\tTHEN 'REN'\n\t\t\t\t\tELSE Division END\n\t\t\t\t\t\nWHERE Division IS NULL;\n\n\n--***************************************\n\nUPDATE EDW.DIM_HR_EMPLOYEE SET Division='CTA' WHERE Division='PHI';\nUPDATE EDW.DIM_HR_EMPLOYEE SET Division='RTW' WHERE Division='HSI';\nUPDATE EDW.DIM_HR_EMPLOYEE SET Division='FHI' WHERE Division='MXH';\n\nUPDATE EDW.DIM_HR_EMPLOYEE SET Division='NA' WHERE Division IS NULL;\n"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "EDW_DIM_HR_EMPLOYEE_copy1",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "DEL_EMPLOYEES",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "--#####################################################################\r\n--#################### TEMP TABLES STARTS HERE  #######################\r\n--#####################################################################\r\n\r\nSELECT *,\r\n\tCASE WHEN TerminationDate IS NULL OR TerminationDate ='' THEN '2099-01-01' ELSE  FORMAT(CAST(TerminationDate AS DATE), 'yyyy-MM-dd') END AS TerminationDate_ORD,\t\r\n\tCASE \r\n\t\tWHEN Division IN ('FHIA','Renuity - Florida')\t\t\t\t\tTHEN 'FHI'\r\n\t\tWHEN Division IN ('Closet America','Paradise Home Improvement','Renuity Home Base')\tTHEN 'CTA'\r\n\t\tWHEN Division='MaxHome'\t\t\t\t\t\t\t\t\t\t\tTHEN 'MXH'\r\n\t\tWHEN Division='Statewide Remodeling'\t\t\t\t\t\t\tTHEN 'SWR'\r\n\t\tWHEN Division IN ('Rite Window','Home Smart')\t\t\t\t\tTHEN 'RTW'\r\n\t\tWHEN Division='Pacific Bath' OR Division LIKE '%WEST%'\t\t\tTHEN 'PBC'\r\n\t\tWHEN Division='Mad City'\t\t\t\t\t\t\t\t\t\tTHEN 'MAC'\r\n\t\tWHEN Division IN ('Renuity-Remote','Renuity-Charlotte',\t'Renuity Call Center')\tTHEN 'REN'\r\n\t\tELSE NULL END  AS Division_Mod\r\n\tINTO #T_EMPLOYEE_HEADCOUNT_1\r\n\tFROM ODS.ADP_EMPLOYEE_HEADCOUNT\r\n\t\r\n\t--***********************\r\n\t\r\n\t\r\n\tSELECT * \r\n\tINTO #T_TIMECARD_1\r\n\t\tFROM \r\n\t\t(\r\n\t\t\tSELECT  \r\n\t\t\tASSOCIATE_ID,\r\n\t\t\tWORK_CONTACT_WORK_EMAIL,\r\n\t\t\tROW_NUMBER() OVER (PARTITION BY ASSOCIATE_ID ORDER BY InsertedDate DESC) AS RW_1\r\n\t\t\tFROM [ODS].[ADP_EMPLOYEE_TIMECARD]\r\n\t\t\tWHERE WORK_CONTACT_WORK_EMAIL IS NOT NULL\r\n\t\t) M1 \r\n\t\tWHERE RW_1=1 \r\n\t\t\r\n\t--**********************\r\n\t\r\n\t\r\n\t\tSELECT * \r\n\t\tINTO #T_TIMECARD_2\r\n\t\tFROM \r\n\t\t(\r\n\t\t\tSELECT  \r\n\t\t\tASSOCIATE_ID,\r\n\t\t\tPAY_CLASS,\r\n\t\t\tROW_NUMBER() OVER (PARTITION BY ASSOCIATE_ID ORDER BY InsertedDate DESC) AS RW_1\r\n\t\t\tFROM [ODS].[ADP_EMPLOYEE_TIMECARD]\r\n\t\t\tWHERE PAY_CLASS IS NOT NULL\r\n\t\t) M1 \r\n\t\tWHERE RW_1=1 \r\n\t\t\r\n\t\t\r\n\t--**********************\r\n\t\t\r\n\t\tSELECT * \r\n\t\tINTO #T_TIMECARD_3\r\n\t\tFROM \r\n\t\t(\r\n\t\t\tSELECT  \r\n\t\t\tASSOCIATE_ID,\r\n\t\t\tPAY_CLASS_TIMECLOCK_RESTRICTION_GROUP,\r\n\t\t\tROW_NUMBER() OVER (PARTITION BY ASSOCIATE_ID ORDER BY InsertedDate DESC) AS RW_1\r\n\t\t\tFROM [ODS].[ADP_EMPLOYEE_TIMECARD]\r\n\t\t\tWHERE PAY_CLASS_TIMECLOCK_RESTRICTION_GROUP IS NOT NULL\r\n\t\t) M1 \r\n\t\tWHERE RW_1=1 \r\n\t\t\r\n\t\t\r\n\t--************************\r\n\t\r\n\t\r\n\tSELECT * \r\n\tINTO #T_TIMECARD_4\r\n\t\tFROM \r\n\t\t(\r\n\t\t\tSELECT  \r\n\t\t\tASSOCIATE_ID,\r\n\t\t\tBenefits_Eligibility_Class_Description,\r\n\t\t\tROW_NUMBER() OVER (PARTITION BY ASSOCIATE_ID ORDER BY InsertedDate DESC) AS RW_1\r\n\t\t\tFROM [ODS].[ADP_EMPLOYEE_TIMECARD]\r\n\t\t\tWHERE Benefits_Eligibility_Class_Description IS NOT NULL\r\n\t\t) M1 \r\n\t\tWHERE RW_1=1 ;\r\n\t\t\r\n\t\t\r\n\t--**************************\r\n\t\r\n\tSELECT DISTINCT ReportsToAssociateID,ReportsToEmail \r\n\tINTO #T_EMPLOYEE_HEADCOUNT_2\r\n\t\tFROM ODS.ADP_EMPLOYEE_HEADCOUNT \r\n\t\tWHERE ReportsToEmail IS NOT NULL;\r\n\r\n\r\n--#####################################################################\r\n--#################### TEMP TABLES END HERE  ##########################\r\n--#####################################################################\r\n\r\n\r\n\r\n\r\n\r\nSELECT DISTINCT\r\nCOALESCE((SELECT MAX(Employee_PK) FROM EDW.DIM_HR_EMPLOYEE),2000) + \r\nROW_NUMBER() OVER (ORDER BY A.AssociateID DESC) AS Employee_PK,\r\nB.Location_PK,\r\nC.SubLocation_PK,\r\nA.AssociateID AS EmployeeID,\r\nA.ReportsToAssociateID AS ManagerID,\r\nA.Division_Mod AS Division, --B.Division)  -- Pririty 1 From Headcount File\r\nLTRIM(RIGHT(A.PayrollName, LEN(A.PayrollName) - CHARINDEX(',', A.PayrollName))) AS FirstName,\r\nLEFT(A.PayrollName, CHARINDEX(',', A.PayrollName) - 1) AS LastName,  \r\nA.JobTitleDescription,\r\nA.FLSADescription,\r\n\r\nCOALESCE(A.WorkEmail,RE.ReportsToEmail,TC_1.WORK_CONTACT_WORK_EMAIL) \t\t\t\t\tAS WorkEmail,\r\nTC_2.PAY_CLASS \t\t\t\t\t\t\t\tAS PayClass,\r\nTC_3.PAY_CLASS_TIMECLOCK_RESTRICTION_GROUP \tAS PayClassTimeclock_RestrictionGroup,\r\nTC_4.Benefits_Eligibility_Class_Description \tAS BenifitsEligibility_ClassDescription,\r\n\r\nA.HomeDepartmentDescription,\r\nFORMAT(CAST(A.HireDate AS DATE), 'yyyy-MM-dd') AS HireDate,\r\nA.TerminationDate_ORD AS TerminationDate,\r\nA.TerminationReasonDescription,\r\nA.PositionStatus,\r\nA.PayrollCompanyName,\r\nA.SubDepartment,\r\n--A.BirthDate,\r\nA.GenderforInsuranceCoverage AS Gender,\r\nA.PayrollCompanyCode,\r\n--CAST(NULL AS VARBINARY(4000))AS Emp_HashKEy,\r\nA.IsManagementPosition,\r\nA.BusinessUnitDescription,\r\n--A.PositionStartDate,\r\nA.PositionEffectiveDate,\r\nA.NewHireIndicatior,\r\nA.YearsOfService,\r\nA.Level,\r\nA.FileNumber,\r\nA.StateTaxDescription,\r\nCASE WHEN A.StateTaxCode IS NULL OR A.StateTaxCode='' THEN 'NA' ELSE A.StateTaxCode END AS StateTaxCode,\r\nA.SUI_SDI_TaxCode,\r\nA.JobClassCode,\r\nA.JobClassDescription,\r\nCASE WHEN A.EEOC_JobClassification IS NULL OR A.EEOC_JobClassification='' THEN 'NA' ELSE A.EEOC_JobClassification END AS EEOC_JobClassification,\r\nA.NAICSWorkersCompCode,--New column added\r\nCASE WHEN A.LocationDescription IS NOT NULL OR A.LocationDescription!='' \tTHEN A.LocationDescription \tELSE NULL END AS LocationDesc,\r\nCASE WHEN A.SubLocation \t\tIS NOT NULL OR A.SubLocation!='' \t\t\tTHEN A.SubLocation \t\t\tELSE NULL END AS SubLocation,\r\n'N' AS CurrentRecordFlag\t,\r\nGETDATE() AS RecordCreatedDate,\r\nGETDATE() AS RecordUpdatedDate,\r\n\r\nCAST(NULL AS NVARCHAR(100)) AS EmployeeID_LP_REF,\r\n'HEADCOUNT' AS Data_Identifier\t,\r\nCAST(NULL AS NVARCHAR(100)) AS  Recruiter                ,\r\nCAST(NULL AS NVARCHAR(100)) AS  Race                     ,\r\nCAST(NULL AS NVARCHAR(100)) AS  WorkerCategoryDesc       ,\r\nA.City \t\t\t\t\t\tAS  City                     ,\r\nA.State \t\t\t\t\tAS  State                    ,\r\nCAST(NULL AS NVARCHAR(100)) AS  PositionID               ,\r\nCAST('1900-01-01' AS DATE) AS Hire_Rehire_Date\t\t\t ,\r\nCAST('1900-01-01' AS DATE) AS BirthDate\t\t\t\t\t ,\r\nA.HomePhone,\r\n\r\n\r\nA.AddressLine1       ,\r\nA.AddressLine2       ,\r\nA.AddressLine3       ,\r\nA.County             ,\r\nA.TerritoryCode      ,\r\nA.Zip\t\t\t\t ,\r\nA.LocationCode \t\t\t--added on 5/11\r\n\r\nINTO #T_SRC\r\n\r\nFROM \r\n#T_EMPLOYEE_HEADCOUNT_1 A \r\nLEFT JOIN [EDW].[DIM_HR_EMPLOYEE_LOCATION] B \r\nON A.LocationDescription = B.LocationName\r\nAND COALESCE(A.Division_Mod,'NA') = COALESCE(B.Division,'NA')\r\nLEFT JOIN [EDW].[DIM_HR_EMPLOYEE_SUB_LOCATION] C\r\nON A.Sublocation = C.SubLocation\r\nAND COALESCE(A.Division_Mod,'NA') = COALESCE(C.Division,'NA')\r\n\r\n\r\n--WORK EMAIL\r\n\r\nLEFT JOIN #T_TIMECARD_1 TC_1 \r\n\t\tON A.AssociateID =  TC_1.ASSOCIATE_ID\r\n\r\n--PAY_CLASS\r\n\r\nLEFT JOIN #T_TIMECARD_2 TC_2\r\n\t\tON A.AssociateID =  TC_2.ASSOCIATE_ID\r\n\r\n--PAY_CLASS_TIMECLOCK_RESTRICTION_GROUP\r\n\r\nLEFT JOIN #T_TIMECARD_3 TC_3\r\n\t\tON A.AssociateID =  TC_3.ASSOCIATE_ID\r\n\r\n\r\n--BENEFITS_ELIGIBILITY_CLASS_DESCRIPTION\r\n\t\t\r\nLEFT JOIN #T_TIMECARD_4 TC_4 \r\n\t\tON A.AssociateID =  TC_4.ASSOCIATE_ID\r\n\r\n\r\nLEFT JOIN #T_EMPLOYEE_HEADCOUNT_2 RE \r\n\t\r\n\tON A.AssociateID = RE.ReportsToAssociateID\r\n\t\r\n--WHERE A.AssociateID='CZM50EOQP'\r\n\r\n\r\n\r\n\r\n\r\n--#########################################################\r\n--##################### SRC is Genereated #################\r\n--#########################################################\r\n\r\nIF (SELECT COUNT(*) FROM ODS.ADP_EMPLOYEE_HEADCOUNT) > 10000\r\n\r\nBEGIN\r\n\r\n    TRUNCATE TABLE EDW.DIM_HR_EMPLOYEE;\r\n\r\nEND\r\n\r\n\r\n--############ INSERT QUERY #################\r\n\r\n\r\nINSERT INTO EDW.DIM_HR_EMPLOYEE\r\n\r\n(Employee_PK\t,\r\nLocation_PK\t,\r\nSubLocation_PK\t,\r\nEmployeeID\t,\r\nManagerID\t,\r\nDivision\t,\r\nFirstName\t,\r\nLastName\t,\r\nJobTitleDescription\t,\r\nFLSADescription\t,\r\nWorkEmail\t,\r\nPayClass\t,\r\nPayClassTimeclock_RestrictionGroup\t,\r\nBenifitsEligibility_ClassDescription\t,\r\nHomeDepartmentDescription\t,\r\nHireDate\t,\r\nTerminationDate\t,\r\nTerminationReasonDescription\t,\r\nPositionStatus\t,\r\nPayrollCompanyName\t,\r\nSubDepartment\t,\r\nGender\t,\r\nPayrollCompanyCode\t,\r\nIsManagementPosition\t,\r\nBusinessUnitDescription\t,\r\nPositionEffectiveDate\t,\r\nNewHireIndicatior\t,\r\nYearsOfService\t,\r\nLevel\t,\r\nFileNumber\t,\r\nStateTaxDescription\t,\r\nStateTaxCode\t,\r\nSUI_SDI_TaxCode\t,\r\nJobClassCode\t,\r\nJobClassDescription\t,\r\nEEOC_JobClassification\t,\r\nEmployeeID_LP_REF\t,\r\nCurrentRecordFlag\t,\r\nRecordCreatedDate\t,\r\nRecordUpdatedDate\t,\r\nData_Identifier\t,\r\nNAICSWorkersCompCode\t,\r\nRecruiter\t,\r\nRace\t,\r\nWorkerCategoryDesc\t,\r\nCity\t,\r\nState\t,\r\nPositionID\t,\r\nHire_Rehire_Date\t,\r\nBirthDate\t,\r\nLocationDesc\t,\r\nSubLocation\t,\r\nHomePhone,\r\nAddressLine1    ,\r\nAddressLine2    ,\r\nAddressLine3    ,\r\nCounty          ,\r\nTerritoryCode   ,\r\nZip\t\t\t\t,\r\nLocationCode\r\n\r\n)\r\n\r\nSELECT \r\nA.Employee_PK\t,\r\nA.Location_PK\t,\r\nA.SubLocation_PK\t,\r\nA.EmployeeID\t,\r\nA.ManagerID\t,\r\nA.Division\t,\r\nA.FirstName\t,\r\nA.LastName\t,\r\nA.JobTitleDescription\t,\r\nA.FLSADescription\t,\r\nA.WorkEmail\t,\r\nA.PayClass\t,\r\nA.PayClassTimeclock_RestrictionGroup\t,\r\nA.BenifitsEligibility_ClassDescription\t,\r\nA.HomeDepartmentDescription\t,\r\nA.HireDate\t,\r\nA.TerminationDate\t,\r\nA.TerminationReasonDescription\t,\r\nA.PositionStatus\t,\r\nA.PayrollCompanyName\t,\r\nA.SubDepartment\t,\r\nA.Gender\t,\r\nA.PayrollCompanyCode\t,\r\nA.IsManagementPosition\t,\r\nA.BusinessUnitDescription\t,\r\nA.PositionEffectiveDate\t,\r\nA.NewHireIndicatior\t,\r\nA.YearsOfService\t,\r\nA.Level\t,\r\nA.FileNumber\t,\r\nA.StateTaxDescription\t,\r\nA.StateTaxCode\t,\r\nA.SUI_SDI_TaxCode\t,\r\nA.JobClassCode\t,\r\nA.JobClassDescription\t,\r\nA.EEOC_JobClassification\t,\r\nA.EmployeeID_LP_REF\t,\r\nA.CurrentRecordFlag\t,\r\nA.RecordCreatedDate\t,\r\nA.RecordUpdatedDate\t,\r\nA.Data_Identifier\t,\r\nA.NAICSWorkersCompCode\t,\r\nA.Recruiter                ,\r\nA.Race                     ,\r\nA.WorkerCategoryDesc       ,\r\nA.City                     ,\r\nA.State                    ,\r\nA.PositionID               ,\r\nA.Hire_Rehire_Date\t\t\t ,\r\nA.BirthDate\t\t\t\t\t ,\r\nA.LocationDesc\t\t\t\t,\r\nA.SubLocation\t\t\t\t,\r\nA.HomePhone\t\t\t\t\t,\r\n\r\nA.AddressLine1              ,\r\nA.AddressLine2              ,\r\nA.AddressLine3              ,\r\nA.County                    ,\r\nA.TerritoryCode             ,\r\nA.Zip\t\t\t\t\t\t,\r\nA.LocationCode\r\n\r\nFROM #T_SRC A\r\nLEFT JOIN EDW.DIM_HR_EMPLOYEE B\r\nON  A.EmployeeID \t\t\t\t= B.EmployeeID\r\nAND A.PositionStatus \t\t\t= B.PositionStatus\r\nAND A.TerminationDate \t\t\t= B.TerminationDate\r\nAND A.StateTaxCode \t\t\t\t= B.StateTaxCode\r\nAND A.EEOC_JobClassification \t= B.EEOC_JobClassification\r\nAND A.Data_Identifier \t\t\t= B.Data_Identifier\r\nAND A.PayrollCompanyName\t\t= B.PayrollCompanyName\r\nAND A.PayrollCompanyCode\t\t= B.PayrollCompanyCode\r\n\r\nWHERE B.EmployeeID IS NULL;\r\n\r\n\r\n\r\n\r\n\r\n--########## UPDATE QUERY ###################\r\n\r\n\r\n\r\nUPDATE B\r\nSET \r\n--B.Employee_PK\t\t\t\t\t\t\t\t=   A.Employee_PK\t\t\t\t\t\t\t\t\t,\r\nB.Location_PK\t\t\t\t\t\t\t\t=   A.Location_PK\t\t\t\t\t\t\t\t\t,\r\nB.SubLocation_PK\t\t\t\t\t\t\t=   A.SubLocation_PK\t\t\t\t\t\t\t\t,\r\n--B.EmployeeID\t\t\t\t\t\t\t\t=   A.EmployeeID\t\t\t\t\t\t\t\t\t,\r\nB.ManagerID\t\t\t\t\t\t\t\t\t=   A.ManagerID\t\t\t\t\t\t\t\t\t\t,\r\nB.Division\t\t\t\t\t\t\t\t\t=   A.Division\t\t\t\t\t\t\t\t\t\t,\r\nB.FirstName\t\t\t\t\t\t\t\t\t=   A.FirstName\t\t\t\t\t\t\t\t\t\t,\r\nB.LastName\t\t\t\t\t\t\t\t\t=   A.LastName\t\t\t\t\t\t\t\t\t\t,\r\nB.JobTitleDescription\t\t\t\t\t\t=   A.JobTitleDescription\t\t\t\t\t\t\t,\r\nB.FLSADescription\t\t\t\t\t\t\t=   A.FLSADescription\t\t\t\t\t\t\t\t,\r\nB.WorkEmail\t\t\t\t\t\t\t\t\t=   A.WorkEmail\t\t\t\t\t\t\t\t\t\t,\r\nB.PayClass\t\t\t\t\t\t\t\t\t=   A.PayClass\t\t\t\t\t\t\t\t\t\t,\r\nB.PayClassTimeclock_RestrictionGroup\t\t=   A.PayClassTimeclock_RestrictionGroup\t\t\t,\r\nB.BenifitsEligibility_ClassDescription\t\t=   A.BenifitsEligibility_ClassDescription\t\t\t,\r\nB.HomeDepartmentDescription\t\t\t\t\t=   A.HomeDepartmentDescription\t\t\t\t\t\t,\r\nB.HireDate\t\t\t\t\t\t\t\t\t=   A.HireDate\t\t\t\t\t\t\t\t\t\t,\r\n--B.TerminationDate\t\t\t\t\t\t\t=   A.TerminationDate\t\t\t\t\t\t\t\t,\r\nB.TerminationReasonDescription\t\t\t\t=   A.TerminationReasonDescription\t\t\t\t\t,\r\n--B.PositionStatus\t\t\t\t\t\t\t=   A.PositionStatus\t\t\t\t\t\t\t\t,\r\nB.PayrollCompanyName\t\t\t\t\t\t=   A.PayrollCompanyName\t\t\t\t\t\t\t,\r\nB.SubDepartment\t\t\t\t\t\t\t\t=   A.SubDepartment\t\t\t\t\t\t\t\t\t,\r\nB.Gender\t\t\t\t\t\t\t\t\t=   A.Gender\t\t\t\t\t\t\t\t\t\t,\r\nB.PayrollCompanyCode\t\t\t\t\t\t=   A.PayrollCompanyCode\t\t\t\t\t\t\t,\r\nB.IsManagementPosition\t\t\t\t\t\t=   A.IsManagementPosition\t\t\t\t\t\t\t,\r\nB.BusinessUnitDescription\t\t\t\t\t=   A.BusinessUnitDescription\t\t\t\t\t\t,\r\nB.PositionEffectiveDate\t\t\t\t\t\t=   A.PositionEffectiveDate\t\t\t\t\t\t\t,\r\nB.NewHireIndicatior\t\t\t\t\t\t\t=   A.NewHireIndicatior\t\t\t\t\t\t\t\t,\r\nB.YearsOfService\t\t\t\t\t\t\t=   A.YearsOfService\t\t\t\t\t\t\t\t,\r\nB.Level\t\t\t\t\t\t\t\t\t\t=   A.Level\t\t\t\t\t\t\t\t\t\t\t,\r\nB.FileNumber\t\t\t\t\t\t\t\t=   A.FileNumber\t\t\t\t\t\t\t\t\t,\r\nB.StateTaxDescription\t\t\t\t\t\t=   A.StateTaxDescription\t\t\t\t\t\t\t,\r\n--B.StateTaxCode\t\t\t\t\t\t\t\t=   A.StateTaxCode\t\t\t\t\t\t\t\t\t,\r\nB.SUI_SDI_TaxCode\t\t\t\t\t\t\t=   A.SUI_SDI_TaxCode\t\t\t\t\t\t\t\t,\r\nB.JobClassCode\t\t\t\t\t\t\t\t=   A.JobClassCode\t\t\t\t\t\t\t\t\t,\r\nB.JobClassDescription\t\t\t\t\t\t=   A.JobClassDescription\t\t\t\t\t\t\t,\r\n--B.EEOC_JobClassification\t\t\t\t\t=   A.EEOC_JobClassification\t\t\t\t\t\t,\r\nB.EmployeeID_LP_REF\t\t\t\t\t\t\t=   A.EmployeeID_LP_REF\t\t\t\t\t\t\t\t,\r\nB.CurrentRecordFlag\t\t\t\t\t\t\t=   A.CurrentRecordFlag\t\t\t\t\t\t\t\t,\r\nB.RecordCreatedDate\t\t\t\t\t\t\t=   A.RecordCreatedDate\t\t\t\t\t\t\t\t,\r\nB.RecordUpdatedDate\t\t\t\t\t\t\t=   A.RecordUpdatedDate\t\t\t\t\t\t\t\t,\r\n--B.Data_Identifier\t\t\t\t\t\t\t=   A.Data_Identifier\t\t\t\t\t\t\t\t,\r\nB.NAICSWorkersCompCode\t\t\t\t\t\t=   A.NAICSWorkersCompCode\t\t\t\t\t\t\t,\r\nB.Recruiter                \t\t\t\t\t=   A.Recruiter                \t\t\t\t\t\t,\r\nB.Race                     \t\t\t\t\t=   A.Race                     \t\t\t\t\t\t,\r\nB.WorkerCategoryDesc       \t\t\t\t\t=   A.WorkerCategoryDesc       \t\t\t\t\t\t,\r\nB.City                     \t\t\t\t\t=   A.City                     \t\t\t\t\t\t,\r\nB.State                    \t\t\t\t\t=   A.State                    \t\t\t\t\t\t,\r\nB.PositionID               \t\t\t\t\t=   A.PositionID               \t\t\t\t\t\t,\r\nB.Hire_Rehire_Date\t\t\t \t\t\t\t=   A.Hire_Rehire_Date\t\t\t \t\t\t\t\t,\r\nB.BirthDate\t\t\t\t\t \t\t\t\t=   A.BirthDate\t\t\t\t\t\t\t\t\t\t,\t\t\t \t\t\t\t\t\r\nB.LocationDesc\t\t\t\t\t\t\t\t=   A.LocationDesc\t\t\t\t\t\t\t\t\t,\r\nB.SubLocation\t\t\t\t\t\t\t\t=\tA.SubLocation\t\t\t\t\t\t\t\t\t,\r\nB.HomePhone\t\t\t\t\t\t\t\t\t=   A.HomePhone\t\t\t\t\t\t\t\t\t\t,\r\n\r\nB.AddressLine1\t\t\t\t\t\t\t\t=   A.AddressLine1               ,\r\nB.AddressLine2\t\t\t\t\t\t\t\t=   A.AddressLine2               ,\r\nB.AddressLine3\t\t\t\t\t\t\t\t=   A.AddressLine3               ,\r\nB.County\t\t\t\t\t\t\t\t\t=   A.County                     ,\r\nB.TerritoryCode\t\t\t\t\t\t\t\t=   A.TerritoryCode              ,\r\nB.Zip\t\t\t\t\t\t\t\t\t\t=   A.Zip\t\t\t\t\t\t ,\r\nB.LocationCode\t\t\t\t\t\t\t\t=   A.LocationCode\r\n\r\n\r\nFROM  #T_SRC A\r\nJOIN EDW.DIM_HR_EMPLOYEE B\r\nON  A.EmployeeID \t\t\t\t= B.EmployeeID\r\nAND A.PositionStatus \t\t\t= B.PositionStatus\r\nAND A.TerminationDate \t\t\t= B.TerminationDate\r\nAND A.StateTaxCode \t\t\t\t= B.StateTaxCode\r\nAND A.EEOC_JobClassification \t= B.EEOC_JobClassification\r\nAND A.Data_Identifier \t\t\t= B.Data_Identifier\r\nAND A.PayrollCompanyName\t\t= B.PayrollCompanyName\r\nAND A.PayrollCompanyCode\t\t= B.PayrollCompanyCode"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "cpy_DIM_HR_EMPLOYEE_Timecard_copy1",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "EDW_DIM_HR_EMPLOYEE_copy1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:30:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"additionalColumns": [
+							{
+								"name": "EmployeeID_LP_REF",
+								"value": ""
+							},
+							{
+								"name": "Data_Identifier",
+								"value": "TIMECARD"
+							},
+							{
+								"name": "NAICSWorkersCompCode",
+								"value": ""
+							},
+							{
+								"name": "Recruiter",
+								"value": ""
+							},
+							{
+								"name": "Race",
+								"value": ""
+							},
+							{
+								"name": "WorkerCategoryDesc",
+								"value": ""
+							},
+							{
+								"name": "City",
+								"value": ""
+							},
+							{
+								"name": "State",
+								"value": ""
+							},
+							{
+								"name": "PositionID",
+								"value": ""
+							},
+							{
+								"name": "Hire_Rehire_Date",
+								"value": "1900-01-01"
+							},
+							{
+								"name": "BirthDate",
+								"value": "1900-01-01"
+							},
+							{
+								"name": "SubLocation",
+								"value": ""
+							},
+							{
+								"name": "LocationDesc",
+								"value": ""
+							},
+							{
+								"name": "LocationCode",
+								"value": ""
+							}
+						],
+						"sqlReaderQuery": "SELECT DISTINCT\nCOALESCE((SELECT MAX(Employee_PK) FROM EDW.DIM_HR_EMPLOYEE),2000) + ROW_NUMBER() OVER (ORDER BY M4.EmployeeID) AS Employee_PK,\nNULL AS Location_PK,\nNULL AS SubLocation_PK,\nM4.EmployeeID,\nM4.ManagerID,\n\nCASE \n\tWHEN M4.Division = 'E.Home Smart'\t\t\tTHEN 'HSI'\n\tWHEN M4.Division = 'G.Pacific Bath'\tOR M4.Division LIKE '%WEST%'\t\tTHEN 'PBC'\n\tWHEN M4.Division = 'D.Paradise'\t\t\t\tTHEN 'PHI'\n\tWHEN M4.Division = 'C.Mad City'\t\t\t\tTHEN 'MAC'\n\tWHEN M4.Division IN ( 'Renuity-Charlotte','Renuity-Remote')\t\t\tTHEN 'REN'\n\tWHEN M4.Division = 'G.Pacific Gutter'\tOR M4.Division LIKE '%WEST%' THEN 'PBC'\n\tWHEN M4.Division = 'H.Rite Window'\t\t\tTHEN 'RTW'\n\tWHEN M4.Division = 'B.Statewide'\t\t\tTHEN 'SWR'\n\tWHEN M4.Division IN ('I.Home Organization','Renuity Home Base')\tTHEN 'CTA'\n\tWHEN M4.Division IN ('A.FHIA','Renuity - Florida')\tTHEN 'FHI'\n\tWHEN M4.Division = 'F.Max Home'\t\t\t\tTHEN 'MXH'\n\tEND AS Division,\n\nM4.FirstName,\nM4.LastName,\nM4.JobTitleDescription,\nM4.FLSADescription,\nM4.WorkEmail,\nM4.PayClass,\nM4.PayClassTimeclock_RestrictionGroup,\nM4.BenifitsEligibility_ClassDescription,\n\nNULL AS HomeDepartmentDescription\t ,\nCAST(NULL AS DATE) AS HireDate\t\t\t\t\t ,\nCAST(NULL AS DATE)  AS TerminationDate\t\t\t\t ,\nNULL AS TerminationReasonDescription ,\nNULL AS PositionStatus\t\t\t\t ,\nNULL AS PayrollCompanyName\t\t\t ,\nNULL AS SubDepartment\t\t\t\t ,\nNULL AS Gender\t\t\t\t\t\t ,\nNULL AS PayrollCompanyCode\t         ,\n\nNULL AS IsManagementPosition,\nNULL AS BusinessUnitDescription,\nNULL AS PositionStartDate,\nCAST(NULL AS DATE) AS PositionEffectiveDate,\nNULL AS NewHireIndicatior,\nNULL AS YearsOfService,\nNULL AS Level,\nNULL AS FileNumber,\n\nNULL AS StateTaxDescription,\nNULL AS StateTaxCode,\nNULL AS SUI_SDI_TaxCode,\nNULL AS JobClassCode,\nNULL AS JobClassDescription,\nNULL AS EEOC_JobClassification,\n\nNULL AS EmployeeEligibleForRehire,\nCAST(NULL AS DATE) AS RehireDate,\nNULL AS Rehire_EligibilityComments,\nNULL AS Rehire_ReasonDescription,\nNULL AS PersonalEmail,\nNULL AS HomePhone,\n\n--M4.EMP_HashKey,\nM4.RecordCreatedDate,\nM4.RecordUpdatedDate,\n'N' AS CurrentRecordFlag,\n\nNULL AS AddressLine1       ,\nNULL AS AddressLine2       ,\nNULL AS AddressLine3       ,\nNULL AS County             ,\nNULL AS TerritoryCode      ,\nNULL AS Zip\t\t\t\t\t\n\nFROM \n(\n\n\tSELECT * \n\t\tFROM \n\t\t(\t\n\t\t\tSELECT \n\t\t\t\tEmployeeID,\n\t\t\t\tManagerID,\n\t\t\t\tDivision,\n\t\t\t\tFirstName,\n\t\t\t\tLastName,\n\t\t\t\tJobTitleDescription,\n\t\t\t\tFLSADescription,\n\t\t\t\tWorkEmail,\n\t\t\t\tPayClass,\n\t\t\t\tPayClassTimeclock_RestrictionGroup,\n\t\t\t\tBenifitsEligibility_ClassDescription,\n\t\t\t\t--EMP_HashKey,\n\t\t\t\tMIN(TimeEntry_Formated) OVER (PARTITION BY EmployeeID) AS RecordCreatedDate,\n\t\t\t\tMAX(TimeEntry_Formated) OVER (PARTITION BY EmployeeID) AS RecordUpdatedDate,\n\t\t\t\tCurrentRecordFlag,\n\t\t\t\tRW,\n\t\t\t\tTimeEntry_Formated\n\t\t\t\tFROM \n\t\t\t\t(\n\t\t\t\t\t\n\t\t\t\t\tSELECT \t\n\t\t\t\t\tROW_NUMBER() OVER (PARTITION BY EmployeeID ORDER BY TimeEntry DESC) AS RW,\n\t\t\t\t\t\t\n\t\t\t\t\tCAST(\t\n\t\t\t\t\t\tCONVERT(VARCHAR(19), \n\t\t\t\t\t\tDATEADD(SECOND, TimeEntry % 100, \n\t\t\t\t\t\t\tDATEADD(MINUTE, (TimeEntry / 100) % 100, \n\t\t\t\t\t\t\t\tDATEADD(HOUR, (TimeEntry / 10000) % 100, \n\t\t\t\t\t\t\t\t\tDATEADD(DAY, (TimeEntry / 1000000) % 100 - 1, \n\t\t\t\t\t\t\t\t\t\tDATEADD(YEAR, (TimeEntry / 10000000000) + 2000 - 1900, 0)  -- Corrected Year Calculation\n\t\t\t\t\t\t\t\t\t)\n\t\t\t\t\t\t\t\t)\n\t\t\t\t\t\t\t)\n\t\t\t\t\t\t), 120\n\t\t\t\t\t)  AS DATE) AS TimeEntry_Formated,\n\t\t\t\t\t\n\t\t\t\t\t*\n\t\t\t\t\tFROM \n\t\t\t\t\t(\t\n\t\t\t\t\t\tSELECT \n\t\t\t\t\t\t\tDISTINCT\t\n\t\t\t\t\t\t\tASSOCIATE_ID\t\t\t\t\t\t\t\tAS EmployeeID,\n\t\t\t\t\t\t\tReports_to_AssociateID\t\t\t\t\t\tAS ManagerID,\n\t\t\t\t\t\t\tDivision\t\t\t\t\t\t\t\t\tAS Division,\n\t\t\t\t\t\t\tFIRST_NAME\t\t\t\t\t\t\t\t\tAS FirstName,\n\t\t\t\t\t\t\tLAST_NAME\t\t\t\t\t\t\t\t\tAS LastName,\n\t\t\t\t\t\t\tJOB_TITLE_DESCRIPTION\t\t\t\t\t\tAS JobTitleDescription,\n\t\t\t\t\t\t\tFLSA_DESCRIPTION\t\t\t\t\t\t\tAS FLSADescription,\n\t\t\t\t\t\t\tWORK_CONTACT_WORK_EMAIL\t\t\t\t\t\tAS WorkEmail,\n\t\t\t\t\t\t\tPAY_CLASS\t\t\t\t\t\t\t\t\tAS PayClass,\n\t\t\t\t\t\t\tPAY_CLASS_TIMECLOCK_RESTRICTION_GROUP\t\tAS PayClassTimeclock_RestrictionGroup,\n\t\t\t\t\t\t\tBenefits_Eligibility_Class_Description\t\tAS BenifitsEligibility_ClassDescription,\n\t\t\t\t\t\t\tGETDATE()\tAS\tRecordCreatedDate,\n\t\t\t\t\t\t\tGETDATE()\tAS\tRecordUpdatedDate,\n\t\t\t\t\t\t\t'Y'\t\t\tAS\tCurrentRecordFlag,\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tCAST(\n\t\t\t\t\t\t\t\t\t\tCONCAT(\n\t\t\t\t\t\t\t\t\t\t\tSUBSTRING([ref_file], CHARINDEX('_', [ref_file]) + 5, 2),  -- Year (YY)\n\t\t\t\t\t\t\t\t\t\t\tSUBSTRING([ref_file], CHARINDEX('_', [ref_file]) + 1, 2),  -- Month (MM)\n\t\t\t\t\t\t\t\t\t\t\tSUBSTRING([ref_file], CHARINDEX('_', [ref_file]) + 3, 2),  -- Day (DD)\n\t\t\t\t\t\t\t\t\t\t\tSUBSTRING([ref_file], CHARINDEX('_', [ref_file]) + 7, 2),  -- Hour (HH)\n\t\t\t\t\t\t\t\t\t\t\tSUBSTRING([ref_file], CHARINDEX('_', [ref_file]) + 9, 2),  -- Minute (MM)\n\t\t\t\t\t\t\t\t\t\t\tSUBSTRING([ref_file], CHARINDEX('_', [ref_file]) + 11, 2)  -- Second (SS)\n\t\t\t\t\t\t\t\t\t\t) AS BIGINT\n\t\t\t\t\t\t\t\t\t) AS TimeEntry\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tFROM [ODS].[ADP_EMPLOYEE_TIMECARD] \t\t\t\t\t\t\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t) M1\n\t\t\t\t\t\t\n\t\t\t\t\t\t) M2\n\t\t\t\t\n\t\t\t\t) M3\n\t\t\t\t\n\t\tWHERE RW=1\n\t\t\n\t\t) M4\n\t\n\tLEFT JOIN EDW.DIM_HR_EMPLOYEE ME \n\tON M4.EmployeeID = ME.EmployeeID\n\tWHERE ME.EmployeeID IS NULL  -- Only Employees which didn't come in HeadCount File and are present here.",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"writeBehavior": "Upsert",
+						"upsertSettings": {
+							"keys": [
+								"EmployeeID",
+								"Data_Identifier"
+							],
+							"interimSchemaName": ""
+						},
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Employee_PK",
+									"type": "Int64",
+									"physicalType": "bigint"
+								},
+								"sink": {
+									"name": "Employee_PK",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Location_PK",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Location_PK",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "SubLocation_PK",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "SubLocation_PK",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "EmployeeID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "EmployeeID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ManagerID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ManagerID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "FirstName",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "FirstName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LastName",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LastName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "JobTitleDescription",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "JobTitleDescription",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "FLSADescription",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "FLSADescription",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "WorkEmail",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "WorkEmail",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PayClass",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PayClass",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PayClassTimeclock_RestrictionGroup",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PayClassTimeclock_RestrictionGroup",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "BenifitsEligibility_ClassDescription",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "BenifitsEligibility_ClassDescription",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "HomeDepartmentDescription",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "HomeDepartmentDescription",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "HireDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "HireDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "TerminationDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "TerminationDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "TerminationReasonDescription",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "TerminationReasonDescription",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PositionStatus",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "PositionStatus",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PayrollCompanyName",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "PayrollCompanyName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SubDepartment",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "SubDepartment",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Gender",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Gender",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PayrollCompanyCode",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "PayrollCompanyCode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "IsManagementPosition",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "IsManagementPosition",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "BusinessUnitDescription",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "BusinessUnitDescription",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PositionEffectiveDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "PositionEffectiveDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "NewHireIndicatior",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "NewHireIndicatior",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "YearsOfService",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "YearsOfService",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Level",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Level",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "FileNumber",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "FileNumber",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "StateTaxDescription",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "StateTaxDescription",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "StateTaxCode",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "StateTaxCode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SUI_SDI_TaxCode",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "SUI_SDI_TaxCode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "JobClassCode",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "JobClassCode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "JobClassDescription",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "JobClassDescription",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "EEOC_JobClassification",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "EEOC_JobClassification",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "EmployeeID_LP_REF",
+									"type": "String"
+								},
+								"sink": {
+									"name": "EmployeeID_LP_REF",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CurrentRecordFlag",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "CurrentRecordFlag",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "RecordCreatedDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "RecordCreatedDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "RecordUpdatedDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "RecordUpdatedDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "Data_Identifier",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Data_Identifier",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "NAICSWorkersCompCode",
+									"type": "String"
+								},
+								"sink": {
+									"name": "NAICSWorkersCompCode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Recruiter",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Recruiter",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Race",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Race",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "WorkerCategoryDesc",
+									"type": "String"
+								},
+								"sink": {
+									"name": "WorkerCategoryDesc",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "City",
+									"type": "String"
+								},
+								"sink": {
+									"name": "City",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "State",
+									"type": "String"
+								},
+								"sink": {
+									"name": "State",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PositionID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PositionID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Hire_Rehire_Date",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Hire_Rehire_Date",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "BirthDate",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BirthDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "LocationDesc",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LocationDesc",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SubLocation",
+									"type": "String"
+								},
+								"sink": {
+									"name": "SubLocation",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "EmployeeEligibleForRehire",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "EmployeeEligibleForRehire",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "RehireDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "RehireDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "Rehire_EligibilityComments",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Rehire_EligibilityComments",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Rehire_ReasonDescription",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Rehire_ReasonDescription",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PersonalEmail",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "PersonalEmail",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "HomePhone",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "HomePhone",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AddressLine1",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "AddressLine1",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AddressLine2",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "AddressLine2",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AddressLine3",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "AddressLine3",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "County",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "County",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "TerritoryCode",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "TerritoryCode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Zip",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Zip",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LocationCode",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LocationCode",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_EDW_ADP_EMPLOYEE_TIMECARD",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_DIM_HR_EMPLOYEE_1",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Upd_EmployeeID_REF_LP_v1",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Upd_Email_and Current_RecordFlag",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "UPDATE EDW.DIM_HR_EMPLOYEE SET EmployeeID_LP_REF=NULL;\n\n\n-- ***** First Update based on Division and Email *******\nUPDATE E1 \nSET E1.EmployeeID_LP_REF = M3.EmployeeID\nFROM\nEDW.DIM_HR_EMPLOYEE E1\nJOIN\n\n(\n\nSELECT * FROM \n\n\t(\n\t\t\tSELECT \n\t\t\tEmail,\n\t\t\tDivision,\n\t\t\tEmployeeID,\n\t\t\tROW_NUMBER() OVER (PARTITION BY Email,Division ORDER BY LP_EmployeeID DESC) AS RW\n\t\t\tFROM \n\t\t\t(\n\t\t\t\t\n\t\t\t\tSELECT \n\t\t\t\tEmail,\n\t\t\t\tDivision,\n\t\t\t\tEmployeeID,\n\t\t\t\tLP_EmployeeID\n\t\t\t\tFROM\n\t\t\t\t(\n\t\t\t\t\n\t\t\t\t\tSELECT \n\t\t\t\t\t\tEmail,\n\t\t\t\t\t\tDivision,\n\t\t\t\t\t\tEmployeeID,\n\t\t\t\t\t\tActive,\n\t\t\t\t\t\tLP_EmployeeID,\n\t\t\t\t\t\tMAX(CAST(Active AS INT)) OVER (PARTITION BY Email) AS Active_Check\n\t\t\t\t\tFROM EDW.DIM_EMPLOYEE \n\t\t\t\t\tWHERE Email IS NOT NULL\n\t\t\t\t\tAND Email NOT LIKE '%inactive%'\n\t\t\t\t\tAND Email NOT LIKE '%test%'\n\t\t\t\t\t\n\t\t\t\t\t) M \n\t\t\t\t--WHERE Active = Active_Check\n\t\t\t\t\n\t\t\t\t) M1\n\t\t\t\n\t\t\t) M2\n\t\t\n\tWHERE RW=1\n\t) M3\n\nON E1.WorkEmail = M3.Email\nAND E1.Division = M3.Division\nWHERE E1.WorkEmail IS NOT NULL AND E1.WorkEmail!='';\n\n\n\n\n--************************************Update based on exact FN, Exact LN\n\n\nUPDATE MX \nSET MX.EmployeeID_LP_REF = M1.EmployeeID_To_UPD\nFROM\nEDW.DIM_HR_EMPLOYEE MX\nJOIN\n\n(\n\tSELECT E.EmployeeID , E1.EmployeeID AS EmployeeID_To_UPD FROM EDW.DIM_HR_EMPLOYEE  E\n\tJOIN \n\t\t(\n\t\tSELECT * FROM \n\t\t\t\t\t(\n\t\t\t\t\tSELECT ROW_NUMBER() OVER (PARTITION BY CONCAT(Ltrim(Rtrim(E.FirstName)),' ',Ltrim(Rtrim(E.LastName))),Division  ORDER BY Active DESC,Email DESC) AS RW, \n\t\t\t\t\tFirstname,LastName,CONCAT(Ltrim(Rtrim(E.FirstName)),' ',Ltrim(Rtrim(E.LastName)))as Fullname, EmployeeId, Division, Email, Zip, Active\n\t\t\t\t\tFROM EDW.DIM_EMPLOYEE E\n\t\t\t\t\t--WHERE Active=1\n\t\t\t\t\t) EX\n\t\t\tWHERE RW=1\n\t\t\t\n\t\t\t) E1\n\tON \t\tE.Division = E1.Division\n\tAND  \tE.Firstname = E1.Firstname \n\tAND \tE.Lastname = E1.Lastname\n\tWHERE \tE.EmployeeID_LP_REF IS NULL\n\tAND E.Firstname IS NOT NULL AND E.Firstname !=''\n\tAND E.Lastname  IS NOT NULL AND E.Lastname!=''\n\t\n\t) M1\n\nON MX.EmployeeID = M1.EmployeeID\n\nWHERE M1.EmployeeID_To_UPD IS NOT NULL;"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			}
+		],
+		"folder": {
+			"name": "ADP_Employee"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-03-30T16:22:07Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

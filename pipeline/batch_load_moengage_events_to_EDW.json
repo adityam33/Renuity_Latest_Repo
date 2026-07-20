@@ -1,0 +1,70 @@
+{
+	"name": "batch_load_moengage_events_to_EDW",
+	"properties": {
+		"activities": [
+			{
+				"name": "Events Raw data",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "batch_load_moengage_file_to_ODS",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"ExportDay": {
+							"value": "@formatDateTime(utcNow(), 'yyyy-MM-dd')\n",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "EDW",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Events Raw data",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "batch_load_moengage_ODS_to_EDW",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"EventDate": {
+							"value": "@formatDateTime(utcNow(), 'yyyy-MM-dd')",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"ExportDay": {
+				"type": "string",
+				"defaultValue": "2025-09-13"
+			}
+		},
+		"folder": {
+			"name": "MoEngage to EDW"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-02-13T12:15:24Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

@@ -1,0 +1,30 @@
+{
+	"name": "Ds_Fact_Jobs_Archive_Parquet_Sink",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureBlobStorage1",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"Date": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": {
+					"value": "@concat('FACT_Jobs_Archive','_',dataset().Date,'.parquet')",
+					"type": "Expression"
+				},
+				"folderPath": "test/Fact_Jobs_Archive",
+				"container": "sameen"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}

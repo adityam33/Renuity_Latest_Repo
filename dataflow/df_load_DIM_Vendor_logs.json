@@ -1,0 +1,121 @@
+{
+	"name": "df_load_DIM_Vendor_logs",
+	"properties": {
+		"folder": {
+			"name": "ODS_to_EDW/DIMENSIONS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_SWR_vlg_VendorLog",
+						"type": "DatasetReference"
+					},
+					"name": "SWR",
+					"description": "Import data from LP_SWR_vlg_VendorLog"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_DIM_VENDOR_LOG",
+						"type": "DatasetReference"
+					},
+					"name": "targetDim",
+					"description": "Export data to EDW_DIM_Vendor_logs",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "createIDsSWR",
+					"description": "Creating/updating the columns 'VendorLogID, JobID, vendorID, Division'"
+				},
+				{
+					"name": "addLastUpdateTimestamp"
+				},
+				{
+					"name": "AlterRow"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          id as integer,",
+				"          job_id as integer,",
+				"          vnd_id as integer,",
+				"          ETA as timestamp,",
+				"          REC as timestamp,",
+				"          Notes as string,",
+				"          EnteredOn as timestamp,",
+				"          EnteredBy as integer,",
+				"          UpdatedOn as timestamp,",
+				"          UpdatedBy as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> SWR",
+				"SWR derive(VendorLogID = concat('SWR-',toString(id)),",
+				"          Division = 'SWR',",
+				"          vendorID = concat('SWR-',toString(vnd_id)),",
+				"          JobID = concat('SWR-',toString(job_id))) ~> createIDsSWR",
+				"createIDsSWR derive(LastUpdateTS = currentTimestamp()) ~> addLastUpdateTimestamp",
+				"addLastUpdateTimestamp alterRow(upsertIf(true())) ~> AlterRow",
+				"AlterRow sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          VendorLogID as string,",
+				"          JobID as string,",
+				"          VendorID as string,",
+				"          Division as string,",
+				"          ETA as string,",
+				"          REC as string,",
+				"          Notes as string,",
+				"          LP_VendorLogID as integer,",
+				"          LP_VendorID as integer,",
+				"          LP_JobID as integer,",
+				"          EnteredOn as string,",
+				"          EnteredBy as string,",
+				"          UpdatedOn as string,",
+				"          UpdatedBy as string,",
+				"          LastUpdatedTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     truncate:true,",
+				"     format: 'table',",
+				"     staged: true,",
+				"     preSQLs:['truncate table EDW.DIM_VENDOR_LOG;'],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          VendorLogID,",
+				"          JobID,",
+				"          Division,",
+				"          VendorID = vendorID,",
+				"          ETA,",
+				"          REC,",
+				"          Notes,",
+				"          EnteredOn,",
+				"          EnteredBy,",
+				"          UpdatedOn,",
+				"          UpdatedBy,",
+				"          LastUpdatedTS = LastUpdateTS,",
+				"          LP_VendorLogID = id,",
+				"          LP_JobID = job_id,",
+				"          LP_VendorID = vnd_id",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> targetDim"
+			]
+		}
+	}
+}

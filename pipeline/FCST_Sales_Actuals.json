@@ -1,0 +1,72 @@
+{
+	"name": "FCST_Sales_Actuals",
+	"properties": {
+		"activities": [
+			{
+				"name": "EDW_FCST_SalesActual",
+				"type": "Script",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "SELECT * INTO #T_FACT_JOB FROM EDW.FACT_JOB;\n\nSELECT LeadID,COUNT(DISTINCT CAST(ContractDate AS DATE)) AS JobCount INTO #T_Multiple_Jobs \nFROM #T_FACT_JOB \nGROUP BY LeadID;\n\nSELECT A.*,B.JobCount INTO #T_FACT_JOB_1 \nFROM #T_FACT_JOB A\nLEFT JOIN #T_Multiple_Jobs B \nON A.LeadID = B.LeadID;\n\n\n--*******************\n\nWITH CAL AS \n\n(\n\tSELECT \n\t\tC.CalendarDate,\n\t\tD.Division\n\tFROM \n\t\tEDW.DIM_CALENDAR C\n\tCROSS JOIN \n\t\t(\n\t\t\tSELECT DISTINCT DIVISION FROM EDW.DIM_JOB_STATUS\n\t\t\t\n\t\t\t) D\n\n\t)\n\n\n\nSELECT \nDivision,\nDAY,\nCalendarDate,\nApptDate,\nBranchID,\nProductID,\nCOALESCE(BTD,0) \t\t\t\t\tAS BTD                 ,\nCOALESCE(CANCELLED,0)\t\t\t\tAS CANCELLED           ,\nCOALESCE(DEMO,0)\t\t\t\t\tAS DEMO                ,\nCOALESCE(NET_ISSUED,0)\t\t\t\tAS NET_ISSUED          ,\nCOALESCE(SOLD,0)\t\t\t\t\tAS SOLD                ,\nCOALESCE(TOTAL_CANCEL,0)\t\t\tAS TOTAL_CANCEL        ,\nCOALESCE(NETSALES,0.00)\t\t\t\tAS NETSALES            ,\nCOALESCE(BTD_AMT,0.00)\t\t\t\tAS BTD_AMT             ,\nCOALESCE(CANCELLED_AMT,0.00)\t\tAS CANCELLED_AMT       ,\nCOALESCE(GROSS_SALES,0.00)\t\t\tAS GROSS_SALES         ,\nCOALESCE(TOTAL_CANCEL_AMT,0.00)\t\tAS TOTAL_CANCEL_AMT\t   ,\nCOALESCE(NETSALES_AMT,0.00)\t\t\tAS NETSALES_AMT\t\t   ,\nCOALESCE(SET_COUNT,0.00)\t\t\tAS SET_COUNT\t\t   ,\nGETDATE() AS LastUpdatedTS\nINTO #T_ACTUAL\nFROM \n\t(\n\n\t\tSELECT \n\t\tA.Division,\n\t\tM3.BranchID,\n\t\tM3.ProductID,\n\t\tDATENAME(WEEKDAY, A.CalendarDate) AS DAY,\n\t\tA.CalendarDate,\n\t\tA.CalendarDate AS ApptDate,\n\t\tSUM(BTD)\t\t\t\tAS BTD,\n\t\tSUM(CANCELLED)\t\t\tAS CANCELLED,\n\t\tCASE WHEN A.CalendarDate> GETDATE() THEN 0 ELSE COUNT(DISTINCT DEMO)\t\tEND\t\tAS DEMO,\n\t\tCASE WHEN A.CalendarDate> GETDATE() THEN 0 ELSE COUNT(DISTINCT NET_ISSUED)\tEND\t\tAS NET_ISSUED,\n\t\tCASE WHEN A.CalendarDate> GETDATE() THEN 0 ELSE SUM(SOLD)\t\t\t\t\tEND\t\tAS SOLD,\n\t\tSUM(TOTAL_CANCEL)\t\tAS TOTAL_CANCEL,\n\t\tSUM(NETSALES)\t\t\tAS NETSALES,\n\t\tSUM(BTD_AMT)\t\t\tAS BTD_AMT,\n\t\tSUM(CANCELLED_AMT)\t\tAS CANCELLED_AMT,\n\t\tSUM(GROSS_SALES)\t\tAS GROSS_SALES,\n\t\tSUM(TOTAL_CANCEL_AMT)\tAS TOTAL_CANCEL_AMT,\n\t\tSUM(NETSALES_AMT)\t\tAS NETSALES_AMT,\n\t\tSUM(SET_COUNT)\t\t\tAS SET_COUNT\n\n\t\tFROM CAL A \n\t\tLEFT JOIN \n\t\t(\n\t\t\tSELECT \n\t\t\t\tDivision,\n\t\t\t\tBranchID,\n\t\t\t\tProductID,\n\t\t\t\tApptDate,\n\t\t\t\tBTD,\n\t\t\t\tCANCELLED,\n\t\t\t\tDEMO,\n\t\t\t\tNET_ISSUED,\n\t\t\t\tSOLD,\n\t\t\t\t(BTD + CANCELLED)\t\t\tAS TOTAL_CANCEL,\n\t\t\t\t(SOLD - (BTD + CANCELLED) ) AS NETSALES,\n\t\t\t\t\n\t\t\t\tBTD_AMT,\n\t\t\t\tCANCELLED_AMT,\n\t\t\t\tSOLD_AMT AS GROSS_SALES,\n\t\t\t\t(BTD_AMT + CANCELLED_AMT) AS TOTAL_CANCEL_AMT,\n\t\t\t\t(SOLD_AMT - (BTD_AMT + CANCELLED_AMT) ) AS NETSALES_AMT,\n\t\t\t\tSET_COUNT\n\t\t\t\tFROM\n\t\t\t\t(\n\t\t\t\t\t\tSELECT \n\t\t\t\t\t\tDivision,\n\t\t\t\t\t\tBranchID,\n\t\t\t\t\t\tProductID,\n\t\t\t\t\t\tApptDate,\n\t\t\t\t\t\tGrossSales,\n\t\t\t\t\t\tCASE WHEN UPPER(UNI_JOBSTATUSCATEGORY)='BANK TURN DOWN' AND GrossSales >0 THEN 1 ELSE 0 END AS BTD,\n\t\t\t\t\t\tCASE WHEN UPPER(UNI_JOBSTATUSCATEGORY)='BANK TURN DOWN' AND GrossSales >0 THEN GrossSales ELSE 0 END AS BTD_AMT,\n\t\t\t\t\t\tCASE WHEN UPPER(UNI_JOBSTATUSCATEGORY)='CANCELLED' AND GrossSales >0 THEN 1 ELSE 0 END AS CANCELLED,\n\t\t\t\t\t\tCASE WHEN UPPER(UNI_JOBSTATUSCATEGORY)='CANCELLED' AND GrossSales >0 THEN GrossSales ELSE 0 END AS CANCELLED_AMT,\n\t\t\t\t\t\tCASE WHEN LP_SalesRep1_EmployeeID IS NOT NULL AND EverSat>0 \t\tTHEN LeadID ELSE NULL END AS DEMO,\n\t\t\t\t\t\tCASE WHEN LP_SalesRep1_EmployeeID IS NOT NULL AND EverNetIssued>0 \tTHEN LeadID ELSE NULL END AS NET_ISSUED,\n\t\t\t\t\t\tCASE WHEN GrossSales > 0 THEN 1 ELSE 0 END AS SOLD,\n\t\t\t\t\t\tCASE WHEN GrossSales > 0 THEN GrossSales ELSE 0 END AS SOLD_AMT,\n\t\t\t\t\t\tEverSet AS SET_COUNT\n\t\t\t\t\t\tFROM \n\t\t\t\t\t\t(\n\t\t\t\t\t\t\t\tSELECT\n\t\t\t\t\t\t\t\tB.Division,\n\t\t\t\t\t\t\t\tB.BranchID,\n\t\t\t\t\t\t\t\tB.ProductID,\n\t\t\t\t\t\t\t\tCASE \n\t\t\t\t\t\t\t\t\tWHEN A.Division IN ('MXH','CTA','SWR') THEN A.GrossAmount ELSE \n\t\t\t\t\t\t\t\t\t\t(CASE WHEN A.JobNetAmt>0 THEN JobNetAmt ELSE A.GrossAmount END) END AS GrossSales,\n\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\tCASE \n\t\t\t\t\t\t\t\t\tWHEN A.JobCount > 1 THEN CAST(B.ApptDate AS DATE)\n\t\t\t\t\t\t\t\t\tELSE COALESCE(CAST(A.ContractDate AS DATE),CAST(B.ApptDate AS DATE)) \n\t\t\t\t\t\t\t\t\tEND AS ApptDate,\n\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\tUPPER(C.UNI_JOBSTATUSCATEGORY) AS UNI_JOBSTATUSCATEGORY,\n\t\t\t\t\t\t\t\tCASE WHEN B.LP_SalesRep1_EmployeeID IS NULL OR B.LP_SalesRep1_EmployeeID='' OR B.LP_SalesRep1_EmployeeID='0' THEN NULL ELSE B.LP_SalesRep1_EmployeeID END AS LP_SalesRep1_EmployeeID,\n\t\t\t\t\t\t\t\tB.EverSat,\n\t\t\t\t\t\t\t\tB.EverNetIssued,\n\t\t\t\t\t\t\t\tB.LeadID,\n\t\t\t\t\t\t\t\tCASE WHEN B.EverSet =1 THEN 1 ELSE 0 END AS EverSet\n\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\tFROM EDW.FACT_LEAD B\n\t\t\t\t\t\t\t\tLEFT JOIN #T_FACT_JOB_1  A\n\t\t\t\t\t\t\t\tON A.LeadID = B.LeadID\n\t\t\t\t\t\t\t\tLEFT JOIN EDW.DIM_JOB_STATUS C\n\t\t\t\t\t\t\t\tON A.JobStatusID = C.JobStatusID\n\n\t\t\t\t\t\t\t\tWHERE CAST(B.EntryDate AS DATE)  >= CAST(CONCAT(YEAR(GETDATE())-4,'-01-01') AS DATE)\n\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t) M1\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t) M2\n\t\t\n\t\t\t\t\t\t) M3\n\t\t\n\t\tON A.CalendarDate = M3.ApptDate\n\t\tAND A.Division = M3.Division\n\t\tWHERE A.CalendarDate>='2022-01-01' AND A.CalendarDate<=GETDATE() + 6\n\t\tGROUP BY A.Division,A.CalendarDate,M3.BranchID,M3.ProductID\n\t\t\n\t\t) M_FINAL;\n\t\t\n\t\t\n\n\n\n\n\n\n\n\nTRUNCATE TABLE [EDW_FCST].[FACT_SALES_ACTUAL];\n\n\nINSERT INTO [EDW_FCST].[FACT_SALES_ACTUAL]\nSELECT * FROM #T_ACTUAL;\n\n\n\nUPDATE [EDW_FCST].[FACT_SALES_ACTUAL]\nSET\n\nBTD                 =0,\nCANCELLED           =0,\nDEMO                =0,\nNET_ISSUED          =0,\nSOLD                =0,\nTOTAL_CANCEL        =0,\nNETSALES            =0.000,\nBTD_AMT             =0.000,\nCANCELLED_AMT       =0.000,\nGROSS_SALES         =0.000,\nTOTAL_CANCEL_AMT\t=0.000,\nNETSALES_AMT\t\t=0.000,\nSET_COUNT\t\t\t=0\n\nWHERE CalendarDate = CAST(GETDATE() AS DATE);"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "EDW_FCST_SalesActual_MRK",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "EDW_FCST_SalesActual",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "WITH CAL AS \n\n(\n\tSELECT \n\t\tC.CalendarDate,\n\t\tD.Division\n\tFROM \n\t\tEDW.DIM_CALENDAR C\n\tCROSS JOIN \n\t\t(\n\t\t\tSELECT DISTINCT DIVISION FROM EDW.DIM_JOB_STATUS\n\t\t\t\n\t\t\t) D\n\n\t)\n\n\nSELECT \nDivision,\nDAY,\nCalendarDate,\nEntryDate,\nBranchID,\nProductID,\nTX_Channel,\nTX_SourceGroup,\nTX_SourceCode,\nCOALESCE(NET_ISSUED,0)\t\t\t\tAS NET_ISSUED          ,\nCOALESCE(SET_COUNT,0.00)\t\t\tAS SET_COUNT\t\t   ,\nCOALESCE(RAW_LEAD_COUNT,0.00)\t\tAS RAW_LEAD_COUNT\t   ,\nGETDATE() AS LastUpdatedTS\nINTO #T_ACTUAL_MRK\nFROM \n\t(\n\n\t\tSELECT \n\t\tA.Division,\n\t\tM3.BranchID,\n\t\tM3.ProductID,\n\t\tTX_Channel,\n\t\tTX_SourceGroup,\n\t\tTX_SourceCode,\n\t\tDATENAME(WEEKDAY, A.CalendarDate) AS DAY,\n\t\tA.CalendarDate,\n\t\tA.CalendarDate AS EntryDate,\n\t\tCOUNT(DISTINCT LeadID)\t\tAS RAW_LEAD_COUNT,\n\t\tCOUNT(DISTINCT NET_ISSUED)\tAS NET_ISSUED,\n\t\tSUM(SET_COUNT)\t\t\t\tAS SET_COUNT\n\n\t\tFROM CAL A \n\t\tLEFT JOIN \n\t\t(\n\t\t\tSELECT \n\t\t\t\tM2.Division,\n\t\t\t\tM2.BranchID,\n\t\t\t\tM2.ProductID,\n\t\t\t\tSS.TX_Channel,\n\t\t\t\tSS.TX_SourceGroup,\n\t\t\t\tSS.TX_SourceCode,\n\t\t\t\tM2.EntryDate,\n\t\t\t\tM2.LeadID,\n\t\t\t\tM2.NET_ISSUED,\n\t\t\t\tM2.SET_COUNT\n\t\t\t\tFROM\n\t\t\t\t(\n\t\t\t\t\t\tSELECT \n\t\t\t\t\t\tDivision,\n\t\t\t\t\t\tBranchID,\n\t\t\t\t\t\tProductID,\n\t\t\t\t\t\tLeadSubSourceID,\n\t\t\t\t\t\tEntryDate,\n\t\t\t\t\t\tCASE WHEN LP_SalesRep1_EmployeeID IS NOT NULL AND EverNetIssued>0 \tTHEN LeadID ELSE NULL END \t\t\tAS NET_ISSUED,\n\t\t\t\t\t\tEverSet AS SET_COUNT,\n\t\t\t\t\t\tLeadID\n\t\t\t\t\t\tFROM \n\t\t\t\t\t\t(\n\t\t\t\t\t\t\t\tSELECT\n\t\t\t\t\t\t\t\tB.Division,\n\t\t\t\t\t\t\t\tB.BranchID,\n\t\t\t\t\t\t\t\tB.ProductID,\n\t\t\t\t\t\t\t\tB.LeadSubSourceID,\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\tCAST(EntryDate AS DATE) AS EntryDate,\n\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\tCASE WHEN B.LP_SalesRep1_EmployeeID IS NULL OR B.LP_SalesRep1_EmployeeID='' OR B.LP_SalesRep1_EmployeeID='0' THEN NULL ELSE B.LP_SalesRep1_EmployeeID END AS LP_SalesRep1_EmployeeID,\n\t\t\t\t\t\t\t\tB.EverSat,\n\t\t\t\t\t\t\t\tB.EverNetIssued,\n\t\t\t\t\t\t\t\tB.LeadID,\n\t\t\t\t\t\t\t\tCASE WHEN B.EverSet =1 THEN 1 ELSE 0 END AS EverSet\n\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\tFROM EDW.FACT_LEAD B\n\t\n\t\t\t\t\t\t\t\tWHERE CAST(B.EntryDate AS DATE)  >= CAST(CONCAT(YEAR(GETDATE())-4,'-01-01') AS DATE)\n\t\t\t\t\t\t\t\tAND CAST(B.EntryDate AS DATE)  <= GETDATE()\n\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t) M1\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t) M2\n\t\t\t\tLEFT JOIN EDW.DIM_MKTNG_SUB_SOURCE_MAPPING SS\n\t\t\t\tON M2.LeadSubSourceID = SS.LeadSubSourceID\n\t\t\n\t\t\t\t\t\t) M3\n\t\t\n\t\tON A.CalendarDate = M3.EntryDate\n\t\tAND A.Division = M3.Division\n\t\tWHERE A.CalendarDate>='2022-01-01' AND A.CalendarDate<=GETDATE()\n\t\tAND TX_SourceGroup IS NOT NULL AND TX_SourceGroup!='0' AND TX_SourceGroup!='NA'\n\t\tAND ProductID!='PBC-3'\n\t\tGROUP BY A.Division,A.CalendarDate,M3.BranchID,M3.ProductID,\n\t\tM3.TX_Channel,\n\t\tM3.TX_SourceGroup,\n\t\tM3.TX_SourceCode\n\t\t\n\t\t) M_FINAL;\n\t\t\n\t\t\n\n\n\n\n\n\n\n\nTRUNCATE TABLE [EDW_FCST].[FACT_SALES_ACTUAL_MRK];\n\n\nINSERT INTO [EDW_FCST].[FACT_SALES_ACTUAL_MRK]\nSELECT * FROM #T_ACTUAL_MRK;\n"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/SALES_FORECAST"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-04-01T14:07:48Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

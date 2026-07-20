@@ -1,0 +1,17 @@
+{
+	"name": "Coatings - Get Past Customers in Charlotte",
+	"properties": {
+		"content": {
+			"query": "SELECT [CustomerID]\n,[FirstName]\n,[LastName]\n,[Address1]\n,[Address2]\n,[City]\n,[State]\n,cst.[Zip]\n,[Phone]\n,cleansedEmails.[Email]\n FROM \n [EDW].[DIM_CUSTOMER] cst\n ,(\n    SELECT distinct [ZipCode], BranchID\n    FROM [EDW].[DIM_BRANCH_ZIP]\n    where BranchID = 'MAC-GSCLT'\n) zipList\n,(\nSELECT\nprospect_id\n,lower(\n    case \n    when CHARINDEX(',',cleansedEmail) = 0 then cleansedEmail\n    else LEFT(cleansedEmail,CHARINDEX(',',cleansedEmail)-1)\n    end\n) as Email\nFROM \n(\nselect\n[CustomerID] as prospect_id\n,replace(\nreplace(\nreplace(\n    [Email],\n    '@,','@'),\n    ',com','.com'),\n    '.prod','')\ncleansedEmail\nfrom\n[EDW].[DIM_CUSTOMER]\nwhere\nEmail is not null\nand len([Email]) > 4\nand Email like '%@%'\n--and DATEDIFF(HOUR,LP_LastChanged,GETDATE()) <= (24*1)\n) xyz\n)cleansedEmails\nWHERE\ncst.Zip = zipList.ZipCode\nand cst.CustomerID = cleansedEmails.prospect_id\nand cst.Email is not null\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

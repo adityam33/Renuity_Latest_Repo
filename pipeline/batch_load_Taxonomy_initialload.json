@@ -1,0 +1,98 @@
+{
+	"name": "batch_load_Taxonomy_initialload",
+	"properties": {
+		"activities": [
+			{
+				"name": "Cpy_load_Mcpaystructure_InitialLoad",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Cpy_Mcpaystructure_InitialLoad",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_load_REF_MKTNG_SOURCE_GROUP_initial load",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Cpy_load_Mcpaystructure_InitialLoad",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_load_REF_MKTNG_SOURCE_GROUP_initial load",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_Dim_MKTNG_ProductMapping_initial load",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_load_REF_MKTNG_SOURCE_GROUP_initial load",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_dim_mktng_productMapping_Initialload",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Cpy_load_Mktng_vendor_costType_Inital",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_Dim_MKTNG_ProductMapping_initial load",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Cpy_Load_Mktng_Vendor_costtype_Initial",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/DIMENSIONS/TAXONOMY/InitialLoad"
+		},
+		"annotations": [],
+		"lastPublishTime": "2023-09-09T13:43:43Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

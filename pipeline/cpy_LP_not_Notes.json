@@ -1,0 +1,1072 @@
+{
+	"name": "cpy_LP_not_Notes",
+	"properties": {
+		"activities": [
+			{
+				"name": "FHI",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:40:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT \nA.Id\n,A.RecType\n,A.RecID\n,A.EnteredBy \n,A.EnteredOn \n,A.UpdatedBy \n,A.UpdatedOn \n,A.notes\n,CAST(A.important AS int) AS important\n,A.nct_id\n,B.Descr AS nct_Desc\nFROM dbo.not_notes A WITH (NOLOCK)\nLEFT JOIN [dbo].[nct_NoteCategory] B WITH (NOLOCK)\nON A.nct_id = B.Id\nWHERE \n(\n    A.EnteredOn >= DATEADD(DAY,-3,CAST(GETDATE() AS DATE))\n    OR\n    A.UpdatedOn >= DATEADD(DAY,-3,CAST(GETDATE() AS DATE))\n);\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE [ODS].[LP_FHI_not_Notes];",
+						"allowCopyCommand": true,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Id"
+								}
+							},
+							{
+								"source": {
+									"name": "RecType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "RecType"
+								}
+							},
+							{
+								"source": {
+									"name": "RecID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "RecID"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EnteredBy"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "EnteredOn"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "UpdatedBy"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "UpdatedOn"
+								}
+							},
+							{
+								"source": {
+									"name": "notes",
+									"type": "String"
+								},
+								"sink": {
+									"name": "notes"
+								}
+							},
+							{
+								"source": {
+									"name": "important",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "important"
+								}
+							},
+							{
+								"source": {
+									"name": "nct_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "nct_id"
+								}
+							},
+							{
+								"source": {
+									"name": "nct_Desc",
+									"type": "String"
+								},
+								"sink": {
+									"name": "nct_Desc"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_FHI_not_Notes",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_LP_FHI_not_Notes",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "MAC",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:40:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT \nA.Id\n,A.RecType\n,A.RecID\n,A.EnteredBy \n,A.EnteredOn \n,A.UpdatedBy \n,A.UpdatedOn \n,A.notes\n,CAST(A.important AS int) AS important\n,A.nct_id\n,B.Descr AS nct_Desc\nFROM dbo.not_notes A WITH (NOLOCK)\nLEFT JOIN [dbo].[nct_NoteCategory] B WITH (NOLOCK)\nON A.nct_id = B.Id\nWHERE \n(\n    A.EnteredOn >= DATEADD(DAY,-3,CAST(GETDATE() AS DATE))\n    OR\n    A.UpdatedOn >= DATEADD(DAY,-3,CAST(GETDATE() AS DATE))\n);\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE [ODS].[LP_MAC_not_Notes];",
+						"allowCopyCommand": true,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Id"
+								}
+							},
+							{
+								"source": {
+									"name": "RecType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "RecType"
+								}
+							},
+							{
+								"source": {
+									"name": "RecID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "RecID"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EnteredBy"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "EnteredOn"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "UpdatedBy"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "UpdatedOn"
+								}
+							},
+							{
+								"source": {
+									"name": "notes",
+									"type": "String"
+								},
+								"sink": {
+									"name": "notes"
+								}
+							},
+							{
+								"source": {
+									"name": "important",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "important"
+								}
+							},
+							{
+								"source": {
+									"name": "nct_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "nct_id"
+								}
+							},
+							{
+								"source": {
+									"name": "nct_Desc",
+									"type": "String"
+								},
+								"sink": {
+									"name": "nct_Desc"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_MAC_not_Notes",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_LP_MAC_not_Notes",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "PBC",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:40:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT \nA.Id\n,A.RecType\n,A.RecID\n,A.EnteredBy \n,A.EnteredOn \n,A.UpdatedBy \n,A.UpdatedOn \n,A.notes\n,CAST(A.important AS int) AS important\n,A.nct_id\n,B.Descr AS nct_Desc\nFROM dbo.not_notes A WITH (NOLOCK)\nLEFT JOIN [dbo].[nct_NoteCategory] B WITH (NOLOCK)\nON A.nct_id = B.Id\nWHERE \n(\n    A.EnteredOn >= DATEADD(DAY,-3,CAST(GETDATE() AS DATE))\n    OR\n    A.UpdatedOn >= DATEADD(DAY,-3,CAST(GETDATE() AS DATE))\n);",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE [ODS].[LP_PBC_not_Notes];",
+						"allowCopyCommand": true,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Id"
+								}
+							},
+							{
+								"source": {
+									"name": "RecType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "RecType"
+								}
+							},
+							{
+								"source": {
+									"name": "RecID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "RecID"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EnteredBy"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "EnteredOn"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "UpdatedBy"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "UpdatedOn"
+								}
+							},
+							{
+								"source": {
+									"name": "notes",
+									"type": "String"
+								},
+								"sink": {
+									"name": "notes"
+								}
+							},
+							{
+								"source": {
+									"name": "important",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "important"
+								}
+							},
+							{
+								"source": {
+									"name": "nct_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "nct_id"
+								}
+							},
+							{
+								"source": {
+									"name": "nct_Desc",
+									"type": "String"
+								},
+								"sink": {
+									"name": "nct_Desc"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_PBC_not_Notes",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_LP_PBC_not_Notes",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "RTW",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:40:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT \nA.Id\n,A.RecType\n,A.RecID\n,A.EnteredBy \n,A.EnteredOn \n,A.UpdatedBy \n,A.UpdatedOn \n,A.notes\n,CAST(A.important AS int) AS important\n,A.nct_id\n,B.Descr AS nct_Desc\nFROM dbo.not_notes A WITH (NOLOCK)\nLEFT JOIN [dbo].[nct_NoteCategory] B WITH (NOLOCK)\nON A.nct_id = B.Id\nWHERE \n(\n    A.EnteredOn >= DATEADD(DAY,-3,CAST(GETDATE() AS DATE))\n    OR\n    A.UpdatedOn >= DATEADD(DAY,-3,CAST(GETDATE() AS DATE))\n);\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE [ODS].[LP_RTW_not_Notes]",
+						"allowCopyCommand": true,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Id"
+								}
+							},
+							{
+								"source": {
+									"name": "RecType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "RecType"
+								}
+							},
+							{
+								"source": {
+									"name": "RecID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "RecID"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EnteredBy"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "EnteredOn"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "UpdatedBy"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "UpdatedOn"
+								}
+							},
+							{
+								"source": {
+									"name": "notes",
+									"type": "String"
+								},
+								"sink": {
+									"name": "notes"
+								}
+							},
+							{
+								"source": {
+									"name": "important",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "important"
+								}
+							},
+							{
+								"source": {
+									"name": "nct_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "nct_id"
+								}
+							},
+							{
+								"source": {
+									"name": "nct_Desc",
+									"type": "String"
+								},
+								"sink": {
+									"name": "nct_Desc"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_RTW_not_Notes",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_LP_RTW_not_Notes",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "MXH",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:40:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT \nA.Id\n,A.RecType\n,A.RecID\n,A.EnteredBy \n,A.EnteredOn \n,A.UpdatedBy \n,A.UpdatedOn \n,A.notes\n,CAST(A.important AS int) AS important\n,A.nct_id\n,B.Descr AS nct_Desc\nFROM dbo.not_notes A\nLEFT JOIN [dbo].[nct_NoteCategory] B\nON A.nct_id = B.Id",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE [ODS].[LP_MXH_not_Notes]",
+						"allowCopyCommand": true,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Id"
+								}
+							},
+							{
+								"source": {
+									"name": "RecType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "RecType"
+								}
+							},
+							{
+								"source": {
+									"name": "RecID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "RecID"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EnteredBy"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "EnteredOn"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "UpdatedBy"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "UpdatedOn"
+								}
+							},
+							{
+								"source": {
+									"name": "notes",
+									"type": "String"
+								},
+								"sink": {
+									"name": "notes"
+								}
+							},
+							{
+								"source": {
+									"name": "important",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "important"
+								}
+							},
+							{
+								"source": {
+									"name": "nct_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "nct_id"
+								}
+							},
+							{
+								"source": {
+									"name": "nct_Desc",
+									"type": "String"
+								},
+								"sink": {
+									"name": "nct_Desc"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_MXH_not_Notes",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_LP_MXH_not_Notes",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "SWR",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:40:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT \nA.Id\n,A.RecType\n,A.RecID\n,A.EnteredBy \n,A.EnteredOn \n,A.UpdatedBy \n,A.UpdatedOn \n,A.notes\n,CAST(A.important AS int) AS important\n,A.nct_id\n,B.Descr AS nct_Desc\nFROM dbo.not_notes A WITH (NOLOCK)\nLEFT JOIN [dbo].[nct_NoteCategory] B WITH (NOLOCK)\nON A.nct_id = B.Id\nWHERE \n(\n    A.EnteredOn >= DATEADD(DAY,-3,CAST(GETDATE() AS DATE))\n    OR\n    A.UpdatedOn >= DATEADD(DAY,-3,CAST(GETDATE() AS DATE))\n);\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE [ODS].[LP_SWR_not_Notes];",
+						"allowCopyCommand": true,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Id"
+								}
+							},
+							{
+								"source": {
+									"name": "RecType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "RecType"
+								}
+							},
+							{
+								"source": {
+									"name": "RecID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "RecID"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EnteredBy"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "EnteredOn"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "UpdatedBy"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "UpdatedOn"
+								}
+							},
+							{
+								"source": {
+									"name": "notes",
+									"type": "String"
+								},
+								"sink": {
+									"name": "notes"
+								}
+							},
+							{
+								"source": {
+									"name": "important",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "important"
+								}
+							},
+							{
+								"source": {
+									"name": "nct_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "nct_id"
+								}
+							},
+							{
+								"source": {
+									"name": "nct_Desc",
+									"type": "String"
+								},
+								"sink": {
+									"name": "nct_Desc"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_SWR_not_Notes",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_LP_SWR_not_Notes",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "CTA",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:40:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT \nA.Id\n,A.RecType\n,A.RecID\n,A.EnteredBy \n,A.EnteredOn \n,A.UpdatedBy \n,A.UpdatedOn \n,A.notes\n,CAST(A.important AS int) AS important\n,A.nct_id\n,B.Descr AS nct_Desc\nFROM dbo.not_notes A WITH (NOLOCK)\nLEFT JOIN [dbo].[nct_NoteCategory] B WITH (NOLOCK)\nON A.nct_id = B.Id\nWHERE \n(\n    A.EnteredOn >= DATEADD(DAY,-3,CAST(GETDATE() AS DATE))\n    OR\n    A.UpdatedOn >= DATEADD(DAY,-3,CAST(GETDATE() AS DATE))\n);\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE [ODS].[LP_CTA_not_Notes]",
+						"allowCopyCommand": true,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Id"
+								}
+							},
+							{
+								"source": {
+									"name": "RecType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "RecType"
+								}
+							},
+							{
+								"source": {
+									"name": "RecID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "RecID"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EnteredBy"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "EnteredOn"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "UpdatedBy"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "UpdatedOn"
+								}
+							},
+							{
+								"source": {
+									"name": "notes",
+									"type": "String"
+								},
+								"sink": {
+									"name": "notes"
+								}
+							},
+							{
+								"source": {
+									"name": "important",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "important"
+								}
+							},
+							{
+								"source": {
+									"name": "nct_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "nct_id"
+								}
+							},
+							{
+								"source": {
+									"name": "nct_Desc",
+									"type": "String"
+								},
+								"sink": {
+									"name": "nct_Desc"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_CTA_not_Notes",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_LP_CTA_not_Notes",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "SRC_to_ODS/CRM/LP"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-02-26T19:03:07Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

@@ -1,0 +1,583 @@
+{
+	"name": "batch_cpy_LP_to_ODS_small_Part2",
+	"properties": {
+		"activities": [
+			{
+				"name": "cpy_LP_dsp_Dispositions",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_tms_TimeSlots",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_dsp_Dispositions",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_fns_FinanceSources",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_dsp_Dispositions",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_fns_FinanceSources",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_svs_ServiceStatus",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_svs_ServiceStatus",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_svc_ServiceCategory",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_svs_ServiceStatus",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_svc_ServiceCategory",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_srg_SourceGroups",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_svc_ServiceCategory",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_srg_SourceGroups",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_hld_HoldReasons",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_srg_SourceGroups",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_hld_HoldReasons",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_pmm_PaymentMethods",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_hld_HoldReasons",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_pmm_PaymentMethods",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_dct_DispositionCategories",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_fns_FinanceSources",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_dct_DispositionCategories",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_jcc_JobCostCategory",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_jcc_JobCostCategory",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_mat_Materials",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_utm_UTMParameters",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_mat_Materials",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_prs_PermitStatus",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_mat_Materials",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_prs_PermitStatus",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_prt_PermitTypes",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_prs_PermitStatus",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_prt_PermitTypes",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_jsc_JobStatusCategory",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_jsc_JobStatusCategory",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_tms_TimeSlots",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_jcc_JobCostCategory",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_tms_TimeSlots",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_utm_UTMParameters",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_jsc_JobStatusCategory",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_utm_UTMParameters",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "LP_fpl_FinancalPlan",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_prt_PermitTypes",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_fpl_FinancalPlan",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_evh_eventhours",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_dct_DispositionCategories",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_evh_eventhours",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_jcf_jobcommfees",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_pmm_PaymentMethods",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_jcf_JobCommFees",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_fif_FlakeInformation",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "LP_fpl_FinancalPlan",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_fif_FlakeInformation",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_ist_InstallationInfo",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_ist_InstallationInfo",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_ist_InstallationType",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_ist_InstallationInfo",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_ist_InstallationType",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_vnd_vendors",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_jcf_jobcommfees",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_vnd_vendors",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_vlg_vendorlog",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_vnd_vendors",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_vlg_vendorlog",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_planitem",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_ist_InstallationType",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_PlanItem",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_projects",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_planitem",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_Projects",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_slt_SaleTypes",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_vlg_vendorlog",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_slt_SaleTypes",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"folder": {
+			"name": "SRC_to_ODS/CRM/LP"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-10-28T17:51:40Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

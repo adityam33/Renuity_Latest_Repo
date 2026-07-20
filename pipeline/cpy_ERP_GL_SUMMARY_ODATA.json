@@ -1,0 +1,146 @@
+{
+	"name": "cpy_ERP_GL_SUMMARY_ODATA",
+	"properties": {
+		"activities": [
+			{
+				"name": "GL Tran - Summary - By Account Branch Module Period",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "01:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ODataSource",
+						"httpRequestTimeout": "01:00:00"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.ERP_GL_SUMMARY')  IS NOT NULL TRUNCATE TABLE ODS.ERP_GL_SUMMARY",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Module",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Module",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PeriodID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PeriodID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Account",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Account",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Branch",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Branch",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DebitAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "DebitAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "CreditAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "CreditAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "GLTran_Count68c88fdaf6b349f5b5cef1eb4f46f0ab",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "LineCount"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchNumber",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BatchNumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LineNbr",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "LineNbr",
+									"type": "Int32"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ERP_GL_SUMMARY",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_ERP_GL_SUMMARY",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "SRC_to_ODS/ERP/Acumatica/SUMMARY"
+		},
+		"annotations": [],
+		"lastPublishTime": "2022-10-19T20:36:02Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

@@ -1,0 +1,20 @@
+{
+	"name": "Daily Report - CPL Affiliates",
+	"properties": {
+		"folder": {
+			"name": "DMLs/Affiliates"
+		},
+		"content": {
+			"query": "SELECT distinct\ncast(GETDATE() as DATE) as ReportDate\n,'CPL' as ReportType\n,srs.[SourceCode] as Source\n,srs.[Descr] as SubSource\n,'PBC' as Division\n,lds.id as LeadID\n,lds.EntryDate\n,cst.[FirstName]\n,cst.[LastName]\n,cst.[Address1]\n,cst.[Address2]\n,cst.[City]\n,cst.[State]\n,cst.[Zip]\n,cst.[Phone]\n,cst.[Email]\n,lds.[Productid] as Product\n,prd.LongDescr as ProductDescription\n,brn.LongName as Market\n,dsp.descr as CurrentLeadDisposition\n,case \n    when jbs.jsc_id is NULL then 'False'\n    when jbs.jsc_id in (3,5) then 'False'\n    else 'True'\nend as Sold\n,'' as AffiliateLeadNumber\n,'' as RenuityLeadScore\n\n,cast(0 as bit) as [ApptSet]\n,cast('1900-01-01' as DATE) as [AppointmentSetDate]\n,cast('1900-01-01' as DATE) as [AppointmentDate]\n,cast(0 as bit) as [NetIssue]\n,cast(0 as bit) as [Demo]\n,cast(0 as money) as [NetSales]\n,0 as [JobID]\n,'' as [JobStatus]\n,cast('1900-01-01' as DATE) as [JobContractDate]\n\nFROM \n[ODS].[LP_PBC_Lds_Leads] lds\nleft join [ODS].[LP_PBC_srs_SourceSubs] srs\non lds.srs_id = srs.id\nleft join [ODS].[LP_PBC_dsp_Dispositions] dsp\non lds.dsp_id = dsp.Descr\nleft join [ODS].[LP_PBC_cst_Customers] cst\non lds.cst_id = cst.id\nleft join [ODS].[LP_PBC_brn_Branches] brn\non lds.brn_id = brn.id\nleft join [ODS].[LP_PBC_prd_Products] prd\non lds.ProductID = prd.ProductID\nleft join [ODS].[LP_PBC_job_Jobs] job\non lds.id = job.lds_id\nleft join [ODS].[LP_PBC_jbs_JobStatus] jbs\non job.jbs_id = jbs.id\nWHERE\ndatediff(DAY, lds.EntryDate, dbo.fnConvertUTCtoEST (cast(GETDATE() as DATE) )) between 0 and 90\nAND srs.Descr IN\n(\n'BuyerLink',\n'MVF',\n'Modernize'\n)\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 56",
+	"properties": {
+		"content": {
+			"query": "Select top 10 * from EDW.FACT_Medallia_Customer_survey where Survey_ID='386556'\n\nSelect * from EDW.FACT_LEAD where LEADID='HSI-307107'\n\nSelect Distinct JobStatus from EDW.DIM_JOB_STATUS where Right(JobStatusCategoryID,1)='5'\n\nselect * from ODS.MEDALLIA_CUSTOMER_SURVEY where Program like 'In-Home%'--Survey_ID='408117'\n\nSelect top 10 * from EDW_DUN.UNI_RULEBOOK_XREF where TableName='DIM_JOB_STATUS' and RuleValue='Reject'\n\nSelect top 10 * from EDW.DIM_MKTNG_SUB_SOURCE_MAPPING\n\nSelect top 10 * from EDW.DIM_ERP_ACCOUNT\n\nselect top 10 * from edw.dim_erp_branch\n\n\nelect top 10 * from \n\nselect top 1000 * from EDW.FACT_Medallia_Customer_survey where Division='SWR' and SurveyFlag like '%Guild%' and CAST(Response_Date as Date)>='2024-09-01'\nand Program like 'Installation%' and ActiveInd='0'\n\n\n\n\n\nSelect top 100 * from EDW.DIM_LEAD_SOURCE\n\nSelect top 100 * from EDW.DIM_LEAD_SOURCE_GROUP\nSelect A.* from ((Select CAST(RESPONSE_DATE as DATE) as ResponseDate_Ori,count(*) as Res_Count from EDW.FACT_Medallia_Customer_survey where SurveyFlag='Medallia'\ngroup by CAST(RESPONSE_DATE as DATE)) A left join \n(Select CAST(RESPONSE_DATE as DATE) as ResponseDate,count(*) as ResponseCount from [OUT].[MEDALLIA_CUSTOMER_SURVEY_TEST] group by CAST(RESPONSE_DATE as DATE)\n) B on A.ResponseDate_Ori=B.ResponseDate) where B.ResponseDate is NULL\n\nselect * from [OUT].[MEDALLIA_CUSTOMER_SURVEY_TEST]\n\nSelect count(*) from EDW.DIM_Job_COST_CATEGORY\n\n\nAlter table [OUT].[MEDALLIA_CUSTOMER_SURVEY_TEST]\nAlter column Decided_Against_Other VARCHAR(8000) NULL\n\nSelect top 10 * from EDW_DUN.UNI_RULEBOOK_XREF where TableName='DIM_JOB_STATUS' and RuleValue='Reject'\n\nSelect top 10 * from EDW_DUN.UNI_STG_LANDING where TableName='DIM_JOB_STATUS' and TableColumnValue='Reject'\n\nSelect top 10 * from EDW_DUN.UNI_REF_MAPPING where TableName='DIM_JOB_STATUS' and TableColumnValue='Reject'\n\nUpdate EDW_DUN.UNI_REF_MAPPING\nSet UnifiedValueDesc='Financing rejected by bank'\nwhere TableName='DIM_JOB_STATUS' and TableColumnValue='Reject'\n\nSelect top 10 * from ODS.LP_CTA_Lds_Leads\n\nSelect top 10 * from ODS.LP_FHI_brp_ProductionBranches\nSelect top 10 * from [ODS].[LP_PBC_brn_Branches] where LongName='Chicago'\n\nSelect * from OUT.MEDALLIA_SALES_EXP_INVITE_GUILD_TEST\n\n\nSelect Survey_ID,MAX()  from EDW.FACT_Medallia_Customer_survey\n\nAlter table OUT.MEDALLIA_SALES_EXP_INVITE_GUILD_TEST\nADD BRANCHID NVARCHAR(200) NULL\n\nSelect top 10 * from EDW.DIM_JOB_STATUS where JobStatus='Reject'\n\nSelect top 10 * from [EDW_DUN].[UNI_REF_MAPPING] where TableName='DIM_JOB_STATUS' and TableColumnValue='Reject'\n\nSelect * from  [OUT].[MEDALLIA_CUSTOMER_SURVEY_TEST]\n\n\nUpdate EDW_DUN.UNI_RULEBOOK_XREF\nSet LastUpdatedTS=GETDATE()\nwhere TableName='DIM_JOB_STATUS' and RuleValue='Reject'\n\nBank Turn Down\nFinancing rejected by bank\n\nselect * from EDW.FACT_Medallia_Customer_survey where CustomerID is NULL and CAST(Response_Date as Date)='2024-08-26'\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

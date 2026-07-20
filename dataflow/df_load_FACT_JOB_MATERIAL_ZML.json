@@ -1,0 +1,173 @@
+{
+	"name": "df_load_FACT_JOB_MATERIAL_ZML",
+	"properties": {
+		"folder": {
+			"name": "ZML_ODS_to_EDW/FACTS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ZML_ODS_FHI_jbm_JobMaterials",
+						"type": "DatasetReference"
+					},
+					"name": "FHI"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_FACT_JOB_MATERIAL_ZML",
+						"type": "DatasetReference"
+					},
+					"name": "targetFact",
+					"description": "Export data to EDW_FACT_JOB_MATERIAL",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "addOpCoNameFHI"
+				},
+				{
+					"name": "unionAllOpCos"
+				},
+				{
+					"name": "selectRenameColumns"
+				},
+				{
+					"name": "derivedColumns"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          Id as integer,",
+				"          Job_Id as integer,",
+				"          Mat_ID as integer,",
+				"          Qty as decimal(19,4),",
+				"          Cost as decimal(19,4),",
+				"          Price as decimal(19,4),",
+				"          CommFlag as boolean,",
+				"          OverrideFlag as boolean,",
+				"          InvoiceDate as timestamp,",
+				"          InvoiceNumber as string,",
+				"          Comments as string,",
+				"          EnteredOn as timestamp,",
+				"          EnteredBy as integer,",
+				"          UpdatedOn as timestamp,",
+				"          UpdatedBy as integer,",
+				"          BatchFlag as boolean,",
+				"          BatchNo as integer,",
+				"          BatchDate as timestamp,",
+				"          EstQty as decimal(19,4),",
+				"          EstCost as decimal(19,4)",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> FHI",
+				"FHI derive(Division = 'FHI') ~> addOpCoNameFHI",
+				"addOpCoNameFHI union(byName: true)~> unionAllOpCos",
+				"unionAllOpCos select(mapColumn(",
+				"          LP_JobMaterialID = Id,",
+				"          LP_JobID = Job_Id,",
+				"          LP_MaterialID = Mat_ID,",
+				"          Quantity = Qty,",
+				"          Cost,",
+				"          Price,",
+				"          OverrideFlag,",
+				"          InvoiceDate,",
+				"          InvoiceNumber,",
+				"          Comments,",
+				"          EnteredOn,",
+				"          EnteredBy,",
+				"          UpdatedOn,",
+				"          UpdatedBy,",
+				"          BatchFlag,",
+				"          BatchNumber = BatchNo,",
+				"          BatchDate,",
+				"          EstimatedQuantity = EstQty,",
+				"          EstimatedCost = EstCost,",
+				"          Division",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectRenameColumns",
+				"selectRenameColumns derive(LastUpdateTS = currentTimestamp(),",
+				"          JobMaterialID = concat(Division,'-',toString(LP_JobMaterialID)),",
+				"          JobID = concat(Division,'-',toString(LP_JobID)),",
+				"          MaterialID = concat(Division,'-',toString(LP_MaterialID))) ~> derivedColumns",
+				"derivedColumns sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          JobMaterialID as string,",
+				"          JobID as string,",
+				"          MaterialID as string,",
+				"          Quantity as decimal(38,18),",
+				"          Cost as decimal(38,18),",
+				"          Price as decimal(38,18),",
+				"          EstimatedQuantity as decimal(38,18),",
+				"          EstimatedCost as decimal(38,18),",
+				"          OverrideFlag as boolean,",
+				"          InvoiceDate as timestamp,",
+				"          InvoiceNumber as string,",
+				"          BatchFlag as boolean,",
+				"          BatchNumber as integer,",
+				"          BatchDate as timestamp,",
+				"          Comments as string,",
+				"          EnteredOn as timestamp,",
+				"          EnteredBy as integer,",
+				"          UpdatedOn as timestamp,",
+				"          UpdatedBy as integer,",
+				"          LP_JobMaterialID as integer,",
+				"          LP_JobID as integer,",
+				"          LP_MaterialID as integer,",
+				"          Division as string,",
+				"          LastUpdateTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     truncate:true,",
+				"     format: 'table',",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          JobMaterialID,",
+				"          JobID,",
+				"          MaterialID,",
+				"          Quantity,",
+				"          Cost,",
+				"          Price,",
+				"          EstimatedQuantity,",
+				"          EstimatedCost,",
+				"          OverrideFlag,",
+				"          InvoiceDate,",
+				"          InvoiceNumber,",
+				"          BatchFlag,",
+				"          BatchNumber,",
+				"          BatchDate,",
+				"          Comments,",
+				"          EnteredOn,",
+				"          EnteredBy,",
+				"          UpdatedOn,",
+				"          UpdatedBy,",
+				"          LP_JobMaterialID,",
+				"          LP_JobID,",
+				"          LP_MaterialID,",
+				"          Division,",
+				"          LastUpdateTS",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> targetFact"
+			]
+		}
+	}
+}

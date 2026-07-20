@@ -1,0 +1,162 @@
+{
+	"name": "cpy_GuildQuality_Response_Rate_Test_Pagination",
+	"properties": {
+		"activities": [
+			{
+				"name": "cpy_Medallia_Response_Rate",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.1:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "With Response_Data AS\r\n(\r\nSELECT \r\n    CAST(B.CreationDate AS DATE) AS ResponseDate, \r\n    COUNT(B.Survey_ID) AS ResponseCount\r\nFROM \r\n    EDW.FACT_Customer_Survey_Responses B\r\nWHERE \r\n    B.Response_Date is not null and B.ActiveInd='1'\r\n    AND \r\n    (    B.Survey_Status IN ('COMPLETED','DELIVERED_AND_REMINDED') or B.Survey_Status is NULL\r\n    )\r\nGROUP BY \r\n    CAST(B.CreationDate AS DATE)\r\n--ORDER BY \r\n    --EOMONTH(CAST(B.CreationDate AS DATE))\r\n),\r\nInvite_Data AS\r\n(\r\nSelect A.CreationDate as ResponseDate,Count(A.Survey_ID) as InvitationsCount \r\nfrom (\r\nSelect CAST(Creation_Date as Date) as CreationDate,Survey_ID from EDW.FACT_Customer_Survey_Invitations where Active_Ind='1' and\r\nSurvey_Status in ('Abandoned','In progress','No Response','Scheduled','SURVEY_ENGINE_ONLY','EXCLUDED','DELIVERED','DELIVERED_NO_REMINDER','EXPIRED','DELIVERY_FAILED','DELIVERED_AND_REMINDED')\r\n--and CAST(Creation_Date as DATE) BETWEEN '2024-05-01' and '2024-05-31' \r\nand Survey_ID not in (Select Survey_ID from EDW.FACT_Customer_Survey_Responses where ActiveInd='1')\r\nUNION\r\nSelect CAST(CreationDate as Date) as ResponseDate,Survey_ID from EDW.FACT_Customer_Survey_Responses where ActiveInd='1' --where CAST(CreationDate as DATE) BETWEEN '2024-05-01' and '2024-05-31'\r\n) A\r\ngroup by A.CreationDate\r\n--order by EOMONTH(A.CreationDate)\r\n\r\n)\r\nSelect A.ResponseDate as Survey_Month,A.ResponseCount as Total_Response_Count,B.InvitationsCount as Total_Survey_Sent_Count,\r\n0 as Survey_Sent_Count_Medallia,\r\n0 as Surevy_Sent_Count_Guild,\r\n0 as Response_Count_Medallia,\r\n0 as Response_Count_Guild,\r\nCAST((A.ResponseCount*100.0/B.InvitationsCount) as Decimal(8,2)) as Response_Rate from\r\nInvite_Data B inner join Response_Data A on B.ResponseDate=A.ResponseDate\r\nOrder by B.ResponseDate",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "Truncate table OUT.MEDALLIA_INSTALL_INVITE_RESPONSE_SUMMARY_Test_Pagination",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Survey_Month",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "MonthDate",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								}
+							},
+							{
+								"source": {
+									"name": "Survey_Sent_Count_Medallia",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Survey_Sent_Count_Medallia",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Surevy_Sent_Count_Guild",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Survey_Sent_Count_Guild",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Total_Survey_Sent_Count",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Total_Survey_Sent_Count",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Response_Count_Medallia",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Response_Count_Medallia",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Response_Count_Guild",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Response_Count_Guild",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Total_Response_Count",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Total_Response_Count",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Response_Rate",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 8
+								},
+								"sink": {
+									"name": "Response_Rate",
+									"type": "Double",
+									"physicalType": "float"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_FACT_MEDALLIA_CUSTOMER_SURVEY",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "OUT_MEDALLIA_INSTALL_INVITE_RESPONSE_SUMMARY_Test_Pagination",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "Temp/Akshay"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-01-22T11:44:31Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

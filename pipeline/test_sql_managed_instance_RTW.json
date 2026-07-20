@@ -1,0 +1,408 @@
+{
+	"name": "test_sql_managed_instance_RTW",
+	"properties": {
+		"activities": [
+			{
+				"name": "df_managed_instance_test_Leads",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_managed_instance_fact_leads_test",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine",
+					"sourceStagingConcurrency": 1
+				}
+			},
+			{
+				"name": "df_managed_instance_test_Job",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_managed_instance_test_Leads",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_managed_instance_Fact_Job_Test",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "df_Managed_instance_test_ISSUED_LEAD",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_managed_instance_test_Job",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_managed_Instance_FACT_ISSUED_LEAD_Test",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/FACTS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse",
+					"sourceStagingConcurrency": 1
+				}
+			},
+			{
+				"name": "df_managed_instance_test_APPOINTMENT",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_managed_instance_test_MATERIAL",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_managed_instance_FACT_APPOINTMENT_test",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/FACTS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse"
+				}
+			},
+			{
+				"name": "df_managed_instance_test_MATERIAL",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "1.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_manaed_instance_test_MATERIAL",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/DIMENSIONS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse"
+				}
+			},
+			{
+				"name": "df_managed_instance_test_EMPLOYEE",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_managed_instance_test_APPOINTMENT",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "1.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_managed_instance_test_EMPLOYEE",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/DIMENSIONS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse"
+				}
+			},
+			{
+				"name": "df_Managed_Instance_Test_CUSTOMER",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_Managed_instance_test_ISSUED_LEAD",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "1.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_Managed_Instance_Test_CUSTOMER",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/DIMENSIONS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse"
+				}
+			},
+			{
+				"name": "df_managed_instance_test_DISPOSITION_CATEGORY",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_managed_instance_test_EMPLOYEE",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "1.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_managed_instance_test_DISPOSITION_CATEGORY",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/DIMENSIONS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse"
+				}
+			},
+			{
+				"name": "df_managed_instance_test_INBOUND_QUEUE_LOG",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_managed_instance_test_INBOUND_QUEUE_LOG",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/FACTS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse"
+				}
+			},
+			{
+				"name": "df_managed_instance_test_UTM_PARAMETERS_VALUE",
+				"description": "Loading Fact_UTM_Parameters_Value from ODS to STAGE",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_managed_instance_test_INBOUND_QUEUE_LOG",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_managed_instance_test_UTM_PARAMETERS_VALUE",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/Fact_UTM_Parameters"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse"
+				}
+			},
+			{
+				"name": "Script_DUP_DEL_TEMP",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "df_managed_instance_test_UTM_PARAMETERS_VALUE",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "\nDELETE FROM  EDW.FACT_UTM_PARAMETERS_VALUE_Managed_Instance_Test\nWHERE InboundQueueID IN \n(\nSELECT \n    InboundQueueID\n    FROM \n    (\n\tSELECT InboundQueueID,Count(1) AS CT FROM EDW.FACT_UTM_PARAMETERS_VALUE_Managed_Instance_Test\n\tGROUP  BY InboundQueueID\n\tHAVING Count(1)>1\n        ) A1\n\t\n    ) ;\n\n\nDELETE FROM EDW.FACT_UTM_PARAMETERS_VALUE_Managed_Instance_Test WHERE InboundQueueID IS NULL OR InboundQueueID=''"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			}
+		],
+		"folder": {
+			"name": "Temp/Akshay"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-12-15T16:26:14Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

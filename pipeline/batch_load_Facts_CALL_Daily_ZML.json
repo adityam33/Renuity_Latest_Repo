@@ -1,0 +1,45 @@
+{
+	"name": "batch_load_Facts_CALL_Daily_ZML",
+	"properties": {
+		"activities": [
+			{
+				"name": "df_load_FACT_CALL",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "1.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_FACT_CALL_ZML",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/FACTS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse",
+					"sourceStagingConcurrency": 1
+				}
+			}
+		],
+		"folder": {
+			"name": "Temp/Anuj/ZML/LP_ODS_to_EDW"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-12-22T07:52:20Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

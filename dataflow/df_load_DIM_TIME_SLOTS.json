@@ -1,0 +1,391 @@
+{
+	"name": "df_load_DIM_TIME_SLOTS",
+	"properties": {
+		"folder": {
+			"name": "ODS_to_EDW/DIMENSIONS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_FHI_tms_TimeSlots",
+						"type": "DatasetReference"
+					},
+					"name": "FHI",
+					"description": "Import data from SRC_ODS_LP_FHI_tms_TimeSlots"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_FHI_tms_TimeSlots",
+						"type": "DatasetReference"
+					},
+					"name": "HSI"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_MAC_tms_TimeSlots",
+						"type": "DatasetReference"
+					},
+					"name": "MAC"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_PBC_tms_TimeSlots",
+						"type": "DatasetReference"
+					},
+					"name": "PBC"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_PBC_tms_TimeSlots",
+						"type": "DatasetReference"
+					},
+					"name": "SWR"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_RTW_tms_TimeSlots",
+						"type": "DatasetReference"
+					},
+					"name": "RTW"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_MXH_tms_TimeSlots",
+						"type": "DatasetReference"
+					},
+					"name": "MXH"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_CTA_tms_TimeSlots",
+						"type": "DatasetReference"
+					},
+					"name": "CTA"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_DIM_TIME_SLOTS",
+						"type": "DatasetReference"
+					},
+					"name": "targetDim",
+					"description": "Export data to EDW_DIM_TIME_SLOTS"
+				}
+			],
+			"transformations": [
+				{
+					"name": "selectColsFHI"
+				},
+				{
+					"name": "createDivFHI"
+				},
+				{
+					"name": "unionAllOpCos"
+				},
+				{
+					"name": "selectColsHSI"
+				},
+				{
+					"name": "createDivHSI"
+				},
+				{
+					"name": "selectColsMAC"
+				},
+				{
+					"name": "createDivMAC"
+				},
+				{
+					"name": "createDivPBC"
+				},
+				{
+					"name": "selectColsPBC"
+				},
+				{
+					"name": "selectColsSWR"
+				},
+				{
+					"name": "createDivSWR"
+				},
+				{
+					"name": "createIDsfinal"
+				},
+				{
+					"name": "selectColsRTW"
+				},
+				{
+					"name": "createDivRTW"
+				},
+				{
+					"name": "selectColsMXH"
+				},
+				{
+					"name": "createDivMXH"
+				},
+				{
+					"name": "selectCTA"
+				},
+				{
+					"name": "createDivCTA"
+				},
+				{
+					"name": "AlterRow"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          id as integer,",
+				"          SlotTime as string,",
+				"          SlotTimeAP as string,",
+				"          ShortName as string,",
+				"          MediumName as string,",
+				"          LongName as string,",
+				"          Active as boolean",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> FHI",
+				"source(output(",
+				"          id as integer,",
+				"          SlotTime as string,",
+				"          SlotTimeAP as string,",
+				"          ShortName as string,",
+				"          MediumName as string,",
+				"          LongName as string,",
+				"          Active as boolean",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> HSI",
+				"source(output(",
+				"          id as integer,",
+				"          SlotTime as string,",
+				"          SlotTimeAP as string,",
+				"          ShortName as string,",
+				"          MediumName as string,",
+				"          LongName as string,",
+				"          Active as boolean",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> MAC",
+				"source(output(",
+				"          id as integer,",
+				"          SlotTime as string,",
+				"          SlotTimeAP as string,",
+				"          ShortName as string,",
+				"          MediumName as string,",
+				"          LongName as string,",
+				"          Active as boolean",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> PBC",
+				"source(output(",
+				"          id as integer,",
+				"          SlotTime as string,",
+				"          SlotTimeAP as string,",
+				"          ShortName as string,",
+				"          MediumName as string,",
+				"          LongName as string,",
+				"          Active as boolean",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> SWR",
+				"source(output(",
+				"          id as integer,",
+				"          SlotTime as string,",
+				"          SlotTimeAP as string,",
+				"          ShortName as string,",
+				"          MediumName as string,",
+				"          LongName as string,",
+				"          Active as boolean",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> RTW",
+				"source(output(",
+				"          id as integer,",
+				"          SlotTime as string,",
+				"          SlotTimeAP as string,",
+				"          ShortName as string,",
+				"          MediumName as string,",
+				"          LongName as string,",
+				"          Active as boolean",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> MXH",
+				"source(output(",
+				"          id as integer,",
+				"          SlotTime as string,",
+				"          SlotTimeAP as string,",
+				"          ShortName as string,",
+				"          MediumName as string,",
+				"          LongName as string,",
+				"          Active as boolean",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> CTA",
+				"FHI select(mapColumn(",
+				"          LP_TimeSlotID = id,",
+				"          SlotTime,",
+				"          SlotTimeAP,",
+				"          ShortName,",
+				"          MediumName,",
+				"          LongName,",
+				"          Active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColsFHI",
+				"selectColsFHI derive(Division = 'FHI') ~> createDivFHI",
+				"createDivFHI, createDivHSI, createDivMAC, createDivPBC, createDivSWR, createDivRTW, createDivMXH, createDivCTA union(byName: true)~> unionAllOpCos",
+				"HSI select(mapColumn(",
+				"          LP_TimeSlotID = id,",
+				"          SlotTime,",
+				"          SlotTimeAP,",
+				"          ShortName,",
+				"          MediumName,",
+				"          LongName,",
+				"          Active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColsHSI",
+				"selectColsHSI derive(Division = 'HSI') ~> createDivHSI",
+				"MAC select(mapColumn(",
+				"          LP_TimeSlotID = id,",
+				"          SlotTime,",
+				"          SlotTimeAP,",
+				"          ShortName,",
+				"          MediumName,",
+				"          LongName,",
+				"          Active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColsMAC",
+				"selectColsMAC derive(Division = 'MAC') ~> createDivMAC",
+				"selectColsPBC derive(Division = 'PBC') ~> createDivPBC",
+				"PBC select(mapColumn(",
+				"          LP_TimeSlotID = id,",
+				"          SlotTime,",
+				"          SlotTimeAP,",
+				"          ShortName,",
+				"          MediumName,",
+				"          LongName,",
+				"          Active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColsPBC",
+				"SWR select(mapColumn(",
+				"          LP_TimeSlotID = id,",
+				"          SlotTime,",
+				"          SlotTimeAP,",
+				"          ShortName,",
+				"          MediumName,",
+				"          LongName,",
+				"          Active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColsSWR",
+				"selectColsSWR derive(Division = 'SWR') ~> createDivSWR",
+				"unionAllOpCos derive(TimeSlotID = concatWS('-',Division,toString(LP_TimeSlotID)),",
+				"          LastUpdateTS = currentTimestamp()) ~> createIDsfinal",
+				"RTW select(mapColumn(",
+				"          LP_TimeSlotID = id,",
+				"          SlotTime,",
+				"          SlotTimeAP,",
+				"          ShortName,",
+				"          MediumName,",
+				"          LongName,",
+				"          Active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColsRTW",
+				"selectColsRTW derive(Division = 'RTW') ~> createDivRTW",
+				"MXH select(mapColumn(",
+				"          LP_TimeSlotID = id,",
+				"          SlotTime,",
+				"          SlotTimeAP,",
+				"          ShortName,",
+				"          MediumName,",
+				"          LongName,",
+				"          Active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColsMXH",
+				"selectColsMXH derive(Division = 'MXH') ~> createDivMXH",
+				"CTA select(mapColumn(",
+				"          LP_TimeSlotID = id,",
+				"          SlotTime,",
+				"          SlotTimeAP,",
+				"          ShortName,",
+				"          MediumName,",
+				"          LongName,",
+				"          Active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectCTA",
+				"selectCTA derive(Division = 'CTA') ~> createDivCTA",
+				"createIDsfinal alterRow(upsertIf(true())) ~> AlterRow",
+				"AlterRow sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          TimeSlotID as string,",
+				"          SlotTime as string,",
+				"          SlotTimeAP as string,",
+				"          ShortName as string,",
+				"          MediumName as string,",
+				"          LongName as string,",
+				"          Active as boolean,",
+				"          LP_TimeSlotID as integer,",
+				"          Division as string,",
+				"          LastUpdateTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['TimeSlotID'],",
+				"     format: 'table',",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          LP_TimeSlotID,",
+				"          SlotTime,",
+				"          SlotTimeAP,",
+				"          ShortName,",
+				"          MediumName,",
+				"          LongName,",
+				"          Active,",
+				"          Division,",
+				"          TimeSlotID,",
+				"          LastUpdateTS",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> targetDim"
+			]
+		}
+	}
+}

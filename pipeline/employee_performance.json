@@ -1,0 +1,66 @@
+{
+	"name": "employee_performance",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy data",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "WITH LEADS_DATA AS (\n\n\tSELECT \t\n\t\tSalesRep1_EmployeeID,\n\t\tSUM(CAST(ApptSet AS INTEGER))as total_appt_set,\n\t\tSUM(CAST(Verified AS INTEGER))as total_leads_verified,\n\t\tSUM(CAST(Confirmed AS INTEGER))as total_leads_confirmed,\n\t\tSUM(CAST(Issued AS INTEGER))as total_leads_issued,\n\t\tSUM(CAST(NetIssued AS INTEGER))as total_net_issued,\n\t\tSUM(CAST(sat AS INTEGER))as total_leads_sat,\n\t\tSUM(CAST(sold AS INTEGER))as total_leads_sold,\n\t\tSUM(CAST(everset AS INTEGER))as total_leads_everset,\n\t\tSUM(CAST(eververified AS INTEGER))as total_leads_eververified,\n\t\tSUM(CAST(everissued AS INTEGER))as total_leads_everissued,\n\t\tSUM(CAST(evernetissued AS INTEGER))as total_leads_evernetissued,\n\t\tSUM(CAST(eversat AS INTEGER))as total_leads_eversat,\n\t\tSUM(CAST(everconfirmed AS INTEGER))as total_leads_everconfirmed,\n\t\tSUM(CASE WHEN disp.comments like '%Reset%' and disp.OkToReset = 1 THEN 1 \n\t\t\t\t WHEN disp.comments like '%Reschedule%' and disp.OkToReset = 1 THEN 1 ELSE 0 END) AS total_resets\n\n\tFROM EDW.FACT_LEAD leads\n\tLEFT JOIN EDW.DIM_DISPOSITION disp on leads.DispositionID = disp.DispositionID\n\tWHERE EntryDate > DATEADD(year, -1, getdate())\n\tGROUP BY SalesRep1_EmployeeID\n\n),\nFACT_CALL as (\n\tSELECT \n\t\ta.AgentEmployeeID,\n\t\tCOUNT(CallID) Total_Calls,\n\t\tSUM(CASE WHEN CallResult = 'Appointment' THEN 1 ELSE 0 END) Total_Appt_Sets,\n\t\tSUM(CASE WHEN UNI_CallType = 'Connected' THEN 1 ELSE 0 END) Total_Outbound,\n\t\tSUM(CASE WHEN CallType LIKE 'Inbound' THEN 1 ELSE 0 END) Total_Inbound,\n\t\tSUM(CASE WHEN UNI_CallResult = 'Follow up Request' and cr.Pitched = 1 THEN 1 ELSE 0 END) Total_Followup_Req,\n\t\tSUM(CASE WHEN UNI_CallResult = 'Follow up Complete' THEN 1 ELSE 0 END) Total_Followups, \n\t\tSUM(CASE WHEN UNI_CallResult = 'Call Transfer' THEN 1 ELSE 0 END) Total_Call_Transfers\n\t\n\tFROM EDW.FACT_CALL a\n\tLEFT JOIN EDW.dim_call_result cr on a.CallResultID = cr.CallResultID\n\tLEFT JOIN EDW.dim_call_type ct on a.CallTypeID = ct.CallTypeID\n\tWHERE a.calldate > DATEADD(year, -1, GETDATE())\n\tGROUP BY a.AgentEmployeeID\n)\n\n\n\nSELECT \n\temp.EmployeeID,\n\tMAX(CONCAT(emp.FirstName, ' ', emp.LastName)) as EmployeeName,\n\tMAX(CAST(emp.Setter as INTEGER)) as Setter,\n\tMAX(CAST(emp.Verifier as INTEGER)) as Verifier,\n\tMAX(CAST(emp.Confirmer as INTEGER)) as Confirmer,\n\tMAX(CAST(emp.Promoter as INTEGER)) as Promoter,\n\tMAX(CAST(emp.SalesRep as INTEGER)) as SalesRep,\n\tMAX(CAST(emp.Dialer as INTEGER)) as Dialer,\n\tMAX(COALESCE(a.Total_Calls,0)) Total_Calls,\n\tMAX(COALESCE(a.Total_Appt_Sets,0)) Total_Appt_Sets,\n\tMAX(COALESCE(a.Total_Outbound,0)) Total_Outbound,\n\tMAX(COALESCE(a.Total_Inbound,0)) Total_Inbound,\n\tMAX(COALESCE(a.Total_Followup_Req,0)) Total_Followup_Req,\n\tMAX(COALESCE(a.Total_Followups,0)) Total_Followups,\n\tMAX(COALESCE(a.Total_Call_Transfers,0)) Total_Call_Transfers,\n\tMAX(emp.Division) as Division,\n\tMAX(COALESCE(leads.total_appt_set, 0))as total_leads_appt_set,\n\tMAX(COALESCE(leads.total_leads_verified, 0)) as total_leads_verified,\n\tMAX(COALESCE(leads.total_leads_confirmed, 0)) as total_leads_confirmed,\n\tMAX(COALESCE(leads.total_leads_issued, 0)) as total_leads_issued,\n\tMAX(COALESCE(leads.total_net_issued, 0)) as total_net_issued,\n\tMAX(COALESCE(leads.total_leads_sat, 0)) as total_leads_sat,\n\tMAX(COALESCE(leads.total_leads_sold, 0)) as total_leads_sold,\n\tMAX(COALESCE(leads.total_leads_everset, 0)) as total_leads_everset,\n\tMAX(COALESCE(leads.total_leads_eververified, 0)) as total_leads_eververified,\n\tMAX(COALESCE(leads.total_leads_everissued, 0)) as total_leads_everissued,\n\tMAX(COALESCE(leads.total_leads_evernetissued, 0)) as total_leads_evernetissued,\n\tMAX(COALESCE(leads.total_leads_eversat, 0)) as total_leads_eversat,\n\tMAX(COALESCE(leads.total_leads_everconfirmed, 0)) as total_leads_everconfirmed,\n\tMAX(COALESCE(leads.total_resets, 0)) as total_resets\n\t\n\t\nFROM EDW.DIM_EMPLOYEE emp\nLEFT JOIN FACT_CALL a ON emp.EmployeeID = a.AGENTEMPLOYEEID\nLEFT JOIN LEADS_DATA leads ON emp.EmployeeID = leads.SalesRep1_EmployeeID\nWHERE emp.Active = 1 \nGROUP BY emp.EmployeeID;",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "edw_employee_performance",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "employee_performance_to_csv",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "Temp/Sameen"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-10-13T18:55:33Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

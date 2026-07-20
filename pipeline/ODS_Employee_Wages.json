@@ -1,0 +1,715 @@
+{
+	"name": "ODS_Employee_Wages",
+	"properties": {
+		"activities": [
+			{
+				"name": "If Condition True",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Filter_Latest_File",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@greater(length(activity('Filter_Latest_File').output.value), 0)",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "Copy ADP Payroll data",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "Get Last Updated Date",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"storeSettings": {
+										"type": "AzureBlobStorageReadSettings",
+										"recursive": false,
+										"wildcardFolderPath": "in",
+										"wildcardFileName": "PayrollReportcustom_*.csv",
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
+								},
+								"sink": {
+									"type": "SqlDWSink",
+									"preCopyScript": "TRUNCATE TABLE ODS.ADP_WAGES_PAYROLL_REPORT; ",
+									"allowCopyCommand": true,
+									"disableMetricsCollection": false
+								},
+								"enableStaging": true,
+								"stagingSettings": {
+									"linkedServiceName": {
+										"referenceName": "AzureBlobStorage1",
+										"type": "LinkedServiceReference"
+									},
+									"path": "staging"
+								},
+								"translator": {
+									"type": "TabularTranslator",
+									"mappings": [
+										{
+											"source": {
+												"name": "Payroll Company Code",
+												"type": "String"
+											},
+											"sink": {
+												"name": "PayrollCompanyCode",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Payroll Company Name",
+												"type": "String"
+											},
+											"sink": {
+												"name": "PayrollCompanyName",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Position Status",
+												"type": "String"
+											},
+											"sink": {
+												"name": "PositionStatus",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Associate ID",
+												"type": "String"
+											},
+											"sink": {
+												"name": "EmployeeID",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Home Department",
+												"type": "String"
+											},
+											"sink": {
+												"name": "HomeDepartment",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Job Title",
+												"type": "String"
+											},
+											"sink": {
+												"name": "JobTitle",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Division",
+												"type": "String"
+											},
+											"sink": {
+												"name": "Division",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Sub Department",
+												"type": "String"
+											},
+											"sink": {
+												"name": "SubDepartment",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Reports To Name",
+												"type": "String"
+											},
+											"sink": {
+												"name": "ReportsToName",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Regular Pay Rate Amount",
+												"type": "String"
+											},
+											"sink": {
+												"name": "RegularPayRateAmount",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Regular Earnings Total",
+												"type": "String"
+											},
+											"sink": {
+												"name": "RegularEarningsTotal",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Week Number",
+												"type": "String"
+											},
+											"sink": {
+												"name": "WeekNumber",
+												"type": "Int32"
+											}
+										},
+										{
+											"source": {
+												"name": "Payroll Number",
+												"type": "String"
+											},
+											"sink": {
+												"name": "PayrollNumber",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Distribution Number",
+												"type": "String"
+											},
+											"sink": {
+												"name": "DistributionNumber",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Period Beginning Date",
+												"type": "String"
+											},
+											"sink": {
+												"name": "PeriodBeginningDate",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Period End Date",
+												"type": "String"
+											},
+											"sink": {
+												"name": "PeriodEndDate",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Pay Date",
+												"type": "String"
+											},
+											"sink": {
+												"name": "PayDate",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Gross Pay",
+												"type": "String"
+											},
+											"sink": {
+												"name": "GrossPay",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Regular Hours Total",
+												"type": "String"
+											},
+											"sink": {
+												"name": "RegularHoursTotal",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Overtime Hours Total",
+												"type": "String"
+											},
+											"sink": {
+												"name": "OvertimeHoursTotal",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "PBD_1/2 Paid Bday_Hours",
+												"type": "String"
+											},
+											"sink": {
+												"name": "PBD_1_2PaidBday_Hours",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "SI1_Sick Pay_Hours",
+												"type": "String"
+											},
+											"sink": {
+												"name": "SI1_SickPay_Hours",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Total Hours",
+												"type": "String"
+											},
+											"sink": {
+												"name": "TotalHours",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "PTO_Hours",
+												"type": "String"
+											},
+											"sink": {
+												"name": "PTO_Hours",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Overtime Earnings Total",
+												"type": "String"
+											},
+											"sink": {
+												"name": "OvertimeEarningsTotal",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "BON_BONUS_Earnings",
+												"type": "String"
+											},
+											"sink": {
+												"name": "BON_BONUS_Earnings",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "COM_COMMISSION_Earnings",
+												"type": "String"
+											},
+											"sink": {
+												"name": "COM_COMMISSION_Earnings",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "CPA_Earnings",
+												"type": "String"
+											},
+											"sink": {
+												"name": "CPA_Earnings",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "INC_Commission_Earnings",
+												"type": "String"
+											},
+											"sink": {
+												"name": "INC_Commission_Earnings",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "PTO_Earnings",
+												"type": "String"
+											},
+											"sink": {
+												"name": "PTO_Earnings",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "SI1_Sick Pay_Earnings",
+												"type": "String"
+											},
+											"sink": {
+												"name": "SI1_SickPay_Earnings",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Total Earnings",
+												"type": "String"
+											},
+											"sink": {
+												"name": "TotalEarnings",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Regular Pay Rate Description",
+												"type": "String"
+											},
+											"sink": {
+												"name": "RegularPayRateDescription",
+												"type": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "PBD_1/2 Paid Bday_Earnings",
+												"type": "String"
+											},
+											"sink": {
+												"name": "PBD_1_2PaidBday_Earnings",
+												"type": "String"
+											}
+										}
+									]
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "ages_payroll_report",
+									"type": "DatasetReference",
+									"parameters": {
+										"p_Filename": {
+											"value": "@variables('FileName')",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ODS_ADP_WAGES_PAYROLL_REPORT",
+									"type": "DatasetReference"
+								}
+							]
+						},
+						{
+							"name": "Archive files",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "Exclude_Employees",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"storeSettings": {
+										"type": "AzureBlobStorageReadSettings",
+										"recursive": false,
+										"wildcardFolderPath": "in",
+										"wildcardFileName": "Payroll_*.csv",
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobStorageWriteSettings"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "ages_payroll_report",
+									"type": "DatasetReference",
+									"parameters": {
+										"p_Filename": {
+											"value": "@variables('FileName')",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "Wages_payroll_arch",
+									"type": "DatasetReference",
+									"parameters": {
+										"out_file": {
+											"value": "@concat('Payroll_',   formatDateTime(activity('Get Last Updated Date').output.lastModified, 'yyyyMMdd_HHmmss'),'.csv' )",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "Delete1",
+							"type": "Delete",
+							"dependsOn": [
+								{
+									"activity": "Archive files",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "ages_payroll_report",
+									"type": "DatasetReference",
+									"parameters": {
+										"p_Filename": {
+											"value": "@variables('FileName')",
+											"type": "Expression"
+										}
+									}
+								},
+								"enableLogging": false,
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": false,
+									"wildcardFileName": "Payroll_*.csv",
+									"enablePartitionDiscovery": false
+								}
+							}
+						},
+						{
+							"name": "Exclude_Employees",
+							"type": "Script",
+							"dependsOn": [
+								{
+									"activity": "Copy ADP Payroll data",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"linkedServiceName": {
+								"referenceName": "RDC",
+								"type": "LinkedServiceReference"
+							},
+							"typeProperties": {
+								"scripts": [
+									{
+										"type": "Query",
+										"text": "DELETE FROM ODS.ADP_WAGES_PAYROLL_REPORT\nWHERE EmployeeID IN \n('7FB06K68P','EFHRRCHVW'\t,'H4NE2FETC'\t,'SF56N3E64'\t,'7P5WVVCOQ'\t,'X2M3TLGGY'\t,\n'4B9GD42HH'\t,'BDPZO3ROB'\t,'OQYJZZVAU'\t,'BC006MSKH'\t,'CYMK62FA0'\t,'M74OQAZJM'\t,\n'V1PDP2NYP'\t,'PV0SMMC9P'\t,'RLE8M79C3'\t,'V1JFXHXIQ'\t,'5AVC4R59L'\t,'UGZ6U9KZ4'\t,\n'EN87R9133'\t,'O5G609OFR'\t,'4KVVBOB99'\t,'71ZYLUBST'\t,'0HHQ7AL4W'\t,'7K3F6OV9T'\t,\n'8BJ1NP2KI'\t,'KYOW98B9U'\t,'W6QXRLVC2'\t,'Z6VCHK5M7'\t,'GZRY0NNIO'\t,'7IG4VZOUE'\t\n)"
+									}
+								],
+								"scriptBlockExecutionTimeout": "02:00:00"
+							}
+						},
+						{
+							"name": "Set variable_FileName",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "FileName",
+								"value": {
+									"value": "@activity('Filter_Latest_File').output.value[0].name\n",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Get Last Updated Date",
+							"type": "GetMetadata",
+							"dependsOn": [
+								{
+									"activity": "Set variable_FileName",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.6:00:00",
+								"retry": 1,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "ages_payroll_report",
+									"type": "DatasetReference",
+									"parameters": {
+										"p_Filename": {
+											"value": "@variables('FileName')",
+											"type": "Expression"
+										}
+									}
+								},
+								"fieldList": [
+									"lastModified"
+								],
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Check file Name",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.6:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "ADP_In_Files",
+						"type": "DatasetReference"
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "DelimitedTextReadSettings"
+					}
+				}
+			},
+			{
+				"name": "Filter_Latest_File",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "Check file Name",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Check file Name').output.childItems",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@and(\n  equals(item().type, 'File'),\n  contains(item().name, 'PayrollReportcustom')\n)",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"variables": {
+			"FileName": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "ADP_Employee"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-04-29T10:59:19Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

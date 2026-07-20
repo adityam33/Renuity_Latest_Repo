@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 36",
+	"properties": {
+		"content": {
+			"query": "SELECT\n    LOWER(cst.FirstName) first_name,\n    LOWER(cst.LastName) last_name,\n    cst.phone phone,\n    cst.email email,\n    cst.address1,\n    cst.city,\n    cst.state as xstate,\n    cst.zip as zipp,\n    brn.longname as market,\n    lds.division\nFROM\n    [EDW].[FACT_LEAD] lds\n    INNER JOIN [EDW].[DIM_CUSTOMER] cst on lds.CustomerID = cst.CustomerID\n    INNER JOIN [EDW].[FACT_JOB] job on cst.CustomerID = job.CustomerID\n    INNER JOIN [EDW].[DIM_JOB_STATUS] jbs on jbs.JobStatusID =  job.JobStatusID\n    INNER JOIN [EDW].[DIM_BRANCH] brn on lds.BranchID = brn.BranchID\nWHERE lds.EntryDate BETWEEN '2022/07/25 00:00:00' AND '2023/07/25 00:00:00'\nAND lds.sold = 1\n\n\nselect top(100) * from [EDW].[DIM_CUSTOMER] cst",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

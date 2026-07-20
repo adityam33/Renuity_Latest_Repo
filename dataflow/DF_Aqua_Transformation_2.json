@@ -1,0 +1,192 @@
+{
+	"name": "DF_Aqua_Transformation_2",
+	"properties": {
+		"folder": {
+			"name": "ODS_to_EDW/FACTS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "df_acqua_raw",
+						"type": "DatasetReference"
+					},
+					"name": "RiteWindows"
+				},
+				{
+					"dataset": {
+						"referenceName": "df_acqua_raw",
+						"type": "DatasetReference"
+					},
+					"name": "RenuityConcreteCoatings"
+				},
+				{
+					"dataset": {
+						"referenceName": "df_acqua_raw",
+						"type": "DatasetReference"
+					},
+					"name": "ClosetAmerica"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "fico_foundation_ods",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "filter1"
+				},
+				{
+					"name": "surrogateKey1"
+				},
+				{
+					"name": "surrogateKey2"
+				},
+				{
+					"name": "filter2"
+				},
+				{
+					"name": "DCRenuityConcreteCoatings"
+				},
+				{
+					"name": "surrogateKey3"
+				},
+				{
+					"name": "filter3"
+				},
+				{
+					"name": "DCClosetAmerica"
+				},
+				{
+					"name": "union1"
+				},
+				{
+					"name": "MapDrifted2"
+				},
+				{
+					"name": "MapDrifted3",
+					"description": "Creates an explicit mapping for each drifted column"
+				},
+				{
+					"name": "MapDrifted4",
+					"description": "Creates an explicit mapping for each drifted column"
+				},
+				{
+					"name": "DCRiteWindow"
+				},
+				{
+					"name": "union2"
+				},
+				{
+					"name": "select1"
+				}
+			],
+			"scriptLines": [
+				"parameters{",
+				"     Week as string ('8/18/24 - 8/24/24')",
+				"}",
+				"source(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> RiteWindows",
+				"source(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> RenuityConcreteCoatings",
+				"source(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> ClosetAmerica",
+				"surrogateKey1 filter(and(rowNumber >= 67,rowNumber <= 72)) ~> filter1",
+				"RiteWindows keyGenerate(output(rowNumber as long),",
+				"     startAt: 1L,",
+				"     stepValue: 1L) ~> surrogateKey1",
+				"RenuityConcreteCoatings keyGenerate(output(rowNumber as long),",
+				"     startAt: 1L,",
+				"     stepValue: 1L) ~> surrogateKey2",
+				"surrogateKey2 filter(and(rowNumber >= 76,rowNumber <= 81)) ~> filter2",
+				"MapDrifted3 derive(Division = 'Renuity Concrete Coatings',",
+				"          Week = concat(toString(toDate(replace(split(replace($Week, ' ', ''), '-')[1], '/', '-'), 'MM-dd-yy'), 'MM-dd-yyyy'), ' - ', toString(toDate(replace(split(replace($Week, ' ', ''), '-')[2], '/', '-'), 'MM-dd-yy'), 'MM-dd-yyyy'))) ~> DCRenuityConcreteCoatings",
+				"ClosetAmerica keyGenerate(output(rowNumber as long),",
+				"     startAt: 1L,",
+				"     stepValue: 1L) ~> surrogateKey3",
+				"surrogateKey3 filter(and(rowNumber >= 85,rowNumber <= 90)) ~> filter3",
+				"MapDrifted4 derive(Division = 'Closet America LLC',",
+				"          Week = concat(toString(toDate(replace(split(replace($Week, ' ', ''), '-')[1], '/', '-'), 'MM-dd-yy'), 'MM-dd-yyyy'), ' - ', toString(toDate(replace(split(replace($Week, ' ', ''), '-')[2], '/', '-'), 'MM-dd-yy'), 'MM-dd-yyyy'))) ~> DCClosetAmerica",
+				"DCRiteWindow, DCRenuityConcreteCoatings union(byName: true)~> union1",
+				"filter1 derive({FICO Band} = toString(byName('Prop_0')),",
+				"          Aprvd = toString(byName('Prop_1')),",
+				"          Denied = toString(byName('Prop_2')),",
+				"          Total = toString(byName('Prop_3')),",
+				"          {Approval %} = toString(byName('Prop_4')),",
+				"          Contracted = toString(byName('Prop_5')),",
+				"          {Contracted/Approved} = toString(byName('Prop_6')),",
+				"          {Apvd $} = toString(byName('Prop_7')),",
+				"          {Denied $s} = toString(byName('Prop_8')),",
+				"          {Total $s} = toString(byName('Prop_9')),",
+				"          {Approval %s} = toString(byName('Prop_10')),",
+				"          Lender = 'Acqua') ~> MapDrifted2",
+				"filter2 derive({FICO Band} = toString(byName('Prop_0')),",
+				"          Aprvd = toString(byName('Prop_1')),",
+				"          Denied = toString(byName('Prop_2')),",
+				"          Total = toString(byName('Prop_3')),",
+				"          {Approval %} = toString(byName('Prop_4')),",
+				"          Contracted = toString(byName('Prop_5')),",
+				"          {Contracted/Approved} = toString(byName('Prop_6')),",
+				"          {Apvd $} = toString(byName('Prop_7')),",
+				"          {Denied $s} = toString(byName('Prop_8')),",
+				"          {Total $s} = toString(byName('Prop_9')),",
+				"          {Approval %s} = toString(byName('Prop_10')),",
+				"          Lender = 'Acqua') ~> MapDrifted3",
+				"filter3 derive({FICO Band} = toString(byName('Prop_0')),",
+				"          Aprvd = toString(byName('Prop_1')),",
+				"          Denied = toString(byName('Prop_2')),",
+				"          Total = toString(byName('Prop_3')),",
+				"          {Approval %} = toString(byName('Prop_4')),",
+				"          Contracted = toString(byName('Prop_5')),",
+				"          {Contracted/Approved} = toString(byName('Prop_6')),",
+				"          {Apvd $} = toString(byName('Prop_7')),",
+				"          {Denied $s} = toString(byName('Prop_8')),",
+				"          {Total $s} = toString(byName('Prop_9')),",
+				"          {Approval %s} = toString(byName('Prop_10')),",
+				"          Lender = 'Acqua') ~> MapDrifted4",
+				"MapDrifted2 derive(Division = 'Rite Window',",
+				"          Week = concat(toString(toDate(replace(split(replace($Week, ' ', ''), '-')[1], '/', '-'), 'MM-dd-yy'), 'MM-dd-yyyy'), ' - ', toString(toDate(replace(split(replace($Week, ' ', ''), '-')[2], '/', '-'), 'MM-dd-yy'), 'MM-dd-yyyy'))) ~> DCRiteWindow",
+				"union1, DCClosetAmerica union(byName: true)~> union2",
+				"union2 select(mapColumn(",
+				"          rowNumber,",
+				"          FICO_Band = {FICO Band},",
+				"          Aprvd,",
+				"          Denied,",
+				"          Total,",
+				"          {Approval%} = {Approval %},",
+				"          Contracted,",
+				"          Contracted_Approved = {Contracted/Approved},",
+				"          Apvd_Amount = {Apvd $},",
+				"          Denied_Amount = {Denied $s},",
+				"          Total_Amount = {Total $s},",
+				"          {Approval_%} = {Approval %s},",
+				"          Division_Name = Division,",
+				"          Week,",
+				"          Lender",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"select1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     staged: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> sink1"
+			]
+		}
+	}
+}

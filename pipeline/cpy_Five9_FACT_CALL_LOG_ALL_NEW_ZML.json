@@ -1,0 +1,39 @@
+{
+	"name": "cpy_Five9_FACT_CALL_LOG_ALL_NEW_ZML",
+	"properties": {
+		"activities": [
+			{
+				"name": "INSERT_FACT_CALL_LOG_ALL_NEW",
+				"type": "Script",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "--DELETE FROM ZML.FACT_FIVE9_CALL_LOG_ALL_NEW WHERE DATE >= GETDATE()-15;\r\n\r\nTRUNCATE TABLE ZML.FACT_FIVE9_CALL_LOG_ALL_NEW;\r\n\r\nINSERT INTO ZML.FACT_FIVE9_CALL_LOG_ALL_NEW\r\n(DIVISION\t,\r\nSESSION_ID\t,\r\nCALL_ID\t,\r\nCONTACT_ID\t,\r\nCallResultId\t,\r\nMarketID\t,\r\nProductID\t,\r\nLeadSubSourceID\t,\r\nTIMESTAMP\t,\r\nDATE\t,\r\nHOUR\t,\r\nTIME\t,\r\nCALL_TYPE\t,\r\nCAMPAIGN_TYPE\t,\r\nCAMPAIGN\t,\r\nSKILL\t,\r\nLIST_NAME\t,\r\nAGENT_GROUP\t,\r\nAGENT_NAME\t,\r\nAGENT\t,\r\nCUSTOMER_NAME\t,\r\nANI_CODE,\r\nANI,\r\nDNIS\t,\r\nCALLS\t,\r\nABANDONED\t,\r\nCONTACTED\t,\r\nLIVE_CONNECT\t,\r\nNO_PARTY_CONTACT\t,\r\nSPEED_OF_ANSWER\t,\r\nSERVICE_LEVEL\t,\r\nCALLS_COMPLETED_IN_IVR\t,\r\nCOMPANY\t,\r\nCUSTID\t,\r\nLEAD_ID\t,\r\nCONTACT_CREATE_DATE_TIME\t,\r\nNUMBER1\t,\r\nNUMBER2\t,\r\nNUMBER3\t,\r\nANR_LOGIT_RANK\t,\r\nLANGUAGE\t,\r\nLPRECTYPE\t,\r\nLPRECKEY\t,\r\nDATEUPLOADED\t,\r\nNUMBER_OF_ATTEMPTS\t,\r\nLOCAL_ANI\t,\r\nAB_TEST\t,\r\nCALL_TIME\t,\r\nDIAL_TIME\t,\r\nRING_TIME\t,\r\nTIME_TO_ABANDON\t,\r\nMANUAL_TIME\t,\r\nHANDLE_TIME\t,\r\nCONSULT_TIME\t,\r\nQUEUE_CALLBACK_WAIT_TIME\t,\r\nPREVIEW_TIME\t,\r\nAFTER_CALL_WORK_TIME\t,\r\nTOTAL_QUEUE_TIME\t,\r\nQUEUE_WAIT_TIME\t,\r\nHOLD_TIME\t,\r\nTALK_TIME\t,\r\nPARK_TIME\t,\r\nIVR_TIME\t,\r\nRECORDINGS\t,\r\nLAST_UPDATED_TS\t,\r\nData_Identifier\t,\r\nDIVISION_ORIG\t,\r\nLP_LeadID\t\r\n)\r\n\r\n\r\nSELECT A.DIVISION \r\n     ,A.SESSION_ID \r\n     ,A.CALL_ID \r\n     ,A.CONTACT_ID \r\n     ,COALESCE(B.CallResultId,B1.CallResultId)           AS CallResultId\r\n     ,COALESCE(C.MarketID      ,C1.MarketID )               AS MarketID  \r\n     ,COALESCE(D.ProductID   ,D1.ProductID)                    AS ProductID \r\n     ,(E.LeadSubSourceID )      AS LeadSubSourceID \r\n     \r\n     ,A.TIMESTAMP \r\n     ,A.DATE \r\n     ,A.HOUR \r\n     ,A.TIME \r\n     ,A.CALL_TYPE \r\n     ,A.CAMPAIGN_TYPE \r\n     ,A.CAMPAIGN \r\n     ,A.SKILL \r\n     ,A.LIST_NAME \r\n     ,A.AGENT_GROUP \r\n     ,A.AGENT_NAME \r\n     ,A.AGENT \r\n     ,A.CUSTOMER_NAME \r\n     --,A.ANI_CODE \r\n     --,A.ANI \r\n     --,A.DNIS \r\n\t\t,Replace(CASE WHEN TRY_CAST(A.ANI_CODE AS DECIMAL(38,0)) \tIS  NULL THEN NULL ELSE  [ANI_CODE] END,'.','')  AS ANI_CODE\r\n\t\t,CASE WHEN TRY_CAST(A.ANI AS DECIMAL(38,0)) \t\tIS  NULL THEN NULL ELSE  [ANI] \t\tEND AS ANI\r\n\t\t,CASE WHEN TRY_CAST(A.DNIS AS DECIMAL(38,0)) \t\tIS  NULL THEN NULL ELSE  [DNIS] \tEND AS DNIS\t\r\n     --DISPOSITION \r\n     ,A.CALLS \r\n     ,A.ABANDONED \r\n     ,A.CONTACTED \r\n     ,A.LIVE_CONNECT \r\n     ,A.NO_PARTY_CONTACT \r\n     ,A.SPEED_OF_ANSWER \r\n     ,A.SERVICE_LEVEL \r\n     ,A.CALLS_COMPLETED_IN_IVR \r\n     ,A.COMPANY \r\n     ,A.CUSTID \r\n     ,A.LEAD_ID \r\n     ,A.CONTACT_CREATE_DATE_TIME \r\n     ,A.NUMBER1 \r\n     ,A.NUMBER2 \r\n     ,A.NUMBER3 \r\n     ,A.ANR_LOGIT_RANK \r\n     --MARKET \r\n     --PRODUCT \r\n     --SOURCEGROUP \r\n     --SOURCE \r\n     --SUBSOURCE \r\n     ,A.LANGUAGE \r\n     ,A.LPRECTYPE \r\n     ,A.LPRECKEY \r\n     ,A.DATEUPLOADED \r\n     ,A.NUMBER_OF_ATTEMPTS \r\n     ,A.LOCAL_ANI \r\n     ,A.AB_TEST \r\n     ,A.CALL_TIME \r\n     ,A.DIAL_TIME \r\n     ,A.RING_TIME \r\n     ,A.TIME_TO_ABANDON \r\n     ,A.MANUAL_TIME \r\n     ,A.HANDLE_TIME \r\n     ,A.CONSULT_TIME \r\n     ,A.QUEUE_CALLBACK_WAIT_TIME \r\n     ,A.PREVIEW_TIME \r\n     ,A.AFTER_CALL_WORK_TIME \r\n     ,A.TOTAL_QUEUE_TIME \r\n     ,A.QUEUE_WAIT_TIME \r\n     ,A.HOLD_TIME \r\n     ,A.TALK_TIME \r\n     ,A.PARK_TIME \r\n     ,A.IVR_TIME \r\n     ,A.RECORDINGS \r\n     ,A.LAST_UPDATED_TS \r\n     ,A.Data_Identifier \r\n     ,A.DIVISION_ORIG \r\n     ,A.LP_LeadID\r\nFROM ZML.FACT_FIVE9_CALL_LOG_ALL A\r\nLEFT JOIN [ZML].[DIM_FIVE9_CALL_RESULT_DISPOSITION] B \r\n     ON COALESCE(A.DISPOSITION,'NULL-DEFAULT') = B.CallResult \r\n     AND A.DIVISION = B.DIVISION\r\n     \r\nLEFT JOIN [ZML].[DIM_FIVE9_CALL_RESULT_DISPOSITION] B1\r\n     ON COALESCE(A.LP_DISPOSITION,'NULL-DEFAULT') = B1.CallResult \r\n     AND A.DIVISION = B1.DIVISION\r\n     \r\nLEFT JOIN ZML.DIM_FIVE9_MARKET C \r\n     ON COALESCE(A.Market,'NULL-DEFAULT') = C.Market \r\n     AND  A.DIVISION = C.DIVISION\r\n     \r\nLEFT JOIN ZML.DIM_FIVE9_MARKET C1\r\n     ON COALESCE(A.LP_BranchID,'NULL-DEFAULT') = C1.Market \r\n     AND  A.DIVISION = C1.DIVISION\r\n     \r\n     \r\nLEFT JOIN ZML.DIM_FIVE9_PRODUCT D \r\n     ON COALESCE(A.Product,'NULL-DEFAULT') = D.ProductName \r\n     AND  A.DIVISION = D.DIVISION\r\n     \r\nLEFT JOIN ZML.DIM_FIVE9_PRODUCT D1 \r\n     ON COALESCE(A.LP_Product,'NULL-DEFAULT') = D1.ProductName \r\n     AND  A.DIVISION = D1.DIVISION\r\n     \r\n     \r\nLEFT JOIN ZML.DIM_FIVE9_SUB_SOURCE_MAPPING E \r\n     ON       COALESCE(A.SOURCE,A.LP_SourceCode,'NULL-DEFAULT')                = COALESCE(E.SOURCE,'NULL-DEFAULT')\r\n     AND  COALESCE(A.SOURCEGROUP,A.LP_SourceGroup,'NULL-DEFAULT')      = COALESCE(E.SOURCEGROUP,'NULL-DEFAULT')\r\n     AND  COALESCE(A.SUBSOURCE,A.LP_LeadSubSource,'NULL-DEFAULT')      = COALESCE(E.SUBSOURCE,'NULL-DEFAULT')\r\n     AND A.DIVISION =E.DIVISION\r\n\r\nWHERE A.DATE >= GETDATE()-700;"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			}
+		],
+		"folder": {
+			"name": "Temp/Anuj/ZML/Five9"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-12-10T12:11:08Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

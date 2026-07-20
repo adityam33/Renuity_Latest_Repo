@@ -1,0 +1,278 @@
+{
+	"name": "DF_Dim_FinancePlan",
+	"properties": {
+		"folder": {
+			"name": "Test-Dataflows"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ODS_CTA_FPL_FinancePlan",
+						"type": "DatasetReference"
+					},
+					"name": "CTA"
+				},
+				{
+					"dataset": {
+						"referenceName": "ODS_FHI_FPL_FinancePlan",
+						"type": "DatasetReference"
+					},
+					"name": "FHI"
+				},
+				{
+					"dataset": {
+						"referenceName": "ODS_HSI_FPL_FinancePlan",
+						"type": "DatasetReference"
+					},
+					"name": "HSI"
+				},
+				{
+					"dataset": {
+						"referenceName": "ODS_MAC_FPL_FinancePLan",
+						"type": "DatasetReference"
+					},
+					"name": "MAC"
+				},
+				{
+					"dataset": {
+						"referenceName": "ODS_MXH_fpl_FinancePlan",
+						"type": "DatasetReference"
+					},
+					"name": "MXH"
+				},
+				{
+					"dataset": {
+						"referenceName": "ODS_PBC_flpl_FinancePlan",
+						"type": "DatasetReference"
+					},
+					"name": "PBC"
+				},
+				{
+					"dataset": {
+						"referenceName": "ODS_RTW_fpl_FinancePlan",
+						"type": "DatasetReference"
+					},
+					"name": "RTW"
+				},
+				{
+					"dataset": {
+						"referenceName": "ODS_SWR_fpl_FinancePlan",
+						"type": "DatasetReference"
+					},
+					"name": "SWR"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "FACT_FPL_FINANCEPLAN",
+						"type": "DatasetReference"
+					},
+					"name": "FACTFPLFINANCEPLAN"
+				}
+			],
+			"transformations": [
+				{
+					"name": "CreateIDsForCTA"
+				},
+				{
+					"name": "CreateIDSForFHI"
+				},
+				{
+					"name": "CreateIDSForHSI"
+				},
+				{
+					"name": "CreateIDSForMAC"
+				},
+				{
+					"name": "CreateIDSForMXH"
+				},
+				{
+					"name": "CreateIDSForPBC"
+				},
+				{
+					"name": "CreateIDSForRTW"
+				},
+				{
+					"name": "CreateIDSForSWR"
+				},
+				{
+					"name": "Union"
+				},
+				{
+					"name": "UpdatedTS"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          Id as integer,",
+				"          Descr as string,",
+				"          FixedFee as decimal(19,4),",
+				"          VariableFee as double,",
+				"          Active as boolean,",
+				"          SortOrder as integer,",
+				"          finco_id as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> CTA",
+				"source(output(",
+				"          Id as integer,",
+				"          Descr as string,",
+				"          FixedFee as decimal(19,4),",
+				"          VariableFee as double,",
+				"          Active as boolean,",
+				"          SortOrder as integer,",
+				"          finco_id as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> FHI",
+				"source(output(",
+				"          Id as integer,",
+				"          Descr as string,",
+				"          FixedFee as decimal(19,4),",
+				"          VariableFee as double,",
+				"          Active as boolean,",
+				"          SortOrder as integer,",
+				"          finco_id as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> HSI",
+				"source(output(",
+				"          Id as integer,",
+				"          Descr as string,",
+				"          FixedFee as decimal(19,4),",
+				"          VariableFee as double,",
+				"          Active as boolean,",
+				"          SortOrder as integer,",
+				"          finco_id as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> MAC",
+				"source(output(",
+				"          Id as integer,",
+				"          Descr as string,",
+				"          FixedFee as decimal(19,4),",
+				"          VariableFee as double,",
+				"          Active as boolean,",
+				"          SortOrder as integer,",
+				"          finco_id as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> MXH",
+				"source(output(",
+				"          Id as integer,",
+				"          Descr as string,",
+				"          FixedFee as decimal(19,4),",
+				"          VariableFee as double,",
+				"          Active as boolean,",
+				"          SortOrder as integer,",
+				"          finco_id as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> PBC",
+				"source(output(",
+				"          Id as integer,",
+				"          Descr as string,",
+				"          FixedFee as decimal(19,4),",
+				"          VariableFee as double,",
+				"          Active as boolean,",
+				"          SortOrder as integer,",
+				"          finco_id as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> RTW",
+				"source(output(",
+				"          Id as integer,",
+				"          Descr as string,",
+				"          FixedFee as decimal(19,4),",
+				"          VariableFee as double,",
+				"          Active as boolean,",
+				"          SortOrder as integer,",
+				"          finco_id as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> SWR",
+				"CTA derive(FplId = concat('CTA-',toString(Id)),",
+				"          Division = 'CTA') ~> CreateIDsForCTA",
+				"FHI derive(FplId = concat('FHI-',toString(Id)),",
+				"          Division = 'FHI') ~> CreateIDSForFHI",
+				"HSI derive(Division = 'HSI',",
+				"          FplId = concat('HSI-',toString(Id))) ~> CreateIDSForHSI",
+				"MAC derive(FplId = concat('MAC-',toString(Id)),",
+				"          Division = 'MAC') ~> CreateIDSForMAC",
+				"MXH derive(FplId = concat('MXH-',toString(Id)),",
+				"          Division = 'MXH') ~> CreateIDSForMXH",
+				"PBC derive(FplId = concat('PBC-',toString(Id)),",
+				"          Division = 'PBC') ~> CreateIDSForPBC",
+				"RTW derive(FplId = concat('RTW-',toString(Id)),",
+				"          Division = 'RTW') ~> CreateIDSForRTW",
+				"SWR derive(FplId = concat('SWR-',toString(Id)),",
+				"          Division = 'SWR') ~> CreateIDSForSWR",
+				"CreateIDsForCTA, CreateIDSForFHI, CreateIDSForHSI, CreateIDSForMAC, CreateIDSForMXH, CreateIDSForPBC, CreateIDSForRTW, CreateIDSForSWR union(byName: true)~> Union",
+				"Union derive(LastUpdateTS = currentTimestamp()) ~> UpdatedTS",
+				"UpdatedTS sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          FplId as string,",
+				"          FplDecription as string,",
+				"          FixedFee as decimal(19,4),",
+				"          VariableFee as double,",
+				"          Active as boolean,",
+				"          SortOrder as integer,",
+				"          FincoId as integer,",
+				"          LP_FplId as integer,",
+				"          Division as string,",
+				"          LastUpdateTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     staged: true,",
+				"     allowCopyCommand: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          FplId,",
+				"          FplDecription = Descr,",
+				"          FixedFee,",
+				"          VariableFee,",
+				"          Active,",
+				"          SortOrder,",
+				"          FincoId = finco_id,",
+				"          LP_FplId = Id,",
+				"          Division,",
+				"          LastUpdateTS",
+				"     )) ~> FACTFPLFINANCEPLAN"
+			]
+		}
+	}
+}

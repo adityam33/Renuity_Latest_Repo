@@ -1,0 +1,591 @@
+{
+	"name": "batch_cpy_LP_to_ODS_small_Part2_ZML",
+	"properties": {
+		"activities": [
+			{
+				"name": "cpy_LP_dsp_Dispositions",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_tms_TimeSlots",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_dsp_Dispositions_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_fns_FinanceSources",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_dsp_Dispositions",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_fns_FinanceSources_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_svs_ServiceStatus",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_svs_ServiceStatus_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_svc_ServiceCategory",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_svs_ServiceStatus",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_svc_ServiceCategory_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_srg_SourceGroups",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_svc_ServiceCategory",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_srg_SourceGroups_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_hld_HoldReasons",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_srg_SourceGroups",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_hld_HoldReasons_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_pmm_PaymentMethods",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_hld_HoldReasons",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_pmm_PaymentMethods_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_dct_DispositionCategories",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_fns_FinanceSources",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_dct_DispositionCategories_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_jcc_JobCostCategory",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_jcc_JobCostCategory_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_mat_Materials",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_utm_UTMParameters",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_mat_Materials_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_prs_PermitStatus",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_mat_Materials",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_prs_PermitStatus_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_prt_PermitTypes",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_prs_PermitStatus",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_prt_PermitTypes_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_jsc_JobStatusCategory",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_jsc_JobStatusCategory_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_tms_TimeSlots",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_jcc_JobCostCategory",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_tms_TimeSlots_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_utm_UTMParameters",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_jsc_JobStatusCategory",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_utm_UTMParameters_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "LP_fpl_FinancalPlan",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_prt_PermitTypes",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_fpl_FinancalPlan_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_evh_eventhours",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_dct_DispositionCategories",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_evh_eventhours_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_jcf_jobcommfees",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_pmm_PaymentMethods",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_jcf_JobCommFees_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_fif_FlakeInformation",
+				"type": "ExecutePipeline",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "LP_fpl_FinancalPlan",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_fif_FlakeInformation_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_ist_InstallationInfo",
+				"type": "ExecutePipeline",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_ist_InstallationInfo_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_ist_InstallationType",
+				"type": "ExecutePipeline",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_ist_InstallationInfo",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_ist_InstallationType_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_vnd_vendors",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_jcf_jobcommfees",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_vnd_vendors_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_vlg_vendorlog",
+				"type": "ExecutePipeline",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_vnd_vendors",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_vlg_vendorlog_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_planitem",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_ist_InstallationType",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_PlanItem_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_projects",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_planitem",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_Projects_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_slt_SaleTypes",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_vlg_vendorlog",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_slt_SaleTypes_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"folder": {
+			"name": "Temp/Anuj/ZML/LP_to_ODS_ZML"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-11-12T11:39:29Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

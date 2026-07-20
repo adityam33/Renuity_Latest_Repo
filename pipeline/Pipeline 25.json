@@ -1,0 +1,90 @@
+{
+	"name": "Pipeline 25",
+	"properties": {
+		"activities": [
+			{
+				"name": "If Condition1",
+				"type": "IfCondition",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Script1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@if(equals(activity('Script1').output,0),1,0)",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "Wait1False",
+							"type": "Wait",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"waitTimeInSeconds": 2
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "Wait1True",
+							"type": "Wait",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"waitTimeInSeconds": 3
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Script1",
+				"type": "Script",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"parameters": [
+								{
+									"name": "scriptcount",
+									"type": "Int64",
+									"value": "",
+									"direction": "Output"
+								}
+							],
+							"type": "Query",
+							"text": "Declare @CubeCounter INT=\n(Select count(*) FROM\n(\nSelect AccountCode,AccountClass,AccountDescription,BranchCode,CompanyID,FinPeriodID,LedgerID,DepartmentID,MarketingAccountID,ProductID,Count(*) as countofrow\nfrom OUT.CUBESW_ERP_GL_TRANSACTION_NEW where BalanceAmount!='0' and Eomonth(concat(substring(finperiodid,1,charindex('-',finperiodid)),'01-',substring(finperiodid,charindex('-',finperiodid)+1,len(finperiodid))))>=dateadd(M,-6,getdate())\nGroup by AccountCode,AccountClass,AccountDescription,BranchCode,CompanyID,FinPeriodID,LedgerID,DepartmentID,MarketingAccountID,ProductID\nHaving count(*)>1\n) A)\nSelect \nCASE WHEN @CubeCounter>0 then 1 else 0 END"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			}
+		],
+		"folder": {
+			"name": "Temp/Akshay"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-01-06T15:09:51Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

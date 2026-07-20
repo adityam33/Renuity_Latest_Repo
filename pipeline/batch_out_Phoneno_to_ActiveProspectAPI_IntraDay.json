@@ -1,0 +1,65 @@
+{
+	"name": "batch_out_Phoneno_to_ActiveProspectAPI_IntraDay",
+	"properties": {
+		"activities": [
+			{
+				"name": "CTA Ph No Intra Day Load",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "batch_out_Phoneno_to_ActiveProspectAPI_IntraDay_CTA",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"ListURLName": "cla_recent_phone"
+					}
+				}
+			},
+			{
+				"name": "8 Divs Ph No IntraDay load",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "batch_out_Phoneno_to_ActiveProspectAPI_IntraDay_8Divs",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"ListURLName": {
+							"value": "@pipeline().parameters.ListURLName",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"ListURLName": {
+				"type": "string",
+				"defaultValue": "renuity__last_30_days__phone"
+			}
+		},
+		"variables": {
+			"P_Phoneno": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "RDC_to_ActiveProspect"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-01-11T17:31:36Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

@@ -1,0 +1,17 @@
+{
+	"name": "Performance Stats - Zip and Source Level",
+	"properties": {
+		"content": {
+			"query": "SELECT\nlds.Division\n,EOMONTH(lds.EntryDate) as EntryMonth\n,cst.Zip\n,lds.LeadSubSourceID\n,lds.ProductID\n,lds.BranchID\n,count(distinct lds.LeadID) as LeadCount\n,count(distinct lds.CustomerID) as ProspectCount\n,sum(case when lds.ApptSet = 'True' then 1 else 0 end) as ApptSet\n,sum(case when lds.NetIssued = 'True' then 1 else 0 end) as NetIssue\n,sum(case when lds.Sat = 'True' then 1 else 0 end) as Demo\n,sum(case \n    when jsc.JobStatusCategory is NULL then 0\n    when jsc.JobStatusCategory in ('Cancelled', 'Credit Decline') then 0\n    else 1\nend) as NetSold\n,sum(case \n    when jsc.JobStatusCategory is NULL then 0\n    when jsc.JobStatusCategory in ('Cancelled', 'Credit Decline') then 0 \n    else job.GrossAmount\nend) as NetSalesAmount\n,sum(job.GrossAmount) as GrossSalesAmount\n,count(distinct job.JobID) as JobCount\nFROM \n[EDW].[FACT_LEAD] lds\ninner join [EDW].[DIM_CUSTOMER] cst\non lds.CustomerID = cst.CustomerID\nleft join [EDW].[DIM_BRANCH] brn\non lds.BranchID = brn.BranchID\nleft join [EDW].[DIM_PRODUCT] prd\non lds.ProductID = prd.ProductID\nleft join [EDW].[FACT_JOB] job\non lds.LeadID = job.LeadID\nleft join [EDW].[DIM_JOB_STATUS] jbs\non job.JobStatusID = jbs.JobStatusID\nleft join [EDW].[DIM_JOB_STATUS_CATEGORY] jsc\non jbs.JobStatusCategoryID = jsc.JobStatusCategoryID\nWHERE\nlds.EntryDate >= '2021-01-01'\ngroup by \nlds.Division\n,EOMONTH(lds.EntryDate)\n,cst.Zip\n,lds.LeadSubSourceID\n,lds.ProductID\n,lds.BranchID\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

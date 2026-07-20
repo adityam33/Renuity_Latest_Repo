@@ -1,0 +1,305 @@
+{
+	"name": "cpy_VWO_Campaign_List",
+	"properties": {
+		"activities": [
+			{
+				"name": "DF_Flatten_CampaignIDs",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "Until_Pagination",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "Dataflow8",
+						"type": "DataFlowReference"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "Set_initial_offset",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "offset",
+					"value": "0"
+				}
+			},
+			{
+				"name": "Until_Pagination",
+				"type": "Until",
+				"dependsOn": [
+					{
+						"activity": "Set_initial_offset",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(variables('stopLoop'), true)",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Web_GetCampaignList",
+							"type": "WebActivity",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 1,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"method": "GET",
+								"headers": {
+									"token": "8d603e6bebaf671ac43e2f1772deb3d8657a9fa6f3ab19168eaeb16ed08b9fff",
+									"Content-Type": "application/json"
+								},
+								"url": {
+									"value": "@{concat('https://app.vwo.com/api/v2/accounts/1081440/campaigns?limit=100&offset=', variables('offset'))}",
+									"type": "Expression"
+								},
+								"connectVia": {
+									"referenceName": "AutoResolveIntegrationRuntime",
+									"type": "IntegrationRuntimeReference"
+								}
+							}
+						},
+						{
+							"name": "If_NoMoreData",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "Web_GetCampaignList",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@or(empty(activity('Web_GetCampaignList').output['_data']['partialCollection']), greaterOrEquals(int(variables('offset')), int(activity('Web_GetCampaignList').output['_data']['totalCount'])))",
+									"type": "Expression"
+								},
+								"ifFalseActivities": [
+									{
+										"name": "Cp_VWO_JSON_ALL_CAMPAIGN_v1",
+										"type": "Copy",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 1,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "RestSource",
+												"httpRequestTimeout": "00:01:40",
+												"requestInterval": "00.00:00:00.010",
+												"requestMethod": "GET",
+												"additionalHeaders": {
+													"token": "8d603e6bebaf671ac43e2f1772deb3d8657a9fa6f3ab19168eaeb16ed08b9fff",
+													"Accept": "application/json"
+												}
+											},
+											"sink": {
+												"type": "JsonSink",
+												"storeSettings": {
+													"type": "AzureBlobStorageWriteSettings",
+													"copyBehavior": "FlattenHierarchy"
+												},
+												"formatSettings": {
+													"type": "JsonWriteSettings",
+													"filePattern": "arrayOfObjects"
+												}
+											},
+											"enableStaging": false
+										},
+										"inputs": [
+											{
+												"referenceName": "VWO_SRC_All_Campaign",
+												"type": "DatasetReference",
+												"parameters": {
+													"offsetParam": "@{variables('offset')}"
+												}
+											}
+										],
+										"outputs": [
+											{
+												"referenceName": "VWO_JSon_TGT_All_Campaigns",
+												"type": "DatasetReference",
+												"parameters": {
+													"filename_offset_append": {
+														"value": "@variables('offset')",
+														"type": "Expression"
+													}
+												}
+											}
+										]
+									},
+									{
+										"name": "Set_Increment_newOffset",
+										"type": "SetVariable",
+										"dependsOn": [
+											{
+												"activity": "Cp_VWO_JSON_ALL_CAMPAIGN_v1",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "newoffset",
+											"value": {
+												"value": "@{string(add(int(variables('offset')), 25))}",
+												"type": "Expression"
+											}
+										}
+									},
+									{
+										"name": "Set_offset",
+										"type": "SetVariable",
+										"dependsOn": [
+											{
+												"activity": "Set_Increment_newOffset",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "offset",
+											"value": {
+												"value": "@{variables('newOffset')}",
+												"type": "Expression"
+											}
+										}
+									},
+									{
+										"name": "Set_StopLoop_OnFailure_v1",
+										"type": "SetVariable",
+										"dependsOn": [
+											{
+												"activity": "Cp_VWO_JSON_ALL_CAMPAIGN_v1",
+												"dependencyConditions": [
+													"Failed"
+												]
+											}
+										],
+										"policy": {
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "stoploop",
+											"value": true
+										}
+									}
+								],
+								"ifTrueActivities": [
+									{
+										"name": "Set_StopLoop_True",
+										"type": "SetVariable",
+										"dependsOn": [],
+										"policy": {
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "stoploop",
+											"value": true
+										}
+									}
+								]
+							}
+						},
+						{
+							"name": "Set_StopLoop_OnFailure",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Web_GetCampaignList",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "stoploop",
+								"value": true
+							}
+						}
+					],
+					"timeout": "0.02:00:00"
+				}
+			}
+		],
+		"variables": {
+			"offset": {
+				"type": "String",
+				"defaultValue": "0"
+			},
+			"stoploop": {
+				"type": "Boolean",
+				"defaultValue": false
+			},
+			"newoffset": {
+				"type": "String",
+				"defaultValue": "0"
+			}
+		},
+		"folder": {
+			"name": "ODS_to_EDW/FACTS/VWO"
+		},
+		"annotations": []
+	}
+}

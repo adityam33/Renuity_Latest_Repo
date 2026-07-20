@@ -1,0 +1,45 @@
+{
+	"name": "batch_cpy_LP_to_ODS_Daily",
+	"properties": {
+		"activities": [
+			{
+				"name": "EXEC_zdm_ZipDistMatrix",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_zdm_ZipDistMatrix",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "EXEC_cls_Calls_FullLoad",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_cls_calls_FullLoad",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"folder": {
+			"name": "SRC_to_ODS/CRM/LP"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-02-26T17:25:42Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

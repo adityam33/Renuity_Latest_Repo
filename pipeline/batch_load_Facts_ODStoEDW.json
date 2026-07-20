@@ -1,0 +1,835 @@
+{
+	"name": "batch_load_Facts_ODStoEDW",
+	"properties": {
+		"activities": [
+			{
+				"name": "df_load_FACT_JOB_PAYMENT",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_load_FACT_JOB_CHANGE_ORDER",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_FACT_JOB_PAYMENT",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/FACTS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse",
+					"sourceStagingConcurrency": 1
+				}
+			},
+			{
+				"name": "df_load_FACT_ISSUED_LEAD",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_FACT_ISSUED_LEAD",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/FACTS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse",
+					"sourceStagingConcurrency": 1
+				}
+			},
+			{
+				"name": "df_load_FACT_APPOINTMENT",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_FACT_APPOINTMENT",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/FACTS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse",
+					"sourceStagingConcurrency": 1
+				}
+			},
+			{
+				"name": "df_load_FACT_MILESTONE_DETAIL",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_load_FACT_APPOINTMENT",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_FACT_MILESTONE_DETAIL",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/FACTS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse",
+					"sourceStagingConcurrency": 1
+				}
+			},
+			{
+				"name": "df_load_FACT_JOB_SERVICE",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_load_FACT_JOB_PAYMENT",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_FACT_JOB_SERVICE",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/FACTS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse",
+					"sourceStagingConcurrency": 1
+				}
+			},
+			{
+				"name": "df_load_FACT_MILESTONE_CHANGE",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_load_FACT_ISSUED_LEAD",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_FACT_MILESTONE_CHANGE",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/FACTS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse",
+					"sourceStagingConcurrency": 1
+				}
+			},
+			{
+				"name": "df_load_FACT_COMMISSION",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_load_FACT_MARKETING_COST_DETAIL",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_FACT_COMMISSION",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/FACTS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse",
+					"sourceStagingConcurrency": 1
+				}
+			},
+			{
+				"name": "df_load_FACT_JOB_CHANGE_ORDER",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_load_FACT_JOB_COMMISSION_FEES",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_FACT_JOB_CHANGE_ORDER",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/FACTS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse",
+					"sourceStagingConcurrency": 1
+				}
+			},
+			{
+				"name": "df_load_FACT_JOB_PERMIT",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_load_FACT_MILESTONE_CHANGE",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_FACT_JOB_PERMIT",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/FACTS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse",
+					"sourceStagingConcurrency": 1
+				}
+			},
+			{
+				"name": "df_load_FACT_JOB_MATERIAL",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_EDW_FACT_JOB_STATUS_LOG",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_FACT_JOB_MATERIAL",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/FACTS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse",
+					"sourceStagingConcurrency": 1
+				}
+			},
+			{
+				"name": "df_load_FACT_SALES_REP_SCHEDULE",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_load_FACT_JOB",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_FACT_SALES_REP_SCHEDULE",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse",
+					"sourceStagingConcurrency": 1
+				}
+			},
+			{
+				"name": "df_load_FACT_LEAD",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_FACT_LEAD",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/FACTS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse",
+					"sourceStagingConcurrency": 1
+				}
+			},
+			{
+				"name": "df_load_FACT_JOB",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_load_FACT_JOB_SERVICE",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_FACT_JOB",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/FACTS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Fine",
+					"sourceStagingConcurrency": 1
+				}
+			},
+			{
+				"name": "df_load_INVOCA_DATA",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_load_FACT_JOB_MATERIAL",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_FACT_INV_INVOCA",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Fine",
+					"sourceStagingConcurrency": 1
+				}
+			},
+			{
+				"name": "df_load_FACT_MARKETING_COST_DETAIL",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_load_INVOCA_DATA",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_FACT_MARKETING_COST_DETAIL",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse",
+					"sourceStagingConcurrency": 1
+				}
+			},
+			{
+				"name": "df_load_FACT_EVENT_HOURS",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_load_FACT_MILESTONE_DETAIL",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_FACT_EVENT_HOURS",
+						"type": "DataFlowReference",
+						"datasetParameters": {
+							"FHI": {
+								"Tablename": "LP_FHI_evh_eventhours"
+							},
+							"PBC": {
+								"Tablename": "LP_PBC_evh_eventhours"
+							},
+							"RTW": {
+								"Tablename": "LP_RTW_evh_eventhours"
+							},
+							"MAC": {
+								"Tablename": "LP_MAC_evh_eventhours"
+							},
+							"SWR": {
+								"Tablename": "LP_SWR_evh_eventhours"
+							},
+							"MXH": {
+								"Tablename": "LP_MXH_evh_eventhours"
+							},
+							"CTA": {
+								"Tablename": "LP_CTA_evh_eventhours"
+							}
+						}
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/FACTS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse",
+					"sourceStagingConcurrency": 1
+				}
+			},
+			{
+				"name": "df_load_FACT_JOB_COMMISSION_FEES",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_load_FACT_JOB_PERMIT",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_FACT_JOB_COMMISSION_FEES",
+						"type": "DataFlowReference",
+						"datasetParameters": {
+							"FHI": {
+								"Tablename": "LP_FHI_jcf_jobcommfees"
+							},
+							"PBC": {
+								"Tablename": "LP_PBC_jcf_jobcommfees"
+							},
+							"RTW": {
+								"Tablename": "LP_RTW_jcf_jobcommfees"
+							},
+							"MAC": {
+								"Tablename": "LP_MAC_jcf_jobcommfees"
+							},
+							"SWR": {
+								"Tablename": "LP_SWR_jcf_jobcommfees"
+							},
+							"MXH": {
+								"Tablename": "LP_MXH_jcf_jobcommfees"
+							},
+							"CTA": {
+								"Tablename": "LP_CTA_jcf_jobcommfees"
+							}
+						}
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse",
+					"sourceStagingConcurrency": 1
+				}
+			},
+			{
+				"name": "Inq1 and utm",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "df_EDW_FACT_ZIP_DISTRICT_MATRIX",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "batch_load_Fact_InboundQueue_UTM",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "df_EDW_FACT_ZIP_DISTRICT_MATRIX",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "Updated FACT LEAD PBI Columns",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_FACT_ZIP_DISTRICT_MATRIX",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse",
+					"sourceStagingConcurrency": 1
+				}
+			},
+			{
+				"name": "df_EDW_FACT_JOB_STATUS_LOG",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_load_FACT_EVENT_HOURS",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_FACT_JOB_STATUS_LOG",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Fine",
+					"sourceStagingConcurrency": 1
+				}
+			},
+			{
+				"name": "Updated FACT LEAD PBI Columns",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "df_load_FACT_LEAD",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "WITH FirstAppID as (\r\n\tSELECT \r\n\t\ta.LeadID,\r\n\t\tMIN(a.AppointmentID) AS MinAppointmentID,\r\n\t\tMAX(a.SetDate) as MaxSetDate,\r\n\t\tMIN(a.SetDate) as MinSetDate\r\n\tFROM EDW.FACT_APPOINTMENT AS a\r\n\tWHERE CAST(ApptDate as Date) BETWEEN DATEFROMPARTS(YEAR(getdate()) - 4, 1, 1) AND DATEFROMPARTS(YEAR(getdate()), 12, 31)\r\n\tGROUP BY a.LeadID\r\n),\r\nFirstSetBy as (\r\n\tSELECT DISTINCT\r\n\t\tLeadID,\r\n\t\tFIRST_VALUE(SetBy) OVER(PARTITION BY LeadID ORDER BY AppointmentID ASC) AS FirstSetBy,\r\n\t\tFIRST_VALUE(Concat(RTRIM(LTRIM(E.FirstName)), ' ', RTRIM(LTRIM(E.LastName)))) OVER(PARTITION BY LeadID ORDER BY AppointmentID ASC) AS FirstSetByName\r\n\tFROM EDW.FACT_APPOINTMENT A\r\n\tLEFT JOIN EDW.DIM_EMPLOYEE E ON A.SetBy = E.EmployeeID\r\n\tWHERE CAST(ApptDate as Date) BETWEEN DATEFROMPARTS(YEAR(getdate()) - 4, 1, 1) AND DATEFROMPARTS(YEAR(getdate()), 12, 31)\r\n),\r\nIssuedTable as (\r\n\tSELECT \r\n\t\tI.LeadID, \r\n\t\tSUM(CASE WHEN CAST(I.ApptDate AS Date) IS NOT NULL THEN 1 ELSE 0 END) AS NetIssue_total_from_IssuedTable\r\n    FROM EDW.FACT_ISSUED_LEAD I\r\n\tWHERE CAST(I.ApptDate as Date) BETWEEN DATEFROMPARTS(YEAR(getdate()) - 4, 1, 1) AND DATEFROMPARTS(YEAR(getdate()), 12, 31)\r\n\tGROUP BY I.LeadID\r\n),\r\nDSO_FINAL AS (\r\nSELECT \r\n\tL.LeadID,\r\n\tCOALESCE(Job.ContractDate, L.ApptDate) AS ApptDateFinal,\r\n\tCASE WHEN L.FollowUpDate IS NOT NULL THEN 1 ELSE 0 END AS FollowUp_Flag,\r\n\tCASE WHEN L.FollowUpDate IS NOT NULL THEN DateDiff(day, COALESCE(Job.ContractDate, L.ApptDate), L.FollowUpDate) END AS total_Days_Appt_to_FollowUp_Date,\r\n\tCASE \r\n\t\tWHEN COALESCE(Job.ContractDate, L.ApptDate) IS NULL \r\n         OR DATEDIFF(day, CAST(EntryDate AS DATE), CAST(COALESCE(Job.ContractDate, L.ApptDate) AS DATE)) < 0\r\n\t\tTHEN NULL\r\n\t\tELSE DATEDIFF(day, CAST(EntryDate AS DATE), CAST(COALESCE(Job.ContractDate, L.ApptDate) AS DATE))\r\n\tEND AS total_Days_Entry_to_Appointment,\r\n\tCASE WHEN L.FollowUpDate IS NOT NULL THEN DateDiff(day, EntryDate, FollowUpDate) END AS total_Days_Entry_to_FollowUp_Date,\r\n\tCASE WHEN RIGHT(L.SalesRep1_EmployeeID, 2) = '-0' OR RIGHT(L.SalesRep1_EmployeeID, 1) = '-' THEN 0\r\n\t\t WHEN RIGHT(L.SalesRep2_EmployeeID, 2) = '-0' OR RIGHT(L.SalesRep2_EmployeeID, 1) = '-' THEN 1 ELSE 2 END AS Flag_1_or_2_Reps_Per_Lead,\r\n\tCAST(L.EntryDate AS DATE) AS EntryDate_only_Date,\r\n\tCASE WHEN RIGHT(L.[SalesRep1_EmployeeID], 2) = '-0' OR RIGHT(L.[SalesRep1_EmployeeID], 1) = '-' THEN NULL ELSE L.SalesRep1_EmployeeID END AS SalesRep1_ID_Clean,\r\n\tCOALESCE(L.EverSat, 0) AS EverSat_Flag,\r\n\tCASE WHEN RIGHT(L.[SalesRep1_EmployeeID], 2) = '-0' OR RIGHT(L.[SalesRep1_EmployeeID], 1) = '-' THEN 0 ELSE COALESCE(L.EverSat, 0) END AS Demo_Flag,\r\n\tCOALESCE(L.EverIssued, 0) as EverIssue_Flag,\r\n\tCOALESCE(L.EverNetIssued, 0) as EverNetIssue_Flag,\r\n\tCASE WHEN RIGHT(L.[SalesRep1_EmployeeID], 2) = '-0' OR RIGHT(L.[SalesRep1_EmployeeID], 1) = '-' THEN 0 ELSE COALESCE(L.EverNetIssued, 0) END AS EverNetIssue_with_Rep,\r\n\tFA.MinAppointmentID AS First_AppointmentID,\r\n\tSB.FirstSetByName as First_SetBy_Agent_Name,\r\n\tCOALESCE(L.EverNetIssued, 0) as GrossIssue_Flag,\r\n\tCOALESCE(L.Issued, 0) as Issued_Flag,\r\n\tCASE WHEN RIGHT(L.[SalesRep1_EmployeeID], 2) = '-0' OR RIGHT(L.[SalesRep1_EmployeeID], 1) = '-' THEN 0 ELSE COALESCE(L.EverNetIssued, 0) END AS Net_Issue_Flag,\r\n\tCOALESCE(EverSet, 0) AS Set_Flag,\r\n\tLTRIM(RTRIM(CONCAT(E.FirstName, ' ', E.LastName))) AS SalesRep_Full_Name,\r\n\tCASE WHEN L.LeadID IS NOT NULL THEN 1 ELSE 0 END AS Raw_Lead,\r\n\tCASE WHEN R.Rank = 'Rehash' THEN 'Y' ELSE 'N' END AS Rehash_Flag,\r\n\tFA.MaxSetDate AS SetDateMax,\r\n\tCAST(FA.MaxSetDate AS Date) AS SetDateMax_Date,\r\n\tFA.MinSetDate AS SetDateMin,\r\n\tCAST(FA.MinSetDate AS Date) AS SetDateMin_Date,\r\n\tCASE\r\n\t\tWHEN RIGHT(L.SalesRep1_EmployeeID, 2) = '-0' OR RIGHT(L.SalesRep1_EmployeeID, 1) = '-' THEN 0\r\n\t\tWHEN COALESCE(Job.ContractDate, L.ApptDate) IS NOT NULL\r\n         AND (\r\n                CASE \r\n                    WHEN RIGHT(L.[SalesRep1_EmployeeID], 2) = '-0'\r\n                         OR RIGHT(L.[SalesRep1_EmployeeID], 1) = '-'\r\n                        THEN 0\r\n                    ELSE COALESCE(L.EverNetIssued, 0)\r\n                END\r\n             ) = 0\r\n\t\tTHEN 1\r\n\t\tELSE 0\r\n\tEND AS UnIssued_Lead_flag,\r\n\tCASE \r\n\t\tWHEN COALESCE(Job.ContractDate, L.ApptDate) = L.EntryDate THEN 1\r\n\t\tELSE 0\r\n\tEND AS Same_day,\r\n\tI.NetIssue_total_from_IssuedTable\r\n\r\n\r\nFROM EDW.FACT_LEAD L\r\nLEFT JOIN (SELECT DISTINCT LeadID, ContractDate FROM  EDW.FACT_JOB) Job ON L.LeadID = Job.LeadID\r\nLEFT JOIN FirstAppID FA ON L.LeadID = FA.LeadID\r\nLEFT JOIN FirstSetBy SB ON L.LeadID = SB.LeadID\r\nLEFT JOIN EDW.DIM_EMPLOYEE E ON L.SalesRep1_EmployeeID = E.EmployeeID\r\nLEFT JOIN EDW.DIM_RANK R ON L.RankID = R.RankID\r\nLEFT JOIN IssuedTable I ON L.LeadID = I.LeadID\r\n)\r\nUPDATE A1\r\nSET A1.ApptDateFinal = A2.ApptDateFinal,\r\nA1.FollowUp_Flag = A2.FollowUp_Flag,\r\nA1.total_Days_Appt_to_FollowUp_Date = A2.total_Days_Appt_to_FollowUp_Date,\r\nA1.total_Days_Entry_to_Appointment = A2.total_Days_Entry_to_Appointment,\r\nA1.total_Days_Entry_to_FollowUp_Date = A2.total_Days_Entry_to_FollowUp_Date,\r\nA1.Flag_1_or_2_Reps_Per_Lead = A2.Flag_1_or_2_Reps_Per_Lead,\r\nA1.EntryDate_only_Date = A2.EntryDate_only_Date,\r\nA1.SalesRep1_ID_Clean = A2.SalesRep1_ID_Clean,\r\nA1.EverSat_Flag = A2.EverSat_Flag,\r\nA1.Demo_Flag = A2.Demo_Flag,\r\nA1.EverIssue_Flag = A2.EverIssue_Flag,\r\nA1.EverNetIssue_Flag = A2.EverNetIssue_Flag,\r\nA1.EverNetIssue_with_Rep = A2.EverNetIssue_with_Rep,\r\nA1.First_AppointmentID = A2.First_AppointmentID,\r\nA1.First_SetBy_Agent_Name = A2.First_SetBy_Agent_Name,\r\nA1.GrossIssue_Flag = A2.GrossIssue_Flag,\r\nA1.Issued_Flag = A2.Issued_Flag,\r\nA1.Net_Issue_Flag = A2.Net_Issue_Flag,\r\nA1.Set_Flag = A2.Set_Flag,\r\nA1.SalesRep_Full_Name = A2.SalesRep_Full_Name,\r\nA1.Raw_Lead = A2.Raw_Lead,\r\nA1.Rehash_Flag = A2.Rehash_Flag,\r\nA1.SetDateMax = A2.SetDateMax,\r\nA1.SetDateMax_Date = A2.SetDateMax_Date,\r\nA1.SetDateMin = A2.SetDateMin,\r\nA1.SetDateMin_Date = A2.SetDateMin_Date,\r\nA1.UnIssued_Lead_flag = A2.UnIssued_Lead_flag,\r\nA1.Same_day = A2.Same_day,\r\nA1.NetIssue_total_from_IssuedTable = A2.NetIssue_total_from_IssuedTable\r\n\r\nFROM EDW.FACT_LEAD A1\r\nLEFT JOIN DSO_FINAL A2 ON A1.LeadID = A2.LeadID"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/FACTS/LP"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-04-21T19:52:06Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

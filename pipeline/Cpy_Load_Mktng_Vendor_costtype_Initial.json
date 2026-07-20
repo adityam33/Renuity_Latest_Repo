@@ -1,0 +1,244 @@
+{
+	"name": "Cpy_Load_Mktng_Vendor_costtype_Initial",
+	"properties": {
+		"activities": [
+			{
+				"name": "Cpy_Load_Mktng_Vendor_costtype_Initial",
+				"description": "one time load for VendorCostType Table from Taxonomy ",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ExcelSource",
+						"additionalColumns": [
+							{
+								"name": "RecordInd",
+								"value": "LP"
+							},
+							{
+								"name": "CreatedTS",
+								"value": {
+									"value": "@utcnow()",
+									"type": "Expression"
+								}
+							},
+							{
+								"name": "LastUpdatedTS",
+								"value": {
+									"value": "@utcnow()",
+									"type": "Expression"
+								}
+							}
+						],
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						}
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE EDW.DIM_MKTNG_VENDOR_COSTTYPE",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadSubSourceID",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "LeadSubSourceID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SourceGroup",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "SourceGroup",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SourceCode",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "SourceCode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadSubSource",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "LeadSubSource",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "HomeBaseManaged",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "HomeBaseManaged",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CostType",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "CostType",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CPL$",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "CPL$",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "RevShareAmount",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "RevShareAmount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "VendorName",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "VendorName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "RecordInd",
+									"type": "String"
+								},
+								"sink": {
+									"name": "RecordInd",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CreatedTS",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CreatedTS",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "LastUpdatedTS",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_VENDOR_COSTTYPE",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_DIM_MKTNG_VENDOR_COSTTYPE",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/DIMENSIONS/TAXONOMY/InitialLoad"
+		},
+		"annotations": [],
+		"lastPublishTime": "2023-09-09T13:43:35Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

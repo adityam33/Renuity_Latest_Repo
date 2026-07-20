@@ -1,0 +1,171 @@
+{
+	"name": "BlobStorage_Asana",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "Azure_blobStorage",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"Date": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@concat('Asana_Goals', dataset().Date, '.json')",
+					"type": "Expression"
+				},
+				"folderPath": "Json_Files",
+				"fileSystem": "api-asana"
+			}
+		},
+		"schema": {
+			"type": "object",
+			"properties": {
+				"data": {
+					"type": "array",
+					"items": {
+						"type": "object",
+						"properties": {
+							"gid": {
+								"type": "string"
+							},
+							"due_on": {
+								"type": "string"
+							},
+							"start_on": {
+								"type": "string"
+							},
+							"owner": {
+								"type": "object",
+								"properties": {
+									"gid": {
+										"type": "string"
+									},
+									"name": {
+										"type": "string"
+									}
+								}
+							},
+							"html_notes": {
+								"type": "string"
+							},
+							"name": {
+								"type": "string"
+							},
+							"notes": {
+								"type": "string"
+							},
+							"status": {
+								"type": "null"
+							},
+							"metric": {
+								"type": "object",
+								"properties": {
+									"gid": {
+										"type": "string"
+									},
+									"resource_subtype": {
+										"type": "string"
+									},
+									"precision": {
+										"type": "integer"
+									},
+									"unit": {
+										"type": "string"
+									},
+									"currency_code": {
+										"type": "null"
+									},
+									"initial_number_value": {
+										"type": "integer"
+									},
+									"target_number_value": {
+										"type": "integer"
+									},
+									"current_number_value": {
+										"type": "integer"
+									},
+									"current_display_value": {
+										"type": "string"
+									},
+									"progress_source": {
+										"type": "string"
+									}
+								}
+							},
+							"team": {
+								"type": "null"
+							},
+							"time_period": {
+								"type": "object",
+								"properties": {
+									"gid": {
+										"type": "string"
+									},
+									"end_on": {
+										"type": "string"
+									},
+									"start_on": {
+										"type": "string"
+									},
+									"period": {
+										"type": "string"
+									},
+									"display_name": {
+										"type": "string"
+									}
+								}
+							},
+							"is_workspace_level": {
+								"type": "boolean"
+							},
+							"followers": {
+								"type": "array",
+								"items": {
+									"type": "object",
+									"properties": {
+										"gid": {
+											"type": "string"
+										},
+										"name": {
+											"type": "string"
+										}
+									}
+								}
+							},
+							"workspace": {
+								"type": "object",
+								"properties": {
+									"gid": {
+										"type": "string"
+									},
+									"name": {
+										"type": "string"
+									}
+								}
+							},
+							"liked": {
+								"type": "boolean"
+							},
+							"likes": {
+								"type": "array"
+							},
+							"num_likes": {
+								"type": "integer"
+							},
+							"current_status_update": {
+								"type": "null"
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}

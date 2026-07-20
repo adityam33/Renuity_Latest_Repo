@@ -1,0 +1,20 @@
+{
+	"name": "SQL - DQ - No Sales District by Source",
+	"properties": {
+		"folder": {
+			"name": "Profile Scripts/Data Quality"
+		},
+		"content": {
+			"query": "SELECT\nl.[OperatingCompany]\n,EOMONTH(l.[EntryDate]) as EntryMonth\n,l.[LP_LeadSourceID]\n,l.[LP_LeadSubSourceID]\n,l.[LP_DispositionID]\n,l.[Sold]\n,ss.Description as SubSourceDescription\n,ss.Active as SubSourceActive\n,count(l.[LeadID]) as LeadCount\n,sum(l.[GrossSalesAmount]) as GrossSalesAmount\n FROM \n [EDW].[FACT_LEAD] l\n,[EDW].[DIM_LEAD_SUB_SOURCE] ss\n where \n l.SalesDistrictID is null\n and l.LeadSubSourceID = ss.LeadSubSourceID\n group BY\n l.[OperatingCompany]\n,EOMONTH(l.[EntryDate])\n,l.[LP_LeadSourceID]\n,l.[LP_LeadSubSourceID]\n,l.[LP_DispositionID]\n,l.[Sold]\n,ss.Description\n,ss.Active\norder by\nLeadCount desc",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

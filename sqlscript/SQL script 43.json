@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 43",
+	"properties": {
+		"content": {
+			"query": "\n\nALTER TABLE [ODS].[ERP_PM_PROJECT_Backup_20240517]\nALTER COLUMN ProjectManager nvarchar(200); \n\n\n\nupdate p set p.projectmanager=a.DepartmentID from [ODS].[ERP_PM_PROJECT_Backup_20240517] p\nleft join ods.ADHOC_ERP_PM_PROJECT_backfillField_20240517 a\non p.projectmanager=a.DefContactID\nwhere p.projectmanager is not null\n\n SELECT *\nINTO [ODS].[ERP_PM_PROJECT_Backup_table2_20240517]\nFROM [ODS].[ERP_PM_PROJECT];\n\n\n\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

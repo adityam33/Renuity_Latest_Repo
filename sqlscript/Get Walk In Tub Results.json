@@ -1,0 +1,17 @@
+{
+	"name": "Get Walk In Tub Results",
+	"properties": {
+		"content": {
+			"query": "SELECT\nlds.Division\n,EOMONTH(lds.EntryDate) as EntryMonth\n,cast(lds.EntryDate as DATE) as EntryDate\n,srs.LeadSubSource\n,srs.SourceCode\n,prd.LongDescription as Product\n,brn.LongName as Branch\n,lds.LeadID\n,lds.CustomerID\n,cst.FirstName\n,cst.LastName\n,cst.Address1\n,cst.City\n,cst.[State]\n,cst.Zip\n,cst.Email\n,cst.Phone\n,lds.SetBy_EmployeeID\n,LeadScore_ExpectedValueRank\n,dsp.Comments as Disposition\n,clr.CallResult as LastCallResult\n,case when CAST(lds.[LastCallDate] as time) between '5:00:00.001' and '12:00:00.000' then 'Morning' \nwhen CAST(lds.[LastCallDate] as time) between '12:00:00.001' and '17:00:00.000' then 'Afternoon' \nwhen CAST(lds.[LastCallDate] as time) between '17:00:00.001' and '22:00:00.000' then 'Evening' \nelse 'Night'\nend as LastCallTimeOfDay\n,case when CAST(lds.[DateEntered] as time) between '5:00:00.001' and '12:00:00.000' then 'Morning' \nwhen CAST(lds.[DateEntered] as time) between '12:00:00.001' and '17:00:00.000' then 'Afternoon' \nwhen CAST(lds.[DateEntered] as time) between '17:00:00.001' and '22:00:00.000' then 'Evening' \nelse 'Night'\nend as LeadDateEnteredTimeOfDay\n\n,lds.ApptSet\n,lds.EverSet\n,lds.NetIssued\n,lds.Sat\n,lds.Sold\n,case \n    when jsc.JobStatusCategory is NULL then 0\n    when jsc.JobStatusCategory in ('Cancelled', 'Credit Decline') then 0\n    else 1\nend as NetSold\n,case \n    when jsc.JobStatusCategory is NULL then 0\n    when jsc.JobStatusCategory in ('Cancelled', 'Credit Decline') then 0 \n    else job.GrossAmount\nend as NetSalesAmount\n,job.GrossAmount as GrossSalesAmount\n,job.JobID\n,jbs.JobStatus\n,jsc.JobStatusCategory\nFROM \n[EDW].[FACT_LEAD] lds\ninner join [EDW].[DIM_CUSTOMER] cst\non lds.CustomerID = cst.CustomerID\ninner join [EDW].[DIM_LEAD_SUB_SOURCE] srs\non lds.LeadSubSourceID = srs.LeadSubSourceID\nleft join [EDW].[DIM_DISPOSITION] dsp\non lds.DispositionID = dsp.DispositionID\nleft join [EDW].[DIM_BRANCH] brn\non lds.BranchID = brn.BranchID\nleft join [EDW].[DIM_PRODUCT] prd\non lds.ProductID = prd.ProductID\nleft join [EDW].[DIM_CALL_RESULT] clr\non lds.LastCallResultID = clr.CallResultID\nleft join [EDW].[FACT_JOB] job\non lds.LeadID = job.LeadID\nleft join [EDW].[DIM_JOB_STATUS] jbs\non job.JobStatusID = jbs.JobStatusID\nleft join [EDW].[DIM_JOB_STATUS_CATEGORY] jsc\non jbs.JobStatusCategoryID = jsc.JobStatusCategoryID\nWHERE\nlds.EntryDate >= '2022-10-01'\nand lds.Division = 'MAC'\n--and srs.LeadSubSource = 'WalkInTubs.com Meta - Facebook'\nand srs.SourceCode = 'WalkInTubs.com'\norder by\nLeadSubSource\n,EntryDate\n,Disposition\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

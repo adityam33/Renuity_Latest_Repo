@@ -1,0 +1,355 @@
+{
+	"name": "df_load_FACT_JOB_COMMISSION_FEES",
+	"properties": {
+		"folder": {
+			"name": "ODS_to_EDW/FACTS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ODS_DYN_TGT_TBL",
+						"type": "DatasetReference"
+					},
+					"name": "FHI"
+				},
+				{
+					"dataset": {
+						"referenceName": "ODS_DYN_TGT_TBL",
+						"type": "DatasetReference"
+					},
+					"name": "PBC"
+				},
+				{
+					"dataset": {
+						"referenceName": "ODS_DYN_TGT_TBL",
+						"type": "DatasetReference"
+					},
+					"name": "RTW"
+				},
+				{
+					"dataset": {
+						"referenceName": "ODS_DYN_TGT_TBL",
+						"type": "DatasetReference"
+					},
+					"name": "MAC"
+				},
+				{
+					"dataset": {
+						"referenceName": "ODS_DYN_TGT_TBL",
+						"type": "DatasetReference"
+					},
+					"name": "SWR"
+				},
+				{
+					"dataset": {
+						"referenceName": "ODS_DYN_TGT_TBL",
+						"type": "DatasetReference"
+					},
+					"name": "MXH"
+				},
+				{
+					"dataset": {
+						"referenceName": "ODS_DYN_TGT_TBL",
+						"type": "DatasetReference"
+					},
+					"name": "CTA"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_FACT_JOB_COMMISSION_FEES",
+						"type": "DatasetReference"
+					},
+					"name": "targetFact",
+					"description": "Export data to EDW_FACT_COMMISSION",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "addOpCoNameFHI"
+				},
+				{
+					"name": "addOpCoNamePBC"
+				},
+				{
+					"name": "addOpCoNameRTW"
+				},
+				{
+					"name": "addOpCoNameMAC"
+				},
+				{
+					"name": "addOpCoNameSWR"
+				},
+				{
+					"name": "unionAllOpCos"
+				},
+				{
+					"name": "selectRenameColumns"
+				},
+				{
+					"name": "derivedColumns"
+				},
+				{
+					"name": "addOpCoNameMXH"
+				},
+				{
+					"name": "addOpCoNameCTA"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          id as integer,",
+				"          job_id as integer,",
+				"          bookvalue as decimal(19,4),",
+				"          adminfee as decimal(19,4),",
+				"          bankchop as decimal(19,4),",
+				"          promochop as decimal(19,4),",
+				"          enteredby as integer,",
+				"          enteredon as timestamp,",
+				"          updatedby as integer,",
+				"          updatedon as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> FHI",
+				"source(output(",
+				"          ID as integer,",
+				"          inq_id as integer,",
+				"          lds_id as integer,",
+				"          GCLID as string,",
+				"          UTMAccount as string,",
+				"          UTMMedium as string,",
+				"          UTMSource as string,",
+				"          UTMCampaign as string,",
+				"          UTMContent as string,",
+				"          UTMTerm as string,",
+				"          PropertyType as string,",
+				"          UTMCampaignID as string,",
+				"          UTMAdID as string,",
+				"          UTMAdSetID as string,",
+				"          MarketingID as string,",
+				"          MarketingCustomerID as string,",
+				"          GbraID as string,",
+				"          UnitCPL as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> PBC",
+				"source(output(",
+				"          ID as integer,",
+				"          inq_id as integer,",
+				"          lds_id as integer,",
+				"          GCLID as string,",
+				"          UTMAccount as string,",
+				"          UTMMedium as string,",
+				"          UTMSource as string,",
+				"          UTMCampaign as string,",
+				"          UTMContent as string,",
+				"          UTMTerm as string,",
+				"          PropertyType as string,",
+				"          UTMCampaignID as string,",
+				"          UTMAdID as string,",
+				"          UTMAdSetID as string,",
+				"          MarketingID as string,",
+				"          MarketingCustomerID as string,",
+				"          GbraID as string,",
+				"          UnitCPL as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> RTW",
+				"source(output(",
+				"          ID as integer,",
+				"          inq_id as integer,",
+				"          lds_id as integer,",
+				"          GCLID as string,",
+				"          UTMAccount as string,",
+				"          UTMMedium as string,",
+				"          UTMSource as string,",
+				"          UTMCampaign as string,",
+				"          UTMContent as string,",
+				"          UTMTerm as string,",
+				"          PropertyType as string,",
+				"          UTMCampaignID as string,",
+				"          UTMAdID as string,",
+				"          UTMAdSetID as string,",
+				"          MarketingID as string,",
+				"          MarketingCustomerID as string,",
+				"          GbraID as string,",
+				"          UnitCPL as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> MAC",
+				"source(output(",
+				"          ID as integer,",
+				"          inq_id as integer,",
+				"          lds_id as integer,",
+				"          GCLID as string,",
+				"          UTMAccount as string,",
+				"          UTMMedium as string,",
+				"          UTMSource as string,",
+				"          UTMCampaign as string,",
+				"          UTMContent as string,",
+				"          UTMTerm as string,",
+				"          PropertyType as string,",
+				"          UTMCampaignID as string,",
+				"          UTMAdID as string,",
+				"          UTMAdSetID as string,",
+				"          MarketingID as string,",
+				"          MarketingCustomerID as string,",
+				"          GbraID as string,",
+				"          UnitCPL as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> SWR",
+				"source(output(",
+				"          ID as integer,",
+				"          inq_id as integer,",
+				"          lds_id as integer,",
+				"          GCLID as string,",
+				"          UTMAccount as string,",
+				"          UTMMedium as string,",
+				"          UTMSource as string,",
+				"          UTMCampaign as string,",
+				"          UTMContent as string,",
+				"          UTMTerm as string,",
+				"          PropertyType as string,",
+				"          UTMCampaignID as string,",
+				"          UTMAdID as string,",
+				"          UTMAdSetID as string,",
+				"          MarketingID as string,",
+				"          MarketingCustomerID as string,",
+				"          GbraID as string,",
+				"          UnitCPL as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> MXH",
+				"source(output(",
+				"          ID as integer,",
+				"          inq_id as integer,",
+				"          lds_id as integer,",
+				"          GCLID as string,",
+				"          UTMAccount as string,",
+				"          UTMMedium as string,",
+				"          UTMSource as string,",
+				"          UTMCampaign as string,",
+				"          UTMContent as string,",
+				"          UTMTerm as string,",
+				"          PropertyType as string,",
+				"          UTMCampaignID as string,",
+				"          UTMAdID as string,",
+				"          UTMAdSetID as string,",
+				"          MarketingID as string,",
+				"          MarketingCustomerID as string,",
+				"          GbraID as string,",
+				"          UnitCPL as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> CTA",
+				"FHI derive(Division = 'FHI') ~> addOpCoNameFHI",
+				"PBC derive(Division = 'PBC') ~> addOpCoNamePBC",
+				"RTW derive(Division = 'RTW') ~> addOpCoNameRTW",
+				"MAC derive(Division = 'MAC') ~> addOpCoNameMAC",
+				"SWR derive(Division = 'SWR') ~> addOpCoNameSWR",
+				"addOpCoNameFHI, addOpCoNamePBC, addOpCoNameRTW, addOpCoNameMAC, addOpCoNameSWR, addOpCoNameMXH, addOpCoNameCTA union(byName: true)~> unionAllOpCos",
+				"unionAllOpCos select(mapColumn(",
+				"          LP_JobCommisionFeeId = unionAllOpCos@id,",
+				"          LP_JobId = job_id,",
+				"          bookvalue,",
+				"          adminfee,",
+				"          bankchop,",
+				"          promochop,",
+				"          LP_enteredby = enteredby,",
+				"          enteredon,",
+				"          LP_updatedby = updatedby,",
+				"          updatedon,",
+				"          Division",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectRenameColumns",
+				"selectRenameColumns derive(LastUpdateTS = currentTimestamp(),",
+				"          JobCommissionFeeID = concat(Division,'-',toString(LP_JobCommisionFeeId)),",
+				"          JobID = concat(Division,'-',toString(LP_JobId)),",
+				"          EnteredBy = concat(Division,'-',toString(LP_enteredby)),",
+				"          UpdatedBy = concat(Division,'-',toString(LP_updatedby))) ~> derivedColumns",
+				"MXH derive(Division = 'MXH') ~> addOpCoNameMXH",
+				"CTA derive(Division = 'CTA') ~> addOpCoNameCTA",
+				"derivedColumns sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          JobCommissionFeeID as string,",
+				"          JobId as string,",
+				"          BookValue as decimal(19,4),",
+				"          Adminfee as decimal(19,4),",
+				"          Bankchop as decimal(19,4),",
+				"          Promochop as decimal(19,4),",
+				"          EnteredBy as string,",
+				"          EnteredOn as timestamp,",
+				"          UpdatedBy as string,",
+				"          UpdatedOn as timestamp,",
+				"          LP_JobCommissionFeeID as integer,",
+				"          LP_JobId as integer,",
+				"          LP_EnteredBy as integer,",
+				"          LP_UpdatedBy as integer,",
+				"          Division as string,",
+				"          LastUpdatedTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     truncate:true,",
+				"     format: 'table',",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          JobCommissionFeeID,",
+				"          JobId = JobID,",
+				"          BookValue = bookvalue,",
+				"          Adminfee = adminfee,",
+				"          Bankchop = bankchop,",
+				"          Promochop = promochop,",
+				"          EnteredBy,",
+				"          EnteredOn = enteredon,",
+				"          UpdatedBy,",
+				"          UpdatedOn = updatedon,",
+				"          LP_JobCommissionFeeID = LP_JobCommisionFeeId,",
+				"          LP_JobId,",
+				"          LP_EnteredBy = LP_enteredby,",
+				"          LP_UpdatedBy = LP_updatedby,",
+				"          Division,",
+				"          LastUpdatedTS = LastUpdateTS",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> targetFact"
+			]
+		}
+	}
+}

@@ -1,0 +1,438 @@
+{
+	"name": "cpy_Five9_Agent_Occupancy",
+	"properties": {
+		"activities": [
+			{
+				"name": "cpy_Five9_Agent_Occupancy",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.6:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE ODS.FIVE9_AGENT_OCCUPANCY",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "DATE",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "DATE",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								}
+							},
+							{
+								"source": {
+									"name": "AGENT GROUP",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "AGENT GROUP",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AGENT",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "AGENT",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LOGIN TIME",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "LOGIN TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "NOT READY TIME",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "NOT READY TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "WAIT TIME",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "WAIT TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ON CALL TIME",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "ON CALL TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ON ACW TIME",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "ON ACW TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "OCCUPANCY (LOGIN LESS WAIT)",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "OCCUPANCY (LOGIN LESS WAIT)",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AVAILABLE TIME (LOGIN LESS NOT READY)",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "AVAILABLE TIME (LOGIN LESS NOT READY)",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "UTILIZATION (LOGIN LESS WAIT AND NOT READY)",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "UTILIZATION (LOGIN LESS WAIT AND NOT READY)",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "READY TIME",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "READY TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "MANUAL TIME",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "MANUAL TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_Five9_Renuity_Agent_Occupancy",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_FIVE9_AGENT_OCCUPANCY",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "cpy_EDW_FACT_FIVE9_AGENT_OCCUPANCY",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "cpy_Five9_Agent_Occupancy",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.6:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT\n* FROM \n(\nSELECT ROW_NUMBER() OVER (PARTITION BY Date,Agent ORDER BY Date,Agent) AS RW,* FROM\nODS.FIVE9_AGENT_OCCUPANCY\n) A\nWHERE RW=1",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "DELETE FROM EDW.FACT_FIVE9_AGENT_OCCUPANCY\nWHERE CAST(DATE AS DATE) IN (SELECT DISTINCT(CAST(DATE AS DATE)) FROM  ODS.FIVE9_AGENT_OCCUPANCY)",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "DATE",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "DATE",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								}
+							},
+							{
+								"source": {
+									"name": "AGENT GROUP",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "AGENT GROUP",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AGENT",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "AGENT",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LOGIN TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LOGIN TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "NOT READY TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "NOT READY TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "WAIT TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "WAIT TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ON CALL TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ON CALL TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ON ACW TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ON ACW TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "OCCUPANCY (LOGIN LESS WAIT)",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "OCCUPANCY (LOGIN LESS WAIT)",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AVAILABLE TIME (LOGIN LESS NOT READY)",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "AVAILABLE TIME (LOGIN LESS NOT READY)",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "UTILIZATION (LOGIN LESS WAIT AND NOT READY)",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "UTILIZATION (LOGIN LESS WAIT AND NOT READY)",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "READY TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "READY TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "MANUAL TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "MANUAL TIME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ODS_FIVE9_AGENT_OCCUPANCY",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_FACT_FIVE9_AGENT_OCCUPANCY",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "Five9_to_EDW"
+		},
+		"annotations": [],
+		"lastPublishTime": "2024-03-26T07:54:59Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

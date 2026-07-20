@@ -1,0 +1,28 @@
+{
+	"name": "DS_Acqua_Excel_File_OutFolder",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureBlobStorage1",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"FileName": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": {
+					"value": "@concat(concat('Renuity_VolumeReport_', replace(replace(replace(dataset().FileName, ' ',''), '-','_'), '.', '-')),'.xlsx')",
+					"type": "Expression"
+				},
+				"folderPath": "out",
+				"container": "aquafinance"
+			}
+		}
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}

@@ -1,0 +1,20 @@
+{
+	"name": "Get past Prospects in Madison and Charlotte",
+	"properties": {
+		"folder": {
+			"name": "DMLs/Analysis SQL/Performance Marketing/Email Marketing"
+		},
+		"content": {
+			"query": "SELECT distinct\ncst.OperatingCompany\n,cst.CustomerID\n,lds.LP_DispositionID as DispositionID\n,lds.GrossSalesAmount\n,lds.EntryDate\n,lds.LP_ProductID as ProductID\n,srs.LeadSubSource\n,lds.LP_LeadSourceID as LeadSourceID\n,cst.FirstName\n,cst.LastName\n,cst.Email\n,cst.Phone\n,cst.Address1\n,cst.Address2\n,cst.City\n,zip.[State]\n,zip.ZipCode\n,zip.County\n,zip.MSA_Name\n,[Total_Households]\n,([Pct_Households_Simple_Life] + [Pct_Households_Family_Life])/100*[Total_Households] as [Simple_And_Family_Life_Households]\n,[Pct_Households_Entry_Level]\n,[Pct_Households_Feature_And_Location]\n,[Pct_Households_Simple_Life]\n,[Pct_Households_Family_Life]\n,[Pct_Households_Elite]\n,[Pct_Households_AA_Entry_Level]\n,[Pct_Households_AA_Feature_And_Location]\n,[Pct_Households_AA_Elite]\n,[Pct_Households_Renters]\n,[Median_Home_Price]\n,[Median_Year_Built]\n,[Overall_Remodeling_Activity_Index]\n,[Overall_Remodeling_Composite_Ranking_Index]\nFROM \n[EDW].[DIM_CUSTOMER] cst\ninner join [EDW].[FACT_LEAD] lds \non cst.CustomerID = lds.CustomerID\ninner join [EDW].[DIM_LEAD_SUB_SOURCE] srs\non lds.LeadSubSourceID = srs.LeadSubSourceID\ninner join [ODS].[MKTDATA_ZIP_CODES_DB_DELUXE_BUSINESS] zip\non cst.Zip = zip.ZipCode\nleft join [ODS].[MKTDATA_ZONDA_ZIP_CODE_INDEX] zonda\non cst.Zip = zonda.ZipCode\nleft join [EDW].[FACT_ISSUED_LEAD] ils\non cst.CustomerID = ils.CustomerID\nWHERE \nzip.PrimaryRecord = 'P'\nand \n(\n    zip.MSA_Name = 'Madison WI MSA'\n    --or zip.MSA_Name = 'Charlotte-Gastonia-Rock Hill NC-SC MSA'\n \n)\n--and zip.CBSA_NAME in ('Las Vegas-Henderson-Paradise NV')\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

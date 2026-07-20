@@ -1,0 +1,226 @@
+{
+	"name": "df_load_DIM_REPORTING_MARKET",
+	"properties": {
+		"folder": {
+			"name": "ODS_to_EDW/DIMENSIONS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_FHI_rpm_ReportingMarket",
+						"type": "DatasetReference"
+					},
+					"name": "srcFHI"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_HSI_rpm_ReportingMarket",
+						"type": "DatasetReference"
+					},
+					"name": "srcHSI"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_MAC_rpm_ReportingMarket",
+						"type": "DatasetReference"
+					},
+					"name": "srcMAC"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_MXH_rpm_ReportingMarket",
+						"type": "DatasetReference"
+					},
+					"name": "srcMXH"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_PBC_rpm_ReportingMarket",
+						"type": "DatasetReference"
+					},
+					"name": "srcPBC"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_RTW_rpm_ReportingMarket",
+						"type": "DatasetReference"
+					},
+					"name": "srcRTW"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_SWR_rpm_ReportingMarket",
+						"type": "DatasetReference"
+					},
+					"name": "srcSWR"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_CTA_rpm_ReportingMarket",
+						"type": "DatasetReference"
+					},
+					"name": "srcCTA"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_DIM_REPORTING_MARKET",
+						"type": "DatasetReference"
+					},
+					"name": "TargetSTG",
+					"description": "Export data to EDW_DIM_REPORTING_MARKET",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "unionAll"
+				},
+				{
+					"name": "deriveCol"
+				},
+				{
+					"name": "AlterRow"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          LP_Reporting_Market_ID as integer,",
+				"          Reporting_Market_Descr as string,",
+				"          Active as integer,",
+				"          Division as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT [id] as LP_Reporting_Market_ID\\n,[descr] as Reporting_Market_Descr\\n,CAST([active] AS INT) as Active\\n,\\'FHI\\' as Division\\n FROM [ODS].[LP_FHI_rpm_ReportingMarket]',",
+				"     format: 'query',",
+				"     staged: true) ~> srcFHI",
+				"source(output(",
+				"          LP_Reporting_Market_ID as integer,",
+				"          Reporting_Market_Descr as string,",
+				"          Active as integer,",
+				"          Division as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: ' SELECT [id] as LP_Reporting_Market_ID\\n,[descr] as Reporting_Market_Descr\\n,CAST([active] AS INT) as Active\\n,\\'HSI\\' as Division\\n FROM [ODS].[LP_HSI_rpm_ReportingMarket]',",
+				"     format: 'query',",
+				"     staged: true) ~> srcHSI",
+				"source(output(",
+				"          LP_Reporting_Market_ID as integer,",
+				"          Reporting_Market_Descr as string,",
+				"          Active as integer,",
+				"          Division as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT [id] as LP_Reporting_Market_ID\\n,[descr] as Reporting_Market_Descr\\n,CAST([active] AS INT) as Active\\n,\\'MAC\\' as Division\\n FROM [ODS].[LP_MAC_rpm_ReportingMarket]',",
+				"     format: 'query',",
+				"     staged: true) ~> srcMAC",
+				"source(output(",
+				"          LP_Reporting_Market_ID as integer,",
+				"          Reporting_Market_Descr as string,",
+				"          Active as integer,",
+				"          Division as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT [id] as LP_Reporting_Market_ID\\n,[descr] as Reporting_Market_Descr\\n,CAST([active] AS INT) as Active\\n,\\'MXH\\' as Division\\n FROM [ODS].[LP_MXH_rpm_ReportingMarket]',",
+				"     format: 'query',",
+				"     staged: true) ~> srcMXH",
+				"source(output(",
+				"          LP_Reporting_Market_ID as integer,",
+				"          Reporting_Market_Descr as string,",
+				"          Active as integer,",
+				"          Division as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT [id] as LP_Reporting_Market_ID\\n,[descr] as Reporting_Market_Descr\\n,CAST([active] AS INT) as Active\\n,\\'PBC\\' as Division\\n FROM [ODS].[LP_PBC_rpm_ReportingMarket]',",
+				"     format: 'query',",
+				"     staged: true) ~> srcPBC",
+				"source(output(",
+				"          LP_Reporting_Market_ID as integer,",
+				"          Reporting_Market_Descr as string,",
+				"          Active as integer,",
+				"          Division as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT [id] as LP_Reporting_Market_ID\\n,[descr] as Reporting_Market_Descr\\n,CAST([active] AS INT) as Active\\n,\\'RTW\\' as Division\\n FROM [ODS].[LP_RTW_rpm_ReportingMarket]',",
+				"     format: 'query',",
+				"     staged: true) ~> srcRTW",
+				"source(output(",
+				"          LP_Reporting_Market_ID as integer,",
+				"          Reporting_Market_Descr as string,",
+				"          Active as integer,",
+				"          Division as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT [id] as LP_Reporting_Market_ID\\n,[descr] as Reporting_Market_Descr\\n,CAST([active] AS INT) as Active\\n,\\'SWR\\' as Division\\n FROM [ODS].[LP_SWR_rpm_ReportingMarket]',",
+				"     format: 'query',",
+				"     staged: true) ~> srcSWR",
+				"source(output(",
+				"          LP_Reporting_Market_ID as integer,",
+				"          Reporting_Market_Descr as string,",
+				"          Active as integer,",
+				"          Division as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT [id] as LP_Reporting_Market_ID\\n,[descr] as Reporting_Market_Descr\\n,CAST([active] AS INT) as Active\\n,\\'CTA\\' as Division\\n FROM [ODS].[LP_CTA_rpm_ReportingMarket]',",
+				"     format: 'query',",
+				"     staged: true) ~> srcCTA",
+				"srcFHI, srcHSI, srcMAC, srcMXH, srcPBC, srcRTW, srcSWR, srcCTA union(byName: true)~> unionAll",
+				"unionAll derive(Reporting_Market_ID = concat(Division,'-',toString(LP_Reporting_Market_ID)),",
+				"          LastUpdateTS = currentTimestamp()) ~> deriveCol",
+				"deriveCol alterRow(upsertIf(true())) ~> AlterRow",
+				"AlterRow sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          ReportingMarketId as string,",
+				"          MarketDescription as string,",
+				"          Active as integer,",
+				"          LP_ReportingMarketId as string,",
+				"          Division as string,",
+				"          LastUpdatedTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['ReportingMarketId'],",
+				"     format: 'table',",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          LP_ReportingMarketId = LP_Reporting_Market_ID,",
+				"          MarketDescription = Reporting_Market_Descr,",
+				"          Active,",
+				"          Division,",
+				"          ReportingMarketId = Reporting_Market_ID,",
+				"          LastUpdatedTS = LastUpdateTS",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> TargetSTG"
+			]
+		}
+	}
+}

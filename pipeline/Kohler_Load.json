@@ -1,0 +1,2971 @@
+{
+	"name": "Kohler_Load",
+	"properties": {
+		"activities": [
+			{
+				"name": "Get Raw CSV Files List",
+				"type": "GetMetadata",
+				"dependsOn": [
+					{
+						"activity": "Execute SF Mapping File Loading Pipeline",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "Kohler_RawFiles_inFolder",
+						"type": "DatasetReference"
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobStorageReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "DelimitedTextReadSettings"
+					}
+				}
+			},
+			{
+				"name": "Do Processing ForEach File",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Get Raw CSV Files List",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Get Raw CSV Files List').output.childItems",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "Switch Based on File Name",
+							"type": "Switch",
+							"dependsOn": [
+								{
+									"activity": "Set case value",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"on": {
+									"value": "@variables('CaseType')",
+									"type": "Expression"
+								},
+								"cases": [
+									{
+										"value": "CLAO_Files",
+										"activities": [
+											{
+												"name": "Copy File data to Table",
+												"type": "Copy",
+												"dependsOn": [],
+												"policy": {
+													"timeout": "0.12:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"source": {
+														"type": "DelimitedTextSource",
+														"storeSettings": {
+															"type": "AzureBlobStorageReadSettings",
+															"recursive": true,
+															"wildcardFolderPath": "in",
+															"wildcardFileName": {
+																"value": "@variables('FileName')",
+																"type": "Expression"
+															},
+															"enablePartitionDiscovery": false
+														},
+														"formatSettings": {
+															"type": "DelimitedTextReadSettings"
+														}
+													},
+													"sink": {
+														"type": "SqlServerSink",
+														"preCopyScript": {
+															"value": "@concat('TRUNCATE TABLE dbo.kohler_', variables('FileType'))",
+															"type": "Expression"
+														},
+														"writeBehavior": "insert",
+														"sqlWriterUseTableLock": false
+													},
+													"enableStaging": false,
+													"translator": {
+														"type": "TabularTranslator",
+														"typeConversion": true,
+														"typeConversionSettings": {
+															"allowDataTruncation": true,
+															"treatBooleanAsNumber": false
+														}
+													}
+												},
+												"inputs": [
+													{
+														"referenceName": "Kohler_RawFiles_inFolder",
+														"type": "DatasetReference"
+													}
+												],
+												"outputs": [
+													{
+														"referenceName": "Kohler_SqlServerTables",
+														"type": "DatasetReference",
+														"parameters": {
+															"TableName": {
+																"value": "@concat('kohler_', variables('FileType'))",
+																"type": "Expression"
+															},
+															"SchemaName": "dbo"
+														}
+													}
+												]
+											},
+											{
+												"name": "Move File to error Folder",
+												"type": "Copy",
+												"dependsOn": [
+													{
+														"activity": "Copy File data to Table",
+														"dependencyConditions": [
+															"Failed"
+														]
+													}
+												],
+												"policy": {
+													"timeout": "0.12:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"source": {
+														"type": "DelimitedTextSource",
+														"storeSettings": {
+															"type": "AzureBlobStorageReadSettings",
+															"recursive": true,
+															"wildcardFolderPath": "in",
+															"wildcardFileName": {
+																"value": "@variables('FileName')",
+																"type": "Expression"
+															},
+															"enablePartitionDiscovery": false
+														},
+														"formatSettings": {
+															"type": "DelimitedTextReadSettings"
+														}
+													},
+													"sink": {
+														"type": "DelimitedTextSink",
+														"storeSettings": {
+															"type": "AzureBlobStorageWriteSettings"
+														},
+														"formatSettings": {
+															"type": "DelimitedTextWriteSettings",
+															"quoteAllText": true,
+															"fileExtension": ".txt"
+														}
+													},
+													"enableStaging": false,
+													"translator": {
+														"type": "TabularTranslator",
+														"typeConversion": true,
+														"typeConversionSettings": {
+															"allowDataTruncation": true,
+															"treatBooleanAsNumber": false
+														}
+													}
+												},
+												"inputs": [
+													{
+														"referenceName": "Kohler_RawFiles_inFolder",
+														"type": "DatasetReference"
+													}
+												],
+												"outputs": [
+													{
+														"referenceName": "Kohler_RawFiles_errorFolder",
+														"type": "DatasetReference"
+													}
+												]
+											},
+											{
+												"name": "Move File from in to out Folder",
+												"type": "Copy",
+												"dependsOn": [
+													{
+														"activity": "Copy File data to Table",
+														"dependencyConditions": [
+															"Succeeded"
+														]
+													}
+												],
+												"policy": {
+													"timeout": "0.12:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"source": {
+														"type": "DelimitedTextSource",
+														"storeSettings": {
+															"type": "AzureBlobStorageReadSettings",
+															"recursive": true,
+															"wildcardFolderPath": "in",
+															"wildcardFileName": {
+																"value": "@variables('FileName')",
+																"type": "Expression"
+															},
+															"enablePartitionDiscovery": false
+														},
+														"formatSettings": {
+															"type": "DelimitedTextReadSettings"
+														}
+													},
+													"sink": {
+														"type": "DelimitedTextSink",
+														"storeSettings": {
+															"type": "AzureBlobStorageWriteSettings"
+														},
+														"formatSettings": {
+															"type": "DelimitedTextWriteSettings",
+															"quoteAllText": true,
+															"fileExtension": ".txt"
+														}
+													},
+													"enableStaging": false,
+													"translator": {
+														"type": "TabularTranslator",
+														"typeConversion": true,
+														"typeConversionSettings": {
+															"allowDataTruncation": true,
+															"treatBooleanAsNumber": false
+														}
+													}
+												},
+												"inputs": [
+													{
+														"referenceName": "Kohler_RawFiles_inFolder",
+														"type": "DatasetReference"
+													}
+												],
+												"outputs": [
+													{
+														"referenceName": "Kohler_RawFiles_outFolder",
+														"type": "DatasetReference"
+													}
+												]
+											},
+											{
+												"name": "Delete in folder file",
+												"type": "Delete",
+												"dependsOn": [
+													{
+														"activity": "Move File from in to out Folder",
+														"dependencyConditions": [
+															"Succeeded"
+														]
+													}
+												],
+												"policy": {
+													"timeout": "0.12:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"dataset": {
+														"referenceName": "Kohler_RawFiles_inFolder",
+														"type": "DatasetReference"
+													},
+													"logStorageSettings": {
+														"linkedServiceName": {
+															"referenceName": "AzureBlobStorage1",
+															"type": "LinkedServiceReference"
+														},
+														"path": "projectkohler/Staging_For_Logging"
+													},
+													"enableLogging": true,
+													"storeSettings": {
+														"type": "AzureBlobStorageReadSettings",
+														"recursive": true,
+														"wildcardFileName": {
+															"value": "@variables('FileName')",
+															"type": "Expression"
+														},
+														"enablePartitionDiscovery": false
+													}
+												}
+											},
+											{
+												"name": "Delete in folder file_copy1",
+												"type": "Delete",
+												"dependsOn": [
+													{
+														"activity": "Move File to error Folder",
+														"dependencyConditions": [
+															"Succeeded"
+														]
+													}
+												],
+												"policy": {
+													"timeout": "0.12:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"dataset": {
+														"referenceName": "Kohler_RawFiles_inFolder",
+														"type": "DatasetReference"
+													},
+													"logStorageSettings": {
+														"linkedServiceName": {
+															"referenceName": "AzureBlobStorage1",
+															"type": "LinkedServiceReference"
+														},
+														"path": "projectkohler/Staging_For_Logging"
+													},
+													"enableLogging": true,
+													"storeSettings": {
+														"type": "AzureBlobStorageReadSettings",
+														"recursive": true,
+														"wildcardFileName": {
+															"value": "@variables('FileName')",
+															"type": "Expression"
+														},
+														"enablePartitionDiscovery": false
+													}
+												}
+											}
+										]
+									},
+									{
+										"value": "JobsFile",
+										"activities": [
+											{
+												"name": "Move Jobs File to error Folder",
+												"type": "Copy",
+												"dependsOn": [
+													{
+														"activity": "Copy Jobs CSV File to Table",
+														"dependencyConditions": [
+															"Failed"
+														]
+													}
+												],
+												"policy": {
+													"timeout": "0.12:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"source": {
+														"type": "DelimitedTextSource",
+														"storeSettings": {
+															"type": "AzureBlobStorageReadSettings",
+															"recursive": true,
+															"wildcardFolderPath": "in",
+															"wildcardFileName": {
+																"value": "@variables('FileName')",
+																"type": "Expression"
+															},
+															"enablePartitionDiscovery": false
+														},
+														"formatSettings": {
+															"type": "DelimitedTextReadSettings"
+														}
+													},
+													"sink": {
+														"type": "DelimitedTextSink",
+														"storeSettings": {
+															"type": "AzureBlobStorageWriteSettings"
+														},
+														"formatSettings": {
+															"type": "DelimitedTextWriteSettings",
+															"quoteAllText": true,
+															"fileExtension": ".txt"
+														}
+													},
+													"enableStaging": false,
+													"translator": {
+														"type": "TabularTranslator",
+														"typeConversion": true,
+														"typeConversionSettings": {
+															"allowDataTruncation": true,
+															"treatBooleanAsNumber": false
+														}
+													}
+												},
+												"inputs": [
+													{
+														"referenceName": "Kohler_RawFiles_inFolder",
+														"type": "DatasetReference"
+													}
+												],
+												"outputs": [
+													{
+														"referenceName": "Kohler_RawFiles_errorFolder",
+														"type": "DatasetReference"
+													}
+												]
+											},
+											{
+												"name": "Copy Jobs CSV File to Table",
+												"type": "Copy",
+												"dependsOn": [],
+												"policy": {
+													"timeout": "0.12:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"source": {
+														"type": "DelimitedTextSource",
+														"storeSettings": {
+															"type": "AzureBlobStorageReadSettings",
+															"recursive": true,
+															"wildcardFolderPath": "in",
+															"wildcardFileName": {
+																"value": "@variables('FileName')",
+																"type": "Expression"
+															},
+															"enablePartitionDiscovery": false
+														},
+														"formatSettings": {
+															"type": "DelimitedTextReadSettings",
+															"skipLineCount": 2
+														}
+													},
+													"sink": {
+														"type": "SqlServerSink",
+														"preCopyScript": "TRUNCATE TABLE dbo.kohler_jobs",
+														"writeBehavior": "insert",
+														"sqlWriterUseTableLock": false
+													},
+													"enableStaging": false,
+													"translator": {
+														"type": "TabularTranslator",
+														"mappings": [
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 1
+																},
+																"sink": {
+																	"name": "State",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 2
+																},
+																"sink": {
+																	"name": "InternalContractNumber",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 3
+																},
+																"sink": {
+																	"name": "OneClickContractNumber",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 4
+																},
+																"sink": {
+																	"name": "HyperlinktoOneClickContractor",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 5
+																},
+																"sink": {
+																	"name": "Projectname",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 6
+																},
+																"sink": {
+																	"name": "CustomerLastName",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 7
+																},
+																"sink": {
+																	"name": "CustomerFirstName",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 8
+																},
+																"sink": {
+																	"name": "OtherProjectName",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 9
+																},
+																"sink": {
+																	"name": "ContractStatus",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 10
+																},
+																"sink": {
+																	"name": "ProductCatgeory",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 11
+																},
+																"sink": {
+																	"name": "InstallRegion",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 12
+																},
+																"sink": {
+																	"name": "CityForPermit",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 13
+																},
+																"sink": {
+																	"name": "ZipCode",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 14
+																},
+																"sink": {
+																	"name": "ContractSignedDate",
+																	"type": "Date",
+																	"physicalType": "date"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 15
+																},
+																"sink": {
+																	"name": "SalesRepName",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 16
+																},
+																"sink": {
+																	"name": "Subtotal_PreDiscount",
+																	"type": "Decimal",
+																	"physicalType": "decimal",
+																	"scale": 2,
+																	"precision": 18
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 17
+																},
+																"sink": {
+																	"name": "ActualTotal_ClientTotal_DNIACO",
+																	"type": "Decimal",
+																	"physicalType": "decimal",
+																	"scale": 2,
+																	"precision": 18
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 18
+																},
+																"sink": {
+																	"name": "DiscountAmount",
+																	"type": "Decimal",
+																	"physicalType": "decimal",
+																	"scale": 2,
+																	"precision": 18
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 19
+																},
+																"sink": {
+																	"name": "Discount_Pct",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 20
+																},
+																"sink": {
+																	"name": "ContractIssues",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 21
+																},
+																"sink": {
+																	"name": "ValueMissedAmount",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 22
+																},
+																"sink": {
+																	"name": "ProjectRank",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 23
+																},
+																"sink": {
+																	"name": "ProjectReviewStatus",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 24
+																},
+																"sink": {
+																	"name": "CustomerSAPSalesforce#NOTGLOBAL",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 25
+																},
+																"sink": {
+																	"name": "ChangeOrder1",
+																	"type": "Decimal",
+																	"physicalType": "decimal",
+																	"scale": 2,
+																	"precision": 18
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 26
+																},
+																"sink": {
+																	"name": "ChangeOrder2",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 27
+																},
+																"sink": {
+																	"name": "ChangeOrder3_4_5",
+																	"type": "Decimal",
+																	"physicalType": "decimal",
+																	"scale": 2,
+																	"precision": 18
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 28
+																},
+																"sink": {
+																	"name": "NewTotal_IncludingChangeOrders",
+																	"type": "Decimal",
+																	"physicalType": "decimal",
+																	"scale": 2,
+																	"precision": 18
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 29
+																},
+																"sink": {
+																	"name": "DownPaymentAmount_10pct",
+																	"type": "Decimal",
+																	"physicalType": "decimal",
+																	"scale": 2,
+																	"precision": 18
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 30
+																},
+																"sink": {
+																	"name": "DownPaymentStatus",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 31
+																},
+																"sink": {
+																	"name": "DownPaymentType",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 32
+																},
+																"sink": {
+																	"name": "DownPaymentCheckNumber",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 33
+																},
+																"sink": {
+																	"name": "DownPaymentPaidto",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 34
+																},
+																"sink": {
+																	"name": "DownPaymentDate",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 35
+																},
+																"sink": {
+																	"name": "SecondPaymentAmount_40Pct",
+																	"type": "Decimal",
+																	"physicalType": "decimal",
+																	"scale": 2,
+																	"precision": 18
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 36
+																},
+																"sink": {
+																	"name": "SecondPaymentStatus",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 37
+																},
+																"sink": {
+																	"name": "SecondPaymentType",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 38
+																},
+																"sink": {
+																	"name": "SecondPaymentCheckNum",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 39
+																},
+																"sink": {
+																	"name": "SecondPaymentPaidto",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 40
+																},
+																"sink": {
+																	"name": "SecondPaymentDate",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 41
+																},
+																"sink": {
+																	"name": "FinalPaymentAmount_50pct",
+																	"type": "Decimal",
+																	"physicalType": "decimal",
+																	"scale": 2,
+																	"precision": 18
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 42
+																},
+																"sink": {
+																	"name": "FinalPaymentStatus",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 43
+																},
+																"sink": {
+																	"name": "FinalPaymentType",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 44
+																},
+																"sink": {
+																	"name": "FinalPaymentCheckNum",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 45
+																},
+																"sink": {
+																	"name": "FinalPaymentPaidto",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 46
+																},
+																"sink": {
+																	"name": "FinalPaymentDate",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 47
+																},
+																"sink": {
+																	"name": "TotalNeededtoCollect",
+																	"type": "Decimal",
+																	"physicalType": "decimal",
+																	"scale": 2,
+																	"precision": 18
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 48
+																},
+																"sink": {
+																	"name": "TotalPaidtoKohler",
+																	"type": "Decimal",
+																	"physicalType": "decimal",
+																	"scale": 2,
+																	"precision": 18
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 49
+																},
+																"sink": {
+																	"name": "TotalPaidtoRenuity",
+																	"type": "Decimal",
+																	"physicalType": "decimal",
+																	"scale": 2,
+																	"precision": 18
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 50
+																},
+																"sink": {
+																	"name": "TotalPaidtoOther",
+																	"type": "Decimal",
+																	"physicalType": "decimal",
+																	"scale": 2,
+																	"precision": 18
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 51
+																},
+																"sink": {
+																	"name": "RemainingBalance",
+																	"type": "Decimal",
+																	"physicalType": "decimal",
+																	"scale": 2,
+																	"precision": 18
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 52
+																},
+																"sink": {
+																	"name": "FullProjectCompletionStatus",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 53
+																},
+																"sink": {
+																	"name": "ManualProjectCompletionVerification",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 54
+																},
+																"sink": {
+																	"name": "ProjectStatus",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 55
+																},
+																"sink": {
+																	"name": "WorkType",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 56
+																},
+																"sink": {
+																	"name": "FirstDayofWork_1",
+																	"type": "Date",
+																	"physicalType": "date"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 57
+																},
+																"sink": {
+																	"name": "LastDayofWork_1",
+																	"type": "Date",
+																	"physicalType": "date"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 58
+																},
+																"sink": {
+																	"name": "WorkType_1",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 59
+																},
+																"sink": {
+																	"name": "FirstDayofWork_2",
+																	"type": "Date",
+																	"physicalType": "date"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 60
+																},
+																"sink": {
+																	"name": "LastDayofWork_2",
+																	"type": "Date",
+																	"physicalType": "date"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 61
+																},
+																"sink": {
+																	"name": "WorkType_2",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 62
+																},
+																"sink": {
+																	"name": "FirstDayofWork_3",
+																	"type": "Date",
+																	"physicalType": "date"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 63
+																},
+																"sink": {
+																	"name": "LastDayofWork_3",
+																	"type": "Date",
+																	"physicalType": "date"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 64
+																},
+																"sink": {
+																	"name": "WorkType_3",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 65
+																},
+																"sink": {
+																	"name": "FirstDayofWork_4",
+																	"type": "Date",
+																	"physicalType": "date"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 66
+																},
+																"sink": {
+																	"name": "LastDayofWork_4",
+																	"type": "Date",
+																	"physicalType": "date"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 67
+																},
+																"sink": {
+																	"name": "WorkType_4",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 68
+																},
+																"sink": {
+																	"name": "FirstDayofLASTNOTService",
+																	"type": "Date",
+																	"physicalType": "date"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 69
+																},
+																"sink": {
+																	"name": "LastDayofLASTNotService",
+																	"type": "Date",
+																	"physicalType": "date"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 70
+																},
+																"sink": {
+																	"name": "WorkTypeofLASTNotService",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 71
+																},
+																"sink": {
+																	"name": "NumberofDays",
+																	"type": "Int32",
+																	"physicalType": "int"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 72
+																},
+																"sink": {
+																	"name": "BuildingPermitStatus",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 73
+																},
+																"sink": {
+																	"name": "PlumbingPermitStatus",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 74
+																},
+																"sink": {
+																	"name": "HOAStatus",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 75
+																},
+																"sink": {
+																	"name": "LeadTestingStatus",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 76
+																},
+																"sink": {
+																	"name": "PlumbingContractorStatus",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 77
+																},
+																"sink": {
+																	"name": "ElectricalContractorStatus",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 78
+																},
+																"sink": {
+																	"name": "OtherContractorStatus",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 79
+																},
+																"sink": {
+																	"name": "GlassContractorStatus",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															},
+															{
+																"source": {
+																	"type": "String",
+																	"ordinal": 80
+																},
+																"sink": {
+																	"name": "LP_Status",
+																	"type": "String",
+																	"physicalType": "nvarchar"
+																}
+															}
+														],
+														"typeConversion": true,
+														"typeConversionSettings": {
+															"allowDataTruncation": true,
+															"treatBooleanAsNumber": false
+														}
+													}
+												},
+												"inputs": [
+													{
+														"referenceName": "Kohler_Production_ConvertedFile",
+														"type": "DatasetReference"
+													}
+												],
+												"outputs": [
+													{
+														"referenceName": "Kohler_SqlServerTables",
+														"type": "DatasetReference",
+														"parameters": {
+															"TableName": "kohler_jobs",
+															"SchemaName": "dbo"
+														}
+													}
+												]
+											},
+											{
+												"name": "Move Jobs File from in to out",
+												"type": "Copy",
+												"dependsOn": [
+													{
+														"activity": "Copy Jobs CSV File to Table",
+														"dependencyConditions": [
+															"Succeeded"
+														]
+													}
+												],
+												"policy": {
+													"timeout": "0.12:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"source": {
+														"type": "DelimitedTextSource",
+														"storeSettings": {
+															"type": "AzureBlobStorageReadSettings",
+															"recursive": true,
+															"wildcardFolderPath": "in",
+															"wildcardFileName": {
+																"value": "@variables('FileName')",
+																"type": "Expression"
+															},
+															"enablePartitionDiscovery": false
+														},
+														"formatSettings": {
+															"type": "DelimitedTextReadSettings"
+														}
+													},
+													"sink": {
+														"type": "DelimitedTextSink",
+														"storeSettings": {
+															"type": "AzureBlobStorageWriteSettings"
+														},
+														"formatSettings": {
+															"type": "DelimitedTextWriteSettings",
+															"quoteAllText": true,
+															"fileExtension": ".txt"
+														}
+													},
+													"enableStaging": false,
+													"translator": {
+														"type": "TabularTranslator",
+														"typeConversion": true,
+														"typeConversionSettings": {
+															"allowDataTruncation": true,
+															"treatBooleanAsNumber": false
+														}
+													}
+												},
+												"inputs": [
+													{
+														"referenceName": "Kohler_Production_ConvertedFile",
+														"type": "DatasetReference"
+													}
+												],
+												"outputs": [
+													{
+														"referenceName": "Kohler_RawFiles_outFolder",
+														"type": "DatasetReference"
+													}
+												]
+											},
+											{
+												"name": "Delete Jobs CSV from in",
+												"type": "Delete",
+												"dependsOn": [
+													{
+														"activity": "Move Jobs File from in to out",
+														"dependencyConditions": [
+															"Succeeded"
+														]
+													}
+												],
+												"policy": {
+													"timeout": "0.12:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"dataset": {
+														"referenceName": "Kohler_Production_ConvertedFile",
+														"type": "DatasetReference"
+													},
+													"logStorageSettings": {
+														"linkedServiceName": {
+															"referenceName": "AzureBlobStorage1",
+															"type": "LinkedServiceReference"
+														},
+														"path": "kohlerhome-mn-wi/Staging_For_Logging"
+													},
+													"enableLogging": true,
+													"storeSettings": {
+														"type": "AzureBlobStorageReadSettings",
+														"recursive": true,
+														"wildcardFileName": {
+															"value": "@variables('FileName')",
+															"type": "Expression"
+														},
+														"enablePartitionDiscovery": false
+													}
+												}
+											},
+											{
+												"name": "Delete Jobs CSV from in_copy1",
+												"type": "Delete",
+												"dependsOn": [
+													{
+														"activity": "Move Jobs File to error Folder",
+														"dependencyConditions": [
+															"Succeeded"
+														]
+													}
+												],
+												"policy": {
+													"timeout": "0.12:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"dataset": {
+														"referenceName": "Kohler_Production_ConvertedFile",
+														"type": "DatasetReference"
+													},
+													"logStorageSettings": {
+														"linkedServiceName": {
+															"referenceName": "AzureBlobStorage1",
+															"type": "LinkedServiceReference"
+														},
+														"path": "kohlerhome-mn-wi/Staging_For_Logging"
+													},
+													"enableLogging": true,
+													"storeSettings": {
+														"type": "AzureBlobStorageReadSettings",
+														"recursive": true,
+														"wildcardFileName": {
+															"value": "@variables('FileName')",
+															"type": "Expression"
+														},
+														"enablePartitionDiscovery": false
+													}
+												}
+											}
+										]
+									}
+								],
+								"defaultActivities": [
+									{
+										"name": "Move Unknown File in to error Folder",
+										"type": "Copy",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "DelimitedTextSource",
+												"storeSettings": {
+													"type": "AzureBlobStorageReadSettings",
+													"recursive": true,
+													"wildcardFolderPath": "in",
+													"wildcardFileName": {
+														"value": "@variables('FileName')",
+														"type": "Expression"
+													},
+													"enablePartitionDiscovery": false
+												},
+												"formatSettings": {
+													"type": "DelimitedTextReadSettings"
+												}
+											},
+											"sink": {
+												"type": "DelimitedTextSink",
+												"storeSettings": {
+													"type": "AzureBlobStorageWriteSettings"
+												},
+												"formatSettings": {
+													"type": "DelimitedTextWriteSettings",
+													"quoteAllText": true,
+													"fileExtension": ".txt"
+												}
+											},
+											"enableStaging": false,
+											"translator": {
+												"type": "TabularTranslator",
+												"typeConversion": true,
+												"typeConversionSettings": {
+													"allowDataTruncation": true,
+													"treatBooleanAsNumber": false
+												}
+											}
+										},
+										"inputs": [
+											{
+												"referenceName": "Kohler_RawFiles_inFolder",
+												"type": "DatasetReference"
+											}
+										],
+										"outputs": [
+											{
+												"referenceName": "Kohler_RawFiles_errorFolder",
+												"type": "DatasetReference"
+											}
+										]
+									},
+									{
+										"name": "Delete unknown file from in folder",
+										"type": "Delete",
+										"dependsOn": [
+											{
+												"activity": "Move Unknown File in to error Folder",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"dataset": {
+												"referenceName": "Kohler_RawFiles_inFolder",
+												"type": "DatasetReference"
+											},
+											"logStorageSettings": {
+												"linkedServiceName": {
+													"referenceName": "AzureBlobStorage1",
+													"type": "LinkedServiceReference"
+												},
+												"path": "kohlerhome-mn-wi/Staging_For_Logging"
+											},
+											"enableLogging": true,
+											"storeSettings": {
+												"type": "AzureBlobStorageReadSettings",
+												"recursive": true,
+												"wildcardFileName": {
+													"value": "@variables('FileName')",
+													"type": "Expression"
+												},
+												"enablePartitionDiscovery": false
+											}
+										}
+									}
+								]
+							}
+						},
+						{
+							"name": "Set File Name",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "FileName",
+								"value": {
+									"value": "@item().name",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Set File Short Name for cases",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Set File Name",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "FileType",
+								"value": {
+									"value": "@toLower(split(replace(item().name, '_', '-'), '-')[0])\n",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Set case value",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Set File Short Name for cases",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "CaseType",
+								"value": {
+									"value": "@if(\n    or(\n        or(\n            startsWith(variables('FileType'), 'campaign'),\n            startsWith(variables('FileType'), 'lead')\n        ),\n        or(\n            startsWith(variables('FileType'), 'account'),\n            startsWith(variables('FileType'), 'opportunity')\n        )\n    ),\n    'CLAO_Files',\n    if(\n        equals(variables('FileType'), 'kohlerwimijobs'),\n        'JobsFile',\n        'unknownFile'\n    )\n)",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Get Jobs Excel File",
+				"type": "GetMetadata",
+				"dependsOn": [
+					{
+						"activity": "Set Sheet Name",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "Kohler_JobsExcelFile_toBeConverted",
+						"type": "DatasetReference",
+						"parameters": {
+							"FileName": {
+								"value": "@variables('FileName')",
+								"type": "Expression"
+							},
+							"SheetName": {
+								"value": "@variables('SheetName')",
+								"type": "Expression"
+							}
+						}
+					},
+					"fieldList": [
+						"exists"
+					],
+					"storeSettings": {
+						"type": "AzureBlobStorageReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					}
+				}
+			},
+			{
+				"name": "If Production File Exists",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Get Jobs Excel File",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@activity('Get Jobs Excel File').output.exists",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "Copy Excel Sheet to CSV",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "ExcelSource",
+									"storeSettings": {
+										"type": "AzureBlobStorageReadSettings",
+										"recursive": true,
+										"enablePartitionDiscovery": false
+									}
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobStorageWriteSettings"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"mappings": [
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 1
+											},
+											"sink": {
+												"name": "Column1",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 2
+											},
+											"sink": {
+												"name": "Column2",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 3
+											},
+											"sink": {
+												"name": "Column3",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 4
+											},
+											"sink": {
+												"name": "Column4",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 5
+											},
+											"sink": {
+												"name": "Column5",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 6
+											},
+											"sink": {
+												"name": "Column6",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 7
+											},
+											"sink": {
+												"name": "Column7",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 8
+											},
+											"sink": {
+												"name": "Column8",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 9
+											},
+											"sink": {
+												"name": "Column9",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 10
+											},
+											"sink": {
+												"name": "Column10",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 11
+											},
+											"sink": {
+												"name": "Column11",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 12
+											},
+											"sink": {
+												"name": "Column12",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 13
+											},
+											"sink": {
+												"name": "Column13",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 14
+											},
+											"sink": {
+												"name": "Column14",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 15
+											},
+											"sink": {
+												"name": "Column15",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 16
+											},
+											"sink": {
+												"name": "Column16",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 17
+											},
+											"sink": {
+												"name": "Column17",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 18
+											},
+											"sink": {
+												"name": "Column18",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 19
+											},
+											"sink": {
+												"name": "Column19",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 20
+											},
+											"sink": {
+												"name": "Column20",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 21
+											},
+											"sink": {
+												"name": "Column21",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 22
+											},
+											"sink": {
+												"name": "Column22",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 23
+											},
+											"sink": {
+												"name": "Column23",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 24
+											},
+											"sink": {
+												"name": "Column24",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 25
+											},
+											"sink": {
+												"name": "Column25",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 26
+											},
+											"sink": {
+												"name": "Column26",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 27
+											},
+											"sink": {
+												"name": "Column27",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 28
+											},
+											"sink": {
+												"name": "Column28",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 29
+											},
+											"sink": {
+												"name": "Column29",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 30
+											},
+											"sink": {
+												"name": "Column30",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 31
+											},
+											"sink": {
+												"name": "Column31",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 32
+											},
+											"sink": {
+												"name": "Column32",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 33
+											},
+											"sink": {
+												"name": "Column33",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 34
+											},
+											"sink": {
+												"name": "Column34",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 35
+											},
+											"sink": {
+												"name": "Column35",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 36
+											},
+											"sink": {
+												"name": "Column36",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 37
+											},
+											"sink": {
+												"name": "Column37",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 38
+											},
+											"sink": {
+												"name": "Column38",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 39
+											},
+											"sink": {
+												"name": "Column39",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 40
+											},
+											"sink": {
+												"name": "Column40",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 41
+											},
+											"sink": {
+												"name": "Column41",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 42
+											},
+											"sink": {
+												"name": "Column42",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 43
+											},
+											"sink": {
+												"name": "Column43",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 44
+											},
+											"sink": {
+												"name": "Column44",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 45
+											},
+											"sink": {
+												"name": "Column45",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 46
+											},
+											"sink": {
+												"name": "Column46",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 47
+											},
+											"sink": {
+												"name": "Column47",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 48
+											},
+											"sink": {
+												"name": "Column48",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 49
+											},
+											"sink": {
+												"name": "Column49",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 50
+											},
+											"sink": {
+												"name": "Column50",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 51
+											},
+											"sink": {
+												"name": "Column51",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 52
+											},
+											"sink": {
+												"name": "Column52",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 53
+											},
+											"sink": {
+												"name": "Column53",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 54
+											},
+											"sink": {
+												"name": "Column54",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 55
+											},
+											"sink": {
+												"name": "Column55",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 56
+											},
+											"sink": {
+												"name": "Column56",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 57
+											},
+											"sink": {
+												"name": "Column57",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 58
+											},
+											"sink": {
+												"name": "Column58",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 59
+											},
+											"sink": {
+												"name": "Column59",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 60
+											},
+											"sink": {
+												"name": "Column60",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 61
+											},
+											"sink": {
+												"name": "Column61",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 62
+											},
+											"sink": {
+												"name": "Column62",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 63
+											},
+											"sink": {
+												"name": "Column63",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 64
+											},
+											"sink": {
+												"name": "Column64",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 65
+											},
+											"sink": {
+												"name": "Column65",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 66
+											},
+											"sink": {
+												"name": "Column66",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 67
+											},
+											"sink": {
+												"name": "Column67",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 68
+											},
+											"sink": {
+												"name": "Column68",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 69
+											},
+											"sink": {
+												"name": "Column69",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 70
+											},
+											"sink": {
+												"name": "Column70",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 71
+											},
+											"sink": {
+												"name": "Column71",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 72
+											},
+											"sink": {
+												"name": "Column72",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 73
+											},
+											"sink": {
+												"name": "Column73",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 74
+											},
+											"sink": {
+												"name": "Column74",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 75
+											},
+											"sink": {
+												"name": "Column75",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 76
+											},
+											"sink": {
+												"name": "Column76",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 77
+											},
+											"sink": {
+												"name": "Column77",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 78
+											},
+											"sink": {
+												"name": "Column78",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 79
+											},
+											"sink": {
+												"name": "Column79",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"type": "String",
+												"ordinal": 80
+											},
+											"sink": {
+												"name": "Column80",
+												"type": "String",
+												"physicalType": "String"
+											}
+										}
+									],
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "Kohler_JobsExcelFile_toBeConverted",
+									"type": "DatasetReference",
+									"parameters": {
+										"FileName": {
+											"value": "@variables('FileName')",
+											"type": "Expression"
+										},
+										"SheetName": {
+											"value": "@variables('SheetName')",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "Kohler_JobsRawFile_toCSV",
+									"type": "DatasetReference",
+									"parameters": {
+										"ConvertedFileName": "@concat('KohlerWIMIJobs-', formatDateTime(utcNow(), 'MM_dd_yyyy'), '.csv')"
+									}
+								}
+							]
+						},
+						{
+							"name": "Move Excel File from in to out",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "Copy Excel Sheet to CSV",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "BinarySource",
+									"storeSettings": {
+										"type": "AzureBlobStorageReadSettings",
+										"recursive": true
+									},
+									"formatSettings": {
+										"type": "BinaryReadSettings"
+									}
+								},
+								"sink": {
+									"type": "BinarySink",
+									"storeSettings": {
+										"type": "AzureBlobStorageWriteSettings"
+									}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "Kohler_JobsExcelFile_Converted",
+									"type": "DatasetReference",
+									"parameters": {
+										"Directory": "in",
+										"FileName": {
+											"value": "@variables('FileName')",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "Kohler_JobsExcelFile_Converted",
+									"type": "DatasetReference",
+									"parameters": {
+										"Directory": "out",
+										"FileName": {
+											"value": "@variables('FileName')",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "Delete in folder Excel File",
+							"type": "Delete",
+							"dependsOn": [
+								{
+									"activity": "Move Excel File from in to out",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "Kohler_JobsExcelFile_Converted",
+									"type": "DatasetReference",
+									"parameters": {
+										"Directory": "in",
+										"FileName": {
+											"value": "@variables('FileName')",
+											"type": "Expression"
+										}
+									}
+								},
+								"logStorageSettings": {
+									"linkedServiceName": {
+										"referenceName": "AzureBlobStorage1",
+										"type": "LinkedServiceReference"
+									},
+									"path": "kohlerhome-mn-wi/Staging_For_Logging"
+								},
+								"enableLogging": true,
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Set Jobs File Name",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "FileName",
+					"value": "TESTING26v1 - LP Data Transfer.xlsx"
+				}
+			},
+			{
+				"name": "Set Sheet Name",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Set Jobs File Name",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "SheetName",
+					"value": "0217_CombinedCopy"
+				}
+			},
+			{
+				"name": "Execute SF Mapping File Loading Pipeline",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "If Production File Exists",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Kohler_Excel_to_SF_Mapping",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"variables": {
+			"IsFileProcessed": {
+				"type": "Boolean",
+				"defaultValue": false
+			},
+			"FileName": {
+				"type": "String"
+			},
+			"FileType": {
+				"type": "String"
+			},
+			"CaseType": {
+				"type": "String"
+			},
+			"SheetName": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "Temp/Sameen"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-02-25T16:37:28Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

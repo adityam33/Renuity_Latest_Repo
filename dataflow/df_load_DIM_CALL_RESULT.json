@@ -1,0 +1,436 @@
+{
+	"name": "df_load_DIM_CALL_RESULT",
+	"properties": {
+		"folder": {
+			"name": "ODS_to_EDW/DIMENSIONS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_FHI_clr_CallResults",
+						"type": "DatasetReference"
+					},
+					"name": "FHI"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_HSI_clr_CallResults",
+						"type": "DatasetReference"
+					},
+					"name": "HSI"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_MAC_clr_CallResults",
+						"type": "DatasetReference"
+					},
+					"name": "MAC"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_PBC_clr_CallResults",
+						"type": "DatasetReference"
+					},
+					"name": "PBC"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_SWR_clr_CallResults",
+						"type": "DatasetReference"
+					},
+					"name": "SWR"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_RTW_clr_CallResults",
+						"type": "DatasetReference"
+					},
+					"name": "RTW"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_MXH_clr_CallResults",
+						"type": "DatasetReference"
+					},
+					"name": "MXH"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_CTA_clr_CallResults",
+						"type": "DatasetReference"
+					},
+					"name": "CTA"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_DIM_CALL_RESULT",
+						"type": "DatasetReference"
+					},
+					"name": "targetDim",
+					"description": "Export data to EDW_DIM_CALL_RESULT",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "selectColsFHI"
+				},
+				{
+					"name": "createIDsFHI"
+				},
+				{
+					"name": "selectColsHSI"
+				},
+				{
+					"name": "selectColsMAC"
+				},
+				{
+					"name": "selectPBC"
+				},
+				{
+					"name": "selectSWR"
+				},
+				{
+					"name": "createIDsHSI"
+				},
+				{
+					"name": "createIDsMAC"
+				},
+				{
+					"name": "createIDsPBC"
+				},
+				{
+					"name": "createIDsSWR"
+				},
+				{
+					"name": "unionAllOpCos"
+				},
+				{
+					"name": "addLastUpdateTimestamp"
+				},
+				{
+					"name": "selectRTW"
+				},
+				{
+					"name": "createIDsRTW"
+				},
+				{
+					"name": "selectMXH"
+				},
+				{
+					"name": "createIDsMXH"
+				},
+				{
+					"name": "selectCTA"
+				},
+				{
+					"name": "createIDsCTA"
+				},
+				{
+					"name": "AlterRow"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          ID as string,",
+				"          Descr as string,",
+				"          Deferral as integer,",
+				"          Connected as boolean,",
+				"          Pitched as boolean,",
+				"          Positive as boolean,",
+				"          DialNextNumber as boolean,",
+				"          Active as boolean,",
+				"          SortOrder as integer,",
+				"          idpkey as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> FHI",
+				"source(output(",
+				"          ID as string,",
+				"          Descr as string,",
+				"          Deferral as integer,",
+				"          Connected as boolean,",
+				"          Pitched as boolean,",
+				"          Positive as boolean,",
+				"          DialNextNumber as boolean,",
+				"          Active as boolean,",
+				"          SortOrder as integer,",
+				"          idpkey as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> HSI",
+				"source(output(",
+				"          ID as string,",
+				"          Descr as string,",
+				"          Deferral as integer,",
+				"          Connected as boolean,",
+				"          Pitched as boolean,",
+				"          Positive as boolean,",
+				"          DialNextNumber as boolean,",
+				"          Active as boolean,",
+				"          SortOrder as integer,",
+				"          idpkey as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> MAC",
+				"source(output(",
+				"          ID as string,",
+				"          Descr as string,",
+				"          Deferral as integer,",
+				"          Connected as boolean,",
+				"          Pitched as boolean,",
+				"          Positive as boolean,",
+				"          DialNextNumber as boolean,",
+				"          Active as boolean,",
+				"          SortOrder as integer,",
+				"          idpkey as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> PBC",
+				"source(output(",
+				"          ID as string,",
+				"          Descr as string,",
+				"          Deferral as integer,",
+				"          Connected as boolean,",
+				"          Pitched as boolean,",
+				"          Positive as boolean,",
+				"          DialNextNumber as boolean,",
+				"          Active as boolean,",
+				"          SortOrder as integer,",
+				"          idpkey as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> SWR",
+				"source(output(",
+				"          ID as string,",
+				"          Descr as string,",
+				"          Deferral as integer,",
+				"          Connected as boolean,",
+				"          Pitched as boolean,",
+				"          Positive as boolean,",
+				"          DialNextNumber as boolean,",
+				"          Active as boolean,",
+				"          SortOrder as integer,",
+				"          idpkey as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> RTW",
+				"source(output(",
+				"          ID as string,",
+				"          Descr as string,",
+				"          Deferral as integer,",
+				"          Connected as boolean,",
+				"          Pitched as boolean,",
+				"          Positive as boolean,",
+				"          DialNextNumber as boolean,",
+				"          Active as boolean,",
+				"          SortOrder as integer,",
+				"          idpkey as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> MXH",
+				"source(output(",
+				"          ID as string,",
+				"          Descr as string,",
+				"          Deferral as integer,",
+				"          Connected as boolean,",
+				"          Pitched as boolean,",
+				"          Positive as boolean,",
+				"          DialNextNumber as boolean,",
+				"          Active as boolean,",
+				"          SortOrder as integer,",
+				"          idpkey as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> CTA",
+				"FHI select(mapColumn(",
+				"          LP_CallResultID = ID,",
+				"          CallResult = Descr,",
+				"          Deferral,",
+				"          Connected,",
+				"          Pitched,",
+				"          Positive,",
+				"          DialNextNumber,",
+				"          Active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColsFHI",
+				"selectColsFHI derive(CallResultID = concat('FHI-',toString(LP_CallResultID)),",
+				"          Division = 'FHI') ~> createIDsFHI",
+				"HSI select(mapColumn(",
+				"          LP_CallResultID = ID,",
+				"          CallResult = Descr,",
+				"          Deferral,",
+				"          Connected,",
+				"          Pitched,",
+				"          Positive,",
+				"          DialNextNumber,",
+				"          Active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColsHSI",
+				"MAC select(mapColumn(",
+				"          LP_CallResultID = ID,",
+				"          CallResult = Descr,",
+				"          Deferral,",
+				"          Connected,",
+				"          Pitched,",
+				"          Positive,",
+				"          DialNextNumber,",
+				"          Active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColsMAC",
+				"PBC select(mapColumn(",
+				"          LP_CallResultID = ID,",
+				"          CallResult = Descr,",
+				"          Deferral,",
+				"          Connected,",
+				"          Pitched,",
+				"          Positive,",
+				"          DialNextNumber,",
+				"          Active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectPBC",
+				"SWR select(mapColumn(",
+				"          LP_CallResultID = ID,",
+				"          CallResult = Descr,",
+				"          Deferral,",
+				"          Connected,",
+				"          Pitched,",
+				"          Positive,",
+				"          DialNextNumber,",
+				"          Active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectSWR",
+				"selectColsHSI derive(CallResultID = concat('HSI-',toString(LP_CallResultID)),",
+				"          Division = 'HSI') ~> createIDsHSI",
+				"selectColsMAC derive(CallResultID = concat('MAC-',toString(LP_CallResultID)),",
+				"          Division = 'MAC') ~> createIDsMAC",
+				"selectPBC derive(CallResultID = concat('PBC-',toString(LP_CallResultID)),",
+				"          Division = 'PBC') ~> createIDsPBC",
+				"selectSWR derive(CallResultID = concat('SWR-',toString(LP_CallResultID)),",
+				"          Division = 'SWR') ~> createIDsSWR",
+				"createIDsFHI, createIDsHSI, createIDsMAC, createIDsPBC, createIDsSWR, createIDsRTW, createIDsMXH, createIDsCTA union(byName: true)~> unionAllOpCos",
+				"unionAllOpCos derive(LastUpdateTS = currentTimestamp()) ~> addLastUpdateTimestamp",
+				"RTW select(mapColumn(",
+				"          LP_CallResultID = ID,",
+				"          CallResult = Descr,",
+				"          Deferral,",
+				"          Connected,",
+				"          Pitched,",
+				"          Positive,",
+				"          DialNextNumber,",
+				"          Active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectRTW",
+				"selectRTW derive(CallResultID = concat('RTW-',toString(LP_CallResultID)),",
+				"          Division = 'RTW') ~> createIDsRTW",
+				"MXH select(mapColumn(",
+				"          LP_CallResultID = ID,",
+				"          CallResult = Descr,",
+				"          Deferral,",
+				"          Connected,",
+				"          Pitched,",
+				"          Positive,",
+				"          DialNextNumber,",
+				"          Active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectMXH",
+				"selectMXH derive(CallResultID = concat('MXH-',toString(LP_CallResultID)),",
+				"          Division = 'MXH') ~> createIDsMXH",
+				"CTA select(mapColumn(",
+				"          LP_CallResultID = ID,",
+				"          CallResult = Descr,",
+				"          Deferral,",
+				"          Connected,",
+				"          Pitched,",
+				"          Positive,",
+				"          DialNextNumber,",
+				"          Active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectCTA",
+				"selectCTA derive(CallResultID = concat('CTA-',toString(LP_CallResultID)),",
+				"          Division = 'CTA') ~> createIDsCTA",
+				"addLastUpdateTimestamp alterRow(upsertIf(true())) ~> AlterRow",
+				"AlterRow sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          CallResultID as string,",
+				"          CallResult as string,",
+				"          Deferral as integer,",
+				"          Connected as boolean,",
+				"          Pitched as boolean,",
+				"          Positive as boolean,",
+				"          DialNextNumber as boolean,",
+				"          Active as boolean,",
+				"          LP_CallResultID as string,",
+				"          Division as string,",
+				"          UNI_CallResult as string,",
+				"          LastUpdateTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['CallResultID'],",
+				"     format: 'table',",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          LP_CallResultID,",
+				"          CallResult,",
+				"          Deferral,",
+				"          Connected,",
+				"          Pitched,",
+				"          Positive,",
+				"          DialNextNumber,",
+				"          Active,",
+				"          CallResultID,",
+				"          Division,",
+				"          LastUpdateTS",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> targetDim"
+			]
+		}
+	}
+}

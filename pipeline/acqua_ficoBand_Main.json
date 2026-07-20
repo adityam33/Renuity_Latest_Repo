@@ -1,0 +1,165 @@
+{
+	"name": "acqua_ficoBand_Main",
+	"properties": {
+		"activities": [
+			{
+				"name": "Checkcount",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT  COUNT(*) AS ReadCount\nFROM  [EDW].[FACT_AQUA_FICOBAND] \nWHERE \nCAST(LEFT(week, CHARINDEX(' - ', week) ) AS DATE) = DATEADD(DAY, -((DATEPART(WEEKDAY, getdate()) + @@DATEFIRST - 2) % 14 + 1), getdate())\nAND \nCAST(RIGHT(week, LEN(week) - CHARINDEX(' - ', week) - 2) AS DATE) = DATEADD(DAY, -((DATEPART(WEEKDAY, getdate()) + @@DATEFIRST - 2) % 7 + 2), getdate())\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "AquaFico_EDW_Report_Table",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "If Condition1",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Checkcount",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(coalesce(int(activity('Checkcount').output.firstRow['ReadCount']), 0), 0)\n\n\n",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "Get Files List",
+							"type": "GetMetadata",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "DS_Aqua_Fico_InFolder",
+									"type": "DatasetReference"
+								},
+								"fieldList": [
+									"childItems"
+								],
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								}
+							}
+						},
+						{
+							"name": "Set variable1",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Get Files List",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "FilesList",
+								"value": {
+									"value": "@activity('Get Files List').output.childItems",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "ForEachFile Execute Pipeline",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "If Condition1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@variables('FilesList')",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "Execute AquaFico Pipeline",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "acqua_ficoBand",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"FileName": {
+										"value": "@item().name",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"variables": {
+			"FilesList": {
+				"type": "Array"
+			},
+			"MissingFile": {
+				"type": "String"
+			},
+			"DataExist": {
+				"type": "Integer"
+			}
+		},
+		"folder": {
+			"name": "SRC_to_ODS/AquaFico"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-03-18T15:13:33Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

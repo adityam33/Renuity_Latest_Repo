@@ -1,0 +1,20 @@
+{
+	"name": "Get DMAs covered by OpCos",
+	"properties": {
+		"folder": {
+			"name": "DMLs/Analysis SQL/Performance Marketing"
+		},
+		"content": {
+			"query": "SELECT distinct \nbranchZip.[OperatingCompany]\n,dma.DMA\nFROM \n[EDW].[DIM_ERP_BRANCH_ZIP] branchZip\n,[EDW].[DIM_BRANCH] branch\n,[ODS].[MKTDATA_ZIP_CODES_DB_DELUXE_BUSINESS] zip\n,[ODS].[MKTDATA_USA_TV_DMA_MAP] dma\nWHERE\nbranchZip.[BranchID] = branch.[BranchID]\nand branchZip.ZipCode = zip.ZipCode\nand zip.County = dma.COUNTY\nand zip.[State] = dma.STATE_AB\nand zip.[PrimaryRecord] = 'P'\nand len(trim(MSA_Name)) > 0\nand branch.[Active] = 'True'\norder BY\n[OperatingCompany]\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

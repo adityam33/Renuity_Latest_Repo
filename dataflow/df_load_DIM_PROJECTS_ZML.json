@@ -1,0 +1,133 @@
+{
+	"name": "df_load_DIM_PROJECTS_ZML",
+	"properties": {
+		"folder": {
+			"name": "ZML_ODS_to_EDW/DIMENSIONS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ZML_ODS_FHI_Projects",
+						"type": "DatasetReference"
+					},
+					"name": "FHI"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_DIM_PROJECTS_ZML",
+						"type": "DatasetReference"
+					},
+					"name": "targetDim",
+					"description": "Export data to EDW_DIM_BRANCH",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "selectColsFHI"
+				},
+				{
+					"name": "createIDsFHI"
+				},
+				{
+					"name": "unionAllOpCos"
+				},
+				{
+					"name": "addLastUpdateTimestamp"
+				},
+				{
+					"name": "AlterRow"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          Project_ID as string,",
+				"          Parent_id as string,",
+				"          Name as string,",
+				"          Description as string,",
+				"          Color as string,",
+				"          Expanded as boolean,",
+				"          brp_id as string,",
+				"          ins_id as string,",
+				"          Sortorder as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> FHI",
+				"FHI select(mapColumn(",
+				"          LP_ProjectId = Project_ID,",
+				"          Parent_id,",
+				"          Name,",
+				"          Description,",
+				"          Color,",
+				"          Expanded,",
+				"          LP_ProductionBranchId = brp_id,",
+				"          LP_InstallerId = ins_id,",
+				"          Sortorder",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColsFHI",
+				"selectColsFHI derive(Division = 'FHI') ~> createIDsFHI",
+				"createIDsFHI union(byName: true)~> unionAllOpCos",
+				"unionAllOpCos derive(LastUpdateTS = currentTimestamp(),",
+				"          ProjectId = concat(Division,'-',toString(LP_ProjectId)),",
+				"          ProductionBranchId = concat(Division,'-',toString(LP_ProductionBranchId)),",
+				"          InstallerId = concat(Division,'-',toString(LP_InstallerId))) ~> addLastUpdateTimestamp",
+				"addLastUpdateTimestamp alterRow(upsertIf(true())) ~> AlterRow",
+				"AlterRow sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          ProjectId as string,",
+				"          ParentID as string,",
+				"          ProjectName as string,",
+				"          ProjectDescription as string,",
+				"          Color as string,",
+				"          Expanded as boolean,",
+				"          ProductionBranchId as string,",
+				"          InstallerId as string,",
+				"          SortOrder as integer,",
+				"          Division as string,",
+				"          LP_ProjectId as integer,",
+				"          LP_ProductionBranchId as string,",
+				"          LP_InstallerId as integer",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['ProjectId'],",
+				"     format: 'table',",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          ProjectId,",
+				"          ParentID = Parent_id,",
+				"          ProjectName = Name,",
+				"          ProjectDescription = Description,",
+				"          Color,",
+				"          Expanded,",
+				"          ProductionBranchId,",
+				"          InstallerId,",
+				"          SortOrder = Sortorder,",
+				"          Division,",
+				"          LP_ProjectId,",
+				"          LP_ProductionBranchId,",
+				"          LP_InstallerId",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> targetDim"
+			]
+		}
+	}
+}

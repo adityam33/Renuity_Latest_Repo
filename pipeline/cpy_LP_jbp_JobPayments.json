@@ -1,0 +1,2015 @@
+{
+	"name": "cpy_LP_jbp_JobPayments",
+	"properties": {
+		"activities": [
+			{
+				"name": "FHI",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:40:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT \nid\t,\njob_id\t,\nPmtAmount\t,\nPmtDate\t,\npmt_id\t,\npmm_id\t,\nARBatchNo\t,\nARBatchDate\t,\nARBatchFlag\t,\nIncBatchNo\t,\nIncBatchDate\t,\nIncBatchFlag\t,\nEnteredOn\t,\nEnteredBy\t,\nLastChangedOn\t,\nLastChangedBy\t,\nPmtNotes\t\n\n\nFROM dbo.jbp_JobPayments WITH (NOLOCK)\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.LP_FHI_jbp_JobPayments')  IS NOT NULL TRUNCATE TABLE ODS.LP_FHI_jbp_JobPayments",
+						"writeBehavior": "Insert",
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "job_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "job_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "PmtAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "PmtAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "PmtDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "PmtDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "pmt_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "pmt_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "pmm_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "pmm_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ARBatchNo",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "ARBatchNo",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "ARBatchDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "ARBatchDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "ARBatchFlag",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "ARBatchFlag",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "IncBatchNo",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "IncBatchNo",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "IncBatchDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "IncBatchDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "IncBatchFlag",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "IncBatchFlag",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "LastChangedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastChangedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "LastChangedBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "LastChangedBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "PmtNotes",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PmtNotes",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_FHI_jbp_JobPayments",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_LP_FHI_jbp_JobPayments",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "HSI",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:40:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.LP_HSI_jbp_JobPayments')  IS NOT NULL TRUNCATE TABLE ODS.LP_HSI_jbp_JobPayments",
+						"writeBehavior": "Insert",
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "job_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "job_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "PmtAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "PmtAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "PmtDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "PmtDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "pmt_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "pmt_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "pmm_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "pmm_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ARBatchNo",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "ARBatchNo",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "ARBatchDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "ARBatchDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "ARBatchFlag",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "ARBatchFlag",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "IncBatchNo",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "IncBatchNo",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "IncBatchDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "IncBatchDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "IncBatchFlag",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "IncBatchFlag",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "LastChangedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastChangedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "LastChangedBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "LastChangedBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "PmtNotes",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PmtNotes",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_HSI_jbp_JobPayments",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_LP_HSI_jbp_JobPayments",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "PHI",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:40:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.LP_PHI_jbp_JobPayments')  IS NOT NULL TRUNCATE TABLE ODS.LP_PHI_jbp_JobPayments",
+						"writeBehavior": "Insert",
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "job_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "job_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "PmtAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "PmtAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "PmtDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "PmtDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "pmt_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "pmt_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "pmm_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "pmm_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ARBatchNo",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "ARBatchNo",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "ARBatchDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "ARBatchDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "ARBatchFlag",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "ARBatchFlag",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "IncBatchNo",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "IncBatchNo",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "IncBatchDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "IncBatchDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "IncBatchFlag",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "IncBatchFlag",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "LastChangedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastChangedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "LastChangedBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "LastChangedBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "PmtNotes",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PmtNotes",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_PHI_jbp_JobPayments",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_LP_PHI_jbp_JobPayments",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "SWR",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:40:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT \nid\t,\njob_id\t,\nPmtAmount\t,\nPmtDate\t,\npmt_id\t,\npmm_id\t,\nARBatchNo\t,\nARBatchDate\t,\nARBatchFlag\t,\nIncBatchNo\t,\nIncBatchDate\t,\nIncBatchFlag\t,\nEnteredOn\t,\nEnteredBy\t,\nLastChangedOn\t,\nLastChangedBy\t,\nPmtNotes\t\n\n\nFROM dbo.jbp_JobPayments WITH (NOLOCK)\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.LP_SWR_jbp_JobPayments')  IS NOT NULL TRUNCATE TABLE ODS.LP_SWR_jbp_JobPayments",
+						"writeBehavior": "Insert",
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "job_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "job_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "PmtAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "PmtAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "PmtDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "PmtDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "pmt_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "pmt_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "pmm_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "pmm_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ARBatchNo",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "ARBatchNo",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "ARBatchDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "ARBatchDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "ARBatchFlag",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "ARBatchFlag",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "IncBatchNo",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "IncBatchNo",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "IncBatchDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "IncBatchDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "IncBatchFlag",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "IncBatchFlag",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "LastChangedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastChangedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "LastChangedBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "LastChangedBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "PmtNotes",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PmtNotes",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_SWR_jbp_JobPayments",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_LP_SWR_jbp_JobPayments",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "MAC",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:40:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT \nid\t,\njob_id\t,\nPmtAmount\t,\nPmtDate\t,\npmt_id\t,\npmm_id\t,\nARBatchNo\t,\nARBatchDate\t,\nARBatchFlag\t,\nIncBatchNo\t,\nIncBatchDate\t,\nIncBatchFlag\t,\nEnteredOn\t,\nEnteredBy\t,\nLastChangedOn\t,\nLastChangedBy\t,\nPmtNotes\t\n\n\nFROM dbo.jbp_JobPayments WITH (NOLOCK)\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.LP_MAC_jbp_JobPayments')  IS NOT NULL TRUNCATE TABLE ODS.LP_MAC_jbp_JobPayments",
+						"writeBehavior": "Insert",
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "job_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "job_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "PmtAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "PmtAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "PmtDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "PmtDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "pmt_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "pmt_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "pmm_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "pmm_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ARBatchNo",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "ARBatchNo",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "ARBatchDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "ARBatchDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "ARBatchFlag",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "ARBatchFlag",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "IncBatchNo",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "IncBatchNo",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "IncBatchDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "IncBatchDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "IncBatchFlag",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "IncBatchFlag",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "LastChangedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastChangedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "LastChangedBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "LastChangedBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "PmtNotes",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PmtNotes",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_MAC_jbp_JobPayments",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_LP_MAC_jbp_JobPayments",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "PBC",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:40:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT \nid\t,\njob_id\t,\nPmtAmount\t,\nPmtDate\t,\npmt_id\t,\npmm_id\t,\nARBatchNo\t,\nARBatchDate\t,\nARBatchFlag\t,\nIncBatchNo\t,\nIncBatchDate\t,\nIncBatchFlag\t,\nEnteredOn\t,\nEnteredBy\t,\nLastChangedOn\t,\nLastChangedBy\t,\nPmtNotes\t\n\n\nFROM dbo.jbp_JobPayments WITH (NOLOCK)\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.LP_PBC_jbp_JobPayments')  IS NOT NULL TRUNCATE TABLE ODS.LP_PBC_jbp_JobPayments",
+						"writeBehavior": "Insert",
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "job_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "job_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "PmtAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "PmtAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "PmtDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "PmtDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "pmt_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "pmt_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "pmm_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "pmm_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ARBatchNo",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "ARBatchNo",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "ARBatchDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "ARBatchDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "ARBatchFlag",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "ARBatchFlag",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "IncBatchNo",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "IncBatchNo",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "IncBatchDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "IncBatchDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "IncBatchFlag",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "IncBatchFlag",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "LastChangedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastChangedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "LastChangedBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "LastChangedBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "PmtNotes",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PmtNotes",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_PBC_jbp_JobPayments",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_LP_PBC_jbp_JobPayments",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "RTW",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:40:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT \nid\t,\njob_id\t,\nPmtAmount\t,\nPmtDate\t,\npmt_id\t,\npmm_id\t,\nARBatchNo\t,\nARBatchDate\t,\nARBatchFlag\t,\nIncBatchNo\t,\nIncBatchDate\t,\nIncBatchFlag\t,\nEnteredOn\t,\nEnteredBy\t,\nLastChangedOn\t,\nLastChangedBy\t,\nPmtNotes\t\n\n\nFROM dbo.jbp_JobPayments WITH (NOLOCK)\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.LP_RTW_jbp_JobPayments')  IS NOT NULL TRUNCATE TABLE ODS.LP_RTW_jbp_JobPayments",
+						"allowCopyCommand": true,
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "job_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "job_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "PmtAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "PmtAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "PmtDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "PmtDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "pmt_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "pmt_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "pmm_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "pmm_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ARBatchNo",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "ARBatchNo",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "ARBatchDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "ARBatchDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "ARBatchFlag",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "ARBatchFlag",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "IncBatchNo",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "IncBatchNo",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "IncBatchDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "IncBatchDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "IncBatchFlag",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "IncBatchFlag",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "LastChangedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastChangedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "LastChangedBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "LastChangedBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "PmtNotes",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PmtNotes",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_RTW_jbp_JobPayments",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_LP_RTW_jbp_JobPayments",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "MXH",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:40:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT \nid\t,\njob_id\t,\nPmtAmount\t,\nPmtDate\t,\npmt_id\t,\npmm_id\t,\nARBatchNo\t,\nARBatchDate\t,\nARBatchFlag\t,\nIncBatchNo\t,\nIncBatchDate\t,\nIncBatchFlag\t,\nEnteredOn\t,\nEnteredBy\t,\nLastChangedOn\t,\nLastChangedBy\t,\nPmtNotes\t\n\n\nFROM dbo.jbp_JobPayments WITH (NOLOCK)\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.LP_MXH_jbp_JobPayments')  IS NOT NULL TRUNCATE TABLE ODS.LP_MXH_jbp_JobPayments",
+						"allowCopyCommand": true,
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "job_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "job_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "PmtAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "PmtAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "PmtDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "PmtDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "pmt_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "pmt_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "pmm_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "pmm_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ARBatchNo",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "ARBatchNo",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "ARBatchDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "ARBatchDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "ARBatchFlag",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "ARBatchFlag",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "IncBatchNo",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "IncBatchNo",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "IncBatchDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "IncBatchDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "IncBatchFlag",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "IncBatchFlag",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "LastChangedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastChangedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "LastChangedBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "LastChangedBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "PmtNotes",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PmtNotes",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_MXH_jbp_JobPayments",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_LP_MXH_jbp_JobPayments",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "CTA",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:40:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT \nid\t,\njob_id\t,\nPmtAmount\t,\nPmtDate\t,\npmt_id\t,\npmm_id\t,\nARBatchNo\t,\nARBatchDate\t,\nARBatchFlag\t,\nIncBatchNo\t,\nIncBatchDate\t,\nIncBatchFlag\t,\nEnteredOn\t,\nEnteredBy\t,\nLastChangedOn\t,\nLastChangedBy\t,\nPmtNotes\t\n\n\nFROM dbo.jbp_JobPayments WITH (NOLOCK)\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.LP_CTA_jbp_JobPayments')  IS NOT NULL TRUNCATE TABLE ODS.LP_CTA_jbp_JobPayments",
+						"allowCopyCommand": true,
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "job_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "job_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "PmtAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "PmtAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "PmtDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "PmtDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "pmt_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "pmt_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "pmm_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "pmm_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ARBatchNo",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "ARBatchNo",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "ARBatchDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "ARBatchDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "ARBatchFlag",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "ARBatchFlag",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "IncBatchNo",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "IncBatchNo",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "IncBatchDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "IncBatchDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "IncBatchFlag",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "IncBatchFlag",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "LastChangedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastChangedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "LastChangedBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "LastChangedBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "PmtNotes",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PmtNotes",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_CTA_jbp_JobPayments",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_LP_CTA_jbp_JobPayments",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "SRC_to_ODS/CRM/LP"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-01-12T11:45:44Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

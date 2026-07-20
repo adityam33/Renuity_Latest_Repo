@@ -1,0 +1,176 @@
+{
+	"name": "cpy_LP_to_ADP_Jobs_by_InstallDate",
+	"properties": {
+		"activities": [
+			{
+				"name": "Get Last Updated Date",
+				"type": "GetMetadata",
+				"dependsOn": [
+					{
+						"activity": "Job_by_InstallDate_All_DIV",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.6:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "LP_to_ADP_Jobs_By_InstallStart_ALL_DIV",
+						"type": "DatasetReference"
+					},
+					"fieldList": [
+						"lastModified"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "DelimitedTextReadSettings"
+					}
+				}
+			},
+			{
+				"name": "Archive",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Get Last Updated Date",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.6:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": false,
+							"wildcardFolderPath": "lp-extracts/Jobs_with_Install_StartDate",
+							"wildcardFileName": "*.csv",
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_to_ADP_Jobs_By_InstallStart_ALL_DIV",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ADP_File_Archive",
+						"type": "DatasetReference",
+						"parameters": {
+							"daily_folder": {
+								"value": "@concat('lp-extracts/Jobs_with_Install_StartDate/archive/',substring(activity('Get Last Updated Date').output.lastModified,0,10))",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "Job_by_InstallDate_All_DIV",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT \n\tTRIM(\t\n\t   CASE \n        WHEN RIGHT(REPLACE(JOB.ContractID, '-', ''), 1) = '.' \n        THEN LEFT(REPLACE(JOB.ContractID, '-', ''), LEN(REPLACE(JOB.ContractID, '-', '')) - 1) \n        ELSE REPLACE(JOB.ContractID, '-', '') \n\t\tEND ) AS JobNumber,\n\t\tCASE \n\t\t\tWHEN JOB.DIVISION='PBC' THEN 'PBC Job Install'\n\t\t\tWHEN JOB.DIVISION='FHI' THEN 'FHI Job Install'\n\t\t\tWHEN JOB.DIVISION='RTW' THEN 'RTW Job Install'\n\t\t\tWHEN JOB.DIVISION='SWR' THEN 'SWR Job Install'\n\t\t\tWHEN JOB.DIVISION='CTA' THEN 'HRG Job Install'\n\t\t\tWHEN JOB.DIVISION='MAC' THEN 'MAC Job Install'\n\t\t\tWHEN JOB.DIVISION='MXH' THEN 'MXH Job Install'\n\t\t\tEND AS CustName\n    FROM EDW.FACT_JOB JOB\n    JOIN EDW.DIM_CUSTOMER CST ON JOB.CustomerID = CST.CustomerID \n    LEFT JOIN EDW.FACT_MILESTONE_DETAIL MLD \n        ON MLD.JobID = JOB.JobID AND MLD.LP_MilestoneDateTypeID = 'S'\n    WHERE \n        MLD.ActualDate >= CAST(GETDATE() - 7 AS DATE)\n        AND MLD.ActualDate <= CAST(DATEADD(DAY, 7, GETDATE()) AS DATE)\n\t\tAND JOB.ContractID !='NEW'\n\t\tAND JOB.ContractID NOT LIKE'VACA%'",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_FACT_JOB",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "LP_to_ADP_Jobs_By_InstallStart_ALL_DIV",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "ADP_Employee/LP_to_ADP"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-11-13T12:50:20Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

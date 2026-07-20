@@ -1,0 +1,17 @@
+{
+	"name": "Get Set Rates by Division",
+	"properties": {
+		"content": {
+			"query": "SELECT \nDivision\n,EOMONTH(EntryDate) as EntryMonth\n,[EverSet]\n,count([LeadID]) as LeadCount\n FROM [EDW].[FACT_LEAD]\n where Division = 'SWR'\n group by\n Division\n,EOMONTH(EntryDate)\n,[EverSet]\norder by \nEOMONTH(EntryDate)\n,Division\n,[EverSet]\n\nselect top 10 *\nFROM [EDW].[DIM_CUSTOMER]\n where Division = 'SWR'",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

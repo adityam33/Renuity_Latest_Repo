@@ -1,0 +1,278 @@
+{
+	"name": "Cpy_Load_dim_MKTNG_ProductMapping",
+	"properties": {
+		"activities": [
+			{
+				"name": "Cpy_Dim_MKTNG_ProductMapping_Load",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"additionalColumns": [
+							{
+								"name": "EntryDate",
+								"value": "1900-01-01"
+							}
+						],
+						"sqlReaderQuery": "\r\nSelect T1.* From\r\n(\r\nselect  p.Division,\r\n\t\tp.productID as ProductID,\r\n\t\tp.productName as ProductName,\r\n\t\tP.LongDescription as ProductDescription,\r\n\t\tp.productGroupID as ProductGroupID,\r\n\t\tpg.productgroup as ProductGroup,\r\n\t\tp.Active,\r\n\t\tNULL as TX_ProductGroup,\r\n\t\tNULL AS TX_ProductGroup_Reporting,\r\n\t\t'NEW' as MappingInd,\r\n\t\tGetdate() as CreatedTS,\r\n\t\tGetdate() as LastupdatedTS,\r\n\t\tNULL AS ACU_ProductID,\r\n\t\tNULL AS ACU_Product\r\n\t\t\tfrom edw.dim_product P \r\n\t\t\tleft join edw.dim_product_group pg on p.productgroupID=pg.productgroupid\r\n )T1\r\n\tLeft Join EDW.DIM_MKTNG_PRODUCT_MAPPING T2 \r\n\ton T1.Division=T2.Division \r\n\tand T1.ProductId=T2.ProductId\r\n\tWhere T2.ProductID is NULL\r\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ProductID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ProductID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ProductName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ProductName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ProductDescription",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ProductDescription",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ProductGroupID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ProductGroupID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ProductGroup",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ProductGroup",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Active",
+									"type": "Boolean",
+									"physicalType": "bit"
+								},
+								"sink": {
+									"name": "Active",
+									"type": "Boolean",
+									"physicalType": "bit"
+								}
+							},
+							{
+								"source": {
+									"name": "TX_ProductGroup",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "TX_ProductGroup",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "TX_ProductGroup_Reporting",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "TX_Product_Reporting",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ACU_ProductID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "ACU_ProductID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ACU_Product",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "ACU_Product",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "MappingInd",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "MappingInd",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CreatedTS",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "CreatedTS",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								}
+							},
+							{
+								"source": {
+									"name": "LastupdatedTS",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "LastupdatedTS",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								}
+							},
+							{
+								"source": {
+									"name": "EntryDate"
+								},
+								"sink": {
+									"name": "Entrydate"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_DIM_PRODUCT",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_DIM_MKTNG_PRODUCT_MAPPING",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Update Entrydate",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Cpy_Dim_MKTNG_ProductMapping_Load",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "Update EDW.DIM_MKTNG_Product_MAPPING\r\nSET EntryDate=T2.EntryDate\r\nFrom\r\nEDW.DIM_MKTNG_Product_MAPPING T1 Join \r\n(\r\n\tselect \r\n\tP.Division,\r\n\tP.ProductID,\r\n\tP.EntryDate\r\n\tfrom \r\n\t\t( select \r\n\t\t  a.division,\r\n\t\t  a.ProductID,\r\n\t\t  max(b.entrydate) as entrydate\r\n\t\t  from EDW.DIM_Product a\r\n\t\t  join edw.fact_lead b on a.ProductID = b.ProductID\r\n\t\t  group by  a.division,\r\n\t\t\t\t  a.ProductID\r\n\t\t) P\r\n\twhere entrydate>='2022-01-01' and Year(EntryDate)<=Year(Getdate())\r\n) T2 \r\n On T1.division=T2.division and T1.ProductID=T2.ProductID\r\n Where  T1.division is NOT NULL and T1.ProductID is NOT NULL ;\r\n "
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/DIMENSIONS/TAXONOMY"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-03-04T19:20:52Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

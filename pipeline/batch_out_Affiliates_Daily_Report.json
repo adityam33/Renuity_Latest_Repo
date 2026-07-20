@@ -1,0 +1,216 @@
+{
+	"name": "batch_out_Affiliates_Daily_Report",
+	"properties": {
+		"activities": [
+			{
+				"name": "out_Stage_Affiliates_Report",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "out_Stage_Affiliates_Report",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Affiliates_Lookup",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "out_Stage_Affiliates_Report",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "WITH affiliate_lookup as (\nselect \n\tDISTINCT AffiliateName,\n\tCONCAT('affiliate-', LOWER(replace(REPLACE(REPLACE(AffiliateName, ' ', ''), 'Remodeling.com', 'remodelingdotcom'), '.com', ''))) as AffiliateFolder,\n\tCONCAT('https://renuitydatacore.blob.core.windows.net/affiliate-', LOWER(replace(REPLACE(REPLACE(AffiliateName, ' ', ''), 'Remodeling.com', 'remodelingdotcom'), '.com', ''))) as AffiliatePath\nfrom out.AFFILIATES_DAILY_REPORT\n)\nselect \n\t*,\n\tROW_NUMBER () OVER(ORDER BY AffiliateName ASC) as affiliate_number\nfrom affiliate_lookup\nORDER BY AffiliateName ASC",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "affiliates_lookup_table",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach1",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Affiliates_Lookup",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Affiliates_Lookup').output.value",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"batchCount": 8,
+					"activities": [
+						{
+							"name": "out_Deliver_Affiliates_Report_All",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "Get Metadata",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "out_Deliver_Affiliates_Report_all",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"AffiliateName": {
+										"value": "@item().AffiliateName",
+										"type": "Expression"
+									},
+									"AffiliateFolder": {
+										"value": "@item().AffiliateFolder",
+										"type": "Expression"
+									},
+									"AffiliatePath": {
+										"value": "@item().AffiliatePath",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "Get Metadata",
+							"type": "GetMetadata",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "No_Match_Affiliates",
+									"type": "DatasetReference",
+									"parameters": {
+										"AffilFolder": {
+											"value": "@item().AffiliateFolder",
+											"type": "Expression"
+										}
+									}
+								},
+								"fieldList": [
+									"exists"
+								],
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							}
+						},
+						{
+							"name": "out_Deliver_Affiliates_Report_All_copy1",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "Get Metadata",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "out_Deliver_Affiliates_Report_all",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"AffiliateName": {
+										"value": "@item().AffiliateName",
+										"type": "Expression"
+									},
+									"AffiliateFolder": {
+										"value": "affiliate-catch-container",
+										"type": "Expression"
+									},
+									"AffiliatePath": {
+										"value": "@item().AffiliatePath",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Wait1",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "ForEach1",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 10
+				}
+			}
+		],
+		"variables": {
+			"AffiliateFolder": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "RDC_to_Affiliates"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-01-11T17:37:05Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

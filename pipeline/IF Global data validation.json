@@ -1,0 +1,79 @@
+{
+	"name": "IF Global data validation",
+	"properties": {
+		"activities": [
+			{
+				"name": "IF",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.2:30:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"wildcardFolderPath": "AnandanTest/InsightFactory",
+							"wildcardFileName": "Leads_with_conversion_CTA.csv",
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Insert",
+						"tableOption": "autoCreate",
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "staging"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "IF_SOURCE_FILE",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_CTA_TEST_DYN_DIM_CUSTOMER",
+						"type": "DatasetReference",
+						"parameters": {
+							"SchemaName": "ODS",
+							"TableName": "IF_GLOBAL_DATA_2312"
+						}
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "Temp/Anandan"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-01-21T13:01:11Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

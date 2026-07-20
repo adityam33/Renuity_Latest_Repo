@@ -1,0 +1,17 @@
+{
+	"name": "Get CDRs for National Bath Leads",
+	"properties": {
+		"content": {
+			"query": "select \n\nin1.Division\n,in1.LeadID\n,DateReceived\n,CheckOutDate\n,CheckOutMethod\n,in1.LP_LeadSubSourceID\n\n,lds.CustomerID\n,EntryDate\n,DateEntered\n,ApptSet\n,NetIssued\n,Sat\n,Sold\n,GrossSalesAmount\n,ProductName\n,lds.[LP_LastCallResultID]\n\n,CallCount\n,FirstCallDate\n,LastCallDate\n\n/*\n,CallID\n,AgentEmployeeID\n,CallDate\n,LP_CallResultID\n,Phone\n,LP_CallTypeID\n*/\nfrom \n(\nselect \nDivision\n,LeadID\n,DateReceived\n,CheckOutDate\n,CheckOutMethod\n,LP_LeadSubSourceID\nfrom \nEDW.FACT_INBOUND_QUEUE_LOG\nwhere \nLeadSubSourceID in (\n'FHI-954',\n'FHI-1318',\n'PHI-291',\n'PHI-508',\n'SWR-2823',\n'SWR-3031'\n)\nand DateReceived between '2023-02-01' and '2023-02-28'\n) in1\nleft join \n(\nselect\nLeadID\n,CustomerID\n,EntryDate\n,DateEntered\n,ApptSet\n,NetIssued\n,Sat\n,Sold\n,GrossSalesAmount\n,prd.ProductName\n,[LP_LastCallResultID]\nfrom \nEDW.FACT_LEAD lds\n,EDW.DIM_PRODUCT prd\nwhere \nlds.ProductID = prd.ProductID\nand lds.LeadSubSourceID in (\n'FHI-954',\n'FHI-1318',\n'PHI-291',\n'PHI-508',\n'SWR-2823',\n'SWR-3031'\n)\nand EntryDate between '2023-02-01' and '2023-02-28'\n) lds\non in1.LeadID = lds.LeadID\nleft join \n(\nselect\ncount(CallID) as CallCount\n,CustomerID\n--,AgentEmployeeID\n,min(CallDate) as FirstCallDate\n,max(CallDate) as LastCallDate\n--,LP_CallResultID\n--,Phone\n--,LP_CallTypeID\nfrom\nEDW.FACT_CALL\nWHERE\nCallDate >= '2023-02-01'\ngroup by\nCustomerID\n) cls\non \ncls.CustomerID = lds.CustomerID\n\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

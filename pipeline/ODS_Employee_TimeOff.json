@@ -1,0 +1,1111 @@
+{
+	"name": "ODS_Employee_TimeOff",
+	"properties": {
+		"activities": [
+			{
+				"name": "If Condition File exist",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Filter_Latest_File",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@greater(length(activity('Filter_Latest_File').output.value), 0)",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "cpy_Employee_TimeOff",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "Get Last Updated Date",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 1,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"additionalColumns": [
+										{
+											"name": "ReportDate",
+											"value": {
+												"value": "@utcnow()",
+												"type": "Expression"
+											}
+										}
+									],
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": true,
+										"wildcardFolderPath": "in",
+										"wildcardFileName": "*PTO*.csv",
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
+								},
+								"sink": {
+									"type": "SqlDWSink",
+									"preCopyScript": "DELETE FROM [ODS].[ADP_EMPLOYEE_TIMEOFF] WHERE ReportDate = CAST(GETDATE() AS DATE);",
+									"writeBehavior": "Insert",
+									"sqlWriterUseTableLock": false,
+									"disableMetricsCollection": false
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"mappings": [
+										{
+											"source": {
+												"name": "ReportDate",
+												"type": "String"
+											},
+											"sink": {
+												"name": "ReportDate",
+												"type": "DateTime",
+												"physicalType": "date"
+											}
+										},
+										{
+											"source": {
+												"name": "Payroll Company Code",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "PayrollCompanyCode",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Legal Name",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "Name",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Associate ID",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "AssociateID",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Position ID",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "PositionID",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Home Department Code",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "HomeDept",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Location Code",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "LocationCode",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Location Description",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "LocationDesc",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Reports To Legal Name",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "ReportsTo",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Reason Code",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "ReasonCode",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Time Off Request Notes",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "Notes",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Transaction Date",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "TransactionDate",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Modified / Approved By",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "Modified_ApprovedBy",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Comments",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "Comments",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Submitted date",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "SubmittedDate",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Review Date",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "ReviewDate",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Start Time",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "StartTime",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Policy Name",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "PolicyName",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Days Taken",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "DaysTaken",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Last Reviewed By",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "LastReviewedBy",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Requested By",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "RequestedBy",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Review By Date",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "ReviewByDate",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Reviewer Comments",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "ReviewerComments",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Request Type",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "RequestType",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Request is for",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "RequestFor",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Request Date",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "RequestDate",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Amount",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "Amount",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Default Request Hours",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "RequestHours",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										}
+									],
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "SRC_Employee_Timeoff",
+									"type": "DatasetReference",
+									"parameters": {
+										"p_FileName": {
+											"value": "@variables('FileName')",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ODS_ADP_EMPLOYEE_TIMEOFF",
+									"type": "DatasetReference"
+								}
+							]
+						},
+						{
+							"name": "Archive files",
+							"type": "Copy",
+							"state": "Inactive",
+							"onInactiveMarkAs": "Succeeded",
+							"dependsOn": [
+								{
+									"activity": "cpy_Employee_TimeOff",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": false,
+										"wildcardFolderPath": "in",
+										"wildcardFileName": "*PTO*.csv",
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"mappings": [
+										{
+											"source": {
+												"name": "Payroll Company Code",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "Payroll Company Code",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Associate ID",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "Associate ID",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Legal Name",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "Legal Name",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Position ID",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "Position ID",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Home Department Code",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "Home Department Code",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Location Description",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "Location Description",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Location Code",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "Location Code",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Reports To Legal Name",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "Reports To Legal Name",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Reason Code",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "Reason Code",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Time Off Request Notes",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "Time Off Request Notes",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Time off Policy Name",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "Time off Policy Name",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Transaction Date",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "Transaction Date",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Modified / Approved By",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "Modified / Approved By",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Comments",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "Comments",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Submitted date",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "Submitted date",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Review Date",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "Review Date",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Start Time",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "Start Time",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Policy Name",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "Policy Name",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Days Taken",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "Days Taken",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Last Reviewed By",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "Last Reviewed By",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Requested By",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "Requested By",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Review By Date",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "Review By Date",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Reviewer Comments",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "Reviewer Comments",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Request Type",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "Request Type",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Request is for",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "Request is for",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Request Date",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "Request Date",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Amount",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "Amount",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Default Request Hours",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "Default Request Hours",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Request Detail Status28",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "Request Detail Status28",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Request Detail Status29",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "Request Detail Status29",
+												"type": "String",
+												"physicalType": "String"
+											}
+										}
+									],
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "SRC_Employee_Timeoff",
+									"type": "DatasetReference",
+									"parameters": {
+										"p_FileName": {
+											"value": "@variables('FileName')",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "Employee_Timeoff_Arch",
+									"type": "DatasetReference",
+									"parameters": {
+										"FileName": {
+											"value": "@concat('PTO_',   formatDateTime(activity('Get Last Updated Date').output.lastModified, 'yyyyMMdd_HHmmss'),'.csv' )",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "Delete",
+							"type": "Delete",
+							"state": "Inactive",
+							"onInactiveMarkAs": "Succeeded",
+							"dependsOn": [
+								{
+									"activity": "Archive files",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "SRC_Employee_Timeoff",
+									"type": "DatasetReference",
+									"parameters": {
+										"p_FileName": {
+											"value": "@variables('FileName')",
+											"type": "Expression"
+										}
+									}
+								},
+								"enableLogging": false,
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": false,
+									"wildcardFileName": "*PTO*.csv",
+									"enablePartitionDiscovery": false
+								}
+							}
+						},
+						{
+							"name": "Get Last Updated Date",
+							"type": "GetMetadata",
+							"dependsOn": [
+								{
+									"activity": "Set variable_FileName",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.6:00:00",
+								"retry": 1,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "SRC_Employee_Timeoff",
+									"type": "DatasetReference",
+									"parameters": {
+										"p_FileName": {
+											"value": "@variables('FileName')",
+											"type": "Expression"
+										}
+									}
+								},
+								"fieldList": [
+									"lastModified"
+								],
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							}
+						},
+						{
+							"name": "Set variable_FileName",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "FileName",
+								"value": {
+									"value": "@activity('Filter_Latest_File').output.value[0].name\n",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Copy dataArchive",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "cpy_Employee_TimeOff",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "BinarySource",
+									"storeSettings": {
+										"type": "AzureBlobStorageReadSettings",
+										"recursive": true,
+										"wildcardFolderPath": "in",
+										"wildcardFileName": "*PTO*.csv",
+										"deleteFilesAfterCompletion": true
+									},
+									"formatSettings": {
+										"type": "BinaryReadSettings"
+									}
+								},
+								"sink": {
+									"type": "BinarySink",
+									"storeSettings": {
+										"type": "AzureBlobStorageWriteSettings"
+									}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "Src_Binary_Timeoff",
+									"type": "DatasetReference",
+									"parameters": {
+										"p_FileName": "@variables('FileName')"
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "TGT_Binary_TimeOff_Archive",
+									"type": "DatasetReference",
+									"parameters": {
+										"p_FileName": "@variables('FileName')"
+									}
+								}
+							]
+						}
+					]
+				}
+			},
+			{
+				"name": "Check file Name",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.6:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "ADP_In_Files",
+						"type": "DatasetReference"
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "DelimitedTextReadSettings"
+					}
+				}
+			},
+			{
+				"name": "Filter_Latest_File",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "Check file Name",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Check file Name').output.childItems",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@and(\n  equals(item().type, 'File'),\n  contains(item().name, 'PTO')\n)",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"variables": {
+			"FileName": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "ADP_Employee"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-06-19T17:19:07Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

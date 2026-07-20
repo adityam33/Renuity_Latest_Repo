@@ -1,0 +1,142 @@
+{
+	"name": "cpy_VWO_Campaign_Data_Fetch",
+	"properties": {
+		"activities": [
+			{
+				"name": "Lookup_CampaignIDs",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"dataset": {
+						"referenceName": "VWO_All_Campaign_List",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach_CampaignID",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Filter_CampaignStatus",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup_CampaignIDs').output.value",
+						"type": "Expression"
+					},
+					"batchCount": 5,
+					"activities": [
+						{
+							"name": "Cp_VWO_Campaign_Detail",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 5,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "RestSource",
+									"httpRequestTimeout": "00:01:40",
+									"requestInterval": "00.00:00:00.010",
+									"requestMethod": "GET",
+									"additionalHeaders": {
+										"token": "8d603e6bebaf671ac43e2f1772deb3d8657a9fa6f3ab19168eaeb16ed08b9fff",
+										"Accept": "application/json"
+									}
+								},
+								"sink": {
+									"type": "JsonSink",
+									"storeSettings": {
+										"type": "AzureBlobStorageWriteSettings",
+										"copyBehavior": "PreserveHierarchy"
+									},
+									"formatSettings": {
+										"type": "JsonWriteSettings",
+										"filePattern": "arrayOfObjects"
+									}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "VWO_SRC",
+									"type": "DatasetReference",
+									"parameters": {
+										"CampaignID": "@{item().campaignId}"
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "VWO_JSon_TGT",
+									"type": "DatasetReference",
+									"parameters": {
+										"CampaignID": "@{item().campaignId}"
+									}
+								}
+							]
+						}
+					]
+				}
+			},
+			{
+				"name": "Filter_CampaignStatus",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "Lookup_CampaignIDs",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup_CampaignIDs').output.value",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@equals(item().CampaignType, 'RUNNING')",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/FACTS/VWO"
+		},
+		"annotations": []
+	}
+}

@@ -1,0 +1,369 @@
+{
+	"name": "cpy_LP_jco_JobChangeOrders_ZML",
+	"properties": {
+		"activities": [
+			{
+				"name": "FHI",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT \nID\t,\nJob_ID\t,\nAmount\t,\ncot_ID\t,\nEnteredOn\t,\nEnteredBy\t,\nUpdatedOn\t,\nUpdatedBy\t,\nBatchFlag\t,\nBatchNo\t,\nBatchDate\t,\nComments\t\n\n\nFROM dbo.jco_JobChangeOrders WITH (NOLOCK)",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE [ZML].[LP_FHI_jco_JobChangeOrders]",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Job_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Job_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Amount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "Amount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "cot_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "cot_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "UpdatedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "UpdatedBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchFlag",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "BatchFlag",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchNo",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "BatchNo",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "BatchDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "Comments",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Comments",
+									"type": "String"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_ZML_FHI_aph_AlternatePhones",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ZML_ODS_FHI_jco_JobChangeOrders",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "MXH",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT \nID\t,\nJob_ID\t,\nAmount\t,\ncot_ID\t,\nEnteredOn\t,\nEnteredBy\t,\nUpdatedOn\t,\nUpdatedBy\t,\nBatchFlag\t,\nBatchNo\t,\nBatchDate\t,\nComments\t\n\n\nFROM dbo.jco_JobChangeOrders WITH (NOLOCK)",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE [ZML].[LP_MXH_jco_JobChangeOrders]",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Job_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Job_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Amount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "Amount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "cot_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "cot_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "UpdatedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "UpdatedBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchFlag",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "BatchFlag",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchNo",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "BatchNo",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "BatchDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "Comments",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Comments",
+									"type": "String"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_ZML_MXH_aph_AlternatePhones",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ZML_ODS_MXH_jco_JobChangeOrders",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "Temp/Anuj/ZML/LP_to_ODS_ZML"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-11-05T15:12:00Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

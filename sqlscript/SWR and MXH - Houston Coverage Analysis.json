@@ -1,0 +1,20 @@
+{
+	"name": "SWR and MXH - Houston Coverage Analysis",
+	"properties": {
+		"folder": {
+			"name": "DMLs/Analysis SQL/Performance Marketing"
+		},
+		"content": {
+			"query": "SELECT\ncst.OperatingCompany\n,[Zip]\n,sum(lds.GrossSalesAmount) as GrossSalesAmount\n,count(cst.CustomerID) as ProspectCount\n FROM \n [EDW].[DIM_CUSTOMER] cst\n ,[EDW].[FACT_LEAD] lds\n ,[ODS].[MKTDATA_ZIP_CODES_DB_DELUXE_BUSINESS] zip\n where \n cst.CustomerID = lds.CustomerID\n and cst.OperatingCompany in ('MXH','SWR')\n and cst.Zip = zip.[ZipCode]\n and zip.[PrimaryRecord] = 'P'\n and zip.MSA_NAME in ('Houston-Galveston-Brazoria TX CMSA')\n group by\n cst.OperatingCompany\n ,[Zip]\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

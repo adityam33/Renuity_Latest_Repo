@@ -1,0 +1,17 @@
+{
+	"name": "Get Setter Performance for National Ads Leads",
+	"properties": {
+		"content": {
+			"query": "SELECT\ncls.[Division]\n,[AgentEmployeeID]\n,emp.FirstName + ' ' + emp.LastName as EmployeeName \n,count(distinct case when clr.CallResult = 'Appointment Set' then cls.LeadID else null end) as DistinctAppointmentSets\n,count([CallID]) as CallCount\n,count(distinct cls.[LeadID]) as DistintLeadsContacted\n FROM \n [EDW].[FACT_CALL] cls\n ,[EDW].[FACT_LEAD] lds\n ,[EDW].[DIM_CALL_RESULT] clr\n ,[EDW].[DIM_EMPLOYEE] emp\n ,[EDW].[DIM_CALL_TYPE] cty\n where\n cls.LeadID = lds.LeadID\n and cls.CallResultID = clr.CallResultID\nand cls.[AgentEmployeeID] = emp.EmployeeID\nand cls.CallTypeID = cty.CallTypeID\nand cls.CallDate between '2023-02-01' and '2023-02-28'\nand cls.Division = 'FHI'\nand lds.LeadSubSourceID = 'FHI-954'\ngroup by\ncls.[Division]\n,[AgentEmployeeID]\n,emp.FirstName + ' ' + emp.LastName\norder by\nDistinctAppointmentSets desc\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

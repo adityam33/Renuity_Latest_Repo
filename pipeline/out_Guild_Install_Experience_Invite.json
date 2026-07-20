@@ -1,0 +1,4112 @@
+{
+	"name": "out_Guild_Install_Experience_Invite",
+	"properties": {
+		"activities": [
+			{
+				"name": "Truncate Install Exp Invite Staging table",
+				"type": "Script",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "IF OBJECT_ID('OUT.GUILD_INSTALL_EXP_INVITE')  IS NOT NULL TRUNCATE TABLE OUT.GUILD_INSTALL_EXP_INVITE;"
+						}
+					]
+				}
+			},
+			{
+				"name": "Copy Install Experience Invites to File",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "FHI",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "SWR",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "PBC",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "PHI",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "RTW",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "MAC",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "HSI",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "MXH",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "CTA",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "SftpWriteSettings",
+							"operationTimeout": "01:00:00",
+							"useTempFileRename": true
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "OUT_GUILD_INSTALL_EXP_INVITE",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "OUT_FILE_GUILD_INSTALL_EXP_INVITE",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "FHI",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Truncate Install Exp Invite Staging table",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT distinct\ncst.FirstName as [FIRST_NAME]\n,cst.LastName as [LAST_NAME]\n,cst.Email as [EMAIL_ADDRESS]\n,cst.Phone as [PHONE_NUMBER]\n,CONCAT(cst.Address1,' ',cst.Address2) as [ADDRESS]\n,cst.City as [CITY]\n,cst.[State] as [STATE]\n,cst.Zip as ZIP\n,'English' as [LANGUAGE]\n,'US' as [COUNTRY]\n,'FHI' as [BRAND_NAME]\n,'' AS CHANNEL\n,job.contractid AS CONTRACT_ID\n,job.cst_id AS ACCOUNT_ID\n--,CASE WHEN CAST(job.ins_installer4 as VARCHAR) IS NULL AND CAST(job.ins_installer3 as VARCHAR) IS NULL AND CAST(job.ins_installer2 as VARCHAR) IS NULL THEN ISNULL(CAST(job.ins_installer1 as VARCHAR),'')\n--ELSE CASE WHEN CAST(job.ins_installer4 as VARCHAR) IS NULL AND CAST(job.ins_installer3 as VARCHAR) IS NULL AND CAST(job.ins_installer2 as VARCHAR) IS NOT NULL AND CAST(job.ins_installer1 as VARCHAR) IS NOT NULL THEN CONCAT(CAST(job.ins_installer1 as VARCHAR),';',CAST(job.ins_installer2 as VARCHAR))\n--ELSE CASE WHEN CAST(job.ins_installer4 as VARCHAR) IS NULL AND CAST(job.ins_installer3 as VARCHAR) IS NOT NULL AND CAST(job.ins_installer2 as VARCHAR) IS NOT NULL AND CAST(job.ins_installer1 as VARCHAR) IS NOT NULL THEN CONCAT(CAST(job.ins_installer1 as VARCHAR),';',CAST(job.ins_installer2 as VARCHAR),';',CAST(job.ins_installer3 as VARCHAR))\n--ELSE CASE WHEN (CAST(job.ins_installer1 as VARCHAR) IS NULL AND CAST(job.ins_installer4 as VARCHAR) IS NULL) OR (CAST(job.ins_installer2 as VARCHAR) IS NULL AND CAST(job.ins_installer4 as VARCHAR) IS NULL) THEN CONCAT(CAST(job.ins_installer1 as VARCHAR),';',CAST(job.ins_installer2 as VARCHAR),';',CAST(job.ins_installer3 as VARCHAR))\n--ELSE CONCAT(CAST(job.ins_installer1 as VARCHAR),';',CAST(job.ins_installer2 as VARCHAR),';',CAST(job.ins_installer3 as VARCHAR),';',CAST(job.ins_installer4 as VARCHAR)) END END END END AS SERVICE_TECHNICIAN_ID\n--,CASE WHEN TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL AND TRIM(Concat(emp3.LastName,emp3.FirstName)) IS NULL AND TRIM(Concat(emp2.LastName,emp2.FirstName)) IS NULL THEN ISNULL(Concat(emp1.LastName,' ',emp1.FirstName),'')\n--ELSE CASE WHEN TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL AND TRIM(Concat(emp3.LastName,emp3.FirstName)) IS NULL AND TRIM(Concat(emp2.LastName,emp2.FirstName)) IS NOT NULL THEN CONCAT(Concat(emp1.LastName,' ',emp1.FirstName),';',Concat(emp2.LastName,' ',emp2.FirstName))\n--ELSE CASE WHEN TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL AND TRIM(Concat(emp3.LastName,emp3.FirstName)) IS NOT NULL AND TRIM(Concat(emp2.LastName,emp2.FirstName)) IS NOT NULL THEN CONCAT(Concat(emp1.LastName,' ',emp1.FirstName),';',Concat(emp2.LastName,' ',emp2.FirstName),';',Concat(emp3.LastName,' ',emp3.FirstName))\n--ELSE CASE WHEN (TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL AND TRIM(Concat(emp1.LastName,emp1.FirstName)) IS NULL) OR (TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL and TRIM(Concat(emp2.LastName,emp2.FirstName)) IS NULL) THEN CONCAT(Concat(emp1.LastName,' ',emp1.FirstName),';',Concat(emp2.LastName,' ',emp2.FirstName),';',Concat(emp3.LastName,' ',emp3.FirstName))\n--ELSE CONCAT(Concat(emp1.LastName,' ',emp1.FirstName),';',Concat(emp2.LastName,' ',emp2.FirstName),';',Concat(emp3.LastName,' ',emp3.FirstName),';',Concat(emp4.LastName,' ',emp4.FirstName)) \n--END END END END as SERVICE_TECHNICIAN_NAME\n,ISNULL(CAST(job.ins_installer1 as VARCHAR),'0') AS SERVICE_TECHNICIAN_1_ID\n, CASE WHEN COALESCE(CAST(job.ins_installer1 as VARCHAR),'0')='0' THEN 'NONE' ELSE emp1.Name END AS SERVICE_TECHNICIAN_1_NAME\n,ISNULL(CAST(job.ins_installer2 as VARCHAR),'0') AS SERVICE_TECHNICIAN_2_ID\n,CASE WHEN COALESCE(CAST(job.ins_installer2 as VARCHAR),'0')='0' THEN 'NONE' ELSE emp2.Name END as SERVICE_TECHNICIAN_2_NAME\n,ISNULL(CAST(job.ins_installer3 as VARCHAR),'0') AS SERVICE_TECHNICIAN_3_ID\n,CASE WHEN COALESCE(CAST(job.ins_installer3 as VARCHAR),'0')='0' THEN 'NONE' ELSE emp3.Name END as SERVICE_TECHNICIAN_3_NAME\n,ISNULL(CAST(job.ins_installer4 as VARCHAR),'0') AS SERVICE_TECHNICIAN_4_ID\n,CASE WHEN COALESCE(CAST(job.ins_installer4 as VARCHAR),'0')='0' THEN 'NONE' ELSE emp4.Name END as SERVICE_TECHNICIAN_4_NAME\n,brp.LongName as PRODUCTION_BRANCH_NAME\n,CONCAT('FHI-',brn.id) as BranchID\n,mld.ActDate as SERVICE_DATETIME\n,prd.LongDescr as PRODUCT_LINE\n,ISNULL((select rpm.descr from [ODS].[LP_FHI_rpm_ReportingMarket] rpm where id=brn.rpm_id),'Undefined') as REPORTING_MARKET  --Add Reporting Market and Type request\n,ISNULL((select tof.descr from [ODS].[LP_FHI_tof_TypeOfMarket] tof where id=brn.tof_id),'Undefined') as REPORTING_MARKET_TYPE  --Add Reporting Market and Type request\n,ISNULL(CAST(job.[slr_id] AS VARCHAR),'0') as SALES_REP_ID_1\n,CASE WHEN COALESCE(CAST(job.[slr_id] AS VARCHAR),'0')= '0' THEN 'NONE' ELSE CONCAT(emp5.FirstName,' ',emp5.LastName) END AS SALES_REP_1_NAME\n,ISNULL(CAST(job.[slr_id2] AS VARCHAR),'0') as SALES_REP_ID_2\n,CASE WHEN COALESCE(CAST(job.[slr_id2] AS VARCHAR),'0')='0' THEN 'NONE' ELSE CONCAT(emp6.FirstName,' ',emp6.LastName) END AS SALES_REP_2_NAME\n,srs.SourceCode as LEADSOURCE,fulv.Descr as FIELD_SUPERVISOR\nFROM \n[ODS].[LP_FHI_job_Jobs] job\nleft join ODS.LP_FHI_ulv_UserLookupValues fulv on job.job_user_16=fulv.id\nleft join [ODS].[LP_FHI_Lds_Leads] lds on job.lds_id=lds.LeadNumber\n INNER JOIN [ODS].[LP_FHI_cst_Customers] cst on job.cst_id = cst.id\n INNER JOIN [ODS].[LP_FHI_prd_Products] prd on job.ProductID = prd.ProductID\nLEFT JOIN [ODS].[LP_FHI_ins_Installers] emp1 on job.ins_installer1=emp1.id\nLEFT JOIN [ODS].[LP_FHI_ins_Installers] emp2 on job.ins_installer2=emp2.id\nLEFT JOIN [ODS].[LP_FHI_ins_Installers] emp3 on job.ins_installer3=emp3.id\nLEFT JOIN [ODS].[LP_FHI_ins_Installers] emp4 on job.ins_installer4=emp4.id\nINNER JOIN [ODS].[LP_FHI_prg_Product_Groups] prg on prd.prg_id = prg.id\nINNER JOIN [ODS].[LP_FHI_brp_ProductionBranches] brp on job.brp_id = brp.id\nINNER JOIN [ODS].[LP_FHI_mld_MilestoneDetail] mld on job.id = mld.job_id\n INNER JOIN [ODS].[LP_FHI_mdt_MilestoneDateTypes] mdt on mld.mdt_id = mdt.id\nINNER JOIN [ODS].[LP_FHI_brn_Branches] brn on brp.id=brn.id --Add Reporting Market and Type request\n left join [ODS].[LP_FHI_emp_Employees] emp5 on job.slr_id=emp5.id\n left join [ODS].[LP_FHI_emp_Employees] emp6 on job.slr_id2=emp6.id\n left join [ODS].[LP_FHI_srs_SourceSubs] srs on lds.srs_id=srs.id\nWHERE  \nmdt.Descr = 'Complete'\nand mld.ActDate is NOT NULL\nAND datediff(DAY, mld.ActDate, dbo.fnConvertUTCtoPST (getdate())) between 0 and 30 --20260323: As per Request from Selena, Logic has been changed to send dtaa between 3 and 30 days from 0 to 30 days.\n-- 20260414 : Another ask from Selena to change back to 0 days delay since East Division is already applying certain logic which is sending the Leads with a delay.\nand CAST(mld.ActDate as DATE)>='2024-08-30'",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "FIRST_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "FIRST_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LAST_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LAST_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "EMAIL_ADDRESS",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "EMAIL_ADDRESS",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PHONE_NUMBER",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PHONE_NUMBER",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CONTRACT_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "CONTRACT_ID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ACCOUNT_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "ACCOUNT_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_DATETIME",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "SERVICE_DATETIME",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "PRODUCT_LINE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PRODUCT_LINE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PRODUCTION_BRANCH_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PRODUCTION_BRANCH_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "BRAND_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "BRAND_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LANGUAGE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LANGUAGE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "COUNTRY",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "COUNTRY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CHANNEL",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "CHANNEL",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "REPORTING_MARKET",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "REPORTING_MARKET",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "REPORTING_MARKET_TYPE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "REPORTING_MARKET_TYPE",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "BRANCHID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_1_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_1_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_2_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_2_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_3_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_3_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_4_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_4_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_4_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_4_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_3_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_3_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_2_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_2_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_1_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_1_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ADDRESS",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ADDRESS",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CITY",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "CITY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "STATE",
+									"type": "String",
+									"physicalType": "char"
+								},
+								"sink": {
+									"name": "STATE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ZIP",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ZIP",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_ID_1",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_ID_1",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_ID_2",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_ID_2",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_1_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_1_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_2_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_2_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LEADSOURCE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LEADSOURCE",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "FIELD_SUPERVISOR",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "FIELD_SUPERVISOR",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_ODS_LP_FHI_mld_MilestoneDetail",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "OUT_GUILD_INSTALL_EXP_INVITE",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "SWR",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Truncate Install Exp Invite Staging table",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT distinct\ncst.FirstName as [FIRST_NAME]\n,cst.LastName as [LAST_NAME]\n,cst.Email as [EMAIL_ADDRESS]\n,cst.Phone as [PHONE_NUMBER]\n,CONCAT(cst.Address1,' ',cst.Address2) as [ADDRESS]\n,cst.City as [CITY]\n,cst.[State] as [STATE]\n,cst.Zip as ZIP\n,'English' as [LANGUAGE]\n,'US' as [COUNTRY]\n,'SWR' as [BRAND_NAME]\n,'' AS CHANNEL\n,job.contractid AS CONTRACT_ID\n,job.cst_id AS ACCOUNT_ID\n--,CASE WHEN CAST(job.ins_installer4 as VARCHAR) IS NULL AND CAST(job.ins_installer3 as VARCHAR) IS NULL AND CAST(job.ins_installer2 as VARCHAR) IS NULL THEN ISNULL(CAST(job.ins_installer1 as VARCHAR),'')\n--ELSE CASE WHEN CAST(job.ins_installer4 as VARCHAR) IS NULL AND CAST(job.ins_installer3 as VARCHAR) IS NULL AND CAST(job.ins_installer2 as VARCHAR) IS NOT NULL AND CAST(job.ins_installer1 as VARCHAR) IS NOT NULL THEN CONCAT(CAST(job.ins_installer1 as VARCHAR),';',CAST(job.ins_installer2 as VARCHAR))\n--ELSE CASE WHEN CAST(job.ins_installer4 as VARCHAR) IS NULL AND CAST(job.ins_installer3 as VARCHAR) IS NOT NULL AND CAST(job.ins_installer2 as VARCHAR) IS NOT NULL AND CAST(job.ins_installer1 as VARCHAR) IS NOT NULL THEN CONCAT(CAST(job.ins_installer1 as VARCHAR),';',CAST(job.ins_installer2 as VARCHAR),';',CAST(job.ins_installer3 as VARCHAR))\n--ELSE CASE WHEN (CAST(job.ins_installer1 as VARCHAR) IS NULL AND CAST(job.ins_installer4 as VARCHAR) IS NULL) OR (CAST(job.ins_installer2 as VARCHAR) IS NULL AND CAST(job.ins_installer4 as VARCHAR) IS NULL) THEN CONCAT(CAST(job.ins_installer1 as VARCHAR),';',CAST(job.ins_installer2 as VARCHAR),';',CAST(job.ins_installer3 as VARCHAR))\n--ELSE CONCAT(CAST(job.ins_installer1 as VARCHAR),';',CAST(job.ins_installer2 as VARCHAR),';',CAST(job.ins_installer3 as VARCHAR),';',CAST(job.ins_installer4 as VARCHAR)) END END END END AS SERVICE_TECHNICIAN_ID\n--,CASE WHEN TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL AND TRIM(Concat(emp3.LastName,emp3.FirstName)) IS NULL AND TRIM(Concat(emp2.LastName,emp2.FirstName)) IS NULL THEN ISNULL(Concat(emp1.LastName,' ',emp1.FirstName),'')\n--ELSE CASE WHEN TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL AND TRIM(Concat(emp3.LastName,emp3.FirstName)) IS NULL AND TRIM(Concat(emp2.LastName,emp2.FirstName)) IS NOT NULL THEN CONCAT(Concat(emp1.LastName,' ',emp1.FirstName),';',Concat(emp2.LastName,' ',emp2.FirstName))\n--ELSE CASE WHEN TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL AND TRIM(Concat(emp3.LastName,emp3.FirstName)) IS NOT NULL AND TRIM(Concat(emp2.LastName,emp2.FirstName)) IS NOT NULL THEN CONCAT(Concat(emp1.LastName,' ',emp1.FirstName),';',Concat(emp2.LastName,' ',emp2.FirstName),';',Concat(emp3.LastName,' ',emp3.FirstName))\n--ELSE CASE WHEN (TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL AND TRIM(Concat(emp1.LastName,emp1.FirstName)) IS NULL) OR (TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL and TRIM(Concat(emp2.LastName,emp2.FirstName)) IS NULL) THEN CONCAT(Concat(emp1.LastName,' ',emp1.FirstName),';',Concat(emp2.LastName,' ',emp2.FirstName),';',Concat(emp3.LastName,' ',emp3.FirstName))\n--ELSE CONCAT(Concat(emp1.LastName,' ',emp1.FirstName),';',Concat(emp2.LastName,' ',emp2.FirstName),';',Concat(emp3.LastName,' ',emp3.FirstName),';',Concat(emp4.LastName,' ',emp4.FirstName)) \n--END END END END as SERVICE_TECHNICIAN_NAME\n,ISNULL(CAST(job.ins_installer1 as VARCHAR),'0') AS SERVICE_TECHNICIAN_1_ID\n, CASE WHEN COALESCE(CAST(job.ins_installer1 as VARCHAR),'0')='0' THEN 'NONE' ELSE emp1.Name END AS SERVICE_TECHNICIAN_1_NAME\n,ISNULL(CAST(job.ins_installer2 as VARCHAR),'0') AS SERVICE_TECHNICIAN_2_ID\n,CASE WHEN COALESCE(CAST(job.ins_installer2 as VARCHAR),'0')='0' THEN 'NONE' ELSE emp2.Name END as SERVICE_TECHNICIAN_2_NAME\n,ISNULL(CAST(job.ins_installer3 as VARCHAR),'0') AS SERVICE_TECHNICIAN_3_ID\n,CASE WHEN COALESCE(CAST(job.ins_installer3 as VARCHAR),'0')='0' THEN 'NONE' ELSE emp3.Name END as SERVICE_TECHNICIAN_3_NAME\n,ISNULL(CAST(job.ins_installer4 as VARCHAR),'0') AS SERVICE_TECHNICIAN_4_ID\n,CASE WHEN COALESCE(CAST(job.ins_installer4 as VARCHAR),'0')='0' THEN 'NONE' ELSE emp4.Name END as SERVICE_TECHNICIAN_4_NAME\n,brp.LongName as PRODUCTION_BRANCH_NAME\n,CONCAT('SWR-',brn.id) as BranchID\n,mld.ActDate as SERVICE_DATETIME\n,prd.LongDescr as PRODUCT_LINE\n,ISNULL((select rpm.descr from [ODS].[LP_SWR_rpm_ReportingMarket] rpm where id=brn.rpm_id),'Undefined') as REPORTING_MARKET  --Add Reporting Market and Type request\n,ISNULL((select tof.descr from [ODS].[LP_SWR_tof_TypeOfMarket] tof where id=brn.tof_id),'Undefined') as REPORTING_MARKET_TYPE  --Add Reporting Market and Type request\n,ISNULL(CAST(job.[slr_id] AS VARCHAR),'0') as SALES_REP_ID_1\n,CASE WHEN COALESCE(CAST(job.[slr_id] AS VARCHAR),'0')= '0' THEN 'NONE' ELSE CONCAT(emp5.FirstName,' ',emp5.LastName) END AS SALES_REP_1_NAME\n,ISNULL(CAST(job.[slr_id2] AS VARCHAR),'0') as SALES_REP_ID_2\n,CASE WHEN COALESCE(CAST(job.[slr_id2] AS VARCHAR),'0')='0' THEN 'NONE' ELSE CONCAT(emp6.FirstName,' ',emp6.LastName) END AS SALES_REP_2_NAME\n,srs.SourceCode as LEADSOURCE,sulv.Descr as FIELD_SUPERVISOR\nFROM \n[ODS].[LP_SWR_job_Jobs] job\n left join ODS.LP_SWR_ulv_UserLookupValues sulv on job.job_user_19=sulv.id\nINNER JOIN [ODS].[LP_SWR_cst_Customers] cst on job.cst_id = cst.id\nINNER JOIN [ODS].[LP_SWR_prd_Products] prd on job.ProductID = prd.ProductID\nINNER JOIN [ODS].[LP_SWR_prg_Product_Groups] prg on prd.prg_id = prg.id\nINNER JOIN [ODS].[LP_SWR_brp_ProductionBranches] brp on job.brp_id = brp.id\nINNER JOIN [ODS].[LP_SWR_mld_MilestoneDetail] mld on job.id = mld.job_id\nINNER JOIN [ODS].[LP_SWR_Lds_Leads] leads on job.lds_id=leads.id\nINNER JOIN [ODS].[LP_SWR_mdt_MilestoneDateTypes] mdt on mld.mdt_id = mdt.id\nINNER JOIN [ODS].[LP_SWR_brn_Branches] brn on brp.id=brn.id --Add Reporting Market and Type request\nLEFT JOIN [ODS].[LP_SWR_ins_Installers] emp1 on job.ins_installer1=emp1.id\nLEFT JOIN [ODS].[LP_SWR_ins_Installers] emp2 on job.ins_installer2=emp2.id\nLEFT JOIN [ODS].[LP_SWR_ins_Installers] emp3 on job.ins_installer3=emp3.id\nLEFT JOIN [ODS].[LP_SWR_ins_Installers] emp4 on job.ins_installer4=emp4.id \n left join [ODS].[LP_SWR_emp_Employees] emp5 on job.slr_id=emp5.id\n left join [ODS].[LP_SWR_emp_Employees] emp6 on job.slr_id2=emp6.id\n left join [ODS].[LP_SWR_srs_Sourcesubs] srs on leads.srs_id=srs.id\nWHERE \n  --Add Reporting Market and Type request\n--AM 20231113: changing the Milestone from 'Closed PIF' to 'Complete Job' as per request from Eric and Matt Hoffman on 11/13/2023\nmdt.Descr = 'Complete Job' --'Closed PIF'\nand mld.ActDate is NOT NULL\n--AM 20231113: changing the survey to go out after 5 days (5 to 30) of Milestone was set to 'Complete Job'  as per request from Eric and Matt Hoffman on 11/13/2023\n--20260323: As per Request from Selena, Logic has been changed to send data between 3 and 30 days from 5 to 30 days.\nAND datediff(DAY, mld.ActDate, dbo.fnConvertUTCtoPST (getdate())) between 3 and 30\nand LEFT(leads.src_id, 2) <> 'HD'\nand CAST(mld.ActDate as DATE)>='2024-08-26' and job.contractid!='SW135748 '\n--and leads.src_id not like 'kohler%'\n\n--UNION\n--\n--SELECT distinct\n--cst.FirstName as [FIRST_NAME]\n--,cst.LastName as [LAST_NAME]\n--,cst.Email as [EMAIL_ADDRESS]\n--,cst.Phone as [PHONE_NUMBER]\n--,CONCAT(cst.Address1,' ',cst.Address2) as [ADDRESS]\n--,cst.City as [CITY]\n--,cst.[State] as [STATE]\n--,cst.Zip as ZIP\n--,'English' as [LANGUAGE]\n--,'US' as [COUNTRY]\n--,'SWR' as [BRAND_NAME]\n--,'' AS CHANNEL\n--,job.contractid AS CONTRACT_ID\n--,job.cst_id AS ACCOUNT_ID\n----,CASE WHEN CAST(job.ins_installer4 as VARCHAR) IS NULL AND CAST(job.ins_installer3 as VARCHAR) IS NULL AND CAST(job.ins_installer2 as VARCHAR) IS NULL THEN ISNULL(CAST(job.ins_installer1 as VARCHAR),'')\n----ELSE CASE WHEN CAST(job.ins_installer4 as VARCHAR) IS NULL AND CAST(job.ins_installer3 as VARCHAR) IS NULL AND CAST(job.ins_installer2 as VARCHAR) IS NOT NULL AND CAST(job.ins_installer1 as VARCHAR) IS NOT NULL THEN CONCAT(CAST(job.ins_installer1 as VARCHAR),';',CAST(job.ins_installer2 as VARCHAR))\n----ELSE CASE WHEN CAST(job.ins_installer4 as VARCHAR) IS NULL AND CAST(job.ins_installer3 as VARCHAR) IS NOT NULL AND CAST(job.ins_installer2 as VARCHAR) IS NOT NULL AND CAST(job.ins_installer1 as VARCHAR) IS NOT NULL THEN CONCAT(CAST(job.ins_installer1 as VARCHAR),';',CAST(job.ins_installer2 as VARCHAR),';',CAST(job.ins_installer3 as VARCHAR))\n----ELSE CASE WHEN (CAST(job.ins_installer1 as VARCHAR) IS NULL AND CAST(job.ins_installer4 as VARCHAR) IS NULL) OR (CAST(job.ins_installer2 as VARCHAR) IS NULL AND CAST(job.ins_installer4 as VARCHAR) IS NULL) THEN CONCAT(CAST(job.ins_installer1 as VARCHAR),';',CAST(job.ins_installer2 as VARCHAR),';',CAST(job.ins_installer3 as VARCHAR))\n----ELSE CONCAT(CAST(job.ins_installer1 as VARCHAR),';',CAST(job.ins_installer2 as VARCHAR),';',CAST(job.ins_installer3 as VARCHAR),';',CAST(job.ins_installer4 as VARCHAR)) END END END END AS SERVICE_TECHNICIAN_ID\n----,CASE WHEN TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL AND TRIM(Concat(emp3.LastName,emp3.FirstName)) IS NULL AND TRIM(Concat(emp2.LastName,emp2.FirstName)) IS NULL THEN ISNULL(Concat(emp1.LastName,' ',emp1.FirstName),'')\n----ELSE CASE WHEN TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL AND TRIM(Concat(emp3.LastName,emp3.FirstName)) IS NULL AND TRIM(Concat(emp2.LastName,emp2.FirstName)) IS NOT NULL THEN CONCAT(Concat(emp1.LastName,' ',emp1.FirstName),';',Concat(emp2.LastName,' ',emp2.FirstName))\n----ELSE CASE WHEN TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL AND TRIM(Concat(emp3.LastName,emp3.FirstName)) IS NOT NULL AND TRIM(Concat(emp2.LastName,emp2.FirstName)) IS NOT NULL THEN CONCAT(Concat(emp1.LastName,' ',emp1.FirstName),';',Concat(emp2.LastName,' ',emp2.FirstName),';',Concat(emp3.LastName,' ',emp3.FirstName))\n----ELSE CASE WHEN (TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL AND TRIM(Concat(emp1.LastName,emp1.FirstName)) IS NULL) OR (TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL and TRIM(Concat(emp2.LastName,emp2.FirstName)) IS NULL) THEN CONCAT(Concat(emp1.LastName,' ',emp1.FirstName),';',Concat(emp2.LastName,' ',emp2.FirstName),';',Concat(emp3.LastName,' ',emp3.FirstName))\n----ELSE CONCAT(Concat(emp1.LastName,' ',emp1.FirstName),';',Concat(emp2.LastName,' ',emp2.FirstName),';',Concat(emp3.LastName,' ',emp3.FirstName),';',Concat(emp4.LastName,' ',emp4.FirstName)) \n----END END END END as SERVICE_TECHNICIAN_NAME\n--,ISNULL(CAST(job.ins_installer1 as VARCHAR),'0') AS SERVICE_TECHNICIAN_1_ID\n--, CASE WHEN COALESCE(CAST(job.ins_installer1 as VARCHAR),'0')='0' THEN 'NONE' ELSE emp1.Name END AS SERVICE_TECHNICIAN_1_NAME\n--,ISNULL(CAST(job.ins_installer2 as VARCHAR),'0') AS SERVICE_TECHNICIAN_2_ID\n--,CASE WHEN COALESCE(CAST(job.ins_installer2 as VARCHAR),'0')='0' THEN 'NONE' ELSE emp2.Name END as SERVICE_TECHNICIAN_2_NAME\n--,ISNULL(CAST(job.ins_installer3 as VARCHAR),'0') AS SERVICE_TECHNICIAN_3_ID\n--,CASE WHEN COALESCE(CAST(job.ins_installer3 as VARCHAR),'0')='0' THEN 'NONE' ELSE emp3.Name END as SERVICE_TECHNICIAN_3_NAME\n--,ISNULL(CAST(job.ins_installer4 as VARCHAR),'0') AS SERVICE_TECHNICIAN_4_ID\n--,CASE WHEN COALESCE(CAST(job.ins_installer4 as VARCHAR),'0')='0' THEN 'NONE' ELSE emp4.Name END as SERVICE_TECHNICIAN_4_NAME\n--,brp.LongName as PRODUCTION_BRANCH_NAME\n--,CONCAT('SWR-',brn.id) as BranchID\n--,mld.ActDate as SERVICE_DATETIME\n--,prd.LongDescr as PRODUCT_LINE\n--,ISNULL((select rpm.descr from [ODS].[LP_SWR_rpm_ReportingMarket] rpm where id=brn.rpm_id),'Undefined') as REPORTING_MARKET  --Add Reporting Market and Type request\n--,ISNULL((select tof.descr from [ODS].[LP_SWR_tof_TypeOfMarket] tof where id=brn.tof_id),'Undefined') as REPORTING_MARKET_TYPE  --Add Reporting Market and Type request\n--FROM \n--[ODS].[LP_SWR_job_Jobs] job\n--INNER JOIN [ODS].[LP_SWR_cst_Customers] cst on job.cst_id = cst.id\n--INNER JOIN [ODS].[LP_SWR_prd_Products] prd on job.ProductID = prd.ProductID\n--INNER JOIN [ODS].[LP_SWR_prg_Product_Groups] prg on prd.prg_id = prg.id\n--INNER JOIN [ODS].[LP_SWR_brp_ProductionBranches] brp on job.brp_id = brp.id\n--INNER JOIN [ODS].[LP_SWR_mld_MilestoneDetail] mld on job.id = mld.job_id\n--INNER JOIN [ODS].[LP_SWR_Lds_Leads] leads on job.lds_id=leads.id\n--INNER JOIN [ODS].[LP_SWR_mdt_MilestoneDateTypes] mdt on mld.mdt_id = mdt.id\n--INNER JOIN [ODS].[LP_SWR_brn_Branches] brn on brp.id=brn.id --Add Reporting Market and Type request\n--LEFT JOIN [ODS].[LP_SWR_ins_Installers] emp1 on job.ins_installer1=emp1.id\n--LEFT JOIN [ODS].[LP_SWR_ins_Installers] emp2 on job.ins_installer2=emp2.id\n--LEFT JOIN [ODS].[LP_SWR_ins_Installers] emp3 on job.ins_installer3=emp3.id\n--LEFT JOIN [ODS].[LP_SWR_ins_Installers] emp4 on job.ins_installer4=emp4.id \n--WHERE \n--  --Add Reporting Market and Type request\n----AM 20231113: changing the Milestone from 'Closed PIF' to 'Complete Job' as per request from Eric and Matt Hoffman on 11/13/2023\n--mdt.Descr = 'Complete Job' --'Closed PIF'\n--and mld.ActDate is NOT NULL\n----AM 20231113: changing the survey to go out after 5 days (5 to 30) of Milestone was set to 'Complete Job'  as per request from Eric and Matt Hoffman on 11/13/2023\n--AND datediff(DAY, mld.ActDate, dbo.fnConvertUTCtoPST (getdate())) between 5 and 30\n--and LEFT(leads.src_id, 2) <> 'HD'\n--and CAST(mld.ActDate as DATE)>='2024-08-26'\n----and leads.src_id not like 'kohler%'\n--and job.contractid='SW122652'",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "FIRST_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "FIRST_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LAST_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LAST_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "EMAIL_ADDRESS",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "EMAIL_ADDRESS",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PHONE_NUMBER",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PHONE_NUMBER",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CONTRACT_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "CONTRACT_ID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ACCOUNT_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "ACCOUNT_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_DATETIME",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "SERVICE_DATETIME",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "PRODUCT_LINE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PRODUCT_LINE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PRODUCTION_BRANCH_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PRODUCTION_BRANCH_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "BRAND_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "BRAND_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LANGUAGE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LANGUAGE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "COUNTRY",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "COUNTRY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CHANNEL",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "CHANNEL",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "REPORTING_MARKET",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "REPORTING_MARKET",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "REPORTING_MARKET_TYPE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "REPORTING_MARKET_TYPE",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "BRANCHID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_1_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_1_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_2_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_2_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_3_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_3_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_4_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_4_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_4_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_4_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_3_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_3_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_2_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_2_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_1_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_1_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ADDRESS",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ADDRESS",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CITY",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "CITY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "STATE",
+									"type": "String",
+									"physicalType": "char"
+								},
+								"sink": {
+									"name": "STATE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ZIP",
+									"type": "String",
+									"physicalType": "char"
+								},
+								"sink": {
+									"name": "ZIP",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_ID_1",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_ID_1",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_ID_2",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_ID_2",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_1_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_1_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_2_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_2_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LEADSOURCE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LEADSOURCE",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "FIELD_SUPERVISOR",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "FIELD_SUPERVISOR",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_ODS_LP_SWR_mld_MilestoneDetail",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "OUT_GUILD_INSTALL_EXP_INVITE",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "PBC",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Truncate Install Exp Invite Staging table",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT distinct\ncst.FirstName as [FIRST_NAME]\n,cst.LastName as [LAST_NAME]\n,cst.Email as [EMAIL_ADDRESS]\n,cst.Phone as [PHONE_NUMBER]\n,CONCAT(cst.Address1,' ',cst.Address2) as [ADDRESS]\n,cst.City as [CITY]\n,cst.[State] as [STATE]\n,cst.Zip as ZIP\n,'English' as [LANGUAGE]\n,'US' as [COUNTRY]\n,'PBC' as [BRAND_NAME]\n,'' AS CHANNEL\n,job.contractid AS CONTRACT_ID\n,job.cst_id AS ACCOUNT_ID\n--,CASE WHEN CAST(job.ins_installer4 as VARCHAR) IS NULL AND CAST(job.ins_installer3 as VARCHAR) IS NULL AND CAST(job.ins_installer2 as VARCHAR) IS NULL THEN ISNULL(CAST(job.ins_installer1 as VARCHAR),'')\n--ELSE CASE WHEN CAST(job.ins_installer4 as VARCHAR) IS NULL AND CAST(job.ins_installer3 as VARCHAR) IS NULL AND CAST(job.ins_installer2 as VARCHAR) IS NOT NULL AND CAST(job.ins_installer1 as VARCHAR) IS NOT NULL THEN CONCAT(CAST(job.ins_installer1 as VARCHAR),';',CAST(job.ins_installer2 as VARCHAR))\n--ELSE CASE WHEN CAST(job.ins_installer4 as VARCHAR) IS NULL AND CAST(job.ins_installer3 as VARCHAR) IS NOT NULL AND CAST(job.ins_installer2 as VARCHAR) IS NOT NULL AND CAST(job.ins_installer1 as VARCHAR) IS NOT NULL THEN CONCAT(CAST(job.ins_installer1 as VARCHAR),';',CAST(job.ins_installer2 as VARCHAR),';',CAST(job.ins_installer3 as VARCHAR))\n--ELSE CASE WHEN (CAST(job.ins_installer1 as VARCHAR) IS NULL AND CAST(job.ins_installer4 as VARCHAR) IS NULL) OR (CAST(job.ins_installer2 as VARCHAR) IS NULL AND CAST(job.ins_installer4 as VARCHAR) IS NULL) THEN CONCAT(CAST(job.ins_installer1 as VARCHAR),';',CAST(job.ins_installer2 as VARCHAR),';',CAST(job.ins_installer3 as VARCHAR))\n--ELSE CONCAT(CAST(job.ins_installer1 as VARCHAR),';',CAST(job.ins_installer2 as VARCHAR),';',CAST(job.ins_installer3 as VARCHAR),';',CAST(job.ins_installer4 as VARCHAR)) END END END END AS SERVICE_TECHNICIAN_ID\n--,CASE WHEN TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL AND TRIM(Concat(emp3.LastName,emp3.FirstName)) IS NULL AND TRIM(Concat(emp2.LastName,emp2.FirstName)) IS NULL THEN ISNULL(Concat(emp1.LastName,' ',emp1.FirstName),'')\n--ELSE CASE WHEN TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL AND TRIM(Concat(emp3.LastName,emp3.FirstName)) IS NULL AND TRIM(Concat(emp2.LastName,emp2.FirstName)) IS NOT NULL THEN CONCAT(Concat(emp1.LastName,' ',emp1.FirstName),';',Concat(emp2.LastName,' ',emp2.FirstName))\n--ELSE CASE WHEN TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL AND TRIM(Concat(emp3.LastName,emp3.FirstName)) IS NOT NULL AND TRIM(Concat(emp2.LastName,emp2.FirstName)) IS NOT NULL THEN CONCAT(Concat(emp1.LastName,' ',emp1.FirstName),';',Concat(emp2.LastName,' ',emp2.FirstName),';',Concat(emp3.LastName,' ',emp3.FirstName))\n--ELSE CASE WHEN (TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL AND TRIM(Concat(emp1.LastName,emp1.FirstName)) IS NULL) OR (TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL and TRIM(Concat(emp2.LastName,emp2.FirstName)) IS NULL) THEN CONCAT(Concat(emp1.LastName,' ',emp1.FirstName),';',Concat(emp2.LastName,' ',emp2.FirstName),';',Concat(emp3.LastName,' ',emp3.FirstName))\n--ELSE CONCAT(Concat(emp1.LastName,' ',emp1.FirstName),';',Concat(emp2.LastName,' ',emp2.FirstName),';',Concat(emp3.LastName,' ',emp3.FirstName),';',Concat(emp4.LastName,' ',emp4.FirstName)) \n--END END END END as SERVICE_TECHNICIAN_NAME\n,ISNULL(CAST(job.ins_installer1 as VARCHAR),'0') AS SERVICE_TECHNICIAN_1_ID\n, CASE WHEN COALESCE(CAST(job.ins_installer1 as VARCHAR),'0')='0' THEN 'NONE' ELSE emp1.Name END AS SERVICE_TECHNICIAN_1_NAME\n,ISNULL(CAST(job.ins_installer2 as VARCHAR),'0') AS SERVICE_TECHNICIAN_2_ID\n,CASE WHEN COALESCE(CAST(job.ins_installer2 as VARCHAR),'0')='0' THEN 'NONE' ELSE emp2.Name END as SERVICE_TECHNICIAN_2_NAME\n,ISNULL(CAST(job.ins_installer3 as VARCHAR),'0') AS SERVICE_TECHNICIAN_3_ID\n,CASE WHEN COALESCE(CAST(job.ins_installer3 as VARCHAR),'0')='0' THEN 'NONE' ELSE emp3.Name END as SERVICE_TECHNICIAN_3_NAME\n,ISNULL(CAST(job.ins_installer4 as VARCHAR),'0') AS SERVICE_TECHNICIAN_4_ID\n,CASE WHEN COALESCE(CAST(job.ins_installer4 as VARCHAR),'0')='0' THEN 'NONE' ELSE emp4.Name END as SERVICE_TECHNICIAN_4_NAME\n,brp.LongName as PRODUCTION_BRANCH_NAME\n,CONCAT('PBC-',brn.id) as BranchID\n,mld.ActDate as SERVICE_DATETIME\n,prd.LongDescr as PRODUCT_LINE\n,ISNULL((select rpm.descr from [ODS].[LP_PBC_rpm_ReportingMarket] rpm where id=brn.rpm_id),'Undefined') as REPORTING_MARKET  --Add Reporting Market and Type request\n,ISNULL((select tof.descr from [ODS].[LP_PBC_tof_TypeOfMarket] tof where id=brn.tof_id),'Undefined') as REPORTING_MARKET_TYPE  --Add Reporting Market and Type request\n,ISNULL(CAST(job.[slr_id] AS VARCHAR),'0') as SALES_REP_ID_1\n,CASE WHEN COALESCE(CAST(job.[slr_id] AS VARCHAR),'0')= '0' THEN 'NONE' ELSE CONCAT(emp5.FirstName,' ',emp5.LastName) END AS SALES_REP_1_NAME\n,ISNULL(CAST(job.[slr_id2] AS VARCHAR),'0') as SALES_REP_ID_2\n,CASE WHEN COALESCE(CAST(job.[slr_id2] AS VARCHAR),'0')='0' THEN 'NONE' ELSE CONCAT(emp6.FirstName,' ',emp6.LastName) END AS SALES_REP_2_NAME\n,srs.SourceCode as LEADSOURCE,pulv.Descr as FIELD_SUPERVISOR\nFROM \n[ODS].[LP_PBC_job_Jobs] job\nleft join ODS.LP_PBC_ulv_UserLookupValues pulv on job.job_user_18=pulv.id \nINNER JOIN [ODS].[LP_PBC_cst_Customers] cst on job.cst_id = cst.id\nINNER JOIN [ODS].[LP_PBC_prd_Products] prd on job.ProductID = prd.ProductID\nINNER JOIN [ODS].[LP_PBC_prg_Product_Groups] prg on prd.prg_id = prg.id\nINNER JOIN [ODS].[LP_PBC_brp_ProductionBranches] brp on job.brp_id = brp.id\nINNER JOIN [ODS].[LP_PBC_mld_MilestoneDetail] mld on job.id = mld.job_id\nINNER JOIN [ODS].[LP_PBC_mdt_MilestoneDateTypes] mdt on mld.mdt_id = mdt.id\nINNER JOIN [ODS].[LP_PBC_brn_Branches] brn on brp.id=brn.id  --Add Reporting Market and Type request\nINNER JOIN [ODS].[LP_PBC_Lds_Leads] leads on leads.id = job.lds_id --To ignore Kohler records\nLEFT JOIN [ODS].[LP_PBC_ins_Installers] emp1 on job.ins_installer1=emp1.id\nLEFT JOIN [ODS].[LP_PBC_ins_Installers] emp2 on job.ins_installer2=emp2.id\nLEFT JOIN [ODS].[LP_PBC_ins_Installers] emp3 on job.ins_installer3=emp3.id\nLEFT JOIN [ODS].[LP_PBC_ins_Installers] emp4 on job.ins_installer4=emp4.id\n left join [ODS].[LP_PBC_emp_Employees] emp5 on job.slr_id=emp5.id\n left join [ODS].[LP_PBC_emp_Employees] emp6 on job.slr_id2=emp6.id\n left join [ODS].[LP_PBC_srs_SourceSubs] srs on srs.id=leads.srs_id\nWHERE \nmdt.Descr = 'PRJ Completed Date'\nand mld.ActDate is NOT NULL\nAND datediff(DAY, mld.ActDate, dbo.fnConvertUTCtoPST (getdate())) between 3 and 30  --AM 20230921: As per request from Eric H on 9/21, the logic is changed to only send data between 10 and 30\n --20260323: As per Request from Selena, Logic has been changed to send dtaa between 3 and 30 days from 10 to 30 days.\nand CAST(mld.ActDate as DATE)>='2024-08-21'",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "FIRST_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "FIRST_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LAST_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LAST_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "EMAIL_ADDRESS",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "EMAIL_ADDRESS",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PHONE_NUMBER",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PHONE_NUMBER",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CONTRACT_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "CONTRACT_ID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ACCOUNT_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "ACCOUNT_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_DATETIME",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "SERVICE_DATETIME",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "PRODUCT_LINE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PRODUCT_LINE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PRODUCTION_BRANCH_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PRODUCTION_BRANCH_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "BRAND_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "BRAND_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LANGUAGE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LANGUAGE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "COUNTRY",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "COUNTRY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CHANNEL",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "CHANNEL",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "REPORTING_MARKET",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "REPORTING_MARKET",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "REPORTING_MARKET_TYPE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "REPORTING_MARKET_TYPE",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "BRANCHID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_1_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_1_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_2_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_2_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_3_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_3_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_4_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_4_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_4_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_4_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_3_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_3_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_2_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_2_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_1_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_1_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ADDRESS",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ADDRESS",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CITY",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "CITY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "STATE",
+									"type": "String",
+									"physicalType": "char"
+								},
+								"sink": {
+									"name": "STATE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ZIP",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ZIP",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_ID_1",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_ID_1",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_ID_2",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_ID_2",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_1_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_1_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_2_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_2_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LEADSOURCE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LEADSOURCE",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "FIELD_SUPERVISOR",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "FIELD_SUPERVISOR",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_ODS_LP_PBC_mld_MilestoneDetail",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "OUT_GUILD_INSTALL_EXP_INVITE",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "PHI",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Truncate Install Exp Invite Staging table",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT distinct\ncst.FirstName as [FIRST_NAME]\n,cst.LastName as [LAST_NAME]\n,cst.Email as [EMAIL_ADDRESS]\n,cst.Phone as [PHONE_NUMBER]\n,'English' as [LANGUAGE]\n,'US' as [COUNTRY]\n--,'PHI' as [BRAND_NAME]\n,case when prd.productid = 'Coat' then 'REN' else 'PHI' end as [BRAND_NAME]\n,'' AS CHANNEL\n,job.contractid AS CONTRACT_ID\n,job.cst_id AS ACCOUNT_ID\n,job.ins_installer1 AS SERVICE_TECHNICIAN_1_ID\n,job.ins_installer2 AS SERVICE_TECHNICIAN_2_ID\n,job.ins_installer3 AS SERVICE_TECHNICIAN_3_ID\n,job.ins_installer4 AS SERVICE_TECHNICIAN_4_ID\n,brp.LongName as PRODUCTION_BRANCH_NAME\n,mld.ActDate as SERVICE_DATETIME\n,prg.Descr as PRODUCT_LINE\n,ISNULL((select rpm.descr from [ODS].[LP_PHI_rpm_ReportingMarket] rpm where id=brn.rpm_id),'Undefined') as REPORTING_MARKET  --Add Reporting Market and Type request\n,ISNULL((select tof.descr from [ODS].[LP_PHI_tof_TypeOfMarket] tof where id=brn.tof_id),'Undefined') as REPORTING_MARKET_TYPE  --Add Reporting Market and Type request\nFROM \n[ODS].[LP_PHI_job_Jobs] job\n,[ODS].[LP_PHI_cst_Customers] cst\n,[ODS].[LP_PHI_prd_Products] prd\n,[ODS].[LP_PHI_prg_Product_Groups] prg\n,[ODS].[LP_PHI_brp_ProductionBranches] brp\n,[ODS].[LP_PHI_mld_MilestoneDetail] mld\n,[ODS].[LP_PHI_mdt_MilestoneDateTypes] mdt\n,[ODS].[LP_PHI_brn_Branches] brn  --Add Reporting Market and Type request\nWHERE \nmld.mdt_id = mdt.id\nand job.cst_id = cst.id\nand job.ProductID = prd.ProductID\nand prd.prg_id = prg.id\nand job.id = mld.job_id\nand job.brp_id = brp.id\nand brp.id=brn.id  --Add Reporting Market and Type request\nand mdt.Descr = 'Completion'  -- AM 20230605: Changed to Installed as per the requirements from PHI team. --This is uncommented on 7/17\n-- and mdt.Descr = 'Installed'  --AM 20230717: commented on 7/17 - Changed back to Completion as per email on 7/17\nand mld.ActDate is NOT NULL\nAND datediff(DAY, mld.ActDate, dbo.fnConvertUTCtoPST (getdate())) between 0 and 30\nand prd.ProductID='Coat' -- AM 20230807: added this condition as per the requirement from Eric on 08/07 as Paradise is shutting down.",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "FIRST_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "FIRST_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LAST_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LAST_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "EMAIL_ADDRESS",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "EMAIL_ADDRESS",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PHONE_NUMBER",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PHONE_NUMBER",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CONTRACT_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "CONTRACT_ID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ACCOUNT_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "ACCOUNT_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_DATETIME",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "SERVICE_DATETIME",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "PRODUCT_LINE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PRODUCT_LINE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PRODUCTION_BRANCH_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PRODUCTION_BRANCH_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_1_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_1_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_2_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_2_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_3_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_3_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_4_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_4_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "BRAND_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "BRAND_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LANGUAGE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LANGUAGE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "COUNTRY",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "COUNTRY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CHANNEL",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "CHANNEL",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "REPORTING_MARKET",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "REPORTING_MARKET",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "REPORTING_MARKET_TYPE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "REPORTING_MARKET_TYPE",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_ODS_LP_PHI_mld_MilestoneDetail",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "OUT_MEDALLIA_INSTALL_EXP_INVITE",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "RTW",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Truncate Install Exp Invite Staging table",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT distinct\ncst.FirstName as [FIRST_NAME]\n,cst.LastName as [LAST_NAME]\n,cst.Email as [EMAIL_ADDRESS]\n,cst.Phone as [PHONE_NUMBER]\n,CONCAT(cst.Address1,' ',cst.Address2) as [ADDRESS]\n,cst.City as [CITY]\n,cst.[State] as [STATE]\n,cst.Zip as ZIP\n,'English' as [LANGUAGE]\n,'US' as [COUNTRY]\n,Case when brp.id in ('PHI','PIT','VA' ,'MDC') and mld.ActDate <='2025-02-14' then 'HSI' else 'RTW' end as [BRAND_NAME]\n,'' AS CHANNEL\n,job.contractid AS CONTRACT_ID\n,job.cst_id AS ACCOUNT_ID\n--,CASE WHEN CAST(job.ins_installer4 as VARCHAR) IS NULL AND CAST(job.ins_installer3 as VARCHAR) IS NULL AND CAST(job.ins_installer2 as VARCHAR) IS NULL THEN ISNULL(CAST(job.ins_installer1 as VARCHAR),'')\n--ELSE CASE WHEN CAST(job.ins_installer4 as VARCHAR) IS NULL AND CAST(job.ins_installer3 as VARCHAR) IS NULL AND CAST(job.ins_installer2 as VARCHAR) IS NOT NULL AND CAST(job.ins_installer1 as VARCHAR) IS NOT NULL THEN CONCAT(CAST(job.ins_installer1 as VARCHAR),';',CAST(job.ins_installer2 as VARCHAR))\n--ELSE CASE WHEN CAST(job.ins_installer4 as VARCHAR) IS NULL AND CAST(job.ins_installer3 as VARCHAR) IS NOT NULL AND CAST(job.ins_installer2 as VARCHAR) IS NOT NULL AND CAST(job.ins_installer1 as VARCHAR) IS NOT NULL THEN CONCAT(CAST(job.ins_installer1 as VARCHAR),';',CAST(job.ins_installer2 as VARCHAR),';',CAST(job.ins_installer3 as VARCHAR))\n--ELSE CASE WHEN (CAST(job.ins_installer1 as VARCHAR) IS NULL AND CAST(job.ins_installer4 as VARCHAR) IS NULL) OR (CAST(job.ins_installer2 as VARCHAR) IS NULL AND CAST(job.ins_installer4 as VARCHAR) IS NULL) THEN CONCAT(CAST(job.ins_installer1 as VARCHAR),';',CAST(job.ins_installer2 as VARCHAR),';',CAST(job.ins_installer3 as VARCHAR))\n--ELSE CONCAT(CAST(job.ins_installer1 as VARCHAR),';',CAST(job.ins_installer2 as VARCHAR),';',CAST(job.ins_installer3 as VARCHAR),';',CAST(job.ins_installer4 as VARCHAR)) END END END END AS SERVICE_TECHNICIAN_ID\n--,CASE WHEN TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL AND TRIM(Concat(emp3.LastName,emp3.FirstName)) IS NULL AND TRIM(Concat(emp2.LastName,emp2.FirstName)) IS NULL THEN ISNULL(Concat(emp1.LastName,' ',emp1.FirstName),'')\n--ELSE CASE WHEN TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL AND TRIM(Concat(emp3.LastName,emp3.FirstName)) IS NULL AND TRIM(Concat(emp2.LastName,emp2.FirstName)) IS NOT NULL THEN CONCAT(Concat(emp1.LastName,' ',emp1.FirstName),';',Concat(emp2.LastName,' ',emp2.FirstName))\n--ELSE CASE WHEN TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL AND TRIM(Concat(emp3.LastName,emp3.FirstName)) IS NOT NULL AND TRIM(Concat(emp2.LastName,emp2.FirstName)) IS NOT NULL THEN CONCAT(Concat(emp1.LastName,' ',emp1.FirstName),';',Concat(emp2.LastName,' ',emp2.FirstName),';',Concat(emp3.LastName,' ',emp3.FirstName))\n--ELSE CASE WHEN (TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL AND TRIM(Concat(emp1.LastName,emp1.FirstName)) IS NULL) OR (TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL and TRIM(Concat(emp2.LastName,emp2.FirstName)) IS NULL) THEN CONCAT(Concat(emp1.LastName,' ',emp1.FirstName),';',Concat(emp2.LastName,' ',emp2.FirstName),';',Concat(emp3.LastName,' ',emp3.FirstName))\n--ELSE CONCAT(Concat(emp1.LastName,' ',emp1.FirstName),';',Concat(emp2.LastName,' ',emp2.FirstName),';',Concat(emp3.LastName,' ',emp3.FirstName),';',Concat(emp4.LastName,' ',emp4.FirstName)) \n--END END END END as SERVICE_TECHNICIAN_NAME\n,ISNULL(CAST(job.ins_installer1 as VARCHAR),'0') AS SERVICE_TECHNICIAN_1_ID\n, CASE WHEN COALESCE(CAST(job.ins_installer1 as VARCHAR),'0')='0' THEN 'NONE' ELSE emp1.Name END AS SERVICE_TECHNICIAN_1_NAME\n,ISNULL(CAST(job.ins_installer2 as VARCHAR),'0') AS SERVICE_TECHNICIAN_2_ID\n,CASE WHEN COALESCE(CAST(job.ins_installer2 as VARCHAR),'0')='0' THEN 'NONE' ELSE emp2.Name END as SERVICE_TECHNICIAN_2_NAME\n,ISNULL(CAST(job.ins_installer3 as VARCHAR),'0') AS SERVICE_TECHNICIAN_3_ID\n,CASE WHEN COALESCE(CAST(job.ins_installer3 as VARCHAR),'0')='0' THEN 'NONE' ELSE emp3.Name END as SERVICE_TECHNICIAN_3_NAME\n,ISNULL(CAST(job.ins_installer4 as VARCHAR),'0') AS SERVICE_TECHNICIAN_4_ID\n,CASE WHEN COALESCE(CAST(job.ins_installer4 as VARCHAR),'0')='0' THEN 'NONE' ELSE emp4.Name END as SERVICE_TECHNICIAN_4_NAME\n,brp.LongName as PRODUCTION_BRANCH_NAME\n,Case when brp.id in ('PHI','PIT','VA' ,'MDC') and mld.ActDate <='2025-02-14' then CONCAT('HSI-',brn.id) else CONCAT('RTW-',brn.id) end  as BranchID\n,mld.ActDate as SERVICE_DATETIME\n,prd.LongDescr as PRODUCT_LINE\n,ISNULL((select rpm.descr from [ODS].[LP_RTW_rpm_ReportingMarket] rpm where id=brn.rpm_id),'Undefined') as REPORTING_MARKET  --Add Reporting Market and Type request\n,ISNULL((select tof.descr from [ODS].[LP_RTW_tof_TypeOfMarket] tof where id=brn.tof_id),'Undefined') as REPORTING_MARKET_TYPE  --Add Reporting Market and Type request\n,ISNULL(CAST(job.[slr_id] AS VARCHAR),'0') as SALES_REP_ID_1\n,CASE WHEN COALESCE(CAST(job.[slr_id] AS VARCHAR),'0')= '0' THEN 'NONE' ELSE CONCAT(emp5.FirstName,' ',emp5.LastName) END AS SALES_REP_1_NAME\n,ISNULL(CAST(job.[slr_id2] AS VARCHAR),'0') as SALES_REP_ID_2\n,CASE WHEN COALESCE(CAST(job.[slr_id2] AS VARCHAR),'0')='0' THEN 'NONE' ELSE CONCAT(emp6.FirstName,' ',emp6.LastName) END AS SALES_REP_2_NAME\n,srs.SourceCode as LEADSOURCE,CASE WHEN COALESCE(CAST(job.resource4 as VARCHAR),'0')='0' THEN 'NONE' ELSE  emp7.Name END  as FIELD_SUPERVISOR\nFROM \n[ODS].[LP_RTW_job_Jobs] job\nINNER JOIN [ODS].[LP_RTW_cst_Customers] cst on job.cst_id = cst.id\nINNER JOIN [ODS].[LP_RTW_prd_Products] prd on job.ProductID = prd.ProductID\nINNER JOIN [ODS].[LP_RTW_prg_Product_Groups] prg on prd.prg_id = prg.id\nINNER JOIN [ODS].[LP_RTW_brp_ProductionBranches] brp on job.brp_id = brp.id\nINNER JOIN [ODS].[LP_RTW_mld_MilestoneDetail] mld on job.id = mld.job_id\nINNER JOIN [ODS].[LP_RTW_mdt_MilestoneDateTypes] mdt on mld.mdt_id = mdt.id\nINNER JOIN [ODS].[LP_RTW_brn_Branches] brn on brp.id=brn.id --Add Reporting Market and Type request\nINNER JOIN [ODS].[LP_RTW_Lds_Leads] leads on leads.id = job.lds_id --To ignore Kohler records\nLEFT JOIN [ODS].[LP_RTW_ins_Installers] emp1 on job.ins_installer1=emp1.id\nLEFT JOIN [ODS].[LP_RTW_ins_Installers] emp2 on job.ins_installer2=emp2.id\nLEFT JOIN [ODS].[LP_RTW_ins_Installers] emp3 on job.ins_installer3=emp3.id\nLEFT JOIN [ODS].[LP_RTW_ins_Installers] emp4 on job.ins_installer4=emp4.id\nleft join [ODS].[LP_RTW_emp_Employees] emp5 on job.slr_id=emp5.id\nleft join [ODS].[LP_RTW_emp_Employees] emp6 on job.slr_id2=emp6.id\nleft join [ODS].[LP_RTW_ins_Installers] emp7 on job.resource4=emp7.id\nleft join [ODS].[LP_RTW_srs_SourceSubs] srs on srs.id=leads.srs_id\nWHERE \n mdt.Descr = 'Completion'\nand mld.ActDate is NOT NULL\nAND datediff(DAY, mld.ActDate, dbo.fnConvertUTCtoPST (getdate())) between 5 and 30--- Changed as per Eric's request to send out surveys after 5 days from completion\n--20260323: As per Request from Selena, Logic has been changed to send data between 3 and 30 days from 5 to 30 days.\n--and leads.src_id not like 'kohler%' \nand CAST(mld.ActDate as DATE)>='2024-08-30'\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "FIRST_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "FIRST_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LAST_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LAST_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "EMAIL_ADDRESS",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "EMAIL_ADDRESS",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PHONE_NUMBER",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PHONE_NUMBER",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CONTRACT_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "CONTRACT_ID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ACCOUNT_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "ACCOUNT_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_DATETIME",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "SERVICE_DATETIME",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "PRODUCT_LINE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PRODUCT_LINE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PRODUCTION_BRANCH_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PRODUCTION_BRANCH_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "BRAND_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "BRAND_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LANGUAGE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LANGUAGE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "COUNTRY",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "COUNTRY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CHANNEL",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "CHANNEL",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "REPORTING_MARKET",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "REPORTING_MARKET",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "REPORTING_MARKET_TYPE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "REPORTING_MARKET_TYPE",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "BRANCHID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_1_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_1_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_2_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_2_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_3_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_3_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_4_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_4_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_4_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_4_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_3_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_3_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_2_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_2_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_1_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_1_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ADDRESS",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ADDRESS",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CITY",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "CITY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "STATE",
+									"type": "String",
+									"physicalType": "char"
+								},
+								"sink": {
+									"name": "STATE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ZIP",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ZIP",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_ID_1",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_ID_1",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_ID_2",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_ID_2",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_1_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_1_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_2_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_2_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LEADSOURCE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LEADSOURCE",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "FIELD_SUPERVISOR",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "FIELD_SUPERVISOR",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_ODS_LP_PHI_mld_MilestoneDetail",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "OUT_GUILD_INSTALL_EXP_INVITE",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "MAC",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Truncate Install Exp Invite Staging table",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT distinct\ncst.FirstName as [FIRST_NAME]\n,cst.LastName as [LAST_NAME]\n,cst.Email as [EMAIL_ADDRESS]\n,cst.Phone as [PHONE_NUMBER]\n,CONCAT(cst.Address1,' ',cst.Address2) as [ADDRESS]\n,cst.City as [CITY]\n,cst.[State] as [STATE]\n,cst.Zip as ZIP\n,'English' as [LANGUAGE]\n,'US' as [COUNTRY]\n,case when prd.productid = 'Coat' then 'REN' else 'MAC' end as [BRAND_NAME]\n,'' AS CHANNEL\n,job.contractid AS CONTRACT_ID\n,job.cst_id AS ACCOUNT_ID\n--,CASE WHEN CAST(job.ins_installer4 as VARCHAR) IS NULL AND CAST(job.ins_installer3 as VARCHAR) IS NULL AND CAST(job.ins_installer2 as VARCHAR) IS NULL THEN ISNULL(CAST(job.ins_installer1 as VARCHAR),'')\n--ELSE CASE WHEN CAST(job.ins_installer4 as VARCHAR) IS NULL AND CAST(job.ins_installer3 as VARCHAR) IS NULL AND CAST(job.ins_installer2 as VARCHAR) IS NOT NULL AND CAST(job.ins_installer1 as VARCHAR) IS NOT NULL THEN CONCAT(CAST(job.ins_installer1 as VARCHAR),';',CAST(job.ins_installer2 as VARCHAR))\n--ELSE CASE WHEN CAST(job.ins_installer4 as VARCHAR) IS NULL AND CAST(job.ins_installer3 as VARCHAR) IS NOT NULL AND CAST(job.ins_installer2 as VARCHAR) IS NOT NULL AND CAST(job.ins_installer1 as VARCHAR) IS NOT NULL THEN CONCAT(CAST(job.ins_installer1 as VARCHAR),';',CAST(job.ins_installer2 as VARCHAR),';',CAST(job.ins_installer3 as VARCHAR))\n--ELSE CASE WHEN (CAST(job.ins_installer1 as VARCHAR) IS NULL AND CAST(job.ins_installer4 as VARCHAR) IS NULL) OR (CAST(job.ins_installer2 as VARCHAR) IS NULL AND CAST(job.ins_installer4 as VARCHAR) IS NULL) THEN CONCAT(CAST(job.ins_installer1 as VARCHAR),';',CAST(job.ins_installer2 as VARCHAR),';',CAST(job.ins_installer3 as VARCHAR))\n--ELSE CONCAT(CAST(job.ins_installer1 as VARCHAR),';',CAST(job.ins_installer2 as VARCHAR),';',CAST(job.ins_installer3 as VARCHAR),';',CAST(job.ins_installer4 as VARCHAR)) END END END END AS SERVICE_TECHNICIAN_ID\n--,CASE WHEN TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL AND TRIM(Concat(emp3.LastName,emp3.FirstName)) IS NULL AND TRIM(Concat(emp2.LastName,emp2.FirstName)) IS NULL THEN ISNULL(Concat(emp1.LastName,' ',emp1.FirstName),'')\n--ELSE CASE WHEN TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL AND TRIM(Concat(emp3.LastName,emp3.FirstName)) IS NULL AND TRIM(Concat(emp2.LastName,emp2.FirstName)) IS NOT NULL THEN CONCAT(Concat(emp1.LastName,' ',emp1.FirstName),';',Concat(emp2.LastName,' ',emp2.FirstName))\n--ELSE CASE WHEN TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL AND TRIM(Concat(emp3.LastName,emp3.FirstName)) IS NOT NULL AND TRIM(Concat(emp2.LastName,emp2.FirstName)) IS NOT NULL THEN CONCAT(Concat(emp1.LastName,' ',emp1.FirstName),';',Concat(emp2.LastName,' ',emp2.FirstName),';',Concat(emp3.LastName,' ',emp3.FirstName))\n--ELSE CASE WHEN (TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL AND TRIM(Concat(emp1.LastName,emp1.FirstName)) IS NULL) OR (TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL and TRIM(Concat(emp2.LastName,emp2.FirstName)) IS NULL) THEN CONCAT(Concat(emp1.LastName,' ',emp1.FirstName),';',Concat(emp2.LastName,' ',emp2.FirstName),';',Concat(emp3.LastName,' ',emp3.FirstName))\n--ELSE CONCAT(Concat(emp1.LastName,' ',emp1.FirstName),';',Concat(emp2.LastName,' ',emp2.FirstName),';',Concat(emp3.LastName,' ',emp3.FirstName),';',Concat(emp4.LastName,' ',emp4.FirstName)) \n--END END END END as SERVICE_TECHNICIAN_NAME\n,ISNULL(CAST(job.ins_installer1 as VARCHAR),'0') AS SERVICE_TECHNICIAN_1_ID\n, CASE WHEN COALESCE(CAST(job.ins_installer1 as VARCHAR),'0')='0' THEN 'NONE' ELSE emp1.Name END AS SERVICE_TECHNICIAN_1_NAME\n,ISNULL(CAST(job.ins_installer2 as VARCHAR),'0') AS SERVICE_TECHNICIAN_2_ID\n,CASE WHEN COALESCE(CAST(job.ins_installer2 as VARCHAR),'0')='0' THEN 'NONE' ELSE emp2.Name END as SERVICE_TECHNICIAN_2_NAME\n,ISNULL(CAST(job.ins_installer3 as VARCHAR),'0') AS SERVICE_TECHNICIAN_3_ID\n,CASE WHEN COALESCE(CAST(job.ins_installer3 as VARCHAR),'0')='0' THEN 'NONE' ELSE emp3.Name END as SERVICE_TECHNICIAN_3_NAME\n,ISNULL(CAST(job.ins_installer4 as VARCHAR),'0') AS SERVICE_TECHNICIAN_4_ID\n,CASE WHEN COALESCE(CAST(job.ins_installer4 as VARCHAR),'0')='0' THEN 'NONE' ELSE emp4.Name END as SERVICE_TECHNICIAN_4_NAME\n,brp.LongName as PRODUCTION_BRANCH_NAME\n,CONCAT(case when prd.productid = 'Coat' then 'REN-' else 'MAC-' end,brn.id) as BranchID\n,mld.ActDate as SERVICE_DATETIME\n,prd.LongDescr as PRODUCT_LINE\n,ISNULL((select rpm.descr from [ODS].[LP_MAC_rpm_ReportingMarket] rpm where id=brn.rpm_id),'Undefined') as REPORTING_MARKET  --Add Reporting Market and Type request\n,ISNULL((select tof.descr from [ODS].[LP_MAC_tof_TypeOfMarket] tof where id=brn.tof_id),'Undefined') as REPORTING_MARKET_TYPE  --Add Reporting Market and Type request\n,ISNULL(CAST(job.[slr_id] AS VARCHAR),'0') as SALES_REP_ID_1\n,CASE WHEN COALESCE(CAST(job.[slr_id] AS VARCHAR),'0')= '0' THEN 'NONE' ELSE CONCAT(emp5.FirstName,' ',emp5.LastName) END AS SALES_REP_1_NAME\n,ISNULL(CAST(job.[slr_id2] AS VARCHAR),'0') as SALES_REP_ID_2\n,CASE WHEN COALESCE(CAST(job.[slr_id2] AS VARCHAR),'0')='0' THEN 'NONE' ELSE CONCAT(emp6.FirstName,' ',emp6.LastName) END AS SALES_REP_2_NAME\n,srs.SourceCode as LEADSOURCE,'NA' as FIELD_SUPERVISOR\nFROM \n[ODS].[LP_MAC_job_Jobs] job\nINNER JOIN [ODS].[LP_MAC_cst_Customers] cst on job.cst_id = cst.id\nINNER JOIN [ODS].[LP_MAC_prd_Products] prd on job.ProductID = prd.ProductID\nINNER JOIN [ODS].[LP_MAC_prg_Product_Groups] prg on  prd.prg_id = prg.id\nINNER JOIN [ODS].[LP_MAC_brp_ProductionBranches] brp on job.brp_id = brp.id\nINNER JOIN [ODS].[LP_MAC_mld_MilestoneDetail] mld on job.id = mld.job_id\nINNER JOIN [ODS].[LP_MAC_mdt_MilestoneDateTypes] mdt on mld.mdt_id = mdt.id\nINNER JOIN [ODS].[LP_MAC_brn_Branches] brn on brp.id=brn.id --Add Reporting Market and Type request\nLEFT JOIN [ODS].[LP_MAC_ins_Installers] emp1 on job.ins_installer1=emp1.id\nLEFT JOIN [ODS].[LP_MAC_ins_Installers] emp2 on job.ins_installer2=emp2.id\nLEFT JOIN [ODS].[LP_MAC_ins_Installers] emp3 on job.ins_installer3=emp3.id\nLEFT JOIN [ODS].[LP_MAC_ins_Installers] emp4 on job.ins_installer4=emp4.id\nleft join [ODS].[LP_MAC_emp_Employees] emp5 on job.slr_id=emp5.id\nleft join [ODS].[LP_MAC_emp_Employees] emp6 on job.slr_id2=emp6.id\nleft join [ODS].[LP_MAC_lds_Leads] leads on leads.id=job.lds_id\nleft join [ODS].[LP_MAC_srs_SourceSubs] srs on leads.srs_id=srs.id\nWHERE \nmdt.Descr = 'Completion'\nand mld.ActDate is NOT NULL\nAND datediff(DAY, mld.ActDate, dbo.fnConvertUTCtoPST (getdate())) between 3 and 30 --20260323: As per Request from Selena, Logic has been changed to send data between 3 and 30 days from 0 to 30 days\nand CAST(mld.ActDate as DATE)>='2024-08-30'\n\nUNION\n\nSELECT distinct\ncst.FirstName as [FIRST_NAME]\n,cst.LastName as [LAST_NAME]\n,cst.Email as [EMAIL_ADDRESS]\n,cst.Phone as [PHONE_NUMBER]\n,CONCAT(cst.Address1,' ',cst.Address2) as [ADDRESS]\n,cst.City as [CITY]\n,cst.[State] as [STATE]\n,cst.Zip as ZIP\n,'English' as [LANGUAGE]\n,'US' as [COUNTRY]\n,case when prd.productid = 'Coat' then 'REN' else 'MAC' end as [BRAND_NAME]\n,'' AS CHANNEL\n,job.contractid AS CONTRACT_ID\n,job.cst_id AS ACCOUNT_ID\n--,CASE WHEN CAST(job.ins_installer4 as VARCHAR) IS NULL AND CAST(job.ins_installer3 as VARCHAR) IS NULL AND CAST(job.ins_installer2 as VARCHAR) IS NULL THEN ISNULL(CAST(job.ins_installer1 as VARCHAR),'')\n--ELSE CASE WHEN CAST(job.ins_installer4 as VARCHAR) IS NULL AND CAST(job.ins_installer3 as VARCHAR) IS NULL AND CAST(job.ins_installer2 as VARCHAR) IS NOT NULL AND CAST(job.ins_installer1 as VARCHAR) IS NOT NULL THEN CONCAT(CAST(job.ins_installer1 as VARCHAR),';',CAST(job.ins_installer2 as VARCHAR))\n--ELSE CASE WHEN CAST(job.ins_installer4 as VARCHAR) IS NULL AND CAST(job.ins_installer3 as VARCHAR) IS NOT NULL AND CAST(job.ins_installer2 as VARCHAR) IS NOT NULL AND CAST(job.ins_installer1 as VARCHAR) IS NOT NULL THEN CONCAT(CAST(job.ins_installer1 as VARCHAR),';',CAST(job.ins_installer2 as VARCHAR),';',CAST(job.ins_installer3 as VARCHAR))\n--ELSE CASE WHEN (CAST(job.ins_installer1 as VARCHAR) IS NULL AND CAST(job.ins_installer4 as VARCHAR) IS NULL) OR (CAST(job.ins_installer2 as VARCHAR) IS NULL AND CAST(job.ins_installer4 as VARCHAR) IS NULL) THEN CONCAT(CAST(job.ins_installer1 as VARCHAR),';',CAST(job.ins_installer2 as VARCHAR),';',CAST(job.ins_installer3 as VARCHAR))\n--ELSE CONCAT(CAST(job.ins_installer1 as VARCHAR),';',CAST(job.ins_installer2 as VARCHAR),';',CAST(job.ins_installer3 as VARCHAR),';',CAST(job.ins_installer4 as VARCHAR)) END END END END AS SERVICE_TECHNICIAN_ID\n--,CASE WHEN TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL AND TRIM(Concat(emp3.LastName,emp3.FirstName)) IS NULL AND TRIM(Concat(emp2.LastName,emp2.FirstName)) IS NULL THEN ISNULL(Concat(emp1.LastName,' ',emp1.FirstName),'')\n--ELSE CASE WHEN TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL AND TRIM(Concat(emp3.LastName,emp3.FirstName)) IS NULL AND TRIM(Concat(emp2.LastName,emp2.FirstName)) IS NOT NULL THEN CONCAT(Concat(emp1.LastName,' ',emp1.FirstName),';',Concat(emp2.LastName,' ',emp2.FirstName))\n--ELSE CASE WHEN TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL AND TRIM(Concat(emp3.LastName,emp3.FirstName)) IS NOT NULL AND TRIM(Concat(emp2.LastName,emp2.FirstName)) IS NOT NULL THEN CONCAT(Concat(emp1.LastName,' ',emp1.FirstName),';',Concat(emp2.LastName,' ',emp2.FirstName),';',Concat(emp3.LastName,' ',emp3.FirstName))\n--ELSE CASE WHEN (TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL AND TRIM(Concat(emp1.LastName,emp1.FirstName)) IS NULL) OR (TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL and TRIM(Concat(emp2.LastName,emp2.FirstName)) IS NULL) THEN CONCAT(Concat(emp1.LastName,' ',emp1.FirstName),';',Concat(emp2.LastName,' ',emp2.FirstName),';',Concat(emp3.LastName,' ',emp3.FirstName))\n--ELSE CONCAT(Concat(emp1.LastName,' ',emp1.FirstName),';',Concat(emp2.LastName,' ',emp2.FirstName),';',Concat(emp3.LastName,' ',emp3.FirstName),';',Concat(emp4.LastName,' ',emp4.FirstName)) \n--END END END END as SERVICE_TECHNICIAN_NAME\n,ISNULL(CAST(job.ins_installer1 as VARCHAR),'0') AS SERVICE_TECHNICIAN_1_ID\n, CASE WHEN COALESCE(CAST(job.ins_installer1 as VARCHAR),'0')='0' THEN 'NONE' ELSE emp1.Name END AS SERVICE_TECHNICIAN_1_NAME\n,ISNULL(CAST(job.ins_installer2 as VARCHAR),'0') AS SERVICE_TECHNICIAN_2_ID\n,CASE WHEN COALESCE(CAST(job.ins_installer2 as VARCHAR),'0')='0' THEN 'NONE' ELSE emp2.Name END as SERVICE_TECHNICIAN_2_NAME\n,ISNULL(CAST(job.ins_installer3 as VARCHAR),'0') AS SERVICE_TECHNICIAN_3_ID\n,CASE WHEN COALESCE(CAST(job.ins_installer3 as VARCHAR),'0')='0' THEN 'NONE' ELSE emp3.Name END as SERVICE_TECHNICIAN_3_NAME\n,ISNULL(CAST(job.ins_installer4 as VARCHAR),'0') AS SERVICE_TECHNICIAN_4_ID\n,CASE WHEN COALESCE(CAST(job.ins_installer4 as VARCHAR),'0')='0' THEN 'NONE' ELSE emp4.Name END as SERVICE_TECHNICIAN_4_NAME\n,brp.LongName as PRODUCTION_BRANCH_NAME\n,CONCAT(case when prd.productid = 'Coat' then 'REN-' else 'MAC-' end,brn.id) as BranchID\n,mld.ActDate as SERVICE_DATETIME\n,prd.LongDescr as PRODUCT_LINE\n,ISNULL((select rpm.descr from [ODS].[LP_MAC_rpm_ReportingMarket] rpm where id=brn.rpm_id),'Undefined') as REPORTING_MARKET  --Add Reporting Market and Type request\n,ISNULL((select tof.descr from [ODS].[LP_MAC_tof_TypeOfMarket] tof where id=brn.tof_id),'Undefined') as REPORTING_MARKET_TYPE  --Add Reporting Market and Type request\n,ISNULL(CAST(job.[slr_id] AS VARCHAR),'0') as SALES_REP_ID_1\n,CASE WHEN COALESCE(CAST(job.[slr_id] AS VARCHAR),'0')= '0' THEN 'NONE' ELSE CONCAT(emp5.FirstName,' ',emp5.LastName) END AS SALES_REP_1_NAME\n,ISNULL(CAST(job.[slr_id2] AS VARCHAR),'0') as SALES_REP_ID_2\n,CASE WHEN COALESCE(CAST(job.[slr_id2] AS VARCHAR),'0')='0' THEN 'NONE' ELSE CONCAT(emp6.FirstName,' ',emp6.LastName) END AS SALES_REP_2_NAME\n,srs.SourceCode as LEADSOURCE,'NA' as FIELD_SUPERVISOR\nFROM \n[ODS].[LP_MAC_job_Jobs] job\nINNER JOIN [ODS].[LP_MAC_cst_Customers] cst on job.cst_id = cst.id\nINNER JOIN [ODS].[LP_MAC_prd_Products] prd on job.ProductID = prd.ProductID\nINNER JOIN [ODS].[LP_MAC_prg_Product_Groups] prg on  prd.prg_id = prg.id\nINNER JOIN [ODS].[LP_MAC_brp_ProductionBranches] brp on job.brp_id = brp.id\nINNER JOIN [ODS].[LP_MAC_mld_MilestoneDetail] mld on job.id = mld.job_id\nINNER JOIN [ODS].[LP_MAC_mdt_MilestoneDateTypes] mdt on mld.mdt_id = mdt.id\nINNER JOIN [ODS].[LP_MAC_brn_Branches] brn on brp.id=brn.id --Add Reporting Market and Type request\nLEFT JOIN [ODS].[LP_MAC_ins_Installers] emp1 on job.ins_installer1=emp1.id\nLEFT JOIN [ODS].[LP_MAC_ins_Installers] emp2 on job.ins_installer2=emp2.id\nLEFT JOIN [ODS].[LP_MAC_ins_Installers] emp3 on job.ins_installer3=emp3.id\nLEFT JOIN [ODS].[LP_MAC_ins_Installers] emp4 on job.ins_installer4=emp4.id\nleft join [ODS].[LP_MAC_emp_Employees] emp5 on job.slr_id=emp5.id\nleft join [ODS].[LP_MAC_emp_Employees] emp6 on job.slr_id2=emp6.id\nleft join [ODS].[LP_MAC_lds_Leads] leads on leads.id=job.lds_id\nleft join [ODS].[LP_MAC_srs_SourceSubs] srs on leads.srs_id=srs.id\nWHERE \nmdt.Descr = 'Completion'\nand mld.ActDate is NOT NULL\nAND datediff(DAY, mld.ActDate, dbo.fnConvertUTCtoPST (getdate())) between 0 and 50\n--and CAST(mld.ActDate as DATE)>='2024-08-30' \nand job.Contractid='MC49728CR'",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "FIRST_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "FIRST_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LAST_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LAST_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "EMAIL_ADDRESS",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "EMAIL_ADDRESS",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PHONE_NUMBER",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PHONE_NUMBER",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CONTRACT_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "CONTRACT_ID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ACCOUNT_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "ACCOUNT_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_DATETIME",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "SERVICE_DATETIME",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "PRODUCT_LINE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PRODUCT_LINE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PRODUCTION_BRANCH_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PRODUCTION_BRANCH_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "BRAND_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "BRAND_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LANGUAGE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LANGUAGE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "COUNTRY",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "COUNTRY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CHANNEL",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "CHANNEL",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "REPORTING_MARKET",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "REPORTING_MARKET",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "REPORTING_MARKET_TYPE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "REPORTING_MARKET_TYPE",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "BRANCHID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_1_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_1_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_2_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_2_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_3_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_3_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_4_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_4_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_4_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_4_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_3_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_3_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_2_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_2_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_1_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_1_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ADDRESS",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ADDRESS",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CITY",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "CITY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "STATE",
+									"type": "String",
+									"physicalType": "char"
+								},
+								"sink": {
+									"name": "STATE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ZIP",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ZIP",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_ID_1",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_ID_1",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_ID_2",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_ID_2",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_1_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_1_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_2_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_2_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LEADSOURCE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LEADSOURCE",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "FIELD_SUPERVISOR",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "FIELD_SUPERVISOR",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_ODS_LP_PHI_mld_MilestoneDetail",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "OUT_GUILD_INSTALL_EXP_INVITE",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "HSI",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Truncate Install Exp Invite Staging table",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT distinct\ncst.FirstName as [FIRST_NAME]\n,cst.LastName as [LAST_NAME]\n,cst.Email as [EMAIL_ADDRESS]\n,cst.Phone as [PHONE_NUMBER]\n,CONCAT(cst.Address1,' ',cst.Address2) as [ADDRESS]\n,cst.City as [CITY]\n,cst.[State] as [STATE]\n,cst.Zip as ZIP\n,'English' as [LANGUAGE]\n,'US' as [COUNTRY]\n,'HSI' as [BRAND_NAME]\n,'' AS CHANNEL\n,job.contractid AS CONTRACT_ID\n,job.cst_id AS ACCOUNT_ID\n--,CASE WHEN CAST(job.ins_installer4 as VARCHAR) IS NULL AND CAST(job.ins_installer3 as VARCHAR) IS NULL AND CAST(job.ins_installer2 as VARCHAR) IS NULL THEN ISNULL(CAST(job.ins_installer1 as VARCHAR),'')\n--ELSE CASE WHEN CAST(job.ins_installer4 as VARCHAR) IS NULL AND CAST(job.ins_installer3 as VARCHAR) IS NULL AND CAST(job.ins_installer2 as VARCHAR) IS NOT NULL AND CAST(job.ins_installer1 as VARCHAR) IS NOT NULL THEN CONCAT(CAST(job.ins_installer1 as VARCHAR),';',CAST(job.ins_installer2 as VARCHAR))\n--ELSE CASE WHEN CAST(job.ins_installer4 as VARCHAR) IS NULL AND CAST(job.ins_installer3 as VARCHAR) IS NOT NULL AND CAST(job.ins_installer2 as VARCHAR) IS NOT NULL AND CAST(job.ins_installer1 as VARCHAR) IS NOT NULL THEN CONCAT(CAST(job.ins_installer1 as VARCHAR),';',CAST(job.ins_installer2 as VARCHAR),';',CAST(job.ins_installer3 as VARCHAR))\n--ELSE CASE WHEN (CAST(job.ins_installer1 as VARCHAR) IS NULL AND CAST(job.ins_installer4 as VARCHAR) IS NULL) OR (CAST(job.ins_installer2 as VARCHAR) IS NULL AND CAST(job.ins_installer4 as VARCHAR) IS NULL) THEN CONCAT(CAST(job.ins_installer1 as VARCHAR),';',CAST(job.ins_installer2 as VARCHAR),';',CAST(job.ins_installer3 as VARCHAR))\n--ELSE CONCAT(CAST(job.ins_installer1 as VARCHAR),';',CAST(job.ins_installer2 as VARCHAR),';',CAST(job.ins_installer3 as VARCHAR),';',CAST(job.ins_installer4 as VARCHAR)) END END END END AS SERVICE_TECHNICIAN_ID\n--,CASE WHEN TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL AND TRIM(Concat(emp3.LastName,emp3.FirstName)) IS NULL AND TRIM(Concat(emp2.LastName,emp2.FirstName)) IS NULL THEN ISNULL(Concat(emp1.LastName,' ',emp1.FirstName),'')\n--ELSE CASE WHEN TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL AND TRIM(Concat(emp3.LastName,emp3.FirstName)) IS NULL AND TRIM(Concat(emp2.LastName,emp2.FirstName)) IS NOT NULL THEN CONCAT(Concat(emp1.LastName,' ',emp1.FirstName),';',Concat(emp2.LastName,' ',emp2.FirstName))\n--ELSE CASE WHEN TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL AND TRIM(Concat(emp3.LastName,emp3.FirstName)) IS NOT NULL AND TRIM(Concat(emp2.LastName,emp2.FirstName)) IS NOT NULL THEN CONCAT(Concat(emp1.LastName,' ',emp1.FirstName),';',Concat(emp2.LastName,' ',emp2.FirstName),';',Concat(emp3.LastName,' ',emp3.FirstName))\n--ELSE CASE WHEN (TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL AND TRIM(Concat(emp1.LastName,emp1.FirstName)) IS NULL) OR (TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL and TRIM(Concat(emp2.LastName,emp2.FirstName)) IS NULL) THEN CONCAT(Concat(emp1.LastName,' ',emp1.FirstName),';',Concat(emp2.LastName,' ',emp2.FirstName),';',Concat(emp3.LastName,' ',emp3.FirstName))\n--ELSE CONCAT(Concat(emp1.LastName,' ',emp1.FirstName),';',Concat(emp2.LastName,' ',emp2.FirstName),';',Concat(emp3.LastName,' ',emp3.FirstName),';',Concat(emp4.LastName,' ',emp4.FirstName)) \n--END END END END as SERVICE_TECHNICIAN_NAME\n,ISNULL(CAST(job.ins_installer1 as VARCHAR),'0') AS SERVICE_TECHNICIAN_1_ID\n, CASE WHEN COALESCE(CAST(job.ins_installer1 as VARCHAR),'0')='0' THEN 'NONE' ELSE emp1.Name END AS SERVICE_TECHNICIAN_1_NAME\n,ISNULL(CAST(job.ins_installer2 as VARCHAR),'0') AS SERVICE_TECHNICIAN_2_ID\n,CASE WHEN COALESCE(CAST(job.ins_installer2 as VARCHAR),'0')='0' THEN 'NONE' ELSE emp2.Name END as SERVICE_TECHNICIAN_2_NAME\n,ISNULL(CAST(job.ins_installer3 as VARCHAR),'0') AS SERVICE_TECHNICIAN_3_ID\n,CASE WHEN COALESCE(CAST(job.ins_installer3 as VARCHAR),'0')='0' THEN 'NONE' ELSE emp3.Name END as SERVICE_TECHNICIAN_3_NAME\n,ISNULL(CAST(job.ins_installer4 as VARCHAR),'0') AS SERVICE_TECHNICIAN_4_ID\n,CASE WHEN COALESCE(CAST(job.ins_installer4 as VARCHAR),'0')='0' THEN 'NONE' ELSE emp4.Name END as SERVICE_TECHNICIAN_4_NAME\n,brp.LongName as PRODUCTION_BRANCH_NAME\n,CONCAT('HSI-',brn.id) as BranchID\n,mld.ActDate as SERVICE_DATETIME\n,prd.LongDescr as PRODUCT_LINE\n,ISNULL((select rpm.descr from [ODS].[LP_HSI_rpm_ReportingMarket] rpm where id=brn.rpm_id),'Undefined') as REPORTING_MARKET  --Add Reporting Market and Type request\n,ISNULL((select tof.descr from [ODS].[LP_HSI_tof_TypeOfMarket] tof where id=brn.tof_id),'Undefined') as REPORTING_MARKET_TYPE  --Add Reporting Market and Type request\nFROM \n[ODS].[LP_HSI_job_Jobs] job\nINNER JOIN [ODS].[LP_HSI_cst_Customers] cst on  job.cst_id = cst.id\nINNER JOIN [ODS].[LP_HSI_prd_Products] prd on job.ProductID = prd.ProductID\nINNER JOIN [ODS].[LP_HSI_prg_Product_Groups] prg on prd.prg_id = prg.id\nINNER JOIN [ODS].[LP_HSI_brp_ProductionBranches] brp on job.brp_id = brp.id\nINNER JOIN [ODS].[LP_HSI_mld_MilestoneDetail] mld on job.id = mld.job_id\nINNER JOIN [ODS].[LP_HSI_mdt_MilestoneDateTypes] mdt on mld.mdt_id = mdt.id\nINNER JOIN [ODS].[LP_HSI_brn_Branches] brn on brp.id=brn.id --Add Reporting Market and Type request\nINNER JOIN [ODS].[LP_HSI_Lds_Leads] leads on leads.id = job.lds_id --To ignore Kohler records\nLEFT JOIN [ODS].[LP_HSI_ins_Installers] emp1 on job.ins_installer1=emp1.id\nLEFT JOIN [ODS].[LP_HSI_ins_Installers] emp2 on job.ins_installer2=emp2.id\nLEFT JOIN [ODS].[LP_HSI_ins_Installers] emp3 on job.ins_installer3=emp3.id\nLEFT JOIN [ODS].[LP_HSI_ins_Installers] emp4 on job.ins_installer4=emp4.id\nWHERE \nmdt.Descr = 'Completion'\nand mld.ActDate is NOT NULL\nAND datediff(DAY, mld.ActDate, dbo.fnConvertUTCtoPST (getdate())) between 0 and 30\n--and leads.src_id not like 'kohler%' \nand CAST(mld.ActDate as DATE)>='2024-08-30'",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "FIRST_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "FIRST_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LAST_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LAST_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "EMAIL_ADDRESS",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "EMAIL_ADDRESS",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PHONE_NUMBER",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PHONE_NUMBER",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CONTRACT_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "CONTRACT_ID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ACCOUNT_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "ACCOUNT_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_DATETIME",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "SERVICE_DATETIME",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "PRODUCT_LINE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PRODUCT_LINE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PRODUCTION_BRANCH_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PRODUCTION_BRANCH_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "BRAND_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "BRAND_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LANGUAGE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LANGUAGE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "COUNTRY",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "COUNTRY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CHANNEL",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "CHANNEL",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "REPORTING_MARKET",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "REPORTING_MARKET",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "REPORTING_MARKET_TYPE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "REPORTING_MARKET_TYPE",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "BRANCHID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_1_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_1_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_2_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_2_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_3_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_3_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_4_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_4_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_4_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_4_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_3_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_3_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_2_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_2_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_1_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_1_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ADDRESS",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ADDRESS",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CITY",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "CITY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "STATE",
+									"type": "String",
+									"physicalType": "char"
+								},
+								"sink": {
+									"name": "STATE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ZIP",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ZIP",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_ODS_LP_PHI_mld_MilestoneDetail",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "OUT_GUILD_INSTALL_EXP_INVITE",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "MXH",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Truncate Install Exp Invite Staging table",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT distinct\ncst.FirstName as [FIRST_NAME]\n,cst.LastName as [LAST_NAME]\n,cst.Email as [EMAIL_ADDRESS]\n,cst.Phone as [PHONE_NUMBER]\n,CONCAT(cst.Address1,' ',cst.Address2) as [ADDRESS]\n,cst.City as [CITY]\n,cst.[State] as [STATE]\n,cst.Zip as ZIP\n,'English' as [LANGUAGE]\n,'US' as [COUNTRY]\n,'MXH' as [BRAND_NAME]\n,'' AS CHANNEL\n,job.contractid AS CONTRACT_ID\n,job.cst_id AS ACCOUNT_ID\n--,CASE WHEN CAST(job.ins_installer4 as VARCHAR) IS NULL AND CAST(job.ins_installer3 as VARCHAR) IS NULL AND CAST(job.ins_installer2 as VARCHAR) IS NULL THEN ISNULL(CAST(job.ins_installer1 as VARCHAR),'')\n--ELSE CASE WHEN CAST(job.ins_installer4 as VARCHAR) IS NULL AND CAST(job.ins_installer3 as VARCHAR) IS NULL AND CAST(job.ins_installer2 as VARCHAR) IS NOT NULL AND CAST(job.ins_installer1 as VARCHAR) IS NOT NULL THEN CONCAT(CAST(job.ins_installer1 as VARCHAR),';',CAST(job.ins_installer2 as VARCHAR))\n--ELSE CASE WHEN CAST(job.ins_installer4 as VARCHAR) IS NULL AND CAST(job.ins_installer3 as VARCHAR) IS NOT NULL AND CAST(job.ins_installer2 as VARCHAR) IS NOT NULL AND CAST(job.ins_installer1 as VARCHAR) IS NOT NULL THEN CONCAT(CAST(job.ins_installer1 as VARCHAR),';',CAST(job.ins_installer2 as VARCHAR),';',CAST(job.ins_installer3 as VARCHAR))\n--ELSE CASE WHEN (CAST(job.ins_installer1 as VARCHAR) IS NULL AND CAST(job.ins_installer4 as VARCHAR) IS NULL) OR (CAST(job.ins_installer2 as VARCHAR) IS NULL AND CAST(job.ins_installer4 as VARCHAR) IS NULL) THEN CONCAT(CAST(job.ins_installer1 as VARCHAR),';',CAST(job.ins_installer2 as VARCHAR),';',CAST(job.ins_installer3 as VARCHAR))\n--ELSE CONCAT(CAST(job.ins_installer1 as VARCHAR),';',CAST(job.ins_installer2 as VARCHAR),';',CAST(job.ins_installer3 as VARCHAR),';',CAST(job.ins_installer4 as VARCHAR)) END END END END AS SERVICE_TECHNICIAN_ID\n--,CASE WHEN TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL AND TRIM(Concat(emp3.LastName,emp3.FirstName)) IS NULL AND TRIM(Concat(emp2.LastName,emp2.FirstName)) IS NULL THEN ISNULL(Concat(emp1.LastName,' ',emp1.FirstName),'')\n--ELSE CASE WHEN TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL AND TRIM(Concat(emp3.LastName,emp3.FirstName)) IS NULL AND TRIM(Concat(emp2.LastName,emp2.FirstName)) IS NOT NULL THEN CONCAT(Concat(emp1.LastName,' ',emp1.FirstName),';',Concat(emp2.LastName,' ',emp2.FirstName))\n--ELSE CASE WHEN TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL AND TRIM(Concat(emp3.LastName,emp3.FirstName)) IS NOT NULL AND TRIM(Concat(emp2.LastName,emp2.FirstName)) IS NOT NULL THEN CONCAT(Concat(emp1.LastName,' ',emp1.FirstName),';',Concat(emp2.LastName,' ',emp2.FirstName),';',Concat(emp3.LastName,' ',emp3.FirstName))\n--ELSE CASE WHEN (TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL AND TRIM(Concat(emp1.LastName,emp1.FirstName)) IS NULL) OR (TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL and TRIM(Concat(emp2.LastName,emp2.FirstName)) IS NULL) THEN CONCAT(Concat(emp1.LastName,' ',emp1.FirstName),';',Concat(emp2.LastName,' ',emp2.FirstName),';',Concat(emp3.LastName,' ',emp3.FirstName))\n--ELSE CONCAT(Concat(emp1.LastName,' ',emp1.FirstName),';',Concat(emp2.LastName,' ',emp2.FirstName),';',Concat(emp3.LastName,' ',emp3.FirstName),';',Concat(emp4.LastName,' ',emp4.FirstName)) \n--END END END END as SERVICE_TECHNICIAN_NAME\n,ISNULL(CAST(job.ins_installer1 as VARCHAR),'0') AS SERVICE_TECHNICIAN_1_ID\n, CASE WHEN COALESCE(CAST(job.ins_installer1 as VARCHAR),'0')='0' THEN 'NONE' ELSE emp1.Name END AS SERVICE_TECHNICIAN_1_NAME\n,ISNULL(CAST(job.ins_installer2 as VARCHAR),'0') AS SERVICE_TECHNICIAN_2_ID\n,CASE WHEN COALESCE(CAST(job.ins_installer2 as VARCHAR),'0')='0' THEN 'NONE' ELSE emp2.Name END as SERVICE_TECHNICIAN_2_NAME\n,ISNULL(CAST(job.ins_installer3 as VARCHAR),'0') AS SERVICE_TECHNICIAN_3_ID\n,CASE WHEN COALESCE(CAST(job.ins_installer3 as VARCHAR),'0')='0' THEN 'NONE' ELSE emp3.Name END as SERVICE_TECHNICIAN_3_NAME\n,ISNULL(CAST(job.ins_installer4 as VARCHAR),'0') AS SERVICE_TECHNICIAN_4_ID\n,CASE WHEN COALESCE(CAST(job.ins_installer4 as VARCHAR),'0')='0' THEN 'NONE' ELSE emp4.Name END as SERVICE_TECHNICIAN_4_NAME\n,brp.LongName as PRODUCTION_BRANCH_NAME\n,CONCAT('MXH-',brn.id) as BranchID\n,mld.ActDate as SERVICE_DATETIME\n,prd.LongDescr as PRODUCT_LINE\n,ISNULL((select rpm.descr from [ODS].[LP_MXH_rpm_ReportingMarket] rpm where id=brn.rpm_id),'Undefined') as REPORTING_MARKET  --Add Reporting Market and Type request\n,ISNULL((select tof.descr from [ODS].[LP_MXH_tof_TypeOfMarket] tof where id=brn.tof_id),'Undefined') as REPORTING_MARKET_TYPE  --Add Reporting Market and Type request\n,ISNULL(CAST(job.[slr_id] AS VARCHAR),'0') as SALES_REP_ID_1\n,CASE WHEN COALESCE(CAST(job.[slr_id] AS VARCHAR),'0')= '0' THEN 'NONE' ELSE CONCAT(emp5.FirstName,' ',emp5.LastName) END AS SALES_REP_1_NAME\n,ISNULL(CAST(job.[slr_id2] AS VARCHAR),'0') as SALES_REP_ID_2\n,CASE WHEN COALESCE(CAST(job.[slr_id2] AS VARCHAR),'0')='0' THEN 'NONE' ELSE CONCAT(emp6.FirstName,' ',emp6.LastName) END AS SALES_REP_2_NAME\nFROM \n[ODS].[LP_MXH_job_Jobs] job\nINNER JOIN [ODS].[LP_MXH_cst_Customers] cst on job.cst_id = cst.id\nINNER JOIN [ODS].[LP_MXH_prd_Products] prd on job.ProductID = prd.ProductID\nINNER JOIN [ODS].[LP_MXH_prg_Product_Groups] prg on prd.prg_id = prg.id\nINNER JOIN [ODS].[LP_MXH_brp_ProductionBranches] brp on job.brp_id = brp.id\nINNER JOIN [ODS].[LP_MXH_mld_MilestoneDetail] mld on job.id = mld.job_id\nINNER JOIN [ODS].[LP_MXH_mdt_MilestoneDateTypes] mdt on mld.mdt_id = mdt.id\nINNER JOIN [ODS].[LP_MXH_brn_Branches] brn on brp.id=brn.id --Add Reporting Market and Type request\nINNER JOIN [ODS].[LP_MXH_Lds_Leads] leads on leads.id = job.lds_id --To ignore Kohler records\nLEFT JOIN [ODS].[LP_MXH_ins_Installers] emp1 on job.ins_installer1=emp1.id\nLEFT JOIN [ODS].[LP_MXH_ins_Installers] emp2 on job.ins_installer2=emp2.id\nLEFT JOIN [ODS].[LP_MXH_ins_Installers] emp3 on job.ins_installer3=emp3.id\nLEFT JOIN [ODS].[LP_MXH_ins_Installers] emp4 on job.ins_installer4=emp4.id\nleft join [ODS].[LP_MXH_emp_Employees] emp5 on job.slr_id=emp5.id\nleft join [ODS].[LP_MXH_emp_Employees] emp6 on job.slr_id2=emp6.id\nWHERE \nmdt.Descr = 'Completion'\nand mld.ActDate is NOT NULL\nAND datediff(DAY, mld.ActDate, dbo.fnConvertUTCtoPST (getdate())) between 0 and 30\n--and leads.src_id not like 'kohler%' \nand CAST(mld.ActDate as DATE)>='2024-08-30'",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "FIRST_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "FIRST_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LAST_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LAST_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "EMAIL_ADDRESS",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "EMAIL_ADDRESS",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PHONE_NUMBER",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PHONE_NUMBER",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CONTRACT_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "CONTRACT_ID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ACCOUNT_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "ACCOUNT_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_DATETIME",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "SERVICE_DATETIME",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "PRODUCT_LINE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PRODUCT_LINE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PRODUCTION_BRANCH_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PRODUCTION_BRANCH_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "BRAND_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "BRAND_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LANGUAGE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LANGUAGE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "COUNTRY",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "COUNTRY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CHANNEL",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "CHANNEL",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "REPORTING_MARKET",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "REPORTING_MARKET",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "REPORTING_MARKET_TYPE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "REPORTING_MARKET_TYPE",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "BRANCHID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_1_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_1_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_2_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_2_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_3_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_3_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_4_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_4_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_4_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_4_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_3_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_3_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_2_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_2_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_1_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_1_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ADDRESS",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ADDRESS",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CITY",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "CITY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "STATE",
+									"type": "String",
+									"physicalType": "char"
+								},
+								"sink": {
+									"name": "STATE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ZIP",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ZIP",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_ID_1",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_ID_1",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_ID_2",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_ID_2",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_1_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_1_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_2_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_2_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_ODS_LP_PHI_mld_MilestoneDetail",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "OUT_GUILD_INSTALL_EXP_INVITE",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Cpy_Guild_Files_Install_Exp_Invite",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Copy Install Experience Invites to File",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "OUT_GUILD_INSTALL_EXP_INVITE",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "Medallia_Src_File_Install_Exp_Invite_Archive_Guild",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "CTA",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Truncate Install Exp Invite Staging table",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT distinct\ncst.FirstName as [FIRST_NAME]\n,cst.LastName as [LAST_NAME]\n,cst.Email as [EMAIL_ADDRESS]\n,cst.Phone as [PHONE_NUMBER]\n,CONCAT(cst.Address1,' ',cst.Address2) as [ADDRESS]\n,cst.City as [CITY]\n,cst.[State] as [STATE]\n,cst.Zip as ZIP\n,'English' as [LANGUAGE]\n,'US' as [COUNTRY]\n,case when prd.productid in  ('Garg','Garage CV') then 'REN' else 'CTA' end as [BRAND_NAME]\n,'' AS CHANNEL\n,job.contractid AS CONTRACT_ID\n,job.cst_id AS ACCOUNT_ID\n--,CASE WHEN CAST(job.ins_installer4 as VARCHAR) IS NULL AND CAST(job.ins_installer3 as VARCHAR) IS NULL AND CAST(job.ins_installer2 as VARCHAR) IS NULL THEN ISNULL(CAST(job.ins_installer1 as VARCHAR),'')\n--ELSE CASE WHEN CAST(job.ins_installer4 as VARCHAR) IS NULL AND CAST(job.ins_installer3 as VARCHAR) IS NULL AND CAST(job.ins_installer2 as VARCHAR) IS NOT NULL AND CAST(job.ins_installer1 as VARCHAR) IS NOT NULL THEN CONCAT(CAST(job.ins_installer1 as VARCHAR),';',CAST(job.ins_installer2 as VARCHAR))\n--ELSE CASE WHEN CAST(job.ins_installer4 as VARCHAR) IS NULL AND CAST(job.ins_installer3 as VARCHAR) IS NOT NULL AND CAST(job.ins_installer2 as VARCHAR) IS NOT NULL AND CAST(job.ins_installer1 as VARCHAR) IS NOT NULL THEN CONCAT(CAST(job.ins_installer1 as VARCHAR),';',CAST(job.ins_installer2 as VARCHAR),';',CAST(job.ins_installer3 as VARCHAR))\n--ELSE CASE WHEN (CAST(job.ins_installer1 as VARCHAR) IS NULL AND CAST(job.ins_installer4 as VARCHAR) IS NULL) OR (CAST(job.ins_installer2 as VARCHAR) IS NULL AND CAST(job.ins_installer4 as VARCHAR) IS NULL) THEN CONCAT(CAST(job.ins_installer1 as VARCHAR),';',CAST(job.ins_installer2 as VARCHAR),';',CAST(job.ins_installer3 as VARCHAR))\n--ELSE CONCAT(CAST(job.ins_installer1 as VARCHAR),';',CAST(job.ins_installer2 as VARCHAR),';',CAST(job.ins_installer3 as VARCHAR),';',CAST(job.ins_installer4 as VARCHAR)) END END END END AS SERVICE_TECHNICIAN_ID\n--,CASE WHEN TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL AND TRIM(Concat(emp3.LastName,emp3.FirstName)) IS NULL AND TRIM(Concat(emp2.LastName,emp2.FirstName)) IS NULL THEN ISNULL(Concat(emp1.LastName,' ',emp1.FirstName),'')\n--ELSE CASE WHEN TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL AND TRIM(Concat(emp3.LastName,emp3.FirstName)) IS NULL AND TRIM(Concat(emp2.LastName,emp2.FirstName)) IS NOT NULL THEN CONCAT(Concat(emp1.LastName,' ',emp1.FirstName),';',Concat(emp2.LastName,' ',emp2.FirstName))\n--ELSE CASE WHEN TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL AND TRIM(Concat(emp3.LastName,emp3.FirstName)) IS NOT NULL AND TRIM(Concat(emp2.LastName,emp2.FirstName)) IS NOT NULL THEN CONCAT(Concat(emp1.LastName,' ',emp1.FirstName),';',Concat(emp2.LastName,' ',emp2.FirstName),';',Concat(emp3.LastName,' ',emp3.FirstName))\n--ELSE CASE WHEN (TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL AND TRIM(Concat(emp1.LastName,emp1.FirstName)) IS NULL) OR (TRIM(Concat(emp4.LastName,emp4.FirstName)) IS NULL and TRIM(Concat(emp2.LastName,emp2.FirstName)) IS NULL) THEN CONCAT(Concat(emp1.LastName,' ',emp1.FirstName),';',Concat(emp2.LastName,' ',emp2.FirstName),';',Concat(emp3.LastName,' ',emp3.FirstName))\n--ELSE CONCAT(Concat(emp1.LastName,' ',emp1.FirstName),';',Concat(emp2.LastName,' ',emp2.FirstName),';',Concat(emp3.LastName,' ',emp3.FirstName),';',Concat(emp4.LastName,' ',emp4.FirstName)) \n--END END END END as SERVICE_TECHNICIAN_NAME\n,ISNULL(CAST(job.ins_installer1 as VARCHAR),'0') AS SERVICE_TECHNICIAN_1_ID\n, CASE WHEN COALESCE(CAST(job.ins_installer1 as VARCHAR),'0')='0' THEN 'NONE' ELSE emp1.Name END AS SERVICE_TECHNICIAN_1_NAME\n,ISNULL(CAST(job.ins_installer2 as VARCHAR),'0') AS SERVICE_TECHNICIAN_2_ID\n,CASE WHEN COALESCE(CAST(job.ins_installer2 as VARCHAR),'0')='0' THEN 'NONE' ELSE emp2.Name END as SERVICE_TECHNICIAN_2_NAME\n,ISNULL(CAST(job.ins_installer3 as VARCHAR),'0') AS SERVICE_TECHNICIAN_3_ID\n,CASE WHEN COALESCE(CAST(job.ins_installer3 as VARCHAR),'0')='0' THEN 'NONE' ELSE emp3.Name END as SERVICE_TECHNICIAN_3_NAME\n,ISNULL(CAST(job.ins_installer4 as VARCHAR),'0') AS SERVICE_TECHNICIAN_4_ID\n,CASE WHEN COALESCE(CAST(job.ins_installer4 as VARCHAR),'0')='0' THEN 'NONE' ELSE emp4.Name END as SERVICE_TECHNICIAN_4_NAME\n,brp.LongName as PRODUCTION_BRANCH_NAME\n,CONCAT(case when prd.productid in  ('Garg','Garage CV') then 'REN-' else 'CTA-' end,brn.id) as BranchID\n,mld.ActDate as SERVICE_DATETIME\n,prd.LongDescr as PRODUCT_LINE\n,ISNULL((select rpm.descr from [ODS].[LP_CTA_rpm_ReportingMarket] rpm where id=brn.rpm_id),'Undefined') as REPORTING_MARKET  --Add Reporting Market and Type request\n,ISNULL((select tof.descr from [ODS].[LP_CTA_tof_TypeOfMarket] tof where id=brn.tof_id),'Undefined') as REPORTING_MARKET_TYPE  --Add Reporting Market and Type request\n,ISNULL(CAST(job.[slr_id] AS VARCHAR),'0') as SALES_REP_ID_1\n,CASE WHEN COALESCE(CAST(job.[slr_id] AS VARCHAR),'0')= '0' THEN 'NONE' ELSE CONCAT(emp5.FirstName,' ',emp5.LastName) END AS SALES_REP_1_NAME\n,ISNULL(CAST(job.[slr_id2] AS VARCHAR),'0') as SALES_REP_ID_2\n,CASE WHEN COALESCE(CAST(job.[slr_id2] AS VARCHAR),'0')='0' THEN 'NONE' ELSE CONCAT(emp6.FirstName,' ',emp6.LastName) END AS SALES_REP_2_NAME\n,srs.SourceCode as LEADSOURCE,'NA' as FIELD_SUPERVISOR\nFROM \n[ODS].[LP_CTA_job_Jobs] job\nINNER JOIN [ODS].[LP_CTA_cst_Customers] cst on job.cst_id = cst.id\nINNER JOIN [ODS].[LP_CTA_prd_Products] prd on job.ProductID = prd.ProductID\nINNER JOIN [ODS].[LP_CTA_prg_Product_Groups] prg on prd.prg_id = prg.id\nINNER JOIN [ODS].[LP_CTA_brp_ProductionBranches] brp on job.brp_id = brp.id\nINNER JOIN [ODS].[LP_CTA_mld_MilestoneDetail] mld on job.id = mld.job_id\nINNER JOIN [ODS].[LP_CTA_mdt_MilestoneDateTypes] mdt on mld.mdt_id = mdt.id\nINNER JOIN [ODS].[LP_CTA_brn_Branches] brn on brp.id=brn.id --Add Reporting Market and Type request\nINNER JOIN [ODS].[LP_CTA_Lds_Leads] leads on leads.id = job.lds_id --To ignore Kohler records\nLEFT JOIN [ODS].[LP_CTA_ins_Installers] emp1 on job.ins_installer1=emp1.id\nLEFT JOIN [ODS].[LP_CTA_ins_Installers] emp2 on job.ins_installer2=emp2.id\nLEFT JOIN [ODS].[LP_CTA_ins_Installers] emp3 on job.ins_installer3=emp3.id\nLEFT JOIN [ODS].[LP_CTA_ins_Installers] emp4 on job.ins_installer4=emp4.id\nleft join [ODS].[LP_CTA_emp_Employees] emp5 on job.slr_id=emp5.id\nleft join [ODS].[LP_CTA_emp_Employees] emp6 on job.slr_id2=emp6.id\nleft join [ODS].[LP_CTA_srs_SourceSubs] srs on srs.id=leads.srs_id\nWHERE \nmdt.Descr = 'Job Completed 100%'\nand mld.ActDate is NOT NULL\nAND datediff(DAY, mld.ActDate, dbo.fnConvertUTCtoPST (getdate())) between 3 and 30 --20260323: As per Request from Selena, Logic has been changed to send dtaa between 3 and 30 days from 3 to 30 days.\n--and leads.src_id not like 'kohler%' \nand CAST(mld.ActDate as DATE)>='2024-08-28'",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "FIRST_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "FIRST_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LAST_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LAST_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "EMAIL_ADDRESS",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "EMAIL_ADDRESS",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PHONE_NUMBER",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PHONE_NUMBER",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CONTRACT_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "CONTRACT_ID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ACCOUNT_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "ACCOUNT_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_DATETIME",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "SERVICE_DATETIME",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "PRODUCT_LINE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PRODUCT_LINE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PRODUCTION_BRANCH_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PRODUCTION_BRANCH_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "BRAND_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "BRAND_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LANGUAGE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LANGUAGE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "COUNTRY",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "COUNTRY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CHANNEL",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "CHANNEL",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "REPORTING_MARKET",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "REPORTING_MARKET",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "REPORTING_MARKET_TYPE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "REPORTING_MARKET_TYPE",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "BRANCHID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_1_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_1_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_2_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_2_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_3_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_3_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_4_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_4_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_4_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_4_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_3_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_3_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_2_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_2_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SERVICE_TECHNICIAN_1_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SERVICE_TECHNICIAN_1_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ADDRESS",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ADDRESS",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CITY",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "CITY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "STATE",
+									"type": "String",
+									"physicalType": "char"
+								},
+								"sink": {
+									"name": "STATE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ZIP",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ZIP",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_ID_1",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_ID_1",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_ID_2",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_ID_2",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_1_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_1_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_2_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_2_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LEADSOURCE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LEADSOURCE",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "FIELD_SUPERVISOR",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "FIELD_SUPERVISOR",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_ODS_LP_CTA_mld_MilestoneDetail",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "OUT_GUILD_INSTALL_EXP_INVITE",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "RDC_to_GuildQuality/INSTALL_EXP_SURVEY"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-04-22T10:56:27Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

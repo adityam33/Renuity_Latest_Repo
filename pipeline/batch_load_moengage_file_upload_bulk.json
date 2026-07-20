@@ -1,0 +1,97 @@
+{
+	"name": "batch_load_moengage_file_upload_bulk",
+	"properties": {
+		"activities": [
+			{
+				"name": "ForEach",
+				"type": "ForEach",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@pipeline().parameters.ExportDay",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "Execute Pipeline1",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "batch_load_moengage_file_to_ODS_bulk",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"ExportDay": {
+										"value": "@item()",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "EDW",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "Execute Pipeline1",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "batch_load_moengage_ODS_to_EDW",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"EventDate": {
+										"value": "@item()",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"ExportDay": {
+				"type": "array",
+				"defaultValue": [
+					"2026-02-02",
+					"2026-02-03",
+					"2026-02-04",
+					"2026-02-05",
+					"2026-02-06",
+					"2026-02-07",
+					"2026-02-08",
+					"2026-02-09",
+					"2026-02-10",
+					"2026-02-11",
+					"2026-02-12"
+				]
+			}
+		},
+		"folder": {
+			"name": "MoEngage to EDW/Bulk load"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-02-16T10:32:41Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

@@ -1,0 +1,118 @@
+{
+	"name": "UNI_REF_MAPPING_RuleMatch_Load",
+	"properties": {
+		"activities": [
+			{
+				"name": "By ExactMatch",
+				"description": "Stored Proc to load Unification Reference Mapping table with Unified values based on the Exact Match rules from Rulebook.",
+				"type": "SqlPoolStoredProcedure",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.6:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"sqlPool": {
+					"referenceName": "rdc_sqlpool_prod",
+					"type": "SqlPoolReference"
+				},
+				"typeProperties": {
+					"storedProcedureName": "[EDW_DUN].[SP_UNI_REF_MAPPING_LOAD_ByExact]"
+				}
+			},
+			{
+				"name": "By PatternMatch_Divisions",
+				"description": "Stored Proc to load Unification Reference Mapping table with Unified values based on the Pattern Match rules by divisions from Rulebook.",
+				"type": "SqlPoolStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "By ExactMatch",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.6:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"sqlPool": {
+					"referenceName": "rdc_sqlpool_prod",
+					"type": "SqlPoolReference"
+				},
+				"typeProperties": {
+					"storedProcedureName": "[EDW_DUN].[SP_UNI_REF_MAPPING_LOAD_ByPattern_DIV]"
+				}
+			},
+			{
+				"name": "By PatternMatch_ALL_Division",
+				"description": "Stored Proc to load Unification Reference Mapping table with Unified values based on the Pattern Match rules by ALL division keyword from Rulebook.",
+				"type": "SqlPoolStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "By PatternMatch_Divisions",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.6:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"sqlPool": {
+					"referenceName": "rdc_sqlpool_prod",
+					"type": "SqlPoolReference"
+				},
+				"typeProperties": {
+					"storedProcedureName": "[EDW_DUN].[SP_UNI_REF_MAPPING_LOAD_ByPattern_ALL]"
+				}
+			},
+			{
+				"name": "Unmapped",
+				"description": "Stored Proc to load Unification Reference Mapping table with Unified values based on the Pattern Match rules by ALL division keyword from Rulebook.",
+				"type": "SqlPoolStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "By PatternMatch_ALL_Division",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.6:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"sqlPool": {
+					"referenceName": "rdc_sqlpool_prod",
+					"type": "SqlPoolReference"
+				},
+				"typeProperties": {
+					"storedProcedureName": "[EDW_DUN].[SP_UNI_REF_MAPPING_LOAD_Unmapped]"
+				}
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/DIMENSIONS/Unification"
+		},
+		"annotations": [],
+		"lastPublishTime": "2024-07-02T14:14:11Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

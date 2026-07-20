@@ -1,0 +1,205 @@
+{
+	"name": "cpy_load_REF_MKTNG_SOURCE_GROUP_initial load",
+	"properties": {
+		"activities": [
+			{
+				"name": "cpy_load_onetoonematches",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "\nWITH T_REF AS \n(\nSELECT \t\nLeadSubSourceID,\nEntryDate,\nMIN_EntryDate\nFROM\n(\n\tSELECT A.LeadSubSourceID,\n\tMAX(B.EntryDate) AS EntryDate,\n\tMIN(B.EntryDate) AS MIN_EntryDate\n\tFROM EDW.DIM_MKTNG_SUB_SOURCE_MAPPING A\n\tJOIN EDW.FACT_LEAD  B\n\tON A.LeadSubSOurceID = B.LeadSubSourceID\n\tGROUP BY A.LeadSubSourceID\n\n\t) M1\n\nWHERE EntryDate>='2022-01-01'\n),\nT_1 AS\n(\n\nSELECT \n\tDISTINCT \n\tLeadSubSourceID,\n\tDivision,\n\tSourceGroup,\n\tSourceCode,\n\tLeadSubSource,\n\tTX_SourceGroup,\n\tTX_SourceCode,\n\tTX_Channel,\n\tEntryDate,\n\tLeadCount\n\tFROM\n\t(\n\t\t\n\t\tSELECT\n\t\t\tA.Division,\n\t\t\tA.LeadSubSourceID,\n\t\t\tCASE \n\t\t\tWHEN A.SourceGroup LIKE 'FHI-%' OR A.SourceGroup LIKE 'PHI-%' OR\n\t\t\tA.SourceGroup LIKE 'RTW-%' OR A.SourceGroup LIKE 'SWR-%' OR\n\t\t\tA.SourceGroup LIKE 'MAC-%' OR A.SourceGroup LIKE 'MXH-%' OR\n\t\t\tA.SourceGroup LIKE 'PBC-%' OR A.SourceGroup LIKE 'HSI-%'\n\t\t\tTHEN\n\t\t\tCOALESCE(SUBSTRING(A.SourceGroup,CHARINDEX('-',A.SourceGroup)+1,LEN(A.SourceGroup)),'NA') \n\t\t\tELSE A.SourceGroup END AS SourceGroup,\n\t\t\tCOALESCE(A.SourceCode,'NA') AS SourceCode,\n\t\t\tA.LeadSubSource,\n\t\t\tA.TX_SourceGroup,\n\t\t\tA.TX_SourceCode,\n\t\t\tA.TX_Channel,\n\t\t\tMAX(CAST(B.EntryDate AS DATE)) AS EntryDate,\n\t\t\tCOUNT(DISTINCT CASE WHEN CAST(B.EntryDate AS DATE) < '2022-01-01' THEN '0' ELSE B.LeadID END) AS LeadCount\n\t\t\tFROM EDW.DIM_MKTNG_SUB_SOURCE_MAPPING A\n\t\t\t\tJOIN EDW.FACT_LEAD  B\n\t\t\t\tON A.LeadSubSOurceID = B.LeadSubSourceID\n\t\t\t\tJOIN T_REF C\n\t\t\t\tON A.LeadSubSOurceID =C.LeadSubSOurceID\n\t\tWHERE A.TX_SourceGroup IS NOT NULL\n\t\t\tAND A.TX_SourceGroup!='0'\n\t\t\tAND A.TX_SourceCode IS NOT NULL\n\t\t\tAND A.TX_SourceCode!='0'\n\t\t\tAND A.SourceGroup IS NOT NULL\n\t\t\tAND A.SourceGroup!='0'\n\t\t\tAND A.SourceCode IS NOT NULL\n\t\t\tAND A.SourceCode!='0'\n\t\t\n\t\tGROUP BY \n\t\tCASE \n\t\t\tWHEN A.SourceGroup LIKE 'FHI-%' OR A.SourceGroup LIKE 'PHI-%' OR\n\t\t\tA.SourceGroup LIKE 'RTW-%' OR A.SourceGroup LIKE 'SWR-%' OR\n\t\t\tA.SourceGroup LIKE 'MAC-%' OR A.SourceGroup LIKE 'MXH-%' OR\n\t\t\tA.SourceGroup LIKE 'PBC-%' OR A.SourceGroup LIKE 'HSI-%'\n\t\t\tTHEN\n\t\t\tCOALESCE(SUBSTRING(A.SourceGroup,CHARINDEX('-',A.SourceGroup)+1,LEN(A.SourceGroup)),'NA') \n\t\t\tELSE A.SourceGroup END,\n\t\t\tCOALESCE(A.SourceCode,'NA') ,\n\t\t\tA.TX_SourceGroup,\n\t\t\tA.TX_SourceCode,\n\t\t\tA.Division,\n\t\t\tA.TX_Channel,\n\t\t\tA.LeadSubSourceID,\n\t\t\tA.LeadSubSource\n\t\t\t\n\t\t\t) M1\nWHERE EntryDate>='2022-01-01'\n\n),\nT_2 AS \n(\nSELECT \tDIVISION,SourceGroup,SourceCode,Count(1) AS Count\nFROM\n(\n\tSELECT \n\t\tDISTINCT\n\t\tDIVISION,\n\t\tSourceGroup,\n\t\t--COALESCE(SourceGroup,'NA') AS SourceGroup,\n\t\tCOALESCE(SourceCode,'NA') AS SourceCode,\n\t\tTX_SourceGroup,\n\t\tTX_SourceCode \n\t\tFROM T_1\n\t\t) M1\nGROUP BY DIVISION,SourceGroup,SourceCode\nHAVING Count(1)=1\n\n)\nSELECT \n\tDISTINCT \n\tA.DIVISION,\n\tCOALESCE(A.SourceGroup,'NA') AS SourceGroup, \n\tCOALESCE(A.SourceCode,'NA') AS SourceCode,\n\tA.TX_SourceGroup,\n\tA.TX_SourceCode,\n\tA.TX_Channel,\n\tCAST('HIST' AS CHAR(10)) AS MappingInd,\n\tGetdate() as CreatedTS,\n\tGetdate() as LastUpdatedTS\n\tFROM T_1 A\n\tJOIN T_2 B \n\tON \n\t A.DIVISION = B.DIVISION\n\tAND COALESCE(A.SourceGroup,'NA') = COALESCE(B.SourceGroup,'NA')\n\tAND COALESCE(A.SourceCode,'NA') = COALESCE(B.SourceCode,'NA')\n\t\n\t",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE RDM.REF_MKTNG_SOURCE_GROUP",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "DIVISION",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SourceGroup",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "SourceGroup",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SourceCode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "SourceCode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "TX_SourceGroup",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "TX_SourceGroup",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "TX_SourceCode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "TX_SourceCode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "TX_Channel",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "TX_Channel",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "MappingInd",
+									"type": "String",
+									"physicalType": "char"
+								},
+								"sink": {
+									"name": "MappingInd",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CreatedTS",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "CreatedTs",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "LastUpdatedTs",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_DIM_MKTNG_SUB_SOURCE_MAPPING",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "RDM_REF_MKTNG_SOURCE_GROUP",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Insert Manual entries",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "cpy_load_onetoonematches",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "INSERT INTO [RDM].[REF_MKTNG_SOURCE_GROUP]\nSELECT \n'FHI' AS Division,\n'F2F' AS SourceGroup,\n'Canvass' AS SourceCode,\n'F2F' AS TX_SourceGroup,\n'Canvass' AS TX_SourceCode,\n'F2F' AS TX_Channel,\n'HIST' AS MappingInd,\nGetdate() as CreatedTS,\nGetdate() as LastUpdatedTS\n\nUNION ALL \n\nSELECT \n'FHI' AS Division,\n'F2F' AS SourceGroup,\n'Retail' AS SourceCode,\n'F2F' AS TX_SourceGroup,\n'Retail' AS TX_SourceCode,\n'F2F' AS TX_Channel,\n'HIST' AS MappingInd,\nGetdate() as CreatedTS,\nGetdate() as LastUpdatedTS\n\nUNION ALL \n\nSELECT \n'FHI' AS Division,\n'Events' AS SourceGroup,\n'Events' AS SourceCode,\n'F2F' AS TX_SourceGroup,\n'Events' AS TX_SourceCode,\n'F2F' AS TX_Channel,\n'HIST' AS MappingInd,\nGetdate() as CreatedTS,\nGetdate() as LastUpdatedTS\n\n\nUNION ALL \n\nSELECT \n'FHI' AS Division,\n'Retail' AS SourceGroup,\n'Sams Club' AS SourceCode,\n'F2F' AS TX_SourceGroup,\n'Retail' AS TX_SourceCode,\n'F2F' AS TX_Channel,\n'HIST' AS MappingInd,\nGetdate() as CreatedTS,\nGetdate() as LastUpdatedTS\n\n--*********** PHI ***************\nUNION ALL\n\nSELECT \n'PHI' AS Division,\n'Canvass' AS SourceGroup,\n'Canvass' AS SourceCode,\n'F2F' AS TX_SourceGroup,\n'Canvass' AS TX_SourceCode,\n'F2F' AS TX_Channel,\n'HIST' AS MappingInd,\nGetdate() as CreatedTS,\nGetdate() as LastUpdatedTS\n\n\nUNION ALL\n\nSELECT \n'PHI' AS Division,\n'Perfrmnce Mktg' AS SourceGroup,\n'Organic' AS SourceCode,\n'Performance' AS TX_SourceGroup,\n'Organic/SEO' AS TX_SourceCode,\n'Lead Generation' AS TX_Channel,\n'HIST' AS MappingInd,\nGetdate() as CreatedTS,\nGetdate() as LastUpdatedTS\n\n\nUNION ALL\n\nSELECT \n'PHI' AS Division,\n'Print' AS SourceGroup,\n'Gannett' AS SourceCode,\n'Media' AS TX_SourceGroup,\n'Newspapers/Magazines' AS TX_SourceCode,\n'Lead Generation' AS TX_Channel,\n'HIST' AS MappingInd,\nGetdate() as CreatedTS,\nGetdate() as LastUpdatedTS\n\n\nUNION ALL\n\nSELECT \n'PHI' AS Division,\n'Retail' AS SourceGroup,\n'Sams Club' AS SourceCode,\n'F2F' AS TX_SourceGroup,\n'Retail' AS TX_SourceCode,\n'F2F' AS TX_Channel,\n'HIST' AS MappingInd,\nGetdate() as CreatedTS,\nGetdate() as LastUpdatedTS\n\n\n\n--*********HSI\n\n\nUNION ALL\n\nSELECT \n'HSI' AS Division,\n'Perfrmnce Mktg' AS SourceGroup,\n'Organic' AS SourceCode,\n'Performance' AS TX_SourceGroup,\n'Organic/SEO' AS TX_SourceCode,\n'Lead Generation' AS TX_Channel,\n'HIST' AS MappingInd,\nGetdate() as CreatedTS,\nGetdate() as LastUpdatedTS\n\n\nUNION ALL\n\nSELECT \n'HSI' AS Division,\n'General' AS SourceGroup,\n'LOCAL' AS SourceCode,\n'Media' AS TX_SourceGroup,\n'Newspapers/Magazines' AS TX_SourceCode,\n'Lead Generation' AS TX_Channel,\n'HIST' AS MappingInd,\nGetdate() as CreatedTS,\nGetdate() as LastUpdatedTS\n\n\n-- MAC\n\nUNION ALL \n\n SELECT \n'MAC' AS Division,\n'General' AS SourceGroup,\n'Home Show' AS SourceCode,\n'F2F' AS TX_SourceGroup,\n'Events' AS TX_SourceCode,\n'F2F' AS TX_Channel,\n'HIST' AS MappingInd,\nGetdate() as CreatedTS,\nGetdate() as LastUpdatedTS\n\nUNION ALL \n\nSELECT \n'MAC' AS Division,\n'General' AS SourceGroup,\n'Malls/Walmart' AS SourceCode,\n'F2F' AS TX_SourceGroup,\n'Retail' AS TX_SourceCode,\n'F2F' AS TX_Channel,\n'HIST' AS MappingInd,\nGetdate() as CreatedTS,\nGetdate() as LastUpdatedTS\n\n\nUNION ALL \n\nSELECT \n'MAC' AS Division,\n'General' AS SourceGroup,\n'Referral' AS SourceCode,\n'Self-Generated' AS TX_SourceGroup,\n'Consumer Referral' AS TX_SourceCode,\n'Lead Generation' AS TX_Channel,\n'HIST' AS MappingInd,\nGetdate() as CreatedTS,\nGetdate() as LastUpdatedTS\n\n\nUNION ALL \n\nSELECT \n'MAC' AS Division,\n'General' AS SourceGroup,\n'Television' AS SourceCode,\n'Media' AS TX_SourceGroup,\n'Broadcast TV' AS TX_SourceCode,\n'Lead Generation' AS TX_Channel,\n'HIST' AS MappingInd,\nGetdate() as CreatedTS,\nGetdate() as LastUpdatedTS\n\n\nUNION ALL \n\nSELECT \n'MAC' AS Division,\n'Perfrmnce Mktg' AS SourceGroup,\n'Email' AS SourceCode,\n'Performance' AS TX_SourceGroup,\n'Email' AS TX_SourceCode,\n'Lead Generation' AS TX_Channel,\n'HIST' AS MappingInd,\nGetdate() as CreatedTS,\nGetdate() as LastUpdatedTS\n\n\nUNION ALL \n\nSELECT \n'MAC' AS Division,\n'General' AS SourceGroup,\n'Self-Gen' AS SourceCode,\n'Self-Generated' AS TX_SourceGroup,\n'Employee Referral' AS TX_SourceCode,\n'Lead Generation' AS TX_Channel,\n'HIST' AS MappingInd,\nGetdate() as CreatedTS,\nGetdate() as LastUpdatedTS\n\n--PBC\n\nUNION ALL \n\nSELECT \n'PBC' AS Division,\n'Media' AS SourceGroup,\n'Newspaper/Mag' AS SourceCode,\n'Media' AS TX_SourceGroup,\n'Newspapers/Magazines' AS TX_SourceCode,\n'Lead Generation' AS TX_Channel,\n'HIST' AS MappingInd,\nGetdate() as CreatedTS,\nGetdate() as LastUpdatedTS\n\n\nUNION ALL \n\nSELECT \n'PBC' AS Division,\n'Performance' AS SourceGroup,\n'Email' AS SourceCode,\n'Performance' AS TX_SourceGroup,\n'Email' AS TX_SourceCode,\n'Lead Generation' AS TX_Channel,\n'HIST' AS MappingInd,\nGetdate() as CreatedTS,\nGetdate() as LastUpdatedTS\n\n\nUNION ALL \n\nSELECT \n'PBC' AS Division,\n'Self-Generated' AS SourceGroup,\n'CRM' AS SourceCode,\n'Self-Generated' AS TX_SourceGroup,\n'Consumer Referral' AS TX_SourceCode,\n'Lead Generation' AS TX_Channel,\n'HIST' AS MappingInd,\nGetdate() as CreatedTS,\nGetdate() as LastUpdatedTS\n\n\n\n\n--************** MXH---------\n\n\nUNION ALL \n\nSELECT \n'MXH' AS Division,\n'General' AS SourceGroup,\n'Direct Mail' AS SourceCode,\n'Media' AS TX_SourceGroup,\n'Direct Mail' AS TX_SourceCode,\n'Lead Generation' AS TX_Channel,\n'HIST' AS MappingInd,\nGetdate() as CreatedTS,\nGetdate() as LastUpdatedTS\n\n\nUNION ALL \n\nSELECT \n'MXH' AS Division,\n'General' AS SourceGroup,\n'Media' AS SourceCode,\n'Media' AS TX_SourceGroup,\n'Shared Mail' AS TX_SourceCode,\n'Lead Generation' AS TX_Channel,\n'HIST' AS MappingInd,\nGetdate() as CreatedTS,\nGetdate() as LastUpdatedTS\n\n\n\n\n--********************* RTW \n\n\nUNION ALL \n\nSELECT \n'RTW' AS Division,\n'Non-Media' AS SourceGroup,\n'PPC' AS SourceCode,\n'Performance' AS TX_SourceGroup,\n'Paid Search' AS TX_SourceCode,\n'Lead Generation' AS TX_Channel,\n'HIST' AS MappingInd,\nGetdate() as CreatedTS,\nGetdate() as LastUpdatedTS\n\n\n\nUNION ALL \n\nSELECT \n'RTW' AS Division,\n'Perfrmnce Mrktg' AS SourceGroup,\n'Organic' AS SourceCode,\n'Performance' AS TX_SourceGroup,\n'Organic/SEO' AS TX_SourceCode,\n'Lead Generation' AS TX_Channel,\n'HIST' AS MappingInd,\nGetdate() as CreatedTS,\nGetdate() as LastUpdatedTS\n\n\n\n--******************* SWR ******************\n\nUNION ALL \n\nSELECT \n'SWR' AS Division,\n'Events' AS SourceGroup,\n'AUSTIN SHOWS' AS SourceCode,\n'F2F' AS TX_SourceGroup,\n'Events' AS TX_SourceCode,\n'F2F' AS TX_Channel,\n'HIST' AS MappingInd,\nGetdate() as CreatedTS,\nGetdate() as LastUpdatedTS\n\n\nUNION ALL \n\nSELECT \n'SWR' AS Division,\n'Events' AS SourceGroup,\n'DALLAS-SHOWS' AS SourceCode,\n'F2F' AS TX_SourceGroup,\n'Events' AS TX_SourceCode,\n'F2F' AS TX_Channel,\n'HIST' AS MappingInd,\nGetdate() as CreatedTS,\nGetdate() as LastUpdatedTS\n\n\n\nUNION ALL \n\nSELECT \n'SWR' AS Division,\n'Media' AS SourceGroup,\n'NewspaperGANNET' AS SourceCode,\n'Media' AS TX_SourceGroup,\n'Newspapers/Magazines' AS TX_SourceCode,\n'Lead Generation' AS TX_Channel,\n'HIST' AS MappingInd,\nGetdate() as CreatedTS,\nGetdate() as LastUpdatedTS\n\n\nUNION ALL \n\nSELECT \n'SWR' AS Division,\n'Media' AS SourceGroup,\n'NEWSPAPERS' AS SourceCode,\n'Media' AS TX_SourceGroup,\n'Newspapers/Magazines' AS TX_SourceCode,\n'Lead Generation' AS TX_Channel,\n'HIST' AS MappingInd,\nGetdate() as CreatedTS,\nGetdate() as LastUpdatedTS\n\n\n\n\nUNION ALL \n\nSELECT \n'SWR' AS Division,\n'Media' AS SourceGroup,\n'Radio' AS SourceCode,\n'Media' AS TX_SourceGroup,\n'Broadcast Radio' AS TX_SourceCode,\n'Lead Generation' AS TX_Channel,\n'HIST' AS MappingInd,\nGetdate() as CreatedTS,\nGetdate() as LastUpdatedTS\n\n\n\nUNION ALL \n\nSELECT \n'SWR' AS Division,\n'Other' AS SourceGroup,\n'HD InHouse' AS SourceCode,\n'F2F' AS TX_SourceGroup,\n'Retail' AS TX_SourceCode,\n'F2F' AS TX_Channel,\n'HIST' AS MappingInd,\nGetdate() as CreatedTS,\nGetdate() as LastUpdatedTS\n\n\nUNION ALL \n\nSELECT \n'SWR' AS Division,\n'Perfmnce Mktg' AS SourceGroup,\n'Email' AS SourceCode,\n'Performance' AS TX_SourceGroup,\n'Email' AS TX_SourceCode,\n'Lead Generation' AS TX_Channel,\n'HIST' AS MappingInd,\nGetdate() as CreatedTS,\nGetdate() as LastUpdatedTS\n\n\n\n\nUNION ALL \n\nSELECT \n'SWR' AS Division,\n'Retail' AS SourceGroup,\n'IME - Sams Onl' AS SourceCode,\n'F2F' AS TX_SourceGroup,\n'Retail' AS TX_SourceCode,\n'F2F' AS TX_Channel,\n'HIST' AS MappingInd,\nGetdate() as CreatedTS,\nGetdate() as LastUpdatedTS\n\n\n\n\nUNION ALL \n\nSELECT \n'SWR' AS Division,\n'Sams Club (ALL)' AS SourceGroup,\n'SAMS DLS' AS SourceCode,\n'F2F' AS TX_SourceGroup,\n'Retail' AS TX_SourceCode,\n'F2F' AS TX_Channel,\n'HIST' AS MappingInd,\nGetdate() as CreatedTS,\nGetdate() as LastUpdatedTS\n\n\n\nUNION ALL \n\nSELECT \n'SWR' AS Division,\n'TV' AS SourceGroup,\n'TV' AS SourceCode,\n'Media' AS TX_SourceGroup,\n'Broadcast TV' AS TX_SourceCode,\n'Lead Generation' AS TX_Channel,\n'HIST' AS MappingInd,\nGetdate() as CreatedTS,\nGetdate() as LastUpdatedTS"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/DIMENSIONS/TAXONOMY/InitialLoad"
+		},
+		"annotations": [],
+		"lastPublishTime": "2023-12-08T08:20:21Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

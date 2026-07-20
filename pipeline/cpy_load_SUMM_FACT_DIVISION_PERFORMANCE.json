@@ -1,0 +1,395 @@
+{
+	"name": "cpy_load_SUMM_FACT_DIVISION_PERFORMANCE",
+	"properties": {
+		"activities": [
+			{
+				"name": "Load Division Level Performance into Summary Fact",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT\nlds.Division\n,brn.BranchID\n,prd.ProductID\n,srs.LeadSourceID\n,srs.LeadSubSourceID\n,dsp.DispositionID\n,clr.CallResultID as LastCallResultID\n,lds.SetBy_EmployeeID\n,cst.Zip as ZipCode\n,cast(lds.EntryDate as DATE) as EntryDate\n,LeadScore_ExpectedValueRank\n,EOMONTH(lds.EntryDate) as EntryMonth\n,case when CAST(lds.[LastCallDate] as time) between '5:00:00.001' and '12:00:00.000' then 'Morning' \nwhen CAST(lds.[LastCallDate] as time) between '12:00:00.001' and '17:00:00.000' then 'Afternoon' \nwhen CAST(lds.[LastCallDate] as time) between '17:00:00.001' and '22:00:00.000' then 'Evening' \nelse 'Night'\nend as LastCallTimeOfDay\n,case when CAST(lds.[DateEntered] as time) between '5:00:00.001' and '12:00:00.000' then 'Morning' \nwhen CAST(lds.[DateEntered] as time) between '12:00:00.001' and '17:00:00.000' then 'Afternoon' \nwhen CAST(lds.[DateEntered] as time) between '17:00:00.001' and '22:00:00.000' then 'Evening' \nelse 'Night'\nend as LeadDateEnteredTimeOfDay\n,count(distinct lds.LeadID) as LeadCount\n,count(distinct lds.CustomerID) as ProspectCount\n,sum(case when lds.ApptSet = 'True' then 1 else 0 end) as ApptSet\n,sum(case when lds.EverSet = 'True' then 1 else 0 end) as ApptEverSet\n,sum(case when lds.Verified = 'True' then 1 else 0 end) as Verified\n,sum(case when lds.EverVerified = 'True' then 1 else 0 end) as EverVerified\n,sum(case when lds.Confirmed = 'True' then 1 else 0 end) as Confirmed\n,sum(case when lds.EverConfirmed = 'True' then 1 else 0 end) as EverConfirmed\n,sum(case when lds.Issued = 'True' then 1 else 0 end) as Issued\n,sum(case when lds.EverIssued = 'True' then 1 else 0 end) as EverIssued\n,sum(case when lds.NetIssued = 'True' then 1 else 0 end) as NetIssued\n,sum(case when lds.EverNetIssued = 'True' then 1 else 0 end) as EverNetIssued\n,sum(case when lds.Sat = 'True' then 1 else 0 end) as Sat\n,sum(case when lds.EverSat = 'True' then 1 else 0 end) as EverSat\n,sum(case when lds.Sold = 'True' then 1 else 0 end) as Sold\n,sum(case \n    when jsc.JobStatusCategory is NULL then 0\n    when jsc.JobStatusCategory in ('Cancelled', 'Credit Decline') then 0\n    else 1\nend) as NetSold\n,sum(case \n    when jsc.JobStatusCategory is NULL then 0\n    when jsc.JobStatusCategory in ('Cancelled', 'Credit Decline') then 0 \n    else job.GrossAmount\nend) as NetSalesAmount\n,sum(job.GrossAmount) as GrossSalesAmount\n,count(distinct job.JobID) as JobCount\nFROM \n[EDW].[FACT_LEAD] lds\nleft join [EDW].[DIM_CUSTOMER] cst\non lds.CustomerID = cst.CustomerID\nleft join [EDW].[DIM_LEAD_SUB_SOURCE] srs\non lds.LeadSubSourceID = srs.LeadSubSourceID\nleft join [EDW].[DIM_DISPOSITION] dsp\non lds.DispositionID = dsp.DispositionID\nleft join [EDW].[DIM_BRANCH] brn\non lds.BranchID = brn.BranchID\nleft join [EDW].[DIM_PRODUCT] prd\non lds.ProductID = prd.ProductID\nleft join [EDW].[DIM_CALL_RESULT] clr\non lds.LastCallResultID = clr.CallResultID\nleft join [EDW].[FACT_JOB] job\non lds.LeadID = job.LeadID\nleft join [EDW].[DIM_JOB_STATUS] jbs\non job.JobStatusID = jbs.JobStatusID\nleft join [EDW].[DIM_JOB_STATUS_CATEGORY] jsc\non jbs.JobStatusCategoryID = jsc.JobStatusCategoryID\ngroup by \nlds.Division\n,brn.BranchID\n,prd.ProductID\n,srs.LeadSourceID\n,srs.LeadSubSourceID\n,dsp.DispositionID\n,clr.CallResultID\n,lds.SetBy_EmployeeID\n,cst.Zip\n,cast(lds.EntryDate as DATE)\n,LeadScore_ExpectedValueRank\n,EOMONTH(lds.EntryDate)\n,case when CAST(lds.[LastCallDate] as time) between '5:00:00.001' and '12:00:00.000' then 'Morning' \nwhen CAST(lds.[LastCallDate] as time) between '12:00:00.001' and '17:00:00.000' then 'Afternoon' \nwhen CAST(lds.[LastCallDate] as time) between '17:00:00.001' and '22:00:00.000' then 'Evening' \nelse 'Night'\nend\n,case when CAST(lds.[DateEntered] as time) between '5:00:00.001' and '12:00:00.000' then 'Morning' \nwhen CAST(lds.[DateEntered] as time) between '12:00:00.001' and '17:00:00.000' then 'Afternoon' \nwhen CAST(lds.[DateEntered] as time) between '17:00:00.001' and '22:00:00.000' then 'Evening' \nelse 'Night'\nend\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "IF OBJECT_ID('EDW.SUMM_FACT_DIVISION_PERFORMANCE')  IS NOT NULL TRUNCATE TABLE EDW.SUMM_FACT_DIVISION_PERFORMANCE",
+						"allowCopyCommand": true,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "staging"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Division",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BranchID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ProductID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ProductID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadSourceID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LeadSourceID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadSubSourceID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LeadSubSourceID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DispositionID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "DispositionID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LastCallResultID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LastCallResultID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "SetBy_EmployeeID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "SetBy_EmployeeID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ZipCode",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ZipCode",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "EntryDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "EntryDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadScore_ExpectedValueRank",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LeadScore_ExpectedValueRank",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "EntryMonth",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "EntryMonth",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "LastCallTimeOfDay",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LastCallTimeOfDay",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadDateEnteredTimeOfDay",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LeadDateEnteredTimeOfDay",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadCount",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "LeadCount",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "ProspectCount",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "ProspectCount",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "ApptSet",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "ApptSet",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "ApptEverSet",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "ApptEverSet",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Verified",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Verified",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "EverVerified",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EverVerified",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Confirmed",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Confirmed",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "EverConfirmed",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EverConfirmed",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Issued",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Issued",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "EverIssued",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EverIssued",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "NetIssued",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "NetIssued",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "EverNetIssued",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EverNetIssued",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Sat",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Sat",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "EverSat",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EverSat",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Sold",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Sold",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "NetSold",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "NetSold",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "NetSalesAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "NetSalesAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "GrossSalesAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "GrossSalesAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "JobCount",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "JobCount",
+									"type": "Int32"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_FACT_LEAD",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_SUMM_FACT_DIVISION_PERFORMANCE",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/SUMM_FACTS/LP"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-11-10T14:53:47Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

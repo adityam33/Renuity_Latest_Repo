@@ -1,0 +1,56 @@
+{
+	"name": "df_AP_Zipcodes_toPass",
+	"properties": {
+		"folder": {
+			"name": "RDC_to_ActiveProspect"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "EDW_DIM_BRANCH_ZIP",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [
+				{
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "filter1"
+				}
+			],
+			"scriptLines": [
+				"parameters{",
+				"     Division as string ('FHI')",
+				"}",
+				"source(output(",
+				"          Division as string,",
+				"          ZIPCODE as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT  Division,Cast(concat(\\'{\"values\":\"\\',string_AGG(Cast(Zipcode as nvarchar(max)),\\'|\\'),\\'\"}\\') as varchar(max))  AS ZIPCODE  FROM \\n     (Select Distinct Z.Division,Z.ZIPCODE \\n          from EDW.DIM_BRANCH_ZIP Z Left Join EDW.DIM_Branch B on Z.BranchID=B.BranchID\\n          Where Z.Zipcode is not NULL and Z.Zipcode<>\\'\\' and Z.Zipcode<>\\'0\\' and B.Active=\\'1\\'  AND Z.Division!=\\'MXH\\')A\\nGroup by Division',",
+				"     format: 'query',",
+				"     staged: true) ~> source1",
+				"source1 filter(Division==$Division) ~> filter1",
+				"filter1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     store: 'cache',",
+				"     format: 'inline',",
+				"     output: true,",
+				"     saveOrder: 1,",
+				"     preCommands: [],",
+				"     postCommands: []) ~> sink1"
+			]
+		}
+	}
+}

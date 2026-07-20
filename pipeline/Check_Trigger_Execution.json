@@ -1,0 +1,107 @@
+{
+	"name": "Check_Trigger_Execution",
+	"properties": {
+		"activities": [
+			{
+				"name": "Set 2nd Business date of month",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Lookup1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "Date",
+					"value": {
+						"value": "@activity('Lookup1').output.firstRow.SecondBusinessDay",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Lookup1",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "WITH NumberedDays AS (\r\n    SELECT CAST('2024-11-01' AS DATE) AS CalendarDay\r\n    UNION ALL\r\n    SELECT DATEADD(DAY, 1, CalendarDay) FROM (SELECT CAST('2024-11-01' AS DATE) AS CalendarDay) AS StartDay\r\n    UNION ALL\r\n    SELECT DATEADD(DAY, 2, CalendarDay) FROM (SELECT CAST('2024-11-01' AS DATE) AS CalendarDay) AS StartDay\r\n    UNION ALL\r\n    SELECT DATEADD(DAY, 3, CalendarDay) FROM (SELECT CAST('2024-11-01' AS DATE) AS CalendarDay) AS StartDay\r\n    UNION ALL\r\n    SELECT DATEADD(DAY, 4, CalendarDay) FROM (SELECT CAST('2024-11-01' AS DATE) AS CalendarDay) AS StartDay\r\n    UNION ALL\r\n    SELECT DATEADD(DAY, 5, CalendarDay) FROM (SELECT CAST('2024-11-01' AS DATE) AS CalendarDay) AS StartDay\r\n    UNION ALL\r\n    SELECT DATEADD(DAY, 6, CalendarDay) FROM (SELECT CAST('2024-11-01' AS DATE) AS CalendarDay) AS StartDay\r\n    UNION ALL\r\n    SELECT DATEADD(DAY, 7, CalendarDay) FROM (SELECT CAST('2024-11-01' AS DATE) AS CalendarDay) AS StartDay\r\n    UNION ALL\r\n    SELECT DATEADD(DAY, 8, CalendarDay) FROM (SELECT CAST('2024-11-01' AS DATE) AS CalendarDay) AS StartDay\r\n    UNION ALL\r\n    SELECT DATEADD(DAY, 9, CalendarDay) FROM (SELECT CAST('2024-11-01' AS DATE) AS CalendarDay) AS StartDay\r\n),\r\nBusinessDays AS (\r\n    -- Filter only business days (Monday to Friday) and exclude public holidays\r\n    SELECT CalendarDay\r\n    FROM NumberedDays\r\n    WHERE DATEPART(WEEKDAY, CalendarDay) NOT IN (1, 7) -- Exclude weekends\r\n    AND CalendarDay NOT IN (SELECT date FROM holidays) -- Exclude public holidays\r\n)\r\n-- Select the second business day\r\nSELECT MIN(CalendarDay) AS SecondBusinessDay\r\nFROM (\r\n    SELECT CalendarDay, ROW_NUMBER() OVER (ORDER BY CalendarDay) AS RowNum\r\n    FROM BusinessDays\r\n) AS RankedDays\r\nWHERE RowNum = 2;\r\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "Aqua_FicoBand_Report",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "If Condition1",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Set 2nd Business date of month",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(variables('Date'), utcnow())",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "Execute Pipeline1",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "testpipeline",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true
+							}
+						}
+					]
+				}
+			}
+		],
+		"variables": {
+			"Date": {
+				"type": "String"
+			},
+			"CurrentDate": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "Temp/Sameen"
+		},
+		"annotations": [],
+		"lastPublishTime": "2024-10-16T15:34:59Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

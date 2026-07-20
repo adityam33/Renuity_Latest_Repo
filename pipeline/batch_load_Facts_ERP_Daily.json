@@ -1,0 +1,137 @@
+{
+	"name": "batch_load_Facts_ERP_Daily",
+	"properties": {
+		"activities": [
+			{
+				"name": "cpy_load_Facts_ERP_Daily_AR",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_load_Reports_ERP_Daily_AP",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_load_Facts_ERP_Daily_AR",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_load_Reports_ERP_Daily_AP",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_load_Reports_ERP_PO_Receipts_By_Vendor",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_load_Reports_ERP_Daily_AP",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_load_Reports_ERP_Daily_CA",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_load_Reports_ERP_Daily_CA",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_load_Facts_ERP_Daily_PM",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_load_Reports_ERP_Daily_CA",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_load_Facts_ERP_Daily_PM",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_Load_FACT_ERP_Sales_Order",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_load_Facts_ERP_Daily_PM",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_ERP_SALES_ORDER",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_load_Reports_ERP_PO_Receipts_By_Vendor",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_ERP_PO_RECEIPTS_BY_VENDOR",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/FACTS/ERP"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-07-25T17:35:27Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

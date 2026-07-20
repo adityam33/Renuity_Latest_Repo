@@ -1,0 +1,480 @@
+{
+	"name": "swish fee update",
+	"properties": {
+		"activities": [
+			{
+				"name": "Fact_Summ_AD_Performance_Metrics",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Update Subsource",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.2:30:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"additionalColumns": [
+							{
+								"name": "LastUpdateTS",
+								"value": {
+									"value": "@utcNow()",
+									"type": "Expression"
+								}
+							}
+						],
+						"sqlReaderQuery": "With AD_Performance As (\n\tSelect \n\tConcat(TrafficSource,Replace(DataSourceName,'Statewide Bath - Swish ','Statewide Bath - Swish'), Campaign,LP_market) as CampaignKey,\n\tCast(PerformanceDate as Date) as PerformanceDate, TrafficSource, Account, DatasourceName, Campaign, Adgroup, Ad, \n\tCampaignId, AdgroupId, AdId,\n\tMarket, LP_Market, Division,\n\tLP_LeadsubsourceId,\n\tSum(cost) As Cost, \n\tSum(Clicks) as Clicks,\n\tSum(Impressions) as Impressions, \n\tSum(Conversions) as Conversions\n\tfrom EDW.FACT_AD_Performance_Metrics\n\t\n\t--where --cast(LastUpdateTS as date) >= cast(Dateadd(D, -7, Getdate()) as date) -- refreshing the data which has updated in last 7 days\n\t --DatasourceName not in ('Statewide Bath - Swish' ,'Statewide Windows - Swish' ,'FHIA Windows - Swish')  and Eomonth(PerformanceDate)>='2025-01-31'\n\tGroup by \n\tConcat(TrafficSource,DataSourceName, Campaign,LP_market) ,\n\tCast(PerformanceDate as Date), TrafficSource, Account, DatasourceName, Campaign, Adgroup, Ad, \n\tCampaignId, AdgroupId, AdId,\n\tMarket, LP_Market, Division,LP_LeadsubsourceId\n)\n\n--Select Eomonth(PerformanceDate), DataSourceName,Campaign,LeadSubsourceId, Sum(Cost), sum(Adjusted_Cost), sum(Adjusted_Cost+AgencyFee_Cal)  from (\nSelect \nF.CampaignKey,F.PerformanceDate, F.TrafficSource, F.Account, F.DatasourceName, F.Campaign, F.Adgroup, F.Ad, \nF.CampaignId, F.AdgroupId, F.AdId,\nF.Market, F.LP_Market, F.Division,\nF.LP_LeadsubsourceId,F.Cost, F.Clicks, F.Impressions, F.Conversions,\n\nCM.Reporting_Division, \nCase when F.DatasourceName in ('Statewide Bath - Swish' ,'Statewide Windows - Swish' ,'FHIA Windows - Swish') \n\tthen F.LP_leadsubsourceId\n\telse CM.LeadSubsourceId end as LeadSubsourceId, \nCM.BranchId, CM.ProductId as ProductId,\n\ncase when SM.AgencyVendorName like '%swish%' and Cast(F.Performancedate as date)<='2025-12-31' then 0.12 else SM.AgencyFee end as AgencyFee_Percentage ,\n--SM.LP_subsource, SM.AgencyFee, SM.AgencyVendorName, SM.ACU_AgencyVendorID,\nF.Cost * Cast((Coalesce(CM.StaticPercentage,100)/100.0) as float) * (case when SM.AgencyVendorName like '%swish%' and Cast(F.Performancedate as date)<='2025-12-31' then 0.12 else SM.AgencyFee end)  As AgencyFee,\n\nCoalesce(CM.StaticPercentage,100) as StaticPercentage, CM.MappingInd,\n\nF.Cost * Cast((Coalesce(CM.StaticPercentage,100)/100.0) as float) As Adjusted_Cost,\nF.Clicks * Cast((Coalesce(CM.StaticPercentage,100)/100.0) as float) As Adjusted_Clicks,\nF.Impressions * Cast((Coalesce(CM.StaticPercentage,100)/100.0) as float) As Adjusted_Impressions,\nF.Conversions * Cast((Coalesce(CM.StaticPercentage,100)/100.0) as float) As Adjusted_Conversions\n\n\nfrom AD_Performance F \n\nLeft join EDW.[DIM_MKTNG_CAMPAIGN_MAPPING_NoProductSpend] CM on F.CampaignKey=CM.CampaignKey\nLeft join EDW.DIM_MKTNG_sub_source_mapping SM on \n\t\t\t\t\t\tCase when F.DatasourceName in ('Statewide Bath - Swish' ,'Statewide Windows - Swish' ,'FHIA Windows - Swish') \n\t \t\t\t\t\t\t then F.LP_leadsubsourceId\n\t \t\t\t\t\t\t else CM.LeadSubsourceId end = SM.LeadSubsourceId\n\n--)a Group by Eomonth(PerformanceDate), DataSourceName,Campaign,LeadSubsourceId\n--Order by 2,1 desc, 3\n\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "Delete  T1\n--Select Distinct T1.TrafficSource, Eomonth(T1.PerformanceDate) \nfrom EDW.FACT_SUMM_AD_PERFORMANCE_METRICS T1\n join \n(\n\tSelect S.TrafficSource,S.PerformanceDate from \n\t(Select Distinct  TrafficSource,PerformanceDate, CampaignKey from EDW.FACT_SUMM_AD_PERFORMANCE_METRICS \n\t  ) S\n\tLeft join \n\t(Select Distinct  TrafficSource,cast(PERFORMANCEDATE as date) as PerformanceDate, Concat(TrafficSource,DatasourceName,Campaign,LP_Market)as CampaignKey\n\tfrom EDW.FACT_AD_PERFORMANCE_METRICS \n\t--Where cast(LastUpdateTs as date)>= cast(Dateadd(D,-7,Getdate()) as date)\n         ) F \n\tOn S.PerformanceDate=F.PerformanceDate and S.CampaignKey =F.CampaignKey\n\tWhere F.TrafficSource is not null and F.PerformanceDate is not null --Order by 1,2\n\t\n)T2  on T1.TrafficSource=T2.Trafficsource and T1.PerformanceDate =T2.PerformanceDate",
+						"writeBehavior": "Insert",
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "staging"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "CampaignKey",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CampaignKey",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PerformanceDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "PerformanceDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "TrafficSource",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "TrafficSource",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Account",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Account",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DatasourceName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "DatasourceName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Campaign",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Campaign",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Adgroup",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Adgroup",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Ad",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Ad",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CampaignId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CampaignId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AdgroupId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "AdgroupId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AdId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "AdId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Market",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Market",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_Market",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "LP_Market",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Cost",
+									"type": "Double",
+									"physicalType": "float"
+								},
+								"sink": {
+									"name": "Cost",
+									"type": "Double",
+									"physicalType": "float"
+								}
+							},
+							{
+								"source": {
+									"name": "Clicks",
+									"type": "Double",
+									"physicalType": "float"
+								},
+								"sink": {
+									"name": "Clicks",
+									"type": "Double",
+									"physicalType": "float"
+								}
+							},
+							{
+								"source": {
+									"name": "Impressions",
+									"type": "Double",
+									"physicalType": "float"
+								},
+								"sink": {
+									"name": "Impressions",
+									"type": "Double",
+									"physicalType": "float"
+								}
+							},
+							{
+								"source": {
+									"name": "Conversions",
+									"type": "Double",
+									"physicalType": "float"
+								},
+								"sink": {
+									"name": "Conversions",
+									"type": "Double",
+									"physicalType": "float"
+								}
+							},
+							{
+								"source": {
+									"name": "Reporting_Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Reporting_Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadSubsourceId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "LeadSubsourceId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "BranchId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ProductId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ProductId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "StaticPercentage",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "StaticPercentage",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "MappingInd",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "MappingInd",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Adjusted_Cost",
+									"type": "Double",
+									"physicalType": "float"
+								},
+								"sink": {
+									"name": "Adjusted_Cost",
+									"type": "Double",
+									"physicalType": "float"
+								}
+							},
+							{
+								"source": {
+									"name": "LastUpdateTS",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "Adjusted_Clicks",
+									"type": "Double",
+									"physicalType": "float"
+								},
+								"sink": {
+									"name": "Adjusted_Clicks",
+									"type": "Double",
+									"physicalType": "float"
+								}
+							},
+							{
+								"source": {
+									"name": "Adjusted_Impressions",
+									"type": "Double",
+									"physicalType": "float"
+								},
+								"sink": {
+									"name": "Adjusted_Impressions",
+									"type": "Double",
+									"physicalType": "float"
+								}
+							},
+							{
+								"source": {
+									"name": "Adjusted_Conversions",
+									"type": "Double",
+									"physicalType": "float"
+								},
+								"sink": {
+									"name": "Adjusted_Conversions",
+									"type": "Double",
+									"physicalType": "float"
+								}
+							},
+							{
+								"source": {
+									"name": "AgencyFee_Percentage"
+								},
+								"sink": {
+									"name": "AgencyFee_Percentage"
+								}
+							},
+							{
+								"source": {
+									"name": "AgencyFee"
+								},
+								"sink": {
+									"name": "AgencyFee"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ODS_FUNNEL_AD_PERFORMANCE_METRICS",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_CTA_TEST_DYN_DIM_CUSTOMER",
+						"type": "DatasetReference",
+						"parameters": {
+							"SchemaName": "EDW",
+							"TableName": "FACT_SUMM_AD_PERFORMANCE_METRICS"
+						}
+					}
+				]
+			},
+			{
+				"name": "Update Subsource",
+				"description": "Update LeadsubsourceId for Google Traffic Sources campaigns",
+				"type": "Script",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:30:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "With LP_SubSource as \r\n(\r\n\r\nSelect Case when TX_sourceCode in ('Paid Social','Branded Partner') then 'Facebook' -- Temporaily added BP since Guru srs ids are under BP\r\n\t\t\twhen TX_sourceCode='Native' then 'Native'\r\n\t\t\telse case when SubSourceType like '%Bing%' then 'Bing' else 'Google' end\r\n\t\t\tend as TrafficSource,\r\n\t   Division, LeadSubSourceID, SubsourceType, LeadSubSource, EntryDate\r\nfrom \r\n\t(\r\n\t\tSelect *, Dense_rank() over(partition by Division,TX_SourceCode,SubsourceType Order by EntryDate desc,LP_LeadSubsourceId desc) as Rownum From \r\n\t\t\t(\r\n\t\t\t\tSelect Distinct SS.Division,SS.LeadSubsourceId,SS.LP_LeadSubsourceId,sg.SourceGroup,SS.SOurceCode, SS.LeadSubsource,\r\n\t\t\t\t\t   Case When M.TX_SourceCode in ('Paid Search','YouTube') then\t\t\t\t   \r\n\t\t\t\t\t   \t\t\tCase when SS.LeadSubsource like '%Coat%' and SS.LeadSubsource not like '%Bing%'  then 'Coating'\r\n\t\t\t\t\t   \t\t\t\t when SS.LeadSubsource like '%Bing%' and SS.LeadSubsource like '%Coat%' then 'Bing Coatings'\r\n\t\t\t\t\t   \t\t\t\t when SS.LeadSubsource like '%bing%' then 'Bing'\r\n\t\t\t\t\t\t\t\t\t when M.LeadSubsource like '%YouTube%' and  SS.LeadSubsource like '%YouTube%'  then 'YouTube'\r\n\t\t\t\t\t   \t\t\t\t when SS.LeadSubsource like '%Performance%' or SS.Leadsubsource like '%Pmax%' then 'Performance Max'\r\n\t\t\t\t\t   \t\t\t\t when SS.LeadSubsource like '%LSA%' or SS.LeadSubsource like  '%Local%' then 'LSA'\r\n\t\t\t\t\t   \t\t\t\t when SS.LeadSubsource like '%Display%'  then 'Display'\r\n\t\t\t\t\t\t\t\t\t when (SS.Leadsubsource like '%Google%' or SS.Leadsubsource like '%PPC%' or M.Leadsubsource like '%Adwords%' or SS.Leadsubsource like  '%Website%' or SS.Leadsubsource like '%Search%' or SS.Leadsubsource like '%SEM%' )\r\n\t\t\t\t\t\t\t\t\t\tand ( SS.LeadSubsource not like '%Google LSA%' and SS.LeadSubsource not like '%Google Local%' and SS.LeadSubsource not like '%SEM Bing%') then 'SEM' \r\n\t\t\t\t\t   \t\t\t\t \tend  \r\n\t\t\t\t\t\t\tWhen M.TX_SourceCOde ='Paid Social' then\r\n\t\t\t\t\t   \t\t\tCase when SS.LeadSubsource like '%Swish%' and  SS.LeadSubsource like '%Coat%' then 'Coating-Swish'\r\n\t\t\t\t\t\t\t\t\t when SS.LeadSubsource like '%Swish%' and  SS.LeadSubsource not like '%Coat%' then 'Swish'\r\n\t\t\t\t\t   \t\t\t\t when SS.LeadSubsource like 'Meta - Coatings%' then 'Coating'\r\n\t\t\t\t\t\t\t\t\t when SS.Leadsubsource like '%Meta%' or SS.LeadSubsource like '%Facebook%' then 'Meta' end\r\n\t\t\t\t\t\t    When M.TX_SourceCOde ='Branded Partner' then -- Temporaily added BP since Guru srs ids are under BP\r\n\t\t\t\t\t   \t\t\tCase when ( SS.LeadSubsource like '%Guru Digital%' or SS.LeadSubsource like '%Lead Guru%' ) and  Replace(SS.LeadSubsource,' ','') not like '%HomeGuru%' then 'Guru' end\r\n\t\t\t\t\t\t\tWhen M.TX_SourceCOde ='Native' then\r\n\t\t\t\t\t   \t\t\tCase when SS.Leadsubsource like '%Coat%' then 'Coating'\r\n\t\t\t\t\t\t\t\t\t when ( SS.LeadSubsource like '%Native%' or SS.LeadSubsource like '%Taboola%' or SS.LeadSubsource like '%Outbrain%') then 'Native' \r\n\t\t\t\t\t\t\t\t\t when SS.Leadsubsource like '%Pinterest%' then 'Pinterest' end\r\n\t\t\t\t\t   End as SubsourceType,\r\n\t\t\t\t\t   M.EntryDate,M.SourceGroup as T_sourceGroup,M.SourceCode as T_sourceCode,M.LeadSubsource as T_leadSubsource, \r\n\t\t\t\t\t   M.TX_channel, M.TX_sourceGroup, M.TX_SourceCode\r\n\t\t\t\tfrom EDW.DIM_LEAD_SUB_SOURCE SS\r\n\t\t\t\t\tleft join EDW.dim_lead_source s on s.leadsourceid=ss.leadsourceid\r\n\t\t\t\t\tleft join EDW.dim_lead_source_group sg on s.sourcegroupid=sg.leadsourcegroupid \r\n\t\t\t\t\tLeft Join EDW.DIM_MKTNG_SUB_SOURCE_MAPPING M on SS.LeadSUbsourceID=M.LeadSubSourceID\r\n\t\t\t\twhere Year(M.EntryDate)<=Year(Getdate())  and M.TX_sourceGroup in ('Performance','Branded Digital Partner') and M.TX_sourceCode in ('Paid Search','YouTube','Paid Social','Native','Branded Partner')  \r\n\t\t\t) A\r\n\r\n\t\t\r\n\r\n\t) B where Rownum=1\r\n\r\n\r\n\r\n)\r\n,\r\nFinal_updates As \r\n(\r\nSelect TrafficSource,Division,DatasourceName,PerformanceDate, CampaignType,Campaign,Case when Division='REN' and LeadSubsourceId is null then 'REN-' else LeadSubSourceId end LeadSubSourceID,\r\nLeadSubSource,SubsourceType,Rownum from \r\n(\r\n\tSelect F.* , L.LeadSubSourceID, L.LeadSubSource,L.SubsourceType, \r\n\tRow_number() over(partition by F.TrafficSource,F.Division,F.DataSourceName,F.PerformanceDate, F.Campaign Order by L.EntryDate desc) as Rownum from \r\n\t\t(\t \r\n\t\tSelect Distinct TrafficSource, Case when TrafficSource in ('Taboola','Outbrain','Pinterest') then 'Native' else TrafficSource end as TrafficSource_Combined,Division,DatasourceName,\r\n\t\t\t\t\tEomonth(Performancedate) as PerformanceDate,\r\n\t\t\t\t\tCampaign,\r\n\t\t\t\t\tCase when TrafficSource='Google' then\r\n\t\t\t\t\t\t\t\t\tCase when Campaign like '%Display%' then 'Display' \r\n\t\t\t\t\t\t\t\t\t\twhen Campaign like '%Performance%' or Campaign like '%Pmax%' then 'Performance Max' \r\n\t\t\t\t\t\t\t\t\t\twhen Campaign like '%LocalServices%' then 'LSA' \r\n\t\t\t\t\t\t\t\t\t\twhen Campaign like '%YOUTUBE%' or Campaign like '%YT %' then 'YouTube'\r\n\t\t\t\t\t\t\t\t\t\t-- when Campaign like '%Coat%' or Campaign like '%Storage%' or Campaign like '%garage%' then 'Coating'\r\n\t\t\t\t\t\t\t\t\t\tElse 'SEM' end \r\n\t\t\t\t\t\twhen TrafficSource='Facebook' then \r\n\t\t\t\t\t\t\t\tCase when DatasourceName in ('Statewide Bath - Swish' ,'Statewide Windows - Swish' ,'FHIA Windows - Swish') and Eomonth(PerformanceDate) between '2025-10-31' and '2025-12-31' \r\n\t\t\t\t\t\t\t\t\t\tthen 'Meta'\r\n\t\t\t\t\t\t\t\t\telse \r\n\t\t\t\t\t\t\t\t\t\tCase when DatasourceName like '%Guru%' then 'Guru'\r\n\t\t\t\t\t\t\t\t\t\t\twhen DatasourceName like '%Swish%'  then 'Swish'\r\n\t\t\t\t\t\t\t\t\t\t\t--when DatasourceName like '%Coat%' and DatasourceName like '%Swish%' then 'Coating-Swish'\r\n\t\t\t\t\t\t\t\t\t\t\t--when DatasourceName like '%Coat%' then 'Coating'\r\n\t\t\t\t\t\t\t\t\t\t\t--when DataSourceName like '%Closet%' then case when Campaign like '%Coat%' then 'Coating' else 'Meta' end\r\n\t\t\t\t\t\t\t\t\t\t\telse 'Meta' end\r\n\t\t\t\t\t\t\t\t\tend\r\n\t\t\t\t\t\twhen TrafficSource='Outbrain' then 'Coating' \r\n\t\t\t\t\t\twhen TrafficSource='Pinterest' then 'Pinterest' \r\n\t\t\t\t\t\twhen TrafficSource='Taboola' then Case when (Campaign like '%Coat%' or Campaign like '%storage%' or Campaign like '%Garage%') then 'Coating' else 'Native' end\r\n\t\t\t\t\t\twhen TrafficSource='Bing' and (Campaign not like '%Coat%' and Campaign not like '%storage%') then 'Bing' else 'Bing Coatings'\r\n\t\t\t\t\tend As CampaignType\r\n\t\t\t\tfrom TEMP.FACT_AD_PERFORMANCE_METRICS F \r\n\t\t\t\t--Left join EDW.DIM_Facebook_campaign C on F.TrafficSource='Facebook' and F.Account=C.AccountId and F.CampaignID=C.CampaignId\r\n\t\t\t\t\r\n\t\twhere Eomonth(Performancedate) >= Dateadd(M,-24,Getdate())\r\n\t\t)F \r\n\t\t\t \r\n\t\tLeft Join LP_SubSource L \r\n\t\ton F.TrafficSource_Combined=L.TrafficSource and F.Division=L.Division and F.CampaignType=L.SubsourceType \r\n\t\t\r\n\r\n) A where Rownum=1  \r\n\r\n)\r\n\r\n--select Distinct t1.TrafficSource,t1.DatasourceName,Eomonth(t1.PerformanceDate) as PerformanceDate, t1.Division, t1.Campaign, t2.LeadsubsourceId\r\nUpdate TEMP.FACT_AD_PERFORMANCE_METRICS set LP_LeadSubSOurceID = t2.LeadSubSourceID\r\nFrom TEMP.FACT_AD_PERFORMANCE_METRICS t1 join \r\n(\r\nSelect Distinct F.TrafficSource,F.DatasourceName,Eomonth(F.PerformanceDate) as PerformanceDate, F.Division, F.Campaign,A1.LeadSubsourceID,A1.CampaignType,A1.SubsourceType--,M.LeadSubsource\r\n\tfrom TEMP.FACT_AD_PERFORMANCE_METRICS F  Join Final_updates A1 on\r\n\tA1.TrafficSource =F.TrafficSource and A1.Division=F.Division and A1.DatasourceName=F.DatasourceName and A1.PerformanceDate=Eomonth(F.PerformanceDate) and  A1.Campaign=F.Campaign \r\n\tWhere Eomonth(F.Performancedate) >= Dateadd(M,-24,Getdate()) \r\n\t--Left join EDW.DIM_MKTNG_Sub_Source_mapping M on A1.LeadSubsourceId=M.LeadSubsourceId\r\n\t\r\n) t2 on t1.TrafficSource=t2.TrafficSource and t1.Division=t2.Division and t1.DatasourceName=t2.DatasourceName and Eomonth(T1.PerformanceDate)= T2.PerformanceDate and t1.Campaign=t2.Campaign   \r\nWhere Eomonth(t1.Performancedate) >= Dateadd(M,-24,Getdate())\r\n;\r\n\r\n\r\n\r\n--and  t1.TrafficSource in ('Facebook')  and t1.DataSourceName='Statewide Windows - Swish'--and Eomonth(t1.Performancedate)='2025-10-31'\r\n--Order by 1,2, 3 desc, 5\r\n"
+						}
+					],
+					"scriptBlockExecutionTimeout": "00:30:00"
+				}
+			}
+		],
+		"folder": {
+			"name": "Temp/Anandan"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-03-08T08:38:41Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

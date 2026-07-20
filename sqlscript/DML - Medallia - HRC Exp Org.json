@@ -1,0 +1,20 @@
+{
+	"name": "DML - Medallia - HRC Exp Org",
+	"properties": {
+		"folder": {
+			"name": "DMLs/Medallia/HRC Experience"
+		},
+		"content": {
+			"query": "SELECT\ndistinct\ncls.emp_id as AGENT_ID\n,emp.FirstName + ' ' + emp.LastName as AGENT_NAME\n,emp.Active as ACTIVE_INACTIVE\n,'FHI' as BRAND_NAME\nFROM\nODS.LP_FHI_cls_calls cls\n,ODS.LP_FHI_emp_Employees emp\nWHERE\ncls.emp_id = emp.id\nand cls.CallDate >= DATEADD(day, -30, dbo.fnConvertUtcToPST(GETDATE()))\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

@@ -1,0 +1,210 @@
+{
+	"name": "load_F_SalesRep_Sche",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy-SnapshotTable",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"additionalColumns": [
+							{
+								"name": "snapshot_time",
+								"value": {
+									"value": "@utcNow()",
+									"type": "Expression"
+								}
+							}
+						],
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"allowCopyCommand": true
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "AzureBlobStorage1",
+							"type": "LinkedServiceReference"
+						}
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "SalesRep_ScheduleID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "SalesRep_ScheduleID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BranchID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "SalesRepID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "SalesRepID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "TimeSlotID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "TimeSlotID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Schedule_Date",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "Schedule_Date",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "Status",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Status",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_SalesRep_ScheduleID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "LP_SalesRep_ScheduleID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_BranchID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LP_BranchID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_SalesRepID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "LP_SalesRepID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_TimeSlotID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "LP_TimeSlotID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "DateChanged",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "DateChanged",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "Division",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LastUpdateTS",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastUpdateTS",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "snapshot_time",
+									"type": "String"
+								},
+								"sink": {
+									"name": "snapshot_time",
+									"type": "DateTime"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_FACT_SALES_REP_SCHEDULE_snap",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_FACT_SALES_REP_SCHEDULE_Snapshot",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "Temp"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-02-27T16:51:26Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

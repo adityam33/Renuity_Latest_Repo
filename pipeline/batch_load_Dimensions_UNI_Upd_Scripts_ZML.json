@@ -1,0 +1,569 @@
+{
+	"name": "batch_load_Dimensions_UNI_Upd_Scripts_ZML",
+	"properties": {
+		"activities": [
+			{
+				"name": "UNI_DIM_SERVICE_CATEGORY",
+				"type": "Script",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "--DIM_SERVICE_CATEGORY\n\nUPDATE TGT\nSET TGT.UNI_ServiceCategory = REF.UnifiedValue\nFROM [ZML].[DIM_SERVICE_CATEGORY] TGT\nJOIN [EDW_DUN].[UNI_REF_MAPPING] REF\nON TGT.ServiceCategoryID = REF.TablePK_EDW\nJOIN [EDW_DUN].[UNI_TABLE_METADATA] MT\nON REF.UNI_MetaID = MT.UNI_MetaID\nWHERE MT.TableName='DIM_SERVICE_CATEGORY' \nAND MT.SourceSystem='LP'\nAND MT.TableColumnName='ServiceCategory'\nAND REF.MappingInd!='UNMAPPED';\n"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "UNI_DIM_JOB_STATUS",
+				"type": "Script",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "\n--DIM_JOB_STATUS\n\nUPDATE TGT\nSET \nTGT.UNI_JobStatus\t\t= REF.UnifiedValue,\nTGT.UNI_JobStatusCategory = REF.UnifiedValue_Group,\nTGT.UNI_JobStatusSubCategory = REF.UnifiedValue_Category\nFROM ZML.DIM_JOB_STATUS TGT\nJOIN [EDW_DUN].[UNI_REF_MAPPING] REF\nON TGT.JobStatusID = REF.TablePK_EDW\nJOIN [EDW_DUN].[UNI_TABLE_METADATA] MT\nON REF.UNI_MetaID = MT.UNI_MetaID\nWHERE MT.TableName='DIM_JOB_STATUS' \nAND MT.SourceSystem='LP'\nAND MT.TableColumnName='JobStatus'\nAND REF.MappingInd!='UNMAPPED';\n\n\n-- UNI_JobStatusCategory Override\n\nUPDATE ZML.DIM_JOB_STATUS SET UNI_JobStatusCategory='Backlog' \t\t\tWHERE LP_JobStatusCategoryID=1;\nUPDATE ZML.DIM_JOB_STATUS SET UNI_JobStatusCategory='On Hold' \t\t\tWHERE LP_JobStatusCategoryID=2;\nUPDATE ZML.DIM_JOB_STATUS SET UNI_JobStatusCategory='Cancelled' \t\tWHERE LP_JobStatusCategoryID=3;\nUPDATE ZML.DIM_JOB_STATUS SET UNI_JobStatusCategory='Completed' \t\tWHERE LP_JobStatusCategoryID=4;\nUPDATE ZML.DIM_JOB_STATUS SET UNI_JobStatusCategory='Bank Turn Down' \tWHERE LP_JobStatusCategoryID=5;\nUPDATE ZML.DIM_JOB_STATUS SET UNI_JobStatusCategory='Prenet' \t\t\tWHERE LP_JobStatusCategoryID=6;"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "UNI_DIM_FINANCE_COMPANY",
+				"type": "Script",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "--DIM_FINANCE_COMPANY\n\n\nUPDATE TGT\nSET \nTGT.UNI_FinanceCompany\t\t= REF.UnifiedValue\nFROM ZML.DIM_FINANCE_COMPANY TGT\nJOIN [EDW_DUN].[UNI_REF_MAPPING] REF\nON TGT.FinanceCompanyID = REF.TablePK_EDW\nJOIN [EDW_DUN].[UNI_TABLE_METADATA] MT\nON REF.UNI_MetaID = MT.UNI_MetaID\nWHERE MT.TableName='DIM_FINANCE_COMPANY' \nAND MT.SourceSystem='LP'\nAND MT.TableColumnName='FinanceCompany'\nAND REF.MappingInd!='UNMAPPED';"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "UNI_DIM_LEAD_SOURCE_GROUP",
+				"type": "Script",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "NonQuery",
+							"text": "\n--DIM_LEAD_SOURCE_GROUP\n\nUPDATE TGT\nSET \nTGT.UNI_SourceGroup  = REF.UnifiedValue\nFROM EDW.DIM_LEAD_SOURCE_GROUP TGT\nJOIN [EDW_DUN].[UNI_REF_MAPPING] REF\nON TGT.LeadSourceGroupID = REF.TablePK_EDW\nJOIN [EDW_DUN].[UNI_TABLE_METADATA] MT\nON REF.UNI_MetaID = MT.UNI_MetaID\nWHERE MT.TableName='DIM_LEAD_SOURCE_GROUP' \nAND MT.SourceSystem='LP'\nAND MT.TableColumnName='SourceGroup'\nAND REF.MappingInd!='UNMAPPED';\n\n\nUPDATE EDW.DIM_LEAD_SOURCE_GROUP\nSET UNI_SourceGroup='NA'\nWHERE SourceGroup IS NULL AND UNI_SourceGroup IS NULL;"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "UNI_DIM_LEAD_SOURCE",
+				"type": "Script",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "--DIM_LEAD_SOURCE\n\nUPDATE TGT\nSET \nTGT.UNI_SourceCode  = REF.UnifiedValue,\nTGT.UNI_SourceGroup = REF.UnifiedValue_Group\nFROM EDW.DIM_LEAD_SOURCE TGT\nJOIN [EDW_DUN].[UNI_REF_MAPPING] REF\nON TGT.LeadSourceID = REF.TablePK_EDW\nJOIN [EDW_DUN].[UNI_TABLE_METADATA] MT\nON REF.UNI_MetaID = MT.UNI_MetaID\nWHERE MT.TableName='DIM_LEAD_SOURCE' \nAND MT.SourceSystem='LP'\nAND MT.TableColumnName='SourceCode'\nAND REF.MappingInd!='UNMAPPED';"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "UNI_DIM_PAYMENT_METHOD",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "UNI_DIM_SERVICE_CATEGORY",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "--DIM_PAYMENT_METHOD\n\n\nUPDATE TGT\nSET TGT.UNI_PaymentMethod = REF.UnifiedValue,\nTGT.UNI_IsFinancing = SUBSTRING(REF.UnifiedValue_Group,CHARINDEX(' ',REF.UnifiedValue_Group)+1,3)\nFROM ZML.DIM_PAYMENT_METHOD TGT\nJOIN [EDW_DUN].[UNI_REF_MAPPING] REF\nON TGT.PaymentMethodID = REF.TablePK_EDW\nJOIN [EDW_DUN].[UNI_TABLE_METADATA] MT\nON REF.UNI_MetaID = MT.UNI_MetaID\nWHERE MT.TableName='DIM_PAYMENT_METHOD' \nAND MT.SourceSystem='LP'\nAND MT.TableColumnName='PaymentMethod'\nAND REF.MappingInd!='UNMAPPED';\n"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "UNI_DIM_DISPOSITION",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "UNI_DIM_PRODUCT",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "--DIM_DISPOSITION\n\n\nUPDATE TGT\nSET \nTGT.UNI_Disposition \t\t= REF.UnifiedValue,\nTGT.UNI_DispositionComments = REF.UnifiedValueDesc\nFROM ZML.DIM_DISPOSITION TGT\nJOIN [EDW_DUN].[UNI_REF_MAPPING] REF\nON TGT.DispositionID = REF.TablePK_EDW\nJOIN [EDW_DUN].[UNI_TABLE_METADATA] MT\nON REF.UNI_MetaID = MT.UNI_MetaID\nWHERE MT.TableName='DIM_DISPOSITION' \nAND MT.SourceSystem='LP'\nAND MT.TableColumnName='Disposition'\nAND REF.MappingInd!='UNMAPPED';\n\n\n\n-- Temp Addition\n\nUPDATE ZML.DIM_DISPOSITION SET UNI_Disposition='BT',UNI_DispositionComments='Bad Time' WHERE Comments LIKE '%iOS prompt - No Answer%'     AND UNI_Disposition IS NULL;\nUPDATE ZML.DIM_DISPOSITION SET UNI_Disposition='CTD',UNI_DispositionComments='Contacted' WHERE Comments LIKE '%iOS prompt - Contacted%'     AND UNI_Disposition IS NULL;\nUPDATE ZML.DIM_DISPOSITION SET UNI_Disposition='Set',UNI_DispositionComments='Appointment Date Set' WHERE Comments LIKE '%iOS prompt - Appt Set%'      AND UNI_Disposition IS NULL;\nUPDATE ZML.DIM_DISPOSITION SET UNI_Disposition='DNC',UNI_DispositionComments='Do Not Call' WHERE Comments LIKE '%iOS prompt - DNC requested%' AND UNI_Disposition IS NULL;"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "UNI_DIM_CALL_RESULT",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "UNI_DIM_JOB_STATUS",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "--DIM_CALL_RESULT\n\n\nUPDATE TGT\nSET \nTGT.UNI_CallResult\t\t= REF.UnifiedValue\nFROM ZML.DIM_CALL_RESULT TGT\nJOIN [EDW_DUN].[UNI_REF_MAPPING] REF\nON TGT.CallResultID = REF.TablePK_EDW\nJOIN [EDW_DUN].[UNI_TABLE_METADATA] MT\nON REF.UNI_MetaID = MT.UNI_MetaID\nWHERE MT.TableName='DIM_CALL_RESULT' \nAND MT.SourceSystem='LP'\nAND MT.TableColumnName='CallResult'\nAND REF.MappingInd!='UNMAPPED';"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "UNI_DIM_MILESTONE_DATE_TYPE",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "UNI_DIM_LEAD_SOURCE",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "--DIM_MILESTONE_DATE_TYPE\n\n\nUPDATE TGT\nSET \nTGT.UNI_MilestoneDateType\t\t= REF.UnifiedValue,\nTGT.UNI_MilestoneDateType_Group = REF.UnifiedValue_Group\nFROM ZML.DIM_MILESTONE_DATE_TYPE TGT\nJOIN [EDW_DUN].[UNI_REF_MAPPING] REF\nON TGT.MilestoneDateTypeID = REF.TablePK_EDW\nJOIN [EDW_DUN].[UNI_TABLE_METADATA] MT\nON REF.UNI_MetaID = MT.UNI_MetaID\nWHERE MT.TableName='DIM_MILESTONE_DATE_TYPE' \nAND MT.SourceSystem='LP'\nAND MT.TableColumnName='MilestoneDateType'\nAND REF.MappingInd!='UNMAPPED';"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "UNI_DIM_SERVICE_STATUS",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "UNI_DIM_LEAD_SOURCE_GROUP",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "--DIM_SERVICE_STATUS\n\n\nUPDATE TGT\nSET \nTGT.UNI_ServiceStatus\t\t= REF.UnifiedValue\nFROM ZML.DIM_SERVICE_STATUS TGT\nJOIN [EDW_DUN].[UNI_REF_MAPPING] REF\nON TGT.ServiceStatusID = REF.TablePK_EDW\nJOIN [EDW_DUN].[UNI_TABLE_METADATA] MT\nON REF.UNI_MetaID = MT.UNI_MetaID\nWHERE MT.TableName='DIM_SERVICE_STATUS' \nAND MT.SourceSystem='LP'\nAND MT.TableColumnName='ServiceStatus'\nAND REF.MappingInd!='UNMAPPED';"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "UNI_DIM_FINANCE_SOURCE",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "UNI_DIM_FINANCE_COMPANY",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "--DIM_FINANCE_SOURCE\n\n\nUPDATE TGT\nSET \nTGT.UNI_FinanceSource\t\t= REF.UnifiedValue\nFROM ZML.DIM_FINANCE_SOURCE TGT\nJOIN [EDW_DUN].[UNI_REF_MAPPING] REF\nON TGT.FinanceSourceID = REF.TablePK_EDW\nJOIN [EDW_DUN].[UNI_TABLE_METADATA] MT\nON REF.UNI_MetaID = MT.UNI_MetaID\nWHERE MT.TableName='DIM_FINANCE_SOURCE' \nAND MT.SourceSystem='LP'\nAND MT.TableColumnName='FinanceSource'\nAND REF.MappingInd!='UNMAPPED';"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "UNI_DIM_PRODUCT_GROUP",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "UNI_DIM_FINANCE_SOURCE",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "--DIM_PRODUCT_GROUP\n\n\nUPDATE TGT\nSET \nTGT.UNI_ProductGroup \t\t= REF.UnifiedValue\nFROM ZML.DIM_PRODUCT_GROUP TGT\nJOIN [EDW_DUN].[UNI_REF_MAPPING] REF\nON TGT.ProductGroupID = REF.TablePK_EDW\nJOIN [EDW_DUN].[UNI_TABLE_METADATA] MT\nON REF.UNI_MetaID = MT.UNI_MetaID\nWHERE MT.TableName='DIM_PRODUCT_GROUP' \nAND MT.SourceSystem='LP'\nAND MT.TableColumnName='ProductGroup'\nAND REF.MappingInd!='UNMAPPED';"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "UNI_DIM_JOB_COST_CATEGORY",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "UNI_DIM_SERVICE_STATUS",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "\n--DIM_JOB_COST_CATEGORY\n\n\nUPDATE TGT\nSET \nTGT.UNI_JobCostCategory\t\t= REF.UnifiedValue\nFROM ZML.DIM_JOB_COST_CATEGORY TGT\nJOIN [EDW_DUN].[UNI_REF_MAPPING] REF\nON TGT.JobCostCategoryID = REF.TablePK_EDW\nJOIN [EDW_DUN].[UNI_TABLE_METADATA] MT\nON REF.UNI_MetaID = MT.UNI_MetaID\nWHERE MT.TableName='DIM_JOB_COST_CATEGORY' \nAND MT.SourceSystem='LP'\nAND MT.TableColumnName='JobCostCategory'\nAND REF.MappingInd!='UNMAPPED';"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "UNI_DIM_PAYMENT_TYPE",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "UNI_DIM_CALL_RESULT",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "--DIM_PAYMENT_TYPE\n\n\nUPDATE TGT\nSET \nTGT.UNI_PaymentType\t\t= REF.UnifiedValue\nFROM ZML.DIM_PAYMENT_TYPE TGT\nJOIN [EDW_DUN].[UNI_REF_MAPPING] REF\nON TGT.PaymentTypeID = REF.TablePK_EDW\nJOIN [EDW_DUN].[UNI_TABLE_METADATA] MT\nON REF.UNI_MetaID = MT.UNI_MetaID\nWHERE MT.TableName='DIM_PAYMENT_TYPE' \nAND MT.SourceSystem='LP'\nAND MT.TableColumnName='PaymentType'\nAND REF.MappingInd!='UNMAPPED';"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "UNI_DIM_CALL_TYPE",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "UNI_DIM_MILESTONE_DATE_TYPE",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "--DIM_CALL_TYPE\n\n\nUPDATE TGT\nSET \nTGT.UNI_CallType\t\t= REF.UnifiedValue\nFROM ZML.DIM_CALL_TYPE TGT\nJOIN [EDW_DUN].[UNI_REF_MAPPING] REF\nON TGT.CallTypeID = REF.TablePK_EDW\nJOIN [EDW_DUN].[UNI_TABLE_METADATA] MT\nON REF.UNI_MetaID = MT.UNI_MetaID\nWHERE MT.TableName='DIM_CALL_TYPE' \nAND MT.SourceSystem='LP'\nAND MT.TableColumnName='CallType'\nAND REF.MappingInd!='UNMAPPED';"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "UNI_DIM_PRODUCT",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "UNI_DIM_LEAD_SUB_SOURCE",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "--DIM_PRODUCT\n\nUPDATE A\nSET \nA.UNI_ProductName = B.TX_Product_Reporting ,\nA.UNI_ProductGroup = B.TX_ProductGroup \nFROM ZML.DIM_PRODUCT A \nJOIN [ZML].[DIM_MKTNG_PRODUCT_MAPPING] B \nON A.ProductID = B.ProductID\n\n\nUPDATE TGT\nSET \nTGT.UNI_ProductName  = REF.UnifiedValue,\nTGT.UNI_ProductGroup = REF.UnifiedValue_Group\nFROM ZML.DIM_PRODUCT TGT\nJOIN [EDW_DUN].[UNI_REF_MAPPING] REF\nON TGT.ProductID = REF.TablePK_EDW\nJOIN [EDW_DUN].[UNI_TABLE_METADATA] MT\nON REF.UNI_MetaID = MT.UNI_MetaID\nWHERE MT.TableName='DIM_PRODUCT' \nAND MT.SourceSystem='LP'\nAND MT.TableColumnName='ProductName'\nAND REF.MappingInd!='UNMAPPED'\nAND TGT.UNI_ProductName IS NULL;"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "UNI_DIM_BRANCH",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "UNI_DIM_PAYMENT_METHOD",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "--DIM_BRANCH\n\nUPDATE A\nSET A.UNI_Market = B.UNI_Market,\nA.UNI_MarketGroup = B.UNI_MarketGroup\nFROM [ZML].[DIM_BRANCH] A \nJOIN ZML.DIM_BRANCH_EXTN B\nON A.BranchID =B.BranchID;\n\n\nUPDATE TGT\nSET \nTGT.UNI_Market  = REF.UnifiedValue,\nTGT.UNI_MarketGroup = REF.UnifiedValue_Group\nFROM ZML.DIM_BRANCH TGT\nJOIN [EDW_DUN].[UNI_REF_MAPPING] REF\nON TGT.BranchID = REF.TablePK_EDW\nJOIN [EDW_DUN].[UNI_TABLE_METADATA] MT\nON REF.UNI_MetaID = MT.UNI_MetaID\nWHERE MT.TableName='DIM_BRANCH' \nAND MT.SourceSystem='LP'\nAND MT.TableColumnName='LongName'\nAND REF.MappingInd!='UNMAPPED'\nAND TGT.UNI_Market IS NULL;"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "UNI_DIM_LEAD_SUB_SOURCE",
+				"type": "Script",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "UPDATE  A\nSET \nA.UNI_Channel\t\t= B.TX_Channel,\nA.UNI_SourceGroup\t= B.TX_SourceGroup,\nA.UNI_SourceCode\t\t= B.TX_SourceCode\nFROM [ZML].[DIM_LEAD_SUB_SOURCE] A\nJOIN (SELECT * FROM [ZML].[DIM_MKTNG_SUB_SOURCE_MAPPING] WHERE MappingInd!='UNMAP') B\nON A.LeadSubSourceID = B.LeadSubSourceID"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			}
+		],
+		"folder": {
+			"name": "Temp/Anuj/ZML/LP_ODS_to_EDW"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-12-09T07:01:47Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

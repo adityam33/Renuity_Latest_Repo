@@ -1,0 +1,612 @@
+{
+	"name": "batch_cpy_LP_to_ODS_small_Part1_ZML",
+	"properties": {
+		"activities": [
+			{
+				"name": "cpy_LP_clr_CallResults",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_clr_CallResults_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_jbs_JobStatus",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_jbs_JobStatus_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_mdt_MilestoneDateTypes",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_HOA_Status",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_mdt_MilestoneDateTypes_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_pmt_PaymentTypes",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_mdt_MilestoneDateTypes",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_pmt_PaymentTypes_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_src_SourceCodes",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_pmt_PaymentTypes",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_src_SourceCodes_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_srs_SourceSubs",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_src_SourceCodes",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_srs_SourceSubs_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_cty_CallTypes",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_jbs_JobStatus",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_cty_CallTypes_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_rnk_Rank",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_cty_CallTypes",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_rnk_Rank_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_org_Organization",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_rnk_Rank",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_org_Organization_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_ous_OrgUnits",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_org_Organization",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_ous_OrgUnits_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_ulv_UserLookupValues",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_pls_PunchList",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_ulv_UserLookupValues_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_ufn_UserFieldNames",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_utm_UTMData",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_ufn_UserFieldNames_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_cot_ChangeOrderTypes",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_ikr_InboundKillReasons",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_cot_ChangeOrderTypes_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_cpt_CommissionPmtTypes",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_cot_ChangeOrderTypes",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_cpt_CommissionPmtTypes_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_HOA_Status",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_HOA_Status_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_ikr_InboundKillReasons",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_ufn_UserFieldNames",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_ikr_InboundKillReasons_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_utm_UTMData",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_clr_CallResults",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_utm_UTMData_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_rpm_ReportingMarket",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_srs_SourceSubs",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_rpm_ReportingMarket_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_tof_TypeOfMarket",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_ous_OrgUnits",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_tof_TypeOfMarket_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_mls_MilestonePlans",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_ulv_UserLookupValues",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_mls_MilestonePlans_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_cmt_CommissionTypes",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_mls_MilestonePlans",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_cmt_CommissionTypes_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_pws_PaperWorkStatus",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_cmt_CommissionTypes",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_pws_PaperWorkStatus_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_pnt_PhoneTypes",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_pws_PaperWorkStatus",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_pnt_PhoneTypes_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_pls_PunchList",
+				"type": "ExecutePipeline",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_pls_PunchList_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_ejt_EmpJobType",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_cpt_CommissionPmtTypes",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_ejt_EmpJobType_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_ccd_CallCenterDepartment",
+				"type": "ExecutePipeline",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_tof_TypeOfMarket",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_ccd_CallCenterDepartment_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_LP_ccm_CallCenterManager",
+				"type": "ExecutePipeline",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "cpy_LP_rpm_ReportingMarket",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_LP_ccm_CallCenterManager_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"folder": {
+			"name": "Temp/Anuj/ZML/LP_to_ODS_ZML"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-11-12T10:28:06Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

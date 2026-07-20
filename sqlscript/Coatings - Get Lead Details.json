@@ -1,0 +1,17 @@
+{
+	"name": "Coatings - Get Lead Details",
+	"properties": {
+		"content": {
+			"query": "SELECT\nlds.Division\n,srs.SourceCode\n,srs.LeadSubSourceID\n,srs.LeadSubSource\n,brn.LongName as Market\n,prd.ProductName as ProductID\n,prd.LongDescription as Product\n,dsp.Comments as Disposition\n,cast(lds.EntryDate as Date) as EntryDate\n,appt.[ApptDate]\n,appt.SetDate\n,lds.LeadID\n,cst.CustomerID\n,cst.FirstName\n,cst.LastName\n,cst.Email\n,cst.Phone\n,cst.Address1\n,cst.City\n,cst.[State]\n,cst.Zip\n,lds.ApptSet\n,lds.NetIssued\n,lds.Sat\n,lds.Sold\n,jbs.JobStatus\n,jsc.JobStatusCategory\n,job.ContractDate\n,job.GrossAmount\n,case \n    when jsc.JobStatusCategory is NULL then 0\n    when jsc.JobStatusCategory in ('Cancelled', 'Credit Decline') then 0 \n    else job.GrossAmount\nend\nas [NetSalesAmount]\nFROM \n[EDW].[FACT_LEAD] lds\ninner join [EDW].[DIM_PRODUCT] prd\non lds.ProductID = prd.ProductID\nleft join [EDW].[DIM_CUSTOMER] cst\non lds.CustomerID = cst.CustomerID\nleft join (\n    SELECT \n        [LeadID]\n        ,MAX([ApptDate]) as [ApptDate]\n        ,MAX(SetDate) as [SetDate]\n    FROM \n        [EDW].[FACT_APPOINTMENT]\n    WHERE \n        Division in ('MAC')\n    group by \n    LeadID\n) appt\non lds.LeadID = appt.LeadID\ninner join [EDW].[DIM_LEAD_SUB_SOURCE] srs\non lds.LeadSubSourceID = srs.LeadSubSourceID\ninner join [EDW].[DIM_DISPOSITION] dsp\non lds.DispositionID = dsp.DispositionID\nleft join [EDW].[DIM_BRANCH] brn\non lds.BranchID = brn.BranchID\nleft join [EDW].[FACT_JOB] job\non lds.LeadID = job.LeadID\nleft join [EDW].[DIM_JOB_STATUS] jbs\non job.JobStatusID = jbs.JobStatusID\nleft join [EDW].[DIM_JOB_STATUS_CATEGORY] jsc\non jbs.JobStatusCategoryID = jsc.JobStatusCategoryID\nwhere \nlds.BranchID in ('MAC-GSMAD','MAC-GSCLT')\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

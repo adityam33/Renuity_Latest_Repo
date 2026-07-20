@@ -1,0 +1,458 @@
+{
+	"name": "testpipeline",
+	"properties": {
+		"activities": [
+			{
+				"name": "Script1",
+				"type": "Script",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "select 1"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Copy data1",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "JsonSource",
+						"storeSettings": {
+							"type": "AzureBlobStorageReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "JsonReadSettings"
+						}
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "$['value'][0]['id']"
+								},
+								"sink": {
+									"name": "id"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['name']"
+								},
+								"sink": {
+									"name": "value'][0]['name"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['type']"
+								},
+								"sink": {
+									"name": "value'][0]['type"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['etag']"
+								},
+								"sink": {
+									"name": "etag"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['properties']['activities'][0]['name']"
+								},
+								"sink": {
+									"name": "value'][0]['properties_activities'][0]['name"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['properties']['activities'][0]['type']"
+								},
+								"sink": {
+									"name": "value'][0]['properties_activities'][0]['type"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['properties']['activities'][0]['dependsOn'][0]"
+								},
+								"sink": {
+									"name": "value'][0]['properties_activities'][0]['dependsOn']["
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['properties']['activities'][0]['policy']['timeout']"
+								},
+								"sink": {
+									"name": "timeout"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['properties']['activities'][0]['policy']['retry']"
+								},
+								"sink": {
+									"name": "retry"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['properties']['activities'][0]['policy']['retryIntervalInSeconds']"
+								},
+								"sink": {
+									"name": "retryIntervalInSeconds"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['properties']['activities'][0]['policy']['secureOutput']"
+								},
+								"sink": {
+									"name": "secureOutput"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['properties']['activities'][0]['policy']['secureInput']"
+								},
+								"sink": {
+									"name": "secureInput"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['properties']['activities'][0]['userProperties'][0]['name']"
+								},
+								"sink": {
+									"name": "value'][0]['properties_activities'][0]['userProperties'][0]['name"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['properties']['activities'][0]['userProperties'][0]['value']"
+								},
+								"sink": {
+									"name": "value"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['properties']['activities'][0]['typeProperties']['source']['type']"
+								},
+								"sink": {
+									"name": "value'][0]['properties_activities'][0]['typeProperties_source_type"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['properties']['activities'][0]['typeProperties']['source']['storeSettings']['type']"
+								},
+								"sink": {
+									"name": "value'][0]['properties_activities'][0]['typeProperties_source_storeSettings_type"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['properties']['activities'][0]['typeProperties']['source']['storeSettings']['recursive']"
+								},
+								"sink": {
+									"name": "recursive"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['properties']['activities'][0]['typeProperties']['source']['storeSettings']['enablePartitionDiscovery']"
+								},
+								"sink": {
+									"name": "enablePartitionDiscovery"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['properties']['activities'][0]['typeProperties']['source']['formatSettings']['type']"
+								},
+								"sink": {
+									"name": "value'][0]['properties_activities'][0]['typeProperties_source_formatSettings_type"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['properties']['activities'][0]['typeProperties']['source']['formatSettings']['skipLineCount']"
+								},
+								"sink": {
+									"name": "skipLineCount"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['properties']['activities'][0]['typeProperties']['sink']['type']"
+								},
+								"sink": {
+									"name": "value'][0]['properties_activities'][0]['typeProperties_sink_type"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['properties']['activities'][0]['typeProperties']['sink']['preCopyScript']"
+								},
+								"sink": {
+									"name": "preCopyScript"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['properties']['activities'][0]['typeProperties']['sink']['writeBehavior']"
+								},
+								"sink": {
+									"name": "writeBehavior"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['properties']['activities'][0]['typeProperties']['sink']['tableOption']"
+								},
+								"sink": {
+									"name": "tableOption"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['properties']['activities'][0]['typeProperties']['enableStaging']"
+								},
+								"sink": {
+									"name": "enableStaging"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['properties']['activities'][0]['typeProperties']['translator']['type']"
+								},
+								"sink": {
+									"name": "value'][0]['properties_activities'][0]['typeProperties_translator_type"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['properties']['activities'][0]['typeProperties']['translator']['mappings'][0]['source']['name']"
+								},
+								"sink": {
+									"name": "value'][0]['properties_activities'][0]['typeProperties_translator_mappings'][0]['source_name"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['properties']['activities'][0]['typeProperties']['translator']['mappings'][0]['source']['type']"
+								},
+								"sink": {
+									"name": "value'][0]['properties_activities'][0]['typeProperties_translator_mappings'][0]['source_type"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['properties']['activities'][0]['typeProperties']['translator']['mappings'][0]['sink']['name']"
+								},
+								"sink": {
+									"name": "value'][0]['properties_activities'][0]['typeProperties_translator_mappings'][0]['sink_name"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['properties']['activities'][0]['typeProperties']['translator']['mappings'][0]['sink']['type']"
+								},
+								"sink": {
+									"name": "value'][0]['properties_activities'][0]['typeProperties_translator_mappings'][0]['sink_type"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['properties']['activities'][0]['inputs'][0]['referenceName']"
+								},
+								"sink": {
+									"name": "value'][0]['properties_activities'][0]['inputs'][0]['referenceName"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['properties']['activities'][0]['inputs'][0]['type']"
+								},
+								"sink": {
+									"name": "value'][0]['properties_activities'][0]['inputs'][0]['type"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['properties']['activities'][0]['inputs'][0]['parameters']"
+								},
+								"sink": {
+									"name": "value'][0]['properties_activities'][0]['inputs'][0]['parameters"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['properties']['activities'][0]['outputs'][0]['referenceName']"
+								},
+								"sink": {
+									"name": "value'][0]['properties_activities'][0]['outputs'][0]['referenceName"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['properties']['activities'][0]['outputs'][0]['type']"
+								},
+								"sink": {
+									"name": "value'][0]['properties_activities'][0]['outputs'][0]['type"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['properties']['activities'][0]['outputs'][0]['parameters']"
+								},
+								"sink": {
+									"name": "value'][0]['properties_activities'][0]['outputs'][0]['parameters"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['properties']['policy']['elapsedTimeMetric']"
+								},
+								"sink": {
+									"name": "elapsedTimeMetric"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['properties']['policy']['cancelAfter']"
+								},
+								"sink": {
+									"name": "cancelAfter"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['properties']['folder']['name']"
+								},
+								"sink": {
+									"name": "value'][0]['properties_folder_name"
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['properties']['annotations'][0]"
+								},
+								"sink": {
+									"name": "value'][0]['properties_annotations']["
+								}
+							},
+							{
+								"source": {
+									"path": "$['value'][0]['properties']['lastPublishTime']"
+								},
+								"sink": {
+									"name": "lastPublishTime"
+								}
+							},
+							{
+								"source": {
+									"path": "$['nextLink']"
+								},
+								"sink": {
+									"name": "nextLink"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "Json3",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DelimitedText1",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Data flow1",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "Dataflow3",
+						"type": "DataFlowReference"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			}
+		],
+		"folder": {
+			"name": "Temp/Sameen"
+		},
+		"annotations": [],
+		"lastPublishTime": "2024-11-04T17:52:37Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

@@ -1,0 +1,20 @@
+{
+	"name": "DML_SUMM_FACT_CONTACT_CENTER_PERFORMANCE",
+	"properties": {
+		"folder": {
+			"name": "DMLs/EDW Load"
+		},
+		"content": {
+			"query": "SELECT \n[Division]\n,SetBy as Agent_EmployeeID\n,count([AppointmentID]) as AppointmentCount\n,min([ApptDate]) EarliestAppointmentDate\n,min([SetDate]) as EarliestDateAppointmentSet\n,min([VerifiedDate]) as EarliestVerifiedDate\n,min([ConfirmedDate]) as EarliestConfirmedDate\n,sum(case when [ApptSet] = 'True' then 1 else 0 end) as ApptSetCount\n,sum(case when [Verified] = 'True' then 1 else 0 end) as VerifiedCount\n,sum(case when [Confirmed] = 'True' then 1 else 0 end) as ConfirmedCount\n,sum(case when [Issued] = 'True' then 1 else 0 end) as IssuedCount\n,sum(case when [NetIssued] = 'True' then 1 else 0 end) as NetIssuedCount\n,sum(case when [Sat] = 'True' then 1 else 0 end) as SatCount\n,sum(case when [Sold] = 'True' then 1 else 0 end) as SoldCount\n FROM [EDW].[FACT_APPOINTMENT]\ngroup BY\n[Division]\n,SetBy",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

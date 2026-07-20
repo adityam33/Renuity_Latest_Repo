@@ -1,0 +1,156 @@
+{
+	"name": "df_load_DIM_DISPOSITION_ZML",
+	"properties": {
+		"folder": {
+			"name": "ZML_ODS_to_EDW/DIMENSIONS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ZML_ODS_FHI_dsp_Dispositions",
+						"type": "DatasetReference"
+					},
+					"name": "FHI"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_DIM_DISPOSITION_ZML",
+						"type": "DatasetReference"
+					},
+					"name": "targetDim",
+					"description": "Export data to EDW_DIM_DISPOSITION",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "selectColsFHI"
+				},
+				{
+					"name": "createIDsFHI"
+				},
+				{
+					"name": "unionAllOpCos"
+				},
+				{
+					"name": "addLastUpdateTimestamp"
+				},
+				{
+					"name": "AlterRow"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          id as integer,",
+				"          descr as string,",
+				"          positive as boolean,",
+				"          clq_id as integer,",
+				"          Data as integer,",
+				"          SetAppt as integer,",
+				"          Verification as integer,",
+				"          Confirmation as integer,",
+				"          Issue as integer,",
+				"          Presentation as integer,",
+				"          Sale as integer,",
+				"          dct_id as integer,",
+				"          CountAsKill as boolean,",
+				"          OkToReset as boolean,",
+				"          Comments as string,",
+				"          SortOrder as integer,",
+				"          usage as string,",
+				"          active as boolean",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> FHI",
+				"FHI select(mapColumn(",
+				"          LP_DispositionID = id,",
+				"          Disposition = descr,",
+				"          Data,",
+				"          SetAppt,",
+				"          Verification,",
+				"          Confirmation,",
+				"          Issue,",
+				"          Presentation,",
+				"          Sale,",
+				"          LP_DispositionCategoryID = dct_id,",
+				"          CountAsKill,",
+				"          OkToReset,",
+				"          Comments,",
+				"          Active = active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColsFHI",
+				"selectColsFHI derive(DispositionID = concat('FHI-',toString(LP_DispositionID)),",
+				"          Division = 'FHI',",
+				"          DispositionCategoryID = concat('FHI-',toString(LP_DispositionCategoryID))) ~> createIDsFHI",
+				"createIDsFHI union(byName: true)~> unionAllOpCos",
+				"unionAllOpCos derive(LastUpdateTS = currentTimestamp()) ~> addLastUpdateTimestamp",
+				"addLastUpdateTimestamp alterRow(upsertIf(true())) ~> AlterRow",
+				"AlterRow sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          DispositionID as string,",
+				"          Disposition as string,",
+				"          DispositionCategoryID as string,",
+				"          Data as integer,",
+				"          SetAppt as integer,",
+				"          Verification as integer,",
+				"          Confirmation as integer,",
+				"          Issue as integer,",
+				"          Presentation as integer,",
+				"          Sale as integer,",
+				"          CountAsKill as boolean,",
+				"          OkToReset as boolean,",
+				"          Comments as string,",
+				"          Active as boolean,",
+				"          LP_Dispositionid as integer,",
+				"          LP_DispositionCategoryID as integer,",
+				"          Division as string,",
+				"          LastUpdateTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['DispositionID'],",
+				"     format: 'table',",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          DispositionID,",
+				"          Disposition,",
+				"          DispositionCategoryID,",
+				"          Data,",
+				"          SetAppt,",
+				"          Verification,",
+				"          Confirmation,",
+				"          Issue,",
+				"          Presentation,",
+				"          Sale,",
+				"          CountAsKill,",
+				"          OkToReset,",
+				"          Comments,",
+				"          Active,",
+				"          LP_Dispositionid = LP_DispositionID,",
+				"          LP_DispositionCategoryID,",
+				"          Division,",
+				"          LastUpdateTS",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> targetDim"
+			]
+		}
+	}
+}

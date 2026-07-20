@@ -1,0 +1,52 @@
+{
+	"name": "batch_cpy_ERP_to_ODS_Transactions_Summary",
+	"properties": {
+		"activities": [
+			{
+				"name": "cpy_ERP_GL_SUMM_BY_MODULE_PERIOD",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_ERP_GL_SUMMARY",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_ERP_GL_SUMM_BY_MODULE_PERIOD",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_ERP_GL_SUMMARY",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_ERP_GL_SUMMARY_ODATA",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"folder": {
+			"name": "SRC_to_ODS/ERP/Acumatica/SUMMARY"
+		},
+		"annotations": [],
+		"lastPublishTime": "2023-01-03T14:57:32Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

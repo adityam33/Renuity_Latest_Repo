@@ -1,0 +1,20 @@
+{
+	"name": "Get OpCo Zips for Walk In Tub",
+	"properties": {
+		"folder": {
+			"name": "DMLs/Analysis SQL/Walk In Tub"
+		},
+		"content": {
+			"query": "select\n'MXH' as OpCo\n,brz.[zip] as ZipCode\n,zonda.[Baths_Composite_Ranking_Index]\n,brz.[brn_id] as BranchID\n,brn.LongName as Branch\n,brz.[prg_id] as ProductGroupID\n,prg.Descr as ProductGroup\n,zip.[Population]\n,zip.[HouseholdsPerZipCode]\n,zip.[State]\n,zip.[City]\n,zip.[County]\n,zip.[MSA_Name]\n,zip.[CBSA_Name]\n,zip.[PopulationEstimate]\n,zip.[DeliveryResidential]\n,zip.[DeliveryTotal]\nFROM \n[ODS].[LP_MXH_brz_BranchZips] brz\njoin [ODS].[LP_MXH_brn_Branches] brn ON\nbrz.brn_id = brn.id\njoin [ODS].[LP_MXH_prg_Product_Groups] prg on\nbrz.prg_id = prg.id\njoin [ODS].[MKTDATA_ZIP_CODES_DB_DELUXE_BUSINESS] zip\non brz.zip = zip.ZipCode\nleft join (\n    SELECT [ZipCode]\n,max(convert(NUMERIC(10,3),[Baths_Composite_Ranking_Index])) as [Baths_Composite_Ranking_Index]\n FROM [ODS].[MKTDATA_ZONDA_ZIP_CODE_INDEX]\n group BY\n [ZipCode]\n) zonda on \nbrz.zip = zonda.ZipCode\nWHERE\nbrn.Active = 'True'\nand zip.[PrimaryRecord] = 'P'\nand zip.[ClassificationCode] not in ('P','U')\nand zip.[PopulationEstimate] > 1\norder by \n[Baths_Composite_Ranking_Index] desc",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

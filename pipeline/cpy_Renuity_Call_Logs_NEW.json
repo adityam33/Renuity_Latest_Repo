@@ -1,0 +1,75 @@
+{
+	"name": "cpy_Renuity_Call_Logs_NEW",
+	"properties": {
+		"activities": [
+			{
+				"name": "Execute_Five9_Call_Log_New_DIM_Load",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_Renuity_Call_Log_DIM_Load",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Execute_Five9_Call_Log_New_FACT_Load",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute_Five9_Call_Log_New_DIM_Load",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_Five9_FACT_CALL_LOG_ALL_NEW",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "UPD_Unification",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute_Five9_Call_Log_New_FACT_Load",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "batch_load_Dimensions_FIVE9_UNI_Upd_Scripts",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"folder": {
+			"name": "Five9_to_EDW"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-09-18T07:54:52Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

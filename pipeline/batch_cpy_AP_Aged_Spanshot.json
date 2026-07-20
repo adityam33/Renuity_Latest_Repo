@@ -1,0 +1,371 @@
+{
+	"name": "batch_cpy_AP_Aged_Spanshot",
+	"properties": {
+		"activities": [
+			{
+				"name": "If Condition1",
+				"type": "IfCondition",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(formatDateTime(utcNow(), 'yyyy-MM-dd'), formatDateTime(addDays(startOfMonth(addToTime(utcNow(), 1, 'Month')), -1), 'yyyy-MM-dd'))\r\n",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "cpy_AP_Aged_Period_Snapshot",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlPoolSource",
+									"sqlReaderQuery": "Select *,CAST(GETDATE() as Date) as SnapshotDate from EDW.FACT_AP_AGED_PERIOD",
+									"queryTimeout": "02:00:00"
+								},
+								"sink": {
+									"type": "SqlPoolSink",
+									"writeBehavior": "Upsert",
+									"upsertSettings": {
+										"keys": [
+											"CompanyName",
+											"ReferenceNumber",
+											"SnapshotDate"
+										],
+										"interimSchemaName": ""
+									},
+									"sqlWriterUseTableLock": false
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"mappings": [
+										{
+											"source": {
+												"name": "CompanyName",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "CompanyName",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "BranchCode",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "BranchCode",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "VendorID",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "VendorID",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "VendorName",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "VendorName",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "PostingPeriod",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "PostingPeriod",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "DocumentType",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "DocumentType",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "ReferenceNumber",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "ReferenceNumber",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "VendorRef",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "VendorRef",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Status",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "Status",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "DueDate",
+												"type": "DateTime",
+												"physicalType": "date"
+											},
+											"sink": {
+												"name": "DueDate",
+												"type": "DateTime",
+												"physicalType": "date"
+											}
+										},
+										{
+											"source": {
+												"name": "DocumentDate",
+												"type": "DateTime",
+												"physicalType": "date"
+											},
+											"sink": {
+												"name": "DocumentDate",
+												"type": "DateTime",
+												"physicalType": "date"
+											}
+										},
+										{
+											"source": {
+												"name": "Balance",
+												"type": "Decimal",
+												"physicalType": "decimal",
+												"scale": 18,
+												"precision": 38
+											},
+											"sink": {
+												"name": "Balance",
+												"type": "Decimal",
+												"physicalType": "decimal",
+												"scale": 18,
+												"precision": 38
+											}
+										},
+										{
+											"source": {
+												"name": "CurrentPeriod",
+												"type": "Decimal",
+												"physicalType": "decimal",
+												"scale": 18,
+												"precision": 38
+											},
+											"sink": {
+												"name": "CurrentPeriod",
+												"type": "Decimal",
+												"physicalType": "decimal",
+												"scale": 18,
+												"precision": 38
+											}
+										},
+										{
+											"source": {
+												"name": "1-30 DaysPeriod",
+												"type": "Decimal",
+												"physicalType": "decimal",
+												"scale": 18,
+												"precision": 38
+											},
+											"sink": {
+												"name": "1-30 DaysPeriod",
+												"type": "Decimal",
+												"physicalType": "decimal",
+												"scale": 18,
+												"precision": 38
+											}
+										},
+										{
+											"source": {
+												"name": "31-60 DaysPeriod",
+												"type": "Decimal",
+												"physicalType": "decimal",
+												"scale": 18,
+												"precision": 38
+											},
+											"sink": {
+												"name": "31-60 DaysPeriod",
+												"type": "Decimal",
+												"physicalType": "decimal",
+												"scale": 18,
+												"precision": 38
+											}
+										},
+										{
+											"source": {
+												"name": "61-90 DaysPeriod",
+												"type": "Decimal",
+												"physicalType": "decimal",
+												"scale": 18,
+												"precision": 38
+											},
+											"sink": {
+												"name": "61-90 DaysPeriod",
+												"type": "Decimal",
+												"physicalType": "decimal",
+												"scale": 18,
+												"precision": 38
+											}
+										},
+										{
+											"source": {
+												"name": "Over 90 DaysPeriod",
+												"type": "Decimal",
+												"physicalType": "decimal",
+												"scale": 18,
+												"precision": 38
+											},
+											"sink": {
+												"name": "Over 90 DaysPeriod",
+												"type": "Decimal",
+												"physicalType": "decimal",
+												"scale": 18,
+												"precision": 38
+											}
+										},
+										{
+											"source": {
+												"name": "AgedOnDate",
+												"type": "DateTime",
+												"physicalType": "date"
+											},
+											"sink": {
+												"name": "AgedOnDate",
+												"type": "DateTime",
+												"physicalType": "date"
+											}
+										},
+										{
+											"source": {
+												"name": "VendorClass",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "VendorClass",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "PaymentTerms",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "PaymentTerms",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "CreatedDate",
+												"type": "DateTime",
+												"physicalType": "datetime2"
+											},
+											"sink": {
+												"name": "CreatedDate",
+												"type": "DateTime",
+												"physicalType": "datetime2"
+											}
+										},
+										{
+											"source": {
+												"name": "SnapshotDate",
+												"type": "DateTime",
+												"physicalType": "date"
+											},
+											"sink": {
+												"name": "SnapshotDate",
+												"type": "DateTime",
+												"physicalType": "datetime2"
+											}
+										}
+									],
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "EDW_FACT_AP_AGED_PERIOD",
+									"type": "DatasetReference"
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "EDW_FACT_AP_AGED_PERIOD_SNAPSHOT",
+									"type": "DatasetReference"
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"folder": {
+			"name": "Temp/Akshay"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-09-17T12:44:47Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

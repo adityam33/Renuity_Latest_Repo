@@ -1,0 +1,346 @@
+{
+	"name": "df_load_DIM_PAYMENT_TYPE",
+	"properties": {
+		"folder": {
+			"name": "ODS_to_EDW/DIMENSIONS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_FHI_pmt_PaymentTypes",
+						"type": "DatasetReference"
+					},
+					"name": "FHI"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_HSI_pmt_PaymentTypes",
+						"type": "DatasetReference"
+					},
+					"name": "HSI"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_MAC_pmt_PaymentTypes",
+						"type": "DatasetReference"
+					},
+					"name": "MAC"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_PBC_pmt_PaymentTypes",
+						"type": "DatasetReference"
+					},
+					"name": "PBC"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_SWR_pmt_PaymentTypes",
+						"type": "DatasetReference"
+					},
+					"name": "SWR"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_RTW_pmt_PaymentTypes",
+						"type": "DatasetReference"
+					},
+					"name": "RTW"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_MXH_pmt_PaymentTypes",
+						"type": "DatasetReference"
+					},
+					"name": "MXH"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_CTA_pmt_PaymentTypes",
+						"type": "DatasetReference"
+					},
+					"name": "CTA"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_DIM_PAYMENT_TYPE",
+						"type": "DatasetReference"
+					},
+					"name": "targetDim",
+					"description": "Export data to EDW_DIM_PAYMENT_TYPE",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "selectColsFHI"
+				},
+				{
+					"name": "createIDsFHI"
+				},
+				{
+					"name": "selectColsHSI"
+				},
+				{
+					"name": "selectColsMAC"
+				},
+				{
+					"name": "selectPBC"
+				},
+				{
+					"name": "selectSWR"
+				},
+				{
+					"name": "createIDsHSI"
+				},
+				{
+					"name": "createIDsMAC"
+				},
+				{
+					"name": "createIDsPBC"
+				},
+				{
+					"name": "createIDsSWR"
+				},
+				{
+					"name": "unionAllOpCos"
+				},
+				{
+					"name": "addLastUpdateTimestamp"
+				},
+				{
+					"name": "selectRTW"
+				},
+				{
+					"name": "createIDsRTW"
+				},
+				{
+					"name": "selectMXH"
+				},
+				{
+					"name": "createIDsMXH"
+				},
+				{
+					"name": "selectCTA"
+				},
+				{
+					"name": "createIDsCTA"
+				},
+				{
+					"name": "AlterRow"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          ID as string,",
+				"          Descr as string,",
+				"          Active as boolean,",
+				"          SortOrder as integer,",
+				"          idpkey as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> FHI",
+				"source(output(",
+				"          ID as string,",
+				"          Descr as string,",
+				"          Active as boolean,",
+				"          SortOrder as integer,",
+				"          idpkey as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> HSI",
+				"source(output(",
+				"          ID as string,",
+				"          Descr as string,",
+				"          Active as boolean,",
+				"          SortOrder as integer,",
+				"          idpkey as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> MAC",
+				"source(output(",
+				"          ID as string,",
+				"          Descr as string,",
+				"          Active as boolean,",
+				"          SortOrder as integer,",
+				"          idpkey as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> PBC",
+				"source(output(",
+				"          ID as string,",
+				"          Descr as string,",
+				"          Active as boolean,",
+				"          SortOrder as integer,",
+				"          idpkey as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> SWR",
+				"source(output(",
+				"          ID as string,",
+				"          Descr as string,",
+				"          Active as boolean,",
+				"          SortOrder as integer,",
+				"          idpkey as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> RTW",
+				"source(output(",
+				"          ID as string,",
+				"          Descr as string,",
+				"          Active as boolean,",
+				"          SortOrder as integer,",
+				"          idpkey as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> MXH",
+				"source(output(",
+				"          ID as string,",
+				"          Descr as string,",
+				"          Active as boolean,",
+				"          SortOrder as integer,",
+				"          idpkey as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> CTA",
+				"FHI select(mapColumn(",
+				"          LP_PaymentTypeID = ID,",
+				"          PaymentType = Descr,",
+				"          Active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColsFHI",
+				"selectColsFHI derive(PaymentTypeID = concat('FHI-',toString(LP_PaymentTypeID)),",
+				"          Division = 'FHI') ~> createIDsFHI",
+				"HSI select(mapColumn(",
+				"          LP_PaymentTypeID = ID,",
+				"          PaymentType = Descr,",
+				"          Active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColsHSI",
+				"MAC select(mapColumn(",
+				"          LP_PaymentTypeID = ID,",
+				"          PaymentType = Descr,",
+				"          Active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColsMAC",
+				"PBC select(mapColumn(",
+				"          LP_PaymentTypeID = ID,",
+				"          PaymentType = Descr,",
+				"          Active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectPBC",
+				"SWR select(mapColumn(",
+				"          LP_PaymentTypeID = ID,",
+				"          PaymentType = Descr,",
+				"          Active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectSWR",
+				"selectColsHSI derive(PaymentTypeID = concat('HSI-',toString(LP_PaymentTypeID)),",
+				"          Division = 'HSI') ~> createIDsHSI",
+				"selectColsMAC derive(PaymentTypeID = concat('MAC-',toString(LP_PaymentTypeID)),",
+				"          Division = 'MAC') ~> createIDsMAC",
+				"selectPBC derive(PaymentTypeID = concat('PBC-',toString(LP_PaymentTypeID)),",
+				"          Division = 'PBC') ~> createIDsPBC",
+				"selectSWR derive(PaymentTypeID = concat('SWR-',toString(LP_PaymentTypeID)),",
+				"          Division = 'SWR') ~> createIDsSWR",
+				"createIDsFHI, createIDsHSI, createIDsMAC, createIDsPBC, createIDsSWR, createIDsRTW, createIDsMXH, createIDsCTA union(byName: true)~> unionAllOpCos",
+				"unionAllOpCos derive(LastUpdateTS = currentTimestamp()) ~> addLastUpdateTimestamp",
+				"RTW select(mapColumn(",
+				"          LP_PaymentTypeID = ID,",
+				"          PaymentType = Descr,",
+				"          Active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectRTW",
+				"selectRTW derive(PaymentTypeID = concat('RTW-',toString(LP_PaymentTypeID)),",
+				"          Division = 'RTW') ~> createIDsRTW",
+				"MXH select(mapColumn(",
+				"          LP_PaymentTypeID = ID,",
+				"          PaymentType = Descr,",
+				"          Active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectMXH",
+				"selectMXH derive(PaymentTypeID = concat('MXH-',toString(LP_PaymentTypeID)),",
+				"          Division = 'MXH') ~> createIDsMXH",
+				"CTA select(mapColumn(",
+				"          LP_PaymentTypeID = ID,",
+				"          PaymentType = Descr,",
+				"          Active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectCTA",
+				"selectCTA derive(PaymentTypeID = concat('CTA-',toString(LP_PaymentTypeID)),",
+				"          Division = 'CTA') ~> createIDsCTA",
+				"addLastUpdateTimestamp alterRow(upsertIf(true())) ~> AlterRow",
+				"AlterRow sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          PaymentTypeID as string,",
+				"          PaymentType as string,",
+				"          Active as boolean,",
+				"          LP_PaymentTypeID as string,",
+				"          Division as string,",
+				"          UNI_PaymentType as string,",
+				"          LastUpdateTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['PaymentTypeID'],",
+				"     format: 'table',",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          LP_PaymentTypeID,",
+				"          PaymentType,",
+				"          Active,",
+				"          PaymentTypeID,",
+				"          Division,",
+				"          LastUpdateTS",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> targetDim"
+			]
+		}
+	}
+}

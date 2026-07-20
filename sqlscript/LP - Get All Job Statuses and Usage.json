@@ -1,0 +1,20 @@
+{
+	"name": "LP - Get All Job Statuses and Usage",
+	"properties": {
+		"folder": {
+			"name": "DMLs/LP Data"
+		},
+		"content": {
+			"query": "SELECT\njs.[OperatingCompany]\n,[Active]\n,js.[JobStatusID]\n,[JobStatus]\n,count(job.JobID) as JobCount\n,[isBackLog]\n,[isRestricted]\n,js.[LP_JobStatusID]\nFROM \n[EDW].[DIM_JOB_STATUS] js\nleft join [EDW].[FACT_JOB] job\non js.JobStatusID = job.JobStatusID\ngroup BY\njs.[OperatingCompany]\n,[Active]\n,js.[JobStatusID]\n,[JobStatus]\n,[isBackLog]\n,[isRestricted]\n,js.[LP_JobStatusID]\norder BY\njs.[OperatingCompany]\n,[Active] desc\n,JobCount desc\n,js.[JobStatusID]\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

@@ -1,0 +1,686 @@
+{
+	"name": "Insight factory request load",
+	"properties": {
+		"activities": [
+			{
+				"name": "Inbound Queue",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "Select  D.InboundkillReason,F.* from EDW.FACT_Inbound_Queue_log F \nLeft join EDW.DIM_Inbound_Kill_reason D on F.InboundKillreasonId=D.InboundkillreasonId\nWhere F.Division='MAC' and F.Datereceived >=Dateadd(d,-90,getdate())",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_AD_PERFORMANCE_METRICS_DETAIL",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "TGT_InsightFactory_Leadscost",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Lead Conversions MAC",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Inbound Queue",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"sqlReaderQuery": "With AP_LEADS As (\r\nSelect \r\nT1.Active_Prospect_Lead_Id, T1.Email, T1.Phone_1, \r\nT1.Submitted_At AT TIME ZONE 'UTC' AT TIME ZONE 'Central Standard Time' as Submitted_At, --converting utc to central\r\nT1.created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Central Standard Time' as Created_at,\r\nT1.Division, T1.Outcome, T1.Active_Prospect_Source_name, T1.Product, \r\nazurecreditfilterv20debug ,  T2.comments, \r\ntrestlephoneintelligencecarrier, trestlephoneintelligencecountrycode,  trestlephoneintelligencecountryname, \r\ntrestlephoneintelligenceisprepaid, trestlephoneintelligenceisvalid, trestlephoneintelligencelinetype,\r\ntrestlephoneintelligenceoutcome, trestlephoneintelligenceactivityscore\r\n\r\nfrom ODS.AP_Leads T1 Left join ODS.AP_Leads_TrestleFields T2 on T2.LeadId=T1.Active_Prospect_lead_id\r\n\r\n)\r\n\r\nSelect \r\n\tDivision, LP_CustomerId, LP_LeadId, AP_LeadId, \r\n\tFirst_Name, Last_name, Address1, Addr_City, Addr_State, Addr_Zip, Phone, Email,   \r\n\tEntryDate,LP_ProductId, LP_product_name, AP_ProductName,\r\n\tSRS_ID, SourceGroup As LP_SourceGroup, Source as LP_Source, sub_source as LP_SubSource,\r\n\tINQ_datereceived,\r\n\tInq_Sender as InboundQueue_Sender, Flag,\r\n\tActive_Prospect_Source_name as AP_Source,\r\n\tRank, District, \r\n\tAppointment_Set, Lead_issued, Demo_Completed, Sold, BTD_Flag, JobCancelled_Flag, GrossSalesAmount, \r\n\tVersium_creditScore, Experian_CreditRating, Renuity_creditRating, Contacted, \r\n\tDispositionId, Disposition, DispositionCategoryId, Uni_DispositionComments, \r\n\tJobStatus, UNI_jobStatus, UNI_jobstatusCategory,\r\n\r\n\t---AP fields\r\n\tazurecreditfilterv20debug , comments, \r\n\ttrestlephoneintelligencecarrier, trestlephoneintelligencecountrycode,  trestlephoneintelligencecountryname, \r\n\ttrestlephoneintelligenceisprepaid, trestlephoneintelligenceisvalid, trestlephoneintelligencelinetype,\r\n\ttrestlephoneintelligenceoutcome, trestlephoneintelligenceactivityscore\r\n\r\nfrom (\r\nSelect * from (\r\nSELECT   \r\n    -- Identification Attributes       \r\n    distinct\r\n\tlds.Division,\r\n    cst.CustomerID as LP_CustomerId,\r\n    lds.LeadID LP_LeadID,\r\n\tAP.Active_Prospect_Lead_id As AP_LeadID,--- AP1.Active_prospect_Lead_ID as AP_LeadId1,\r\n    LOWER(cst.FirstName) first_name,          \r\n    LOWER(cst.LastName) last_name,          \r\n    LOWER(cst.Address1) address1,          \r\n    LOWER(ISNULL(NULLIF(cst.City, ''), 'unknown')) addr_city,          \r\n    LOWER(ISNULL(NULLIF(cst.State, ''), 'unknown')) addr_state,          \r\n    LOWER(ISNULL(NULLIF(cst.Zip, ''), 'unknown')) addr_zip,          \r\n    cst.Phone phone,          \r\n    LOWER(cst.Email) email,                  \r\n   -- RENUITY LEAD ATTRIBUTES          \r\n\r\n    lds.EntryDate ,        \r\n\tAP.Created_at as AP_Created_At_date,\r\n\tInq.DateReceived as INQ_datereceived,\r\n\tRow_number() over(partition by lds.LeadId order by AP.Created_at) as Rn,\r\n\r\n    LOWER(ISNULL(NULLIF(Case when lds.Productid like '%-' then j.ProductId else lds.Productid end, ''), 'unknown')) LP_productid,       \r\n    LOWER(ISNULL(NULLIF(Case when lds.Productid like '%-' then p1.ProductName else p.ProductName end , ''), 'unknown')) LP_product_name,  \r\n\t\r\n\tLOWER(ISNULL(NULLIF(AP.Product, ''), 'unknown')) as AP_ProductName, \r\n\r\n\tLOWER(ISNULL(NULLIF(Sg.SourceGroup, ''), 'unknown')) SourceGroup, \r\n    LOWER(ISNULL(NULLIF(srs.SourceCode, ''), 'unknown')) source,       \r\n    LOWER(ISNULL(NULLIF(srs.LeadSubSource, ''), 'unknown')) sub_source,    \r\n\tLOWER(ISNULL(NULLIF(lds.LeadSubsourceId, ''), 'unknown')) as SRS_ID,\r\n\r\n\tInq.Source as Inq_Source, Inq.Sender as Inq_Sender, \r\n\tCase when Coalesce(Inq.Sender,'')  like '%AP' then 'Digital' else 'Non-Digital' end as Flag, \r\n\r\n\tAP.Active_Prospect_Source_name,\r\n\r\n\r\n    LOWER(ISNULL(NULLIF(rnk.rank, ''), 'unknown')) rank,      \r\n\t\r\n    LOWER(ISNULL(NULLIF(case when lds.SalesDistrictId like '%-' then sds1.LongName \r\n\t\t\t\t\t\t\t when lds.BranchId like '%-' then sds2.LongName\r\n\t\t\t\t\t\t\t else sds.LongName end \r\n\t\t\t\t\t\t, ''), 'unknown')) district,    \r\n\t\r\n     lds.ApptSet as Appointment_Set,\r\n     lds.issued as lead_issued,\r\n     lds.sat as Demo_Completed,\r\n     lds.Sold,      \r\n     CASE WHEN JS.[UNI_JobStatusCategory] = 'Bank Turn Down' then 1 Else 0 end as BTD_Flag,\r\n     CASE WHEN JS.[UNI_JobStatusCategory] = 'Cancelled' then 1 Else 0 end as JobCancelled_Flag,\r\n     lds.GrossSalesAmount,\r\n\r\n     --rrt.[LeadScore],\r\n     rrt.[CreditScore] as Versium_CreditScore,\r\n     rrt.[Experian_CreditRating],\r\n\t Case when lds.Division='PBC' then rrt.[CreditScore] else rrt.Ren_creditRating end as Renuity_creditRating ,\r\n\r\n\r\n\tCOALESCE(f9.AnsweredCall,0) AS CONTACTED ,\r\n     d.[DispositionID], d.[Disposition],d.[DispositionCategoryID],\r\n     d.[UNI_Disposition],d.[UNI_DispositionComments],\r\n\t js.JobStatus, \r\n\t js.UNI_JobStatus,js.[UNI_JobStatusCategory],\r\n\t \r\n\t ---AP fields\r\n\tazurecreditfilterv20debug , AP.comments, \r\n\ttrestlephoneintelligencecarrier, trestlephoneintelligencecountrycode,  trestlephoneintelligencecountryname, \r\n\ttrestlephoneintelligenceisprepaid, trestlephoneintelligenceisvalid, trestlephoneintelligencelinetype,\r\n\ttrestlephoneintelligenceoutcome, trestlephoneintelligenceactivityscore\r\n\t\r\n\t \r\n\r\nFROM          \r\n    edw.fact_lead lds with (nolock)         \r\n    Left Outer join edw.dim_product p on lds.Productid = p.productid\r\n    Left Outer join edw.dim_disposition d on lds.dispositionid = d.dispositionid\r\n    LEFT OUTER JOIN edw.dim_Customer cst on lds.[CustomerID] = cst.[CustomerID]         \r\n    LEFT OUTER JOIN [EDW].[DIM_SALES_DISTRICT] sds with (nolock) on lds.[SalesDistrictID] =  sds.[SalesDistrictID]          \r\n    LEFT OUTER JOIN [EDW].[DIM_RANK] rnk  with (nolock)  on lds.[RankID] =  rnk.[RankID]          \r\n    LEFT OUTER JOIN [EDW].[DIM_LEAD_SUB_SOURCE] srs with (nolock)  on lds.[LeadSubSourceID] = srs.[LeadSubSourceID]    \r\n\r\n\tLEFT OUTER JOIN [EDW].[DIM_LEAD_Source] s with (nolock) on srs.LeadsourceId=s.LeadsourceId\r\n\tLEFT OUTER JOIN [EDW].[DIM_LEAD_Source_group] sg with (nolock) on s.sourcegroupId=Sg.LeadSourceGroupId\r\n\r\n\r\n    Left outer join [EDW].Fact_job j on j.leadid=lds.leadid\r\n    Left Outer join [EDW].[DIM_JOB_STATUS] js on j.[JobStatusID] = js.[JobStatusID]\r\n    left outer join [EDW].[DIM_RENUITYRATINGS] rrt on rrt.leadid = lds.leadid\r\n\tLeft join EDW.Fact_inbound_Queue_Log Inq on  Lds.LeadId=Inq.LeadId\r\n\r\n\tLeft Outer join edw.dim_product p1 on j.Productid = p1.productid\r\n\tLEFT OUTER JOIN [EDW].[DIM_SALES_DISTRICT] sds1 with (nolock) on lds.BranchId =  sds1.[SalesDistrictID]  \r\n\tLEFT OUTER JOIN [EDW].[DIM_SALES_DISTRICT] sds2 with (nolock) on j.ProductionBranchId =  sds2.[SalesDistrictID]  \r\n\r\n    left outer join \r\n\t\t(\r\n\t\t\tSELECT DISTINCT\r\n\t\t\t\tA.Division,\r\n\t\t\t\tA.number1 \r\n\t\t\t\t,B.AnsweredCall\r\n\t\t\t\tFROM [EDW].[FACT_FIVE9_CALL_LOG_ALL_NEW] A\r\n\t\t\t\tJOIN [EDW].[DIM_FIVE9_CALL_RESULT_DISPOSITION] B\r\n\t\t\t\tON A.CallResultID = B.CallResultID\r\n\t\t\t\tWHERE AnsweredCall=1\r\n\t\t\t\tAND CAST(DATE AS DATE)>='2025-01-01'\r\n\t\t) f9 on --f9.number1 = cst.phone \r\n\t\t\tCAST(f9.number1 AS nvarchar(50))= LTRIM(RTRIM(cst.phone)) AND f9.Division = lds.Division\r\n\r\n\tLeft join AP_LEADS AP on AP.Submitted_At >='2025-01-01' and AP.Division=Inq.Division \r\n\t\t\t\t\t\tand\tAP.phone_1= Inq.Phone and AP.Email=Inq.Email and  cast(AP.Submitted_At as date)= Cast(Inq.DateReceived as date) --converting utc to central\r\n\t\t\t\t\t\tand AP.Outcome='success' and AP.Active_Prospect_Source_name= Replace(Inq.Sender,' | AP','')\r\n\r\n\r\nWHERE \r\nlds.EntryDate between '2025-01-01' and '2025-12-10' and Lds.Division='MAC'\r\n)a where rn=1\r\n)b\r\n\r\n\r\n\r\n--where AP_LeadID is null  \r\n-- and Inq_Sender like '%AP'\r\n--LP_LeadId='FHI-1008809'--164458--116303\r\n--114037 Cast(dateadd(hour,-5, AP.Created_At) as date)--123429\r\n--52902--39344 PB --34288 \r\nOrder by EntryDate desc",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ODS_LP_FHI_src_SourceCodes",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "TGT_InsightFactory",
+						"type": "DatasetReference",
+						"parameters": {
+							"Division": "MAC"
+						}
+					}
+				]
+			},
+			{
+				"name": "Subsources",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Branch",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"sqlReaderQuery": "Select  L.Division,M.TX_Channel,M.TX_SourceGroup, M.TX_SourceCode, L.EntryDate,L.LeadId, L.LeadSubsourceId , U.UnitCpl--, U.Datereceived,U.LeadId\r\nfrom EDW.Fact_lead L\r\nLeft join EDW.DIM_MKTNG_SUB_Source_mapping M on L.LeadSubsourceId=M.LeadSubsourceId\r\nLeft join EDW.FACT_UTM_Parameters_Value U on L.LeadID=U.LeadId\r\nWhere --L.Division='MAC' and\r\nEomonth(U.Datereceived) between '2025-01-31' and '2025-09-01' and U.UnitCpl is not null \r\nOrder by 3,4 desc\r\n",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ODS_LP_FHI_src_SourceCodes",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "TGT_InsightFactory_Leadscost",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Branch",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"sqlReaderQuery": "Select  Z.Division, BranchZipID, \r\nZ.ProductGroupId, PG.ProductGroup,P.ProductId,P.LongDescription as ProductName\r\n,Z.BranchId,  ZipCode,B.LongName as BranchName, \r\nM.MarketDescription  from \r\nEDW.DIM_BRANCH_ZIP Z \r\nLeft join EDW.DIM_BRanch B on Z.BranchID=B.BranchId\r\nLeft join EDW.DIM_REPorting_Market M on M.ReportingMarketId=B.ReportingMarketID\r\nLeft join EDW.DIM_Product_Group PG on Z.ProductGroupId=PG.ProductGroupId\r\nLeft join EDW.DIM_Product P on PG.ProductGroupId=P.ProductGroupId",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ODS_LP_FHI_src_SourceCodes",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "TGT_InsightFactory_Leadscost",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "FHI",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Lead Conversions MAC",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"sqlReaderQuery": "With AP_LEADS As (\r\nSelect \r\nT1.Active_Prospect_Lead_Id, T1.Email, T1.Phone_1, \r\nT1.Submitted_At AT TIME ZONE 'UTC' AT TIME ZONE 'Eastern Standard Time' as Submitted_At, --converting utc to eastern\r\nT1.created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Eastern Standard Time' as Created_at,\r\nT1.Division, T1.Outcome, T1.Active_Prospect_Source_name, T1.Product, \r\nazurecreditfilterv20debug ,  T2.comments, \r\ntrestlephoneintelligencecarrier, trestlephoneintelligencecountrycode,  trestlephoneintelligencecountryname, \r\ntrestlephoneintelligenceisprepaid, trestlephoneintelligenceisvalid, trestlephoneintelligencelinetype,\r\ntrestlephoneintelligenceoutcome, trestlephoneintelligenceactivityscore\r\n\r\nfrom ODS.AP_Leads T1 Left join ODS.AP_Leads_TrestleFields T2 on T2.LeadId=T1.Active_Prospect_lead_id\r\n\r\n--where Cast(submitted_At as date)>'2025-11-02'\r\n)\r\n\r\nSelect --top 100 *\r\n\tDivision, LP_CustomerId, LP_LeadId, AP_LeadId, \r\n\tFirst_Name, Last_name, Address1, Addr_City, Addr_State, Addr_Zip, Phone, Email,   \r\n\tEntryDate,LP_ProductId, LP_product_name, AP_ProductName, \r\n\tSRS_ID, SourceGroup As LP_SourceGroup,\r\n\tSource as LP_Source, sub_source as LP_SubSource, \r\n\tINQ_datereceived,\r\n\tInq_Sender as InboundQueue_Sender, Flag,\r\n\tActive_Prospect_Source_name as AP_Source,\r\n\tRank, District, \r\n\tAppointment_Set, Lead_issued, Demo_Completed, Sold, BTD_Flag, JobCancelled_Flag, GrossSalesAmount, \r\n\tVersium_creditScore, Experian_CreditRating, Renuity_creditRating, Contacted, \r\n\tDispositionId, Disposition, DispositionCategoryId, Uni_DispositionComments, \r\n\tJobStatus, UNI_jobStatus, UNI_jobstatusCategory,\r\n\r\n\t---AP fields\r\n\tazurecreditfilterv20debug , comments, \r\n\ttrestlephoneintelligencecarrier, trestlephoneintelligencecountrycode,  trestlephoneintelligencecountryname, \r\n\ttrestlephoneintelligenceisprepaid, trestlephoneintelligenceisvalid, trestlephoneintelligencelinetype,\r\n\ttrestlephoneintelligenceoutcome, trestlephoneintelligenceactivityscore\r\n\r\nfrom (\r\nSelect * from (\r\nSELECT   \r\n    -- Identification Attributes       \r\n    distinct\r\n\tlds.Division,\r\n    cst.CustomerID as LP_CustomerId,\r\n    lds.LeadID LP_LeadID,\r\n\tAP.Active_Prospect_Lead_id As AP_LeadID,--- AP1.Active_prospect_Lead_ID as AP_LeadId1,\r\n    LOWER(cst.FirstName) first_name,          \r\n    LOWER(cst.LastName) last_name,          \r\n    LOWER(cst.Address1) address1,          \r\n    LOWER(ISNULL(NULLIF(cst.City, ''), 'unknown')) addr_city,          \r\n    LOWER(ISNULL(NULLIF(cst.State, ''), 'unknown')) addr_state,          \r\n    LOWER(ISNULL(NULLIF(cst.Zip, ''), 'unknown')) addr_zip,          \r\n    cst.Phone phone,          \r\n    LOWER(cst.Email) email,                  \r\n   -- RENUITY LEAD ATTRIBUTES          \r\n\r\n    lds.EntryDate ,        \r\n\tAP.Created_at as AP_Created_At_date,\r\n\tInq.DateReceived as INQ_datereceived,\r\n\tRow_number() over(partition by lds.LeadId order by AP.Created_at) as Rn,\r\n\r\n    LOWER(ISNULL(NULLIF(Case when lds.Productid like '%-' then j.ProductId else lds.Productid end, ''), 'unknown')) LP_productid,       \r\n    LOWER(ISNULL(NULLIF(Case when lds.Productid like '%-' then p1.ProductName else p.ProductName end , ''), 'unknown')) LP_product_name,  \r\n\t\r\n\tLOWER(ISNULL(NULLIF(AP.Product, ''), 'unknown')) as AP_ProductName, \r\n\r\n\tLOWER(ISNULL(NULLIF(Sg.SourceGroup, ''), 'unknown')) SourceGroup, \r\n    LOWER(ISNULL(NULLIF(srs.SourceCode, ''), 'unknown')) source,       \r\n    LOWER(ISNULL(NULLIF(srs.LeadSubSource, ''), 'unknown')) sub_source,    \r\n\tLOWER(ISNULL(NULLIF(lds.LeadSubsourceId, ''), 'unknown')) as SRS_ID,\r\n\tInq.Source as Inq_Source, Inq.Sender as Inq_Sender, \r\n\tCase when Coalesce(Inq.Sender,'')  like '%AP' then 'Digital' else 'Non-Digital' end as Flag, \r\n\tAP.Active_Prospect_Source_name,\r\n\r\n\r\n    LOWER(ISNULL(NULLIF(rnk.rank, ''), 'unknown')) rank,      \r\n\t\r\n    LOWER(ISNULL(NULLIF(case when lds.SalesDistrictId like '%-' then sds1.LongName \r\n\t\t\t\t\t\t\t when lds.BranchId like '%-' then sds2.LongName\r\n\t\t\t\t\t\t\t else sds.LongName end \r\n\t\t\t\t\t\t, ''), 'unknown')) district,    \r\n\t\r\n     lds.ApptSet as Appointment_Set,\r\n     lds.issued as lead_issued,\r\n     lds.sat as Demo_Completed,\r\n     lds.Sold,      \r\n     CASE WHEN JS.[UNI_JobStatusCategory] = 'Bank Turn Down' then 1 Else 0 end as BTD_Flag,\r\n     CASE WHEN JS.[UNI_JobStatusCategory] = 'Cancelled' then 1 Else 0 end as JobCancelled_Flag,\r\n     lds.GrossSalesAmount,\r\n\r\n     --rrt.[LeadScore],\r\n     rrt.[CreditScore] as Versium_CreditScore,\r\n     rrt.[Experian_CreditRating],\r\n\t Case when lds.Division='PBC' then rrt.[CreditScore] else rrt.Ren_creditRating end as Renuity_creditRating ,\r\n\r\n\r\n\tCOALESCE(f9.AnsweredCall,0) AS CONTACTED ,\r\n     d.[DispositionID], d.[Disposition],d.[DispositionCategoryID],\r\n     d.[UNI_Disposition],d.[UNI_DispositionComments],\r\n\t js.JobStatus, \r\n\t js.UNI_JobStatus,js.[UNI_JobStatusCategory],\r\n\t \r\n\t ---AP fields\r\n\tazurecreditfilterv20debug , AP.comments, \r\n\ttrestlephoneintelligencecarrier, trestlephoneintelligencecountrycode,  trestlephoneintelligencecountryname, \r\n\ttrestlephoneintelligenceisprepaid, trestlephoneintelligenceisvalid, trestlephoneintelligencelinetype,\r\n\ttrestlephoneintelligenceoutcome, trestlephoneintelligenceactivityscore\r\n\t\r\n\t \r\n\r\nFROM          \r\n    edw.fact_lead lds with (nolock)         \r\n    Left Outer join edw.dim_product p on lds.Productid = p.productid\r\n    Left Outer join edw.dim_disposition d on lds.dispositionid = d.dispositionid\r\n    LEFT OUTER JOIN edw.dim_Customer cst on lds.[CustomerID] = cst.[CustomerID]         \r\n    LEFT OUTER JOIN [EDW].[DIM_SALES_DISTRICT] sds with (nolock) on lds.[SalesDistrictID] =  sds.[SalesDistrictID]          \r\n    LEFT OUTER JOIN [EDW].[DIM_RANK] rnk  with (nolock)  on lds.[RankID] =  rnk.[RankID]          \r\n    LEFT OUTER JOIN [EDW].[DIM_LEAD_SUB_SOURCE] srs with (nolock)  on lds.[LeadSubSourceID] = srs.[LeadSubSourceID]    \r\n\r\n\tLEFT OUTER JOIN [EDW].[DIM_LEAD_Source] s with (nolock) on srs.LeadsourceId=s.LeadsourceId\r\n\tLEFT OUTER JOIN [EDW].[DIM_LEAD_Source_group] sg with (nolock) on s.sourcegroupId=Sg.LeadSourceGroupId\r\n\r\n    Left outer join [EDW].Fact_job j on j.leadid=lds.leadid\r\n    Left Outer join [EDW].[DIM_JOB_STATUS] js on j.[JobStatusID] = js.[JobStatusID]\r\n    left outer join [EDW].[DIM_RENUITYRATINGS] rrt on rrt.leadid = lds.leadid\r\n\tLeft join EDW.Fact_inbound_Queue_Log Inq on  Lds.LeadId=Inq.LeadId\r\n\r\n\tLeft Outer join edw.dim_product p1 on j.Productid = p1.productid\r\n\tLEFT OUTER JOIN [EDW].[DIM_SALES_DISTRICT] sds1 with (nolock) on lds.BranchId =  sds1.[SalesDistrictID]  \r\n\tLEFT OUTER JOIN [EDW].[DIM_SALES_DISTRICT] sds2 with (nolock) on j.ProductionBranchId =  sds2.[SalesDistrictID]  \r\n\r\n    left outer join \r\n\t\t(\r\n\t\t\tSELECT DISTINCT\r\n\t\t\t\tA.Division,\r\n\t\t\t\tA.number1 \r\n\t\t\t\t,B.AnsweredCall\r\n\t\t\t\tFROM [EDW].[FACT_FIVE9_CALL_LOG_ALL_NEW] A\r\n\t\t\t\tJOIN [EDW].[DIM_FIVE9_CALL_RESULT_DISPOSITION] B\r\n\t\t\t\tON A.CallResultID = B.CallResultID\r\n\t\t\t\tWHERE AnsweredCall=1\r\n\t\t\t\tAND CAST(DATE AS DATE)>='2025-01-01'\r\n\t\t) f9 on --f9.number1 = cst.phone \r\n\t\t\tCAST(f9.number1 AS nvarchar(50))= LTRIM(RTRIM(cst.phone)) AND f9.Division = lds.Division\r\n\r\n\tLeft join AP_LEADS AP on AP.Submitted_At >='2025-01-01' and AP.Division=Inq.Division \r\n\t\t\t\t\t\tand\tAP.phone_1= Inq.Phone and AP.Email=Inq.Email and  cast(AP.Submitted_At as date)= Cast(Inq.DateReceived as date) --converting utc to eastern\r\n\t\t\t\t\t\tand AP.Outcome='success' and AP.Active_Prospect_Source_name= Replace(Inq.Sender,' | AP','')\r\n\r\n\r\nWHERE \r\nlds.EntryDate between '2025-01-01' and '2025-12-10' and Lds.Division='FHI'\r\n)a where rn=1\r\n)b\r\n\r\n\r\n\r\n--where AP_LeadID is null  and Source not like '%kohler%'\r\n-- and Inq_Sender like '%AP'\r\n--LP_LeadId='FHI-1008809'--164458--116303\r\n--114037 Cast(dateadd(hour,-5, AP.Created_At) as date)--123429\r\n--52902--39344 PB --34288 \r\nOrder by EntryDate desc",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ODS_LP_FHI_src_SourceCodes",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "TGT_InsightFactory",
+						"type": "DatasetReference",
+						"parameters": {
+							"Division": "FHI"
+						}
+					}
+				]
+			},
+			{
+				"name": "CTA",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "RTW",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"sqlReaderQuery": "With AP_LEADS As (\r\nSelect \r\nT1.Active_Prospect_Lead_Id, T1.Email, T1.Phone_1, \r\nT1.Submitted_At AT TIME ZONE 'UTC' AT TIME ZONE 'Eastern Standard Time' as Submitted_At, --converting utc to Eastern\r\nT1.created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Eastern Standard Time' as Created_at,\r\nT1.Division, T1.Outcome, T1.Active_Prospect_Source_name, T1.Product, \r\nazurecreditfilterv20debug ,  T2.comments, \r\ntrestlephoneintelligencecarrier, trestlephoneintelligencecountrycode,  trestlephoneintelligencecountryname, \r\ntrestlephoneintelligenceisprepaid, trestlephoneintelligenceisvalid, trestlephoneintelligencelinetype,\r\ntrestlephoneintelligenceoutcome, trestlephoneintelligenceactivityscore\r\n\r\nfrom ODS.AP_Leads T1 Left join ODS.AP_Leads_TrestleFields T2 on T2.LeadId=T1.Active_Prospect_lead_id\r\n\r\n--where Cast(submitted_At as date)>'2025-11-02'\r\n)\r\n\r\nSelect --top 100 *\r\n\tDivision, LP_CustomerId, LP_LeadId, AP_LeadId, \r\n\tFirst_Name, Last_name, Address1, Addr_City, Addr_State, Addr_Zip, Phone, Email,   \r\n\tEntryDate,LP_ProductId, LP_product_name, AP_ProductName, SRS_ID, Source as LP_Source, SourceGroup As LP_SourceGroup, sub_source as LP_SubSource,\r\n\tINQ_datereceived,\r\n\tInq_Sender as InboundQueue_Sender, Flag,\r\n\t Active_Prospect_Source_name as AP_Source,\r\n\tRank, District, \r\n\tAppointment_Set, Lead_issued, Demo_Completed, Sold, BTD_Flag, JobCancelled_Flag, GrossSalesAmount, \r\n\tVersium_creditScore, Experian_CreditRating, Renuity_creditRating, Contacted, \r\n\tDispositionId, Disposition, DispositionCategoryId, Uni_DispositionComments, \r\n\tJobStatus, UNI_jobStatus, UNI_jobstatusCategory,\r\n\r\n\t---AP fields\r\n\tazurecreditfilterv20debug , comments, \r\n\ttrestlephoneintelligencecarrier, trestlephoneintelligencecountrycode,  trestlephoneintelligencecountryname, \r\n\ttrestlephoneintelligenceisprepaid, trestlephoneintelligenceisvalid, trestlephoneintelligencelinetype,\r\n\ttrestlephoneintelligenceoutcome, trestlephoneintelligenceactivityscore\r\n\r\nfrom (\r\nSelect * from (\r\nSELECT   \r\n    -- Identification Attributes       \r\n    distinct\r\n\tlds.Division,\r\n    cst.CustomerID as LP_CustomerId,\r\n    lds.LeadID LP_LeadID,\r\n\tAP.Active_Prospect_Lead_id As AP_LeadID,--- AP1.Active_prospect_Lead_ID as AP_LeadId1,\r\n    LOWER(cst.FirstName) first_name,          \r\n    LOWER(cst.LastName) last_name,          \r\n    LOWER(cst.Address1) address1,          \r\n    LOWER(ISNULL(NULLIF(cst.City, ''), 'unknown')) addr_city,          \r\n    LOWER(ISNULL(NULLIF(cst.State, ''), 'unknown')) addr_state,          \r\n    LOWER(ISNULL(NULLIF(cst.Zip, ''), 'unknown')) addr_zip,          \r\n    cst.Phone phone,          \r\n    LOWER(cst.Email) email,                  \r\n   -- RENUITY LEAD ATTRIBUTES          \r\n\r\n    lds.EntryDate ,        \r\n\tAP.Created_at as AP_Created_At_date,\r\n\tInq.DateReceived as INQ_datereceived,\r\n\tRow_number() over(partition by lds.LeadId order by AP.Created_at) as Rn,\r\n\r\n    LOWER(ISNULL(NULLIF(Case when lds.Productid like '%-' then j.ProductId else lds.Productid end, ''), 'unknown')) LP_productid,       \r\n    LOWER(ISNULL(NULLIF(Case when lds.Productid like '%-' then p1.ProductName else p.ProductName end , ''), 'unknown')) LP_product_name,  \r\n\t\r\n\tLOWER(ISNULL(NULLIF(AP.Product, ''), 'unknown')) as AP_ProductName, \r\n\tLOWER(ISNULL(NULLIF(Sg.SourceGroup, ''), 'unknown')) SourceGroup, \r\n    LOWER(ISNULL(NULLIF(srs.SourceCode, ''), 'unknown')) source,       \r\n    LOWER(ISNULL(NULLIF(srs.LeadSubSource, ''), 'unknown')) sub_source,    \r\n\tLOWER(ISNULL(NULLIF(lds.LeadSubsourceId, ''), 'unknown')) as SRS_ID,\r\n\tInq.Source as Inq_Source, Inq.Sender as Inq_Sender, \r\n\t\tCase when Coalesce(Inq.Sender,'')  like '%AP' then 'Digital' else 'Non-Digital' end as Flag,\r\n\tAP.Active_Prospect_Source_name,\r\n\r\n\r\n    LOWER(ISNULL(NULLIF(rnk.rank, ''), 'unknown')) rank,      \r\n\t\r\n    LOWER(ISNULL(NULLIF(case when lds.SalesDistrictId ='CTA-PHL' then 'Philadelphia' \r\n\t\t\t\t\t\t\t when lds.SalesDistrictId like '%-' then sds1.LongName \r\n\t\t\t\t\t\t\t when lds.BranchId like '%-' then sds2.LongName\r\n\t\t\t\t\t\t\t else sds.LongName end \r\n\t\t\t\t\t\t, ''), 'unknown')) district,    \r\n\t\r\n     lds.ApptSet as Appointment_Set,\r\n     lds.issued as lead_issued,\r\n     lds.sat as Demo_Completed,\r\n     lds.Sold,      \r\n     CASE WHEN JS.[UNI_JobStatusCategory] = 'Bank Turn Down' then 1 Else 0 end as BTD_Flag,\r\n     CASE WHEN JS.[UNI_JobStatusCategory] = 'Cancelled' then 1 Else 0 end as JobCancelled_Flag,\r\n     lds.GrossSalesAmount,\r\n\r\n     --rrt.[LeadScore],\r\n     rrt.[CreditScore] as Versium_CreditScore,\r\n     rrt.[Experian_CreditRating],\r\n\t Case when lds.Division='PBC' then rrt.[CreditScore] else rrt.Ren_creditRating end as Renuity_creditRating ,\r\n\r\n\r\n\tCOALESCE(f9.AnsweredCall,0) AS CONTACTED ,\r\n     d.[DispositionID], d.[Disposition],d.[DispositionCategoryID],\r\n     d.[UNI_Disposition],d.[UNI_DispositionComments],\r\n\t js.JobStatus, \r\n\t js.UNI_JobStatus,js.[UNI_JobStatusCategory],\r\n\t \r\n\t ---AP fields\r\n\tazurecreditfilterv20debug , AP.comments, \r\n\ttrestlephoneintelligencecarrier, trestlephoneintelligencecountrycode,  trestlephoneintelligencecountryname, \r\n\ttrestlephoneintelligenceisprepaid, trestlephoneintelligenceisvalid, trestlephoneintelligencelinetype,\r\n\ttrestlephoneintelligenceoutcome, trestlephoneintelligenceactivityscore\r\n\t\r\n\t \r\n\r\nFROM          \r\n    edw.fact_lead lds with (nolock)         \r\n    Left Outer join edw.dim_product p on lds.Productid = p.productid\r\n    Left Outer join edw.dim_disposition d on lds.dispositionid = d.dispositionid\r\n    LEFT OUTER JOIN edw.dim_Customer cst on lds.[CustomerID] = cst.[CustomerID]         \r\n    LEFT OUTER JOIN [EDW].[DIM_SALES_DISTRICT] sds with (nolock) on lds.[SalesDistrictID] =  sds.[SalesDistrictID]          \r\n    LEFT OUTER JOIN [EDW].[DIM_RANK] rnk  with (nolock)  on lds.[RankID] =  rnk.[RankID]          \r\n    LEFT OUTER JOIN [EDW].[DIM_LEAD_SUB_SOURCE] srs with (nolock)  on lds.[LeadSubSourceID] = srs.[LeadSubSourceID]    \r\n\r\n\t\r\n\tLEFT OUTER JOIN [EDW].[DIM_LEAD_Source] s with (nolock) on srs.LeadsourceId=s.LeadsourceId\r\n\tLEFT OUTER JOIN [EDW].[DIM_LEAD_Source_group] sg with (nolock) on s.sourcegroupId=Sg.LeadSourceGroupId\r\n\r\n    Left outer join [EDW].Fact_job j on j.leadid=lds.leadid\r\n    Left Outer join [EDW].[DIM_JOB_STATUS] js on j.[JobStatusID] = js.[JobStatusID]\r\n    left outer join [EDW].[DIM_RENUITYRATINGS] rrt on rrt.leadid = lds.leadid\r\n\tLeft join EDW.Fact_inbound_Queue_Log Inq on  Lds.LeadId=Inq.LeadId\r\n\r\n\tLeft Outer join edw.dim_product p1 on j.Productid = p1.productid\r\n\tLEFT OUTER JOIN [EDW].[DIM_SALES_DISTRICT] sds1 with (nolock) on lds.BranchId =  sds1.[SalesDistrictID]  \r\n\tLEFT OUTER JOIN [EDW].[DIM_SALES_DISTRICT] sds2 with (nolock) on j.ProductionBranchId =  sds2.[SalesDistrictID]  \r\n\r\n    left outer join \r\n\t\t(\r\n\t\t\tSELECT DISTINCT\r\n\t\t\t\tA.Division,\r\n\t\t\t\tA.number1 \r\n\t\t\t\t,B.AnsweredCall\r\n\t\t\t\tFROM [EDW].[FACT_FIVE9_CALL_LOG_ALL_NEW] A\r\n\t\t\t\tJOIN [EDW].[DIM_FIVE9_CALL_RESULT_DISPOSITION] B\r\n\t\t\t\tON A.CallResultID = B.CallResultID\r\n\t\t\t\tWHERE AnsweredCall=1\r\n\t\t\t\tAND CAST(DATE AS DATE)>='2025-01-01'\r\n\t\t) f9 on --f9.number1 = cst.phone \r\n\t\t\tCAST(f9.number1 AS nvarchar(50))= LTRIM(RTRIM(cst.phone)) AND f9.Division = lds.Division\r\n\r\n\tLeft join AP_LEADS AP on AP.Submitted_At >='2025-01-01' and AP.Division=Inq.Division \r\n\t\t\t\t\t\tand\tAP.phone_1= Inq.Phone and AP.Email=Inq.Email and  cast(AP.Submitted_At as date)= Cast(Inq.DateReceived as date) --converting utc to Eastern\r\n\t\t\t\t\t\tand AP.Outcome='success' and AP.Active_Prospect_Source_name= Replace(Inq.Sender,' | AP','')\r\n\r\n\r\nWHERE \r\nlds.EntryDate between '2025-01-01' and '2025-12-10' and Lds.Division='CTA'\r\n)a where rn=1\r\n)b\r\n\r\n\r\n\r\n--where AP_LeadID is null  and Source not like '%kohler%'\r\n-- and Inq_Sender like '%AP'\r\n--LP_LeadId='FHI-1008809'--164458--116303\r\n--114037 Cast(dateadd(hour,-5, AP.Created_At) as date)--123429\r\n--52902--39344 PB --34288 \r\nOrder by EntryDate desc",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ODS_LP_FHI_src_SourceCodes",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "TGT_InsightFactory",
+						"type": "DatasetReference",
+						"parameters": {
+							"Division": "CTA"
+						}
+					}
+				]
+			},
+			{
+				"name": "MXH",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "CTA",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"sqlReaderQuery": "With AP_LEADS As (\r\nSelect \r\nT1.Active_Prospect_Lead_Id, T1.Email, T1.Phone_1, \r\nT1.Submitted_At AT TIME ZONE 'UTC' AT TIME ZONE 'Central Standard Time' as Submitted_At, --converting utc to central\r\nT1.created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Central Standard Time' as Created_at,\r\nT1.Division, T1.Outcome, T1.Active_Prospect_Source_name, T1.Product, \r\nazurecreditfilterv20debug ,  T2.comments, \r\ntrestlephoneintelligencecarrier, trestlephoneintelligencecountrycode,  trestlephoneintelligencecountryname, \r\ntrestlephoneintelligenceisprepaid, trestlephoneintelligenceisvalid, trestlephoneintelligencelinetype,\r\ntrestlephoneintelligenceoutcome, trestlephoneintelligenceactivityscore\r\n\r\nfrom ODS.AP_Leads T1 Left join ODS.AP_Leads_TrestleFields T2 on T2.LeadId=T1.Active_Prospect_lead_id\r\n\r\n--where Cast(submitted_At as date)>'2025-11-02'\r\n)\r\n\r\nSelect --top 100 *\r\n\tDivision, LP_CustomerId, LP_LeadId, AP_LeadId, \r\n\tFirst_Name, Last_name, Address1, Addr_City, Addr_State, Addr_Zip, Phone, Email,   \r\n\tEntryDate,LP_ProductId, LP_product_name, AP_ProductName, \r\n\tSRS_ID, SourceGroup As LP_SourceGroup,\r\n\tSource as LP_Source, sub_source as LP_SubSource, \r\n\tINQ_datereceived,\r\n\tInq_Sender as InboundQueue_Sender, Flag,\r\n\tActive_Prospect_Source_name as AP_Source,\r\n\tRank, District, \r\n\tAppointment_Set, Lead_issued, Demo_Completed, Sold, BTD_Flag, JobCancelled_Flag, GrossSalesAmount, \r\n\tVersium_creditScore, Experian_CreditRating, Renuity_creditRating, Contacted, \r\n\tDispositionId, Disposition, DispositionCategoryId, Uni_DispositionComments, \r\n\tJobStatus, UNI_jobStatus, UNI_jobstatusCategory,\r\n\r\n\t---AP fields\r\n\tazurecreditfilterv20debug , comments, \r\n\ttrestlephoneintelligencecarrier, trestlephoneintelligencecountrycode,  trestlephoneintelligencecountryname, \r\n\ttrestlephoneintelligenceisprepaid, trestlephoneintelligenceisvalid, trestlephoneintelligencelinetype,\r\n\ttrestlephoneintelligenceoutcome, trestlephoneintelligenceactivityscore\r\n\r\nfrom (\r\nSelect * from (\r\nSELECT   \r\n    -- Identification Attributes       \r\n    distinct\r\n\tlds.Division,\r\n    cst.CustomerID as LP_CustomerId,\r\n    lds.LeadID LP_LeadID,\r\n\tAP.Active_Prospect_Lead_id As AP_LeadID,--- AP1.Active_prospect_Lead_ID as AP_LeadId1,\r\n    LOWER(cst.FirstName) first_name,          \r\n    LOWER(cst.LastName) last_name,          \r\n    LOWER(cst.Address1) address1,          \r\n    LOWER(ISNULL(NULLIF(cst.City, ''), 'unknown')) addr_city,          \r\n    LOWER(ISNULL(NULLIF(cst.State, ''), 'unknown')) addr_state,          \r\n    LOWER(ISNULL(NULLIF(cst.Zip, ''), 'unknown')) addr_zip,          \r\n    cst.Phone phone,          \r\n    LOWER(cst.Email) email,                  \r\n   -- RENUITY LEAD ATTRIBUTES          \r\n\r\n    lds.EntryDate ,        \r\n\tAP.Created_at as AP_Created_At_date,\r\n\tInq.DateReceived as INQ_datereceived,\r\n\tRow_number() over(partition by lds.LeadId order by AP.Created_at) as Rn,\r\n\r\n    LOWER(ISNULL(NULLIF(Case when lds.Productid like '%-' then j.ProductId else lds.Productid end, ''), 'unknown')) LP_productid,       \r\n    LOWER(ISNULL(NULLIF(Case when lds.Productid like '%-' then p1.ProductName else p.ProductName end , ''), 'unknown')) LP_product_name,  \r\n\t\r\n\tLOWER(ISNULL(NULLIF(AP.Product, ''), 'unknown')) as AP_ProductName, \r\n\tLOWER(ISNULL(NULLIF(Sg.SourceGroup, ''), 'unknown')) SourceGroup,\r\n    LOWER(ISNULL(NULLIF(srs.SourceCode, ''), 'unknown')) source,       \r\n    LOWER(ISNULL(NULLIF(srs.LeadSubSource, ''), 'unknown')) sub_source,    \r\n\tLOWER(ISNULL(NULLIF(lds.LeadSubsourceId, ''), 'unknown')) as SRS_ID,\r\n\tInq.Source as Inq_Source, Inq.Sender as Inq_Sender, \r\n\t\tCase when Coalesce(Inq.Sender,'')  like '%AP' then 'Digital' else 'Non-Digital' end as Flag,\r\n\tAP.Active_Prospect_Source_name,\r\n\r\n\r\n    LOWER(ISNULL(NULLIF(rnk.rank, ''), 'unknown')) rank,      \r\n\t\r\n    LOWER(ISNULL(NULLIF(case when lds.SalesDistrictId like '%-' then sds1.LongName \r\n\t\t\t\t\t\t\t when lds.BranchId like '%-' then sds2.LongName\r\n\t\t\t\t\t\t\t else sds.LongName end \r\n\t\t\t\t\t\t, ''), 'unknown')) district,    \r\n\t\r\n     lds.ApptSet as Appointment_Set,\r\n     lds.issued as lead_issued,\r\n     lds.sat as Demo_Completed,\r\n     lds.Sold,      \r\n     CASE WHEN JS.[UNI_JobStatusCategory] = 'Bank Turn Down' then 1 Else 0 end as BTD_Flag,\r\n     CASE WHEN JS.[UNI_JobStatusCategory] = 'Cancelled' then 1 Else 0 end as JobCancelled_Flag,\r\n     lds.GrossSalesAmount,\r\n\r\n     --rrt.[LeadScore],\r\n     rrt.[CreditScore] as Versium_CreditScore,\r\n     rrt.[Experian_CreditRating],\r\n\t Case when lds.Division='PBC' then rrt.[CreditScore] else rrt.Ren_creditRating end as Renuity_creditRating ,\r\n\r\n\r\n\tCOALESCE(f9.AnsweredCall,0) AS CONTACTED ,\r\n     d.[DispositionID], d.[Disposition],d.[DispositionCategoryID],\r\n     d.[UNI_Disposition],d.[UNI_DispositionComments],\r\n\t js.JobStatus, \r\n\t js.UNI_JobStatus,js.[UNI_JobStatusCategory],\r\n\t \r\n\t ---AP fields\r\n\tazurecreditfilterv20debug , AP.comments, \r\n\ttrestlephoneintelligencecarrier, trestlephoneintelligencecountrycode,  trestlephoneintelligencecountryname, \r\n\ttrestlephoneintelligenceisprepaid, trestlephoneintelligenceisvalid, trestlephoneintelligencelinetype,\r\n\ttrestlephoneintelligenceoutcome, trestlephoneintelligenceactivityscore\r\n\t\r\n\t \r\n\r\nFROM          \r\n    edw.fact_lead lds with (nolock)         \r\n    Left Outer join edw.dim_product p on lds.Productid = p.productid\r\n    Left Outer join edw.dim_disposition d on lds.dispositionid = d.dispositionid\r\n    LEFT OUTER JOIN edw.dim_Customer cst on lds.[CustomerID] = cst.[CustomerID]         \r\n    LEFT OUTER JOIN [EDW].[DIM_SALES_DISTRICT] sds with (nolock) on lds.[SalesDistrictID] =  sds.[SalesDistrictID]          \r\n    LEFT OUTER JOIN [EDW].[DIM_RANK] rnk  with (nolock)  on lds.[RankID] =  rnk.[RankID]          \r\n    LEFT OUTER JOIN [EDW].[DIM_LEAD_SUB_SOURCE] srs with (nolock)  on lds.[LeadSubSourceID] = srs.[LeadSubSourceID]    \r\n\r\n\tLEFT OUTER JOIN [EDW].[DIM_LEAD_Source] s with (nolock) on srs.LeadsourceId=s.LeadsourceId\r\n\tLEFT OUTER JOIN [EDW].[DIM_LEAD_Source_group] sg with (nolock) on s.sourcegroupId=Sg.LeadSourceGroupId\r\n\r\n\r\n    Left outer join [EDW].Fact_job j on j.leadid=lds.leadid\r\n    Left Outer join [EDW].[DIM_JOB_STATUS] js on j.[JobStatusID] = js.[JobStatusID]\r\n    left outer join [EDW].[DIM_RENUITYRATINGS] rrt on rrt.leadid = lds.leadid\r\n\tLeft join EDW.Fact_inbound_Queue_Log Inq on  Lds.LeadId=Inq.LeadId\r\n\r\n\tLeft Outer join edw.dim_product p1 on j.Productid = p1.productid\r\n\tLEFT OUTER JOIN [EDW].[DIM_SALES_DISTRICT] sds1 with (nolock) on lds.BranchId =  sds1.[SalesDistrictID]  \r\n\tLEFT OUTER JOIN [EDW].[DIM_SALES_DISTRICT] sds2 with (nolock) on j.ProductionBranchId =  sds2.[SalesDistrictID]  \r\n\r\n    left outer join \r\n\t\t(\r\n\t\t\tSELECT DISTINCT\r\n\t\t\t\tA.Division,\r\n\t\t\t\tA.number1 \r\n\t\t\t\t,B.AnsweredCall\r\n\t\t\t\tFROM [EDW].[FACT_FIVE9_CALL_LOG_ALL_NEW] A\r\n\t\t\t\tJOIN [EDW].[DIM_FIVE9_CALL_RESULT_DISPOSITION] B\r\n\t\t\t\tON A.CallResultID = B.CallResultID\r\n\t\t\t\tWHERE AnsweredCall=1\r\n\t\t\t\tAND CAST(DATE AS DATE)>='2025-01-01'\r\n\t\t) f9 on --f9.number1 = cst.phone \r\n\t\t\tCAST(f9.number1 AS nvarchar(50))= LTRIM(RTRIM(cst.phone)) AND f9.Division = lds.Division\r\n\r\n\tLeft join AP_LEADS AP on AP.Submitted_At >='2025-01-01' and AP.Division=Inq.Division \r\n\t\t\t\t\t\tand\tAP.phone_1= Inq.Phone and AP.Email=Inq.Email and  cast(AP.Submitted_At as date)= Cast(Inq.DateReceived as date) --converting utc to central\r\n\t\t\t\t\t\tand AP.Outcome='success' and AP.Active_Prospect_Source_name= Replace(Inq.Sender,' | AP','')\r\n\r\n\r\nWHERE \r\nlds.EntryDate between '2025-01-01' and '2025-12-10' and Lds.Division='MXH'\r\n)a where rn=1\r\n)b\r\n\r\n\r\n\r\n--where AP_LeadID is null  and Source not like '%kohler%'\r\n-- and Inq_Sender like '%AP'\r\n--LP_LeadId='FHI-1008809'--164458--116303\r\n--114037 Cast(dateadd(hour,-5, AP.Created_At) as date)--123429\r\n--52902--39344 PB --34288 \r\nOrder by EntryDate desc",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ODS_LP_FHI_src_SourceCodes",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "TGT_InsightFactory",
+						"type": "DatasetReference",
+						"parameters": {
+							"Division": "MXH"
+						}
+					}
+				]
+			},
+			{
+				"name": "SWR",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "FHI",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"sqlReaderQuery": "With AP_LEADS As (\r\nSelect \r\nT1.Active_Prospect_Lead_Id, T1.Email, T1.Phone_1, \r\nT1.Submitted_At AT TIME ZONE 'UTC' AT TIME ZONE 'Central Standard Time' as Submitted_At, --converting utc to central\r\nT1.created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Central Standard Time' as Created_at,\r\nT1.Division, T1.Outcome, T1.Active_Prospect_Source_name, T1.Product, \r\nazurecreditfilterv20debug ,  T2.comments, \r\ntrestlephoneintelligencecarrier, trestlephoneintelligencecountrycode,  trestlephoneintelligencecountryname, \r\ntrestlephoneintelligenceisprepaid, trestlephoneintelligenceisvalid, trestlephoneintelligencelinetype,\r\ntrestlephoneintelligenceoutcome, trestlephoneintelligenceactivityscore\r\n\r\nfrom ODS.AP_Leads T1 Left join ODS.AP_Leads_TrestleFields T2 on T2.LeadId=T1.Active_Prospect_lead_id\r\n\r\n--where Cast(submitted_At as date)>'2025-11-02'\r\n)\r\n\r\nSelect --top 100 *\r\n\tDivision, LP_CustomerId, LP_LeadId, AP_LeadId, \r\n\tFirst_Name, Last_name, Address1, Addr_City, Addr_State, Addr_Zip, Phone, Email,   \r\n\tEntryDate,LP_ProductId, LP_product_name, AP_ProductName, \r\n\t\r\n\tSRS_ID, \r\n\tSourceGroup As LP_SourceGroup,\r\n\tSource as LP_Source, sub_source as LP_SubSource, Active_Prospect_Source_name as AP_Source,\r\n\tINQ_datereceived,\r\n\tInq_Sender as InboundQueue_Sender, Flag,\r\n\tRank, District, \r\n\tAppointment_Set, Lead_issued, Demo_Completed, Sold, BTD_Flag, JobCancelled_Flag, GrossSalesAmount, \r\n\tVersium_creditScore, Experian_CreditRating, Renuity_creditRating, Contacted, \r\n\tDispositionId, Disposition, DispositionCategoryId, Uni_DispositionComments, \r\n\tJobStatus, UNI_jobStatus, UNI_jobstatusCategory,\r\n\r\n\t---AP fields\r\n\tazurecreditfilterv20debug , comments, \r\n\ttrestlephoneintelligencecarrier, trestlephoneintelligencecountrycode,  trestlephoneintelligencecountryname, \r\n\ttrestlephoneintelligenceisprepaid, trestlephoneintelligenceisvalid, trestlephoneintelligencelinetype,\r\n\ttrestlephoneintelligenceoutcome, trestlephoneintelligenceactivityscore\r\n\r\nfrom (\r\nSelect * from (\r\nSELECT   \r\n    -- Identification Attributes       \r\n    distinct\r\n\tlds.Division,\r\n    cst.CustomerID as LP_CustomerId,\r\n    lds.LeadID LP_LeadID,\r\n\tAP.Active_Prospect_Lead_id As AP_LeadID,--- AP1.Active_prospect_Lead_ID as AP_LeadId1,\r\n    LOWER(cst.FirstName) first_name,          \r\n    LOWER(cst.LastName) last_name,          \r\n    LOWER(cst.Address1) address1,          \r\n    LOWER(ISNULL(NULLIF(cst.City, ''), 'unknown')) addr_city,          \r\n    LOWER(ISNULL(NULLIF(cst.State, ''), 'unknown')) addr_state,          \r\n    LOWER(ISNULL(NULLIF(cst.Zip, ''), 'unknown')) addr_zip,          \r\n    cst.Phone phone,          \r\n    LOWER(cst.Email) email,                  \r\n   -- RENUITY LEAD ATTRIBUTES          \r\n\r\n    lds.EntryDate ,        \r\n\tAP.Created_at as AP_Created_At_date,\r\n\tInq.DateReceived as INQ_datereceived,\r\n\tRow_number() over(partition by lds.LeadId order by AP.Created_at) as Rn,\r\n\r\n    LOWER(ISNULL(NULLIF(Case when lds.Productid like '%-' then j.ProductId else lds.Productid end, ''), 'unknown')) LP_productid,       \r\n    LOWER(ISNULL(NULLIF(Case when lds.Productid like '%-' then p1.ProductName else p.ProductName end , ''), 'unknown')) LP_product_name,  \r\n\t\r\n\tLOWER(ISNULL(NULLIF(AP.Product, ''), 'unknown')) as AP_ProductName, \r\n\r\n\tLOWER(ISNULL(NULLIF(Sg.SourceGroup, ''), 'unknown')) SourceGroup, \r\n    LOWER(ISNULL(NULLIF(srs.SourceCode, ''), 'unknown')) source,       \r\n    LOWER(ISNULL(NULLIF(srs.LeadSubSource, ''), 'unknown')) sub_source,    \r\n\tLOWER(ISNULL(NULLIF(lds.LeadSubsourceId, ''), 'unknown')) as SRS_ID,\r\n\tInq.Source as Inq_Source, Inq.Sender as Inq_Sender,\r\n\tCase when Coalesce(Inq.Sender,'')  like '%AP' then 'Digital' else 'Non-Digital' end as Flag,  \r\n\tAP.Active_Prospect_Source_name,\r\n\r\n\r\n    LOWER(ISNULL(NULLIF(rnk.rank, ''), 'unknown')) rank,      \r\n\t\r\n    LOWER(ISNULL(NULLIF(case when lds.SalesDistrictId like '%-' then sds1.LongName \r\n\t\t\t\t\t\t\t when lds.BranchId like '%-' then sds2.LongName\r\n\t\t\t\t\t\t\t else sds.LongName end \r\n\t\t\t\t\t\t, ''), 'unknown')) district,    \r\n\t\r\n     lds.ApptSet as Appointment_Set,\r\n     lds.issued as lead_issued,\r\n     lds.sat as Demo_Completed,\r\n     lds.Sold,      \r\n     CASE WHEN JS.[UNI_JobStatusCategory] = 'Bank Turn Down' then 1 Else 0 end as BTD_Flag,\r\n     CASE WHEN JS.[UNI_JobStatusCategory] = 'Cancelled' then 1 Else 0 end as JobCancelled_Flag,\r\n     lds.GrossSalesAmount,\r\n\r\n     --rrt.[LeadScore],\r\n     rrt.[CreditScore] as Versium_CreditScore,\r\n     rrt.[Experian_CreditRating],\r\n\t Case when lds.Division='PBC' then rrt.[CreditScore] else rrt.Ren_creditRating end as Renuity_creditRating ,\r\n\r\n\r\n\tCOALESCE(f9.AnsweredCall,0) AS CONTACTED ,\r\n     d.[DispositionID], d.[Disposition],d.[DispositionCategoryID],\r\n     d.[UNI_Disposition],d.[UNI_DispositionComments],\r\n\t js.JobStatus, \r\n\t js.UNI_JobStatus,js.[UNI_JobStatusCategory],\r\n\t \r\n\t ---AP fields\r\n\tazurecreditfilterv20debug , AP.comments, \r\n\ttrestlephoneintelligencecarrier, trestlephoneintelligencecountrycode,  trestlephoneintelligencecountryname, \r\n\ttrestlephoneintelligenceisprepaid, trestlephoneintelligenceisvalid, trestlephoneintelligencelinetype,\r\n\ttrestlephoneintelligenceoutcome, trestlephoneintelligenceactivityscore\r\n\t\r\n\t \r\n\r\nFROM          \r\n    edw.fact_lead lds with (nolock)         \r\n    Left Outer join edw.dim_product p on lds.Productid = p.productid\r\n    Left Outer join edw.dim_disposition d on lds.dispositionid = d.dispositionid\r\n    LEFT OUTER JOIN edw.dim_Customer cst on lds.[CustomerID] = cst.[CustomerID]         \r\n    LEFT OUTER JOIN [EDW].[DIM_SALES_DISTRICT] sds with (nolock) on lds.[SalesDistrictID] =  sds.[SalesDistrictID]          \r\n    LEFT OUTER JOIN [EDW].[DIM_RANK] rnk  with (nolock)  on lds.[RankID] =  rnk.[RankID]          \r\n    LEFT OUTER JOIN [EDW].[DIM_LEAD_SUB_SOURCE] srs with (nolock)  on lds.[LeadSubSourceID] = srs.[LeadSubSourceID]    \r\n\r\n\r\n\tLEFT OUTER JOIN [EDW].[DIM_LEAD_Source] s with (nolock) on srs.LeadsourceId=s.LeadsourceId\r\n\tLEFT OUTER JOIN [EDW].[DIM_LEAD_Source_group] sg with (nolock) on s.sourcegroupId=Sg.LeadSourceGroupId\r\n\r\n    Left outer join [EDW].Fact_job j on j.leadid=lds.leadid\r\n    Left Outer join [EDW].[DIM_JOB_STATUS] js on j.[JobStatusID] = js.[JobStatusID]\r\n    left outer join [EDW].[DIM_RENUITYRATINGS] rrt on rrt.leadid = lds.leadid\r\n\tLeft join EDW.Fact_inbound_Queue_Log Inq on  Lds.LeadId=Inq.LeadId\r\n\r\n\tLeft Outer join edw.dim_product p1 on j.Productid = p1.productid\r\n\tLEFT OUTER JOIN [EDW].[DIM_SALES_DISTRICT] sds1 with (nolock) on lds.BranchId =  sds1.[SalesDistrictID]  \r\n\tLEFT OUTER JOIN [EDW].[DIM_SALES_DISTRICT] sds2 with (nolock) on j.ProductionBranchId =  sds2.[SalesDistrictID]  \r\n\r\n    left outer join \r\n\t\t(\r\n\t\t\tSELECT DISTINCT\r\n\t\t\t\tA.Division,\r\n\t\t\t\tA.number1 \r\n\t\t\t\t,B.AnsweredCall\r\n\t\t\t\tFROM [EDW].[FACT_FIVE9_CALL_LOG_ALL_NEW] A\r\n\t\t\t\tJOIN [EDW].[DIM_FIVE9_CALL_RESULT_DISPOSITION] B\r\n\t\t\t\tON A.CallResultID = B.CallResultID\r\n\t\t\t\tWHERE AnsweredCall=1\r\n\t\t\t\tAND CAST(DATE AS DATE)>='2025-01-01'\r\n\t\t) f9 on --f9.number1 = cst.phone \r\n\t\t\tCAST(f9.number1 AS nvarchar(50))= LTRIM(RTRIM(cst.phone)) AND f9.Division = lds.Division\r\n\r\n\tLeft join AP_LEADS AP on AP.Submitted_At >='2025-01-01' and AP.Division=Inq.Division \r\n\t\t\t\t\t\tand\tAP.phone_1= Inq.Phone and AP.Email=Inq.Email and  cast(AP.Submitted_At as date)= Cast(Inq.DateReceived as date) --converting utc to central\r\n\t\t\t\t\t\tand AP.Outcome='success' and AP.Active_Prospect_Source_name= Replace(Inq.Sender,' | AP','')\r\n\r\n\r\nWHERE \r\nlds.EntryDate between '2025-01-01' and '2025-12-10' and Lds.Division='SWR'\r\n)a where rn=1\r\n)b\r\n\r\n\r\n\r\n--where AP_LeadID is null  and Source not like '%kohler%'\r\n-- and Inq_Sender like '%AP'\r\n--LP_LeadId='FHI-1008809'--164458--116303\r\n--114037 Cast(dateadd(hour,-5, AP.Created_At) as date)--123429\r\n--52902--39344 PB --34288 \r\nOrder by EntryDate desc",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ODS_LP_FHI_src_SourceCodes",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "TGT_InsightFactory",
+						"type": "DatasetReference",
+						"parameters": {
+							"Division": "SWR"
+						}
+					}
+				]
+			},
+			{
+				"name": "RTW",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "SWR",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"sqlReaderQuery": "With AP_LEADS As (\r\nSelect \r\nT1.Active_Prospect_Lead_Id, T1.Email, T1.Phone_1, \r\nT1.Submitted_At AT TIME ZONE 'UTC' AT TIME ZONE 'Eastern Standard Time' as Submitted_At, --converting utc to Eastern\r\nT1.created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Eastern Standard Time' as Created_at,\r\nT1.Division, T1.Outcome, T1.Active_Prospect_Source_name, T1.Product, \r\nazurecreditfilterv20debug ,  T2.comments, \r\ntrestlephoneintelligencecarrier, trestlephoneintelligencecountrycode,  trestlephoneintelligencecountryname, \r\ntrestlephoneintelligenceisprepaid, trestlephoneintelligenceisvalid, trestlephoneintelligencelinetype,\r\ntrestlephoneintelligenceoutcome, trestlephoneintelligenceactivityscore\r\n\r\nfrom ODS.AP_Leads T1 Left join ODS.AP_Leads_TrestleFields T2 on T2.LeadId=T1.Active_Prospect_lead_id\r\n\r\n--where Cast(submitted_At as date)>'2025-11-02'\r\n)\r\n\r\nSelect --top 100 *\r\n\tDivision, LP_CustomerId, LP_LeadId, AP_LeadId, \r\n\tFirst_Name, Last_name, Address1, Addr_City, Addr_State, Addr_Zip, Phone, Email,   \r\n\tEntryDate,LP_ProductId, LP_product_name, AP_ProductName, SRS_ID, \r\n\tSourceGroup As LP_SourceGroup, Source as LP_Source, sub_source as LP_SubSource, \r\n\tINQ_datereceived,\r\n\tInq_Sender as InboundQueue_Sender, Flag,\r\n\tActive_Prospect_Source_name as AP_Source,\r\n\tRank, District, \r\n\tAppointment_Set, Lead_issued, Demo_Completed, Sold, BTD_Flag, JobCancelled_Flag, GrossSalesAmount, \r\n\tVersium_creditScore, Experian_CreditRating, Renuity_creditRating, Contacted, \r\n\tDispositionId, Disposition, DispositionCategoryId, Uni_DispositionComments, \r\n\tJobStatus, UNI_jobStatus, UNI_jobstatusCategory,\r\n\r\n\t---AP fields\r\n\tazurecreditfilterv20debug , comments, \r\n\ttrestlephoneintelligencecarrier, trestlephoneintelligencecountrycode,  trestlephoneintelligencecountryname, \r\n\ttrestlephoneintelligenceisprepaid, trestlephoneintelligenceisvalid, trestlephoneintelligencelinetype,\r\n\ttrestlephoneintelligenceoutcome, trestlephoneintelligenceactivityscore\r\n\r\nfrom (\r\nSelect * from (\r\nSELECT   \r\n    -- Identification Attributes       \r\n    distinct\r\n\tlds.Division,\r\n    cst.CustomerID as LP_CustomerId,\r\n    lds.LeadID LP_LeadID,\r\n\tAP.Active_Prospect_Lead_id As AP_LeadID,--- AP1.Active_prospect_Lead_ID as AP_LeadId1,\r\n    LOWER(cst.FirstName) first_name,          \r\n    LOWER(cst.LastName) last_name,          \r\n    LOWER(cst.Address1) address1,          \r\n    LOWER(ISNULL(NULLIF(cst.City, ''), 'unknown')) addr_city,          \r\n    LOWER(ISNULL(NULLIF(cst.State, ''), 'unknown')) addr_state,          \r\n    LOWER(ISNULL(NULLIF(cst.Zip, ''), 'unknown')) addr_zip,          \r\n    cst.Phone phone,          \r\n    LOWER(cst.Email) email,                  \r\n   -- RENUITY LEAD ATTRIBUTES          \r\n\r\n    lds.EntryDate ,        \r\n\tAP.Created_at as AP_Created_At_date,\r\n\tInq.DateReceived as INQ_datereceived,\r\n\tRow_number() over(partition by lds.LeadId order by AP.Created_at) as Rn,\r\n\r\n    LOWER(ISNULL(NULLIF(Case when lds.Productid like '%-' then j.ProductId else lds.Productid end, ''), 'unknown')) LP_productid,       \r\n    LOWER(ISNULL(NULLIF(Case when lds.Productid like '%-' then p1.ProductName else p.ProductName end , ''), 'unknown')) LP_product_name,  \r\n\t\r\n\tLOWER(ISNULL(NULLIF(AP.Product, ''), 'unknown')) as AP_ProductName, \r\n\r\n\r\n\tLOWER(ISNULL(NULLIF(Sg.SourceGroup, ''), 'unknown')) SourceGroup, \r\n    LOWER(ISNULL(NULLIF(srs.SourceCode, ''), 'unknown')) source,       \r\n    LOWER(ISNULL(NULLIF(srs.LeadSubSource, ''), 'unknown')) sub_source,    \r\n\tLOWER(ISNULL(NULLIF(lds.LeadSubsourceId, ''), 'unknown')) as SRS_ID,\r\n\tInq.Source as Inq_Source, Inq.Sender as Inq_Sender, \r\n\tCase when Coalesce(Inq.Sender,'')  like '%AP' then 'Digital' else 'Non-Digital' end as Flag, \r\n\tAP.Active_Prospect_Source_name,\r\n\r\n\r\n    LOWER(ISNULL(NULLIF(rnk.rank, ''), 'unknown')) rank,      \r\n\t\r\n    LOWER(ISNULL(NULLIF(case when lds.SalesDistrictId like '%-' then sds1.LongName \r\n\t\t\t\t\t\t\t when lds.BranchId like '%-' then sds2.LongName\r\n\t\t\t\t\t\t\t else sds.LongName end \r\n\t\t\t\t\t\t, ''), 'unknown')) district,    \r\n\t\r\n     lds.ApptSet as Appointment_Set,\r\n     lds.issued as lead_issued,\r\n     lds.sat as Demo_Completed,\r\n     lds.Sold,      \r\n     CASE WHEN JS.[UNI_JobStatusCategory] = 'Bank Turn Down' then 1 Else 0 end as BTD_Flag,\r\n     CASE WHEN JS.[UNI_JobStatusCategory] = 'Cancelled' then 1 Else 0 end as JobCancelled_Flag,\r\n     lds.GrossSalesAmount,\r\n\r\n     --rrt.[LeadScore],\r\n     rrt.[CreditScore] as Versium_CreditScore,\r\n     rrt.[Experian_CreditRating],\r\n\t Case when lds.Division='PBC' then rrt.[CreditScore] else rrt.Ren_creditRating end as Renuity_creditRating ,\r\n\r\n\r\n\tCOALESCE(f9.AnsweredCall,0) AS CONTACTED ,\r\n     d.[DispositionID], d.[Disposition],d.[DispositionCategoryID],\r\n     d.[UNI_Disposition],d.[UNI_DispositionComments],\r\n\t js.JobStatus, \r\n\t js.UNI_JobStatus,js.[UNI_JobStatusCategory],\r\n\t \r\n\t ---AP fields\r\n\tazurecreditfilterv20debug , AP.comments, \r\n\ttrestlephoneintelligencecarrier, trestlephoneintelligencecountrycode,  trestlephoneintelligencecountryname, \r\n\ttrestlephoneintelligenceisprepaid, trestlephoneintelligenceisvalid, trestlephoneintelligencelinetype,\r\n\ttrestlephoneintelligenceoutcome, trestlephoneintelligenceactivityscore\r\n\t\r\n\t \r\n\r\nFROM          \r\n    edw.fact_lead lds with (nolock)         \r\n    Left Outer join edw.dim_product p on lds.Productid = p.productid\r\n    Left Outer join edw.dim_disposition d on lds.dispositionid = d.dispositionid\r\n    LEFT OUTER JOIN edw.dim_Customer cst on lds.[CustomerID] = cst.[CustomerID]         \r\n    LEFT OUTER JOIN [EDW].[DIM_SALES_DISTRICT] sds with (nolock) on lds.[SalesDistrictID] =  sds.[SalesDistrictID]          \r\n    LEFT OUTER JOIN [EDW].[DIM_RANK] rnk  with (nolock)  on lds.[RankID] =  rnk.[RankID]          \r\n    LEFT OUTER JOIN [EDW].[DIM_LEAD_SUB_SOURCE] srs with (nolock)  on lds.[LeadSubSourceID] = srs.[LeadSubSourceID]    \r\n\r\n\r\n\tLEFT OUTER JOIN [EDW].[DIM_LEAD_Source] s with (nolock) on srs.LeadsourceId=s.LeadsourceId\r\n\tLEFT OUTER JOIN [EDW].[DIM_LEAD_Source_group] sg with (nolock) on s.sourcegroupId=Sg.LeadSourceGroupId\r\n\r\n\r\n    Left outer join [EDW].Fact_job j on j.leadid=lds.leadid\r\n    Left Outer join [EDW].[DIM_JOB_STATUS] js on j.[JobStatusID] = js.[JobStatusID]\r\n    left outer join [EDW].[DIM_RENUITYRATINGS] rrt on rrt.leadid = lds.leadid\r\n\tLeft join EDW.Fact_inbound_Queue_Log Inq on  Lds.LeadId=Inq.LeadId\r\n\r\n\tLeft Outer join edw.dim_product p1 on j.Productid = p1.productid\r\n\tLEFT OUTER JOIN [EDW].[DIM_SALES_DISTRICT] sds1 with (nolock) on lds.BranchId =  sds1.[SalesDistrictID]  \r\n\tLEFT OUTER JOIN [EDW].[DIM_SALES_DISTRICT] sds2 with (nolock) on j.ProductionBranchId =  sds2.[SalesDistrictID]  \r\n\r\n    left outer join \r\n\t\t(\r\n\t\t\tSELECT DISTINCT\r\n\t\t\t\tA.Division,\r\n\t\t\t\tA.number1 \r\n\t\t\t\t,B.AnsweredCall\r\n\t\t\t\tFROM [EDW].[FACT_FIVE9_CALL_LOG_ALL_NEW] A\r\n\t\t\t\tJOIN [EDW].[DIM_FIVE9_CALL_RESULT_DISPOSITION] B\r\n\t\t\t\tON A.CallResultID = B.CallResultID\r\n\t\t\t\tWHERE AnsweredCall=1\r\n\t\t\t\tAND CAST(DATE AS DATE)>='2025-01-01'\r\n\t\t) f9 on --f9.number1 = cst.phone \r\n\t\t\tCAST(f9.number1 AS nvarchar(50))= LTRIM(RTRIM(cst.phone)) AND f9.Division = lds.Division\r\n\r\n\tLeft join AP_LEADS AP on AP.Submitted_At >='2025-01-01' and AP.Division=Inq.Division \r\n\t\t\t\t\t\tand\tAP.phone_1= Inq.Phone and AP.Email=Inq.Email and  cast(AP.Submitted_At as date)= Cast(Inq.DateReceived as date) --converting utc to Eastern\r\n\t\t\t\t\t\tand AP.Outcome='success' and AP.Active_Prospect_Source_name= Replace(Inq.Sender,' | AP','')\r\n\r\n\r\nWHERE \r\nlds.EntryDate between '2025-01-01' and '2025-12-10' and Lds.Division='RTW'\r\n)a where rn=1\r\n)b\r\n\r\n\r\n\r\n--where AP_LeadID is null  and Source not like '%kohler%'\r\n-- and Inq_Sender like '%AP'\r\n--LP_LeadId='FHI-1008809'--164458--116303\r\n--114037 Cast(dateadd(hour,-5, AP.Created_At) as date)--123429\r\n--52902--39344 PB --34288 \r\nOrder by EntryDate desc",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ODS_LP_FHI_src_SourceCodes",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "TGT_InsightFactory",
+						"type": "DatasetReference",
+						"parameters": {
+							"Division": "RTW"
+						}
+					}
+				]
+			},
+			{
+				"name": "PBC",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "MXH",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"sqlReaderQuery": "With AP_LEADS As (\r\nSelect \r\nT1.Active_Prospect_Lead_Id, T1.Email, T1.Phone_1, \r\nT1.Submitted_At AT TIME ZONE 'UTC' AT TIME ZONE 'Pacific Standard Time' as Submitted_At, --converting utc to pst\r\nT1.created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Pacific Standard Time' as Created_at,\r\nT1.Division, T1.Outcome, T1.Active_Prospect_Source_name, T1.Product, \r\nazurecreditfilterv20debug ,  T2.comments, \r\ntrestlephoneintelligencecarrier, trestlephoneintelligencecountrycode,  trestlephoneintelligencecountryname, \r\ntrestlephoneintelligenceisprepaid, trestlephoneintelligenceisvalid, trestlephoneintelligencelinetype,\r\ntrestlephoneintelligenceoutcome, trestlephoneintelligenceactivityscore\r\n\r\nfrom ODS.AP_Leads T1 Left join ODS.AP_Leads_TrestleFields T2 on T2.LeadId=T1.Active_Prospect_lead_id\r\n\r\n--where Cast(submitted_At as date)>'2025-11-02'\r\n)\r\n\r\nSelect --top 100 *\r\n\tDivision, LP_CustomerId, LP_LeadId, AP_LeadId, \r\n\tFirst_Name, Last_name, Address1, Addr_City, Addr_State, Addr_Zip, Phone, Email,   \r\n\tEntryDate,LP_ProductId, LP_product_name, AP_ProductName, \r\n\tSRS_ID, SourceGroup As LP_SourceGroup, Source as LP_Source, sub_source as LP_SubSource,\r\n\tINQ_datereceived,\r\n\tInq_Sender as InboundQueue_Sender, Flag,\r\n\t Active_Prospect_Source_name as AP_Source,\r\n\tRank, District, \r\n\tAppointment_Set, Lead_issued, Demo_Completed, Sold, BTD_Flag, JobCancelled_Flag, GrossSalesAmount, \r\n\tVersium_creditScore, Experian_CreditRating, Renuity_creditRating, Contacted, \r\n\tDispositionId, Disposition, DispositionCategoryId, Uni_DispositionComments, \r\n\tJobStatus, UNI_jobStatus, UNI_jobstatusCategory,\r\n\r\n\t---AP fields\r\n\tazurecreditfilterv20debug , comments, \r\n\ttrestlephoneintelligencecarrier, trestlephoneintelligencecountrycode,  trestlephoneintelligencecountryname, \r\n\ttrestlephoneintelligenceisprepaid, trestlephoneintelligenceisvalid, trestlephoneintelligencelinetype,\r\n\ttrestlephoneintelligenceoutcome, trestlephoneintelligenceactivityscore\r\n\r\nfrom (\r\nSelect * from (\r\nSELECT   \r\n    -- Identification Attributes       \r\n    distinct\r\n\tlds.Division,\r\n    cst.CustomerID as LP_CustomerId,\r\n    lds.LeadID LP_LeadID,\r\n\tAP.Active_Prospect_Lead_id As AP_LeadID,--- AP1.Active_prospect_Lead_ID as AP_LeadId1,\r\n    LOWER(cst.FirstName) first_name,          \r\n    LOWER(cst.LastName) last_name,          \r\n    LOWER(cst.Address1) address1,          \r\n    LOWER(ISNULL(NULLIF(cst.City, ''), 'unknown')) addr_city,          \r\n    LOWER(ISNULL(NULLIF(cst.State, ''), 'unknown')) addr_state,          \r\n    LOWER(ISNULL(NULLIF(cst.Zip, ''), 'unknown')) addr_zip,          \r\n    cst.Phone phone,          \r\n    LOWER(cst.Email) email,                  \r\n   -- RENUITY LEAD ATTRIBUTES          \r\n\r\n    lds.EntryDate ,        \r\n\tAP.Created_at as AP_Created_At_date,\r\n\tInq.DateReceived as INQ_datereceived,\r\n\tRow_number() over(partition by lds.LeadId order by AP.Created_at) as Rn,\r\n\r\n    LOWER(ISNULL(NULLIF(Case when lds.Productid like '%-' then j.ProductId else lds.Productid end, ''), 'unknown')) LP_productid,       \r\n    LOWER(ISNULL(NULLIF(Case when lds.Productid like '%-' then p1.ProductName else p.ProductName end , ''), 'unknown')) LP_product_name,  \r\n\t\r\n\tLOWER(ISNULL(NULLIF(AP.Product, ''), 'unknown')) as AP_ProductName, \r\n\r\n\tLOWER(ISNULL(NULLIF(Sg.SourceGroup, ''), 'unknown')) SourceGroup, \r\n    LOWER(ISNULL(NULLIF(srs.SourceCode, ''), 'unknown')) source,       \r\n    LOWER(ISNULL(NULLIF(srs.LeadSubSource, ''), 'unknown')) sub_source,    \r\n\tLOWER(ISNULL(NULLIF(lds.LeadSubsourceId, ''), 'unknown')) as SRS_ID,\r\n\tInq.Source as Inq_Source, Inq.Sender as Inq_Sender, \r\n\tCase when Coalesce(Inq.Sender,'')  like '%AP' then 'Digital' else 'Non-Digital' end as Flag, \r\n\tAP.Active_Prospect_Source_name,\r\n\r\n\r\n    LOWER(ISNULL(NULLIF(rnk.rank, ''), 'unknown')) rank,      \r\n\t\r\n    LOWER(ISNULL(NULLIF(case when lds.SalesDistrictId like '%-' then sds1.LongName \r\n\t\t\t\t\t\t\t when lds.BranchId like '%-' then sds2.LongName\r\n\t\t\t\t\t\t\t else sds.LongName end \r\n\t\t\t\t\t\t, ''), 'unknown')) district,    \r\n\t\r\n     lds.ApptSet as Appointment_Set,\r\n     lds.issued as lead_issued,\r\n     lds.sat as Demo_Completed,\r\n     lds.Sold,      \r\n     CASE WHEN JS.[UNI_JobStatusCategory] = 'Bank Turn Down' then 1 Else 0 end as BTD_Flag,\r\n     CASE WHEN JS.[UNI_JobStatusCategory] = 'Cancelled' then 1 Else 0 end as JobCancelled_Flag,\r\n     lds.GrossSalesAmount,\r\n\r\n     --rrt.[LeadScore],\r\n     rrt.[CreditScore] as Versium_CreditScore,\r\n     rrt.[Experian_CreditRating],\r\n\t Case when lds.Division='PBC' then rrt.[CreditScore] else rrt.Ren_creditRating end as Renuity_creditRating ,\r\n\r\n\r\n\tCOALESCE(f9.AnsweredCall,0) AS CONTACTED ,\r\n     d.[DispositionID], d.[Disposition],d.[DispositionCategoryID],\r\n     d.[UNI_Disposition],d.[UNI_DispositionComments],\r\n\t js.JobStatus, \r\n\t js.UNI_JobStatus,js.[UNI_JobStatusCategory],\r\n\t \r\n\t ---AP fields\r\n\tazurecreditfilterv20debug , AP.comments, \r\n\ttrestlephoneintelligencecarrier, trestlephoneintelligencecountrycode,  trestlephoneintelligencecountryname, \r\n\ttrestlephoneintelligenceisprepaid, trestlephoneintelligenceisvalid, trestlephoneintelligencelinetype,\r\n\ttrestlephoneintelligenceoutcome, trestlephoneintelligenceactivityscore\r\n\t\r\n\t \r\n\r\nFROM          \r\n    edw.fact_lead lds with (nolock)         \r\n    Left Outer join edw.dim_product p on lds.Productid = p.productid\r\n    Left Outer join edw.dim_disposition d on lds.dispositionid = d.dispositionid\r\n    LEFT OUTER JOIN edw.dim_Customer cst on lds.[CustomerID] = cst.[CustomerID]         \r\n    LEFT OUTER JOIN [EDW].[DIM_SALES_DISTRICT] sds with (nolock) on lds.[SalesDistrictID] =  sds.[SalesDistrictID]          \r\n    LEFT OUTER JOIN [EDW].[DIM_RANK] rnk  with (nolock)  on lds.[RankID] =  rnk.[RankID]          \r\n    LEFT OUTER JOIN [EDW].[DIM_LEAD_SUB_SOURCE] srs with (nolock)  on lds.[LeadSubSourceID] = srs.[LeadSubSourceID]   \r\n\t\r\n\tLEFT OUTER JOIN [EDW].[DIM_LEAD_Source] s with (nolock) on srs.LeadsourceId=s.LeadsourceId\r\n\tLEFT OUTER JOIN [EDW].[DIM_LEAD_Source_group] sg with (nolock) on s.sourcegroupId=Sg.LeadSourceGroupId\r\n    \r\n\tLeft outer join [EDW].Fact_job j on j.leadid=lds.leadid\r\n    Left Outer join [EDW].[DIM_JOB_STATUS] js on j.[JobStatusID] = js.[JobStatusID]\r\n    left outer join [EDW].[DIM_RENUITYRATINGS] rrt on rrt.leadid = lds.leadid\r\n\tLeft join EDW.Fact_inbound_Queue_Log Inq on  Lds.LeadId=Inq.LeadId\r\n\r\n\tLeft Outer join edw.dim_product p1 on j.Productid = p1.productid\r\n\tLEFT OUTER JOIN [EDW].[DIM_SALES_DISTRICT] sds1 with (nolock) on lds.BranchId =  sds1.[SalesDistrictID]  \r\n\tLEFT OUTER JOIN [EDW].[DIM_SALES_DISTRICT] sds2 with (nolock) on j.ProductionBranchId =  sds2.[SalesDistrictID]  \r\n\r\n    left outer join \r\n\t\t(\r\n\t\t\tSELECT DISTINCT\r\n\t\t\t\tA.Division,\r\n\t\t\t\tA.number1 \r\n\t\t\t\t,B.AnsweredCall\r\n\t\t\t\tFROM [EDW].[FACT_FIVE9_CALL_LOG_ALL_NEW] A\r\n\t\t\t\tJOIN [EDW].[DIM_FIVE9_CALL_RESULT_DISPOSITION] B\r\n\t\t\t\tON A.CallResultID = B.CallResultID\r\n\t\t\t\tWHERE AnsweredCall=1\r\n\t\t\t\tAND CAST(DATE AS DATE)>='2025-01-01'\r\n\t\t) f9 on --f9.number1 = cst.phone \r\n\t\t\tCAST(f9.number1 AS nvarchar(50))= LTRIM(RTRIM(cst.phone)) AND f9.Division = lds.Division\r\n\r\n\tLeft join AP_LEADS AP on AP.Submitted_At >='2025-01-01' and AP.Division=Inq.Division \r\n\t\t\t\t\t\tand\tAP.phone_1= Inq.Phone and AP.Email=Inq.Email and  cast(AP.Submitted_At as date)= Cast(Inq.DateReceived as date) --converting utc to pst\r\n\t\t\t\t\t\tand AP.Outcome='success' and AP.Active_Prospect_Source_name= Replace(Inq.Sender,' | AP','')\r\n\r\n\r\nWHERE \r\nlds.EntryDate between '2025-01-01' and '2025-12-10' and Lds.Division='PBC'\r\n)a where rn=1\r\n)b\r\n\r\n\r\n\r\n--where AP_LeadID is null  and Source not like '%kohler%'\r\n-- and Inq_Sender like '%AP'\r\n--LP_LeadId='FHI-1008809'--164458--116303\r\n--114037 Cast(dateadd(hour,-5, AP.Created_At) as date)--123429\r\n--52902--39344 PB --34288 \r\nOrder by EntryDate desc",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ODS_LP_FHI_src_SourceCodes",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "TGT_InsightFactory",
+						"type": "DatasetReference",
+						"parameters": {
+							"Division": "PBC"
+						}
+					}
+				]
+			},
+			{
+				"name": "Lead Conversions MAC_Oct to Dec",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"sqlReaderQuery": "Select --top 100 *\r\n\tDivision, LP_CustomerId, LP_LeadId, AP_LeadId, \r\n\tFirst_Name, Last_name, Address1, Addr_City, Addr_State, Addr_Zip, Phone, Email,   \r\n\tEntryDate,LP_ProductId, LP_product_name, AP_ProductName, SRS_ID, Source as LP_Source, sub_source as LP_SubSource, Active_Prospect_Source_name as AP_Source,\r\n\tRank, District, \r\n\tAppointment_Set, Lead_issued, Demo_Completed, Sold, BTD_Flag, JobCancelled_Flag, GrossSalesAmount, \r\n\tVersium_creditScore, Experian_CreditRating, Renuity_creditRating, Contacted, \r\n\tDispositionId, Disposition, DispositionCategoryId, Uni_DispositionComments, \r\n\tJobStatus, UNI_jobStatus, UNI_jobstatusCategory\r\n\r\nfrom (\r\nSelect * from (\r\nSELECT   \r\n    -- Identification Attributes       \r\n    distinct\r\n\tlds.Division,\r\n    cst.CustomerID as LP_CustomerId,\r\n    lds.LeadID LP_LeadID,\r\n\tAP.Active_Prospect_Lead_id As AP_LeadID,--- AP1.Active_prospect_Lead_ID as AP_LeadId1,\r\n    LOWER(cst.FirstName) first_name,          \r\n    LOWER(cst.LastName) last_name,          \r\n    LOWER(cst.Address1) address1,          \r\n    LOWER(ISNULL(NULLIF(cst.City, ''), 'unknown')) addr_city,          \r\n    LOWER(ISNULL(NULLIF(cst.State, ''), 'unknown')) addr_state,          \r\n    LOWER(ISNULL(NULLIF(cst.Zip, ''), 'unknown')) addr_zip,          \r\n    cst.Phone phone,          \r\n    LOWER(cst.Email) email,                  \r\n   -- RENUITY LEAD ATTRIBUTES          \r\n\r\n    lds.EntryDate ,        \r\n\tAP.Created_at as AP_Created_At_date,\r\n\tInq.DateReceived as INQ_datereceived,\r\n\tRow_number() over(partition by lds.LeadId order by AP.Created_at) as Rn,\r\n    LOWER(ISNULL(NULLIF(lds.Productid, ''), 'unknown')) LP_productid,       \r\n    LOWER(ISNULL(NULLIF(p.ProductName, ''), 'unknown')) LP_product_name,  \r\n\tLOWER(ISNULL(NULLIF(AP.Product, ''), 'unknown')) as AP_ProductName, \r\n\r\n    LOWER(ISNULL(NULLIF(srs.SourceCode, ''), 'unknown')) source,       \r\n    LOWER(ISNULL(NULLIF(srs.LeadSubSource, ''), 'unknown')) sub_source,    \r\n\tLOWER(ISNULL(NULLIF(lds.LeadSubsourceId, ''), 'unknown')) as SRS_ID,\r\n\tInq.Source as Inq_Source, Inq.Sender as Inq_Sender, \r\n\tAP.Active_Prospect_Source_name,\r\n\r\n\r\n    LOWER(ISNULL(NULLIF(rnk.rank, ''), 'unknown')) rank,        \r\n    LOWER(ISNULL(NULLIF(sds.LongName, ''), 'unknown')) district,    \r\n\t\r\n     lds.ApptSet as Appointment_Set,\r\n     lds.issued as lead_issued,\r\n     lds.sat as Demo_Completed,\r\n     lds.Sold,      \r\n     CASE WHEN JS.[UNI_JobStatusCategory] = 'Bank Turn Down' then 1 Else 0 end as BTD_Flag,\r\n     CASE WHEN JS.[UNI_JobStatusCategory] = 'Cancelled' then 1 Else 0 end as JobCancelled_Flag,\r\n     lds.GrossSalesAmount,\r\n\r\n     --rrt.[LeadScore],\r\n     rrt.[CreditScore] as Versium_CreditScore,\r\n     rrt.[Experian_CreditRating],\r\n\t Case when lds.Division='PBC' then rrt.[CreditScore] else rrt.Ren_creditRating end as Renuity_creditRating ,\r\n\r\n\r\n\tCOALESCE(f9.AnsweredCall,0) AS CONTACTED ,\r\n     d.[DispositionID], d.[Disposition],d.[DispositionCategoryID],\r\n     d.[UNI_Disposition],d.[UNI_DispositionComments],\r\n\t js.JobStatus, \r\n\t js.UNI_JobStatus,js.[UNI_JobStatusCategory]\r\n\t\r\n\t \r\n\r\nFROM          \r\n    edw.fact_lead lds with (nolock)         \r\n    Left Outer join edw.dim_product p on lds.Productid = p.productid\r\n    Left Outer join edw.dim_disposition d on lds.dispositionid = d.dispositionid\r\n    LEFT OUTER JOIN edw.dim_Customer cst on lds.[CustomerID] = cst.[CustomerID]         \r\n    LEFT OUTER JOIN [EDW].[DIM_SALES_DISTRICT] sds with (nolock) on lds.[SalesDistrictID] =  sds.[SalesDistrictID]          \r\n    LEFT OUTER JOIN [EDW].[DIM_RANK] rnk  with (nolock)  on lds.[RankID] =  rnk.[RankID]          \r\n    LEFT OUTER JOIN [EDW].[DIM_LEAD_SUB_SOURCE] srs with (nolock)  on lds.[LeadSubSourceID] = srs.[LeadSubSourceID]    \r\n    Left outer join [EDW].Fact_job j on j.leadid=lds.leadid\r\n    Left Outer join [EDW].[DIM_JOB_STATUS] js on j.[JobStatusID] = js.[JobStatusID]\r\n    left outer join [EDW].[DIM_RENUITYRATINGS] rrt on rrt.leadid = lds.leadid\r\n\tLeft join EDW.Fact_inbound_Queue_Log Inq on  Lds.LeadId=Inq.LeadId\r\n    left outer join \r\n\t\t(\r\n\t\t\tSELECT DISTINCT\r\n\t\t\t\tA.Division,\r\n\t\t\t\tA.number1 \r\n\t\t\t\t,B.AnsweredCall\r\n\t\t\t\tFROM [EDW].[FACT_FIVE9_CALL_LOG_ALL_NEW] A\r\n\t\t\t\tJOIN [EDW].[DIM_FIVE9_CALL_RESULT_DISPOSITION] B\r\n\t\t\t\tON A.CallResultID = B.CallResultID\r\n\t\t\t\tWHERE AnsweredCall=1\r\n\t\t\t\tAND CAST(DATE AS DATE)>='2025-01-01'\r\n\t\t) f9 on --f9.number1 = cst.phone \r\n\t\t\tCAST(f9.number1 AS nvarchar(50))= LTRIM(RTRIM(cst.phone)) AND f9.Division = lds.Division\r\n\r\n\tLeft join ODS.AP_LEADS AP on  Dateadd(Hour, -5, AP.Submitted_At)>='2025-10-15' and AP.Division=Inq.Division \r\n\t\t\t\t\tand\tAP.phone_1= Inq.Phone and AP.Email=Inq.Email and Cast(dateadd(hour,-5, AP.Submitted_At) as date)= Cast(Inq.DateReceived as date) --converting utc to central\r\n\t\t\t\t\tand AP.Outcome='success' and AP.Active_Prospect_Source_name= Replace(Inq.Sender,' | AP','')\r\n\r\n\r\nWHERE \r\nlds.EntryDate between '2025-10-30' and '2025-12-05' and Lds.Division='MAC'\r\n)a where rn=1\r\n)b\r\n\r\n\r\n\r\n--where AP_LeadID is null  and Source not like '%kohler%'\r\n-- and Inq_Sender like '%AP'\r\n--LP_LeadId='FHI-1008809'--164458--116303\r\n--114037 Cast(dateadd(hour,-5, AP.Created_At) as date)--123429\r\n--52902--39344 PB --34288 \r\nOrder by EntryDate desc",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ODS_LP_FHI_src_SourceCodes",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "TGT_InsightFactory",
+						"type": "DatasetReference",
+						"parameters": {
+							"Division": "MAC_3010to0512"
+						}
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "Temp/Anandan"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-12-23T12:37:29Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

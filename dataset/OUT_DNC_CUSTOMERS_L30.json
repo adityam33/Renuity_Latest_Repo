@@ -1,0 +1,36 @@
+{
+	"name": "OUT_DNC_CUSTOMERS_L30",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "OUT/3P_CALLCENTER"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@concat('DNC_CUSTOMERS_DAILY_REPORT_', formatdatetime(convertFromUtc(utcnow(), 'Eastern Standard Time'),'yyyyMMdd_HHmmss'), '.csv')",
+					"type": "Expression"
+				},
+				"folderPath": "out",
+				"fileSystem": "3p-callcenters-dnc"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "testcol",
+				"type": "String"
+			}
+		]
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}

@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 18",
+	"properties": {
+		"content": {
+			"query": "SELECT\nlower(lds.Division) as division\n,lower(lds.LeadID) as Lead_id\n,lower(lds.CustomerID) as Prospect_id\n,case \n    when [Phone] is not null then '+1'+Phone\n    else [Phone]\nend as [phone_id]\n,[Email] as [email_id]\n,[FirstName] as first_name\n,[LastName] as last_name\n,[Address1] as address1\n,[Address2] as address2\n,[City] as city\n,[State] as [state]\n,[Zip] as zip\n,[Zip4] as zip4\n,[FirstName]+' '+[LastName] as full_name\n,[LP_DateAdded] as lp_dateadded\n,[LP_LastChanged] as lp_datechanged\n,lower(lds.ProductID) as product_id\n,prd.LongDescription as product\n,lower(lds.DispositionID) as disposition_id\n,dsp.Disposition as disposition\n,lower(lds.BranchID) as branch_id\n,brn.LongName as branch\n,lower(lds.LeadSubSourceID) as lead_subsource_id\n,srs.LeadSubSource as lead_subsource\n,lower(srs.LeadSourceID) as lead_source_id\n,srs.SourceCode as lead_sourcecode\n,lds.EntryDate as entry_date\n,lds.DateEntered as date_entered\n,lds.[EverSet] as ever_set\n,lds.[EverVerified] as ever_verified\n,lds.[EverIssued] as ever_issued\n,lds.[EverNetIssued] as ever_net_issued\n,lds.[EverSat] as ever_sat\n,lds.[EverConfirmed] as ever_confirmed\n,lds.LastCallDate as last_call_date\n,clr.CallResult as last_call_result\n,lds.[LeadScore_ExpectedValueRank] as leadscore_expected_value_rank\n,lds.[LeadScore_Initial_LikelihoodToBuy] as leadscore_initial_likelihood_to_buy\n,lds.[LeadScore_Initial_LikelySaleAmount] as leadscore_initial_likely_sale_amount\n,lds.[LeadScore_Initial_ExpectedValue] as leadscore_initial_expected_value\n,lds.[LeadScore_Current_LikelihoodToBuy] as leadscore_current_likelihood_to_buy\n,lds.[LeadScore_Current_LikelySaleAmount] as leadscore_current_likely_sale_amount\n,lds.[LeadScore_Current_ExpectedValue] as leadscore_Current_expected_value\n,cast(getdate() as DATE) as bulk_upload_date\nFROM\nEDW.FACT_LEAD lds\ninner join EDW.DIM_CUSTOMER cst\non lds.CustomerID = cst.CustomerID\nleft join EDW.DIM_PRODUCT prd\non lds.ProductID = prd.ProductID\nleft join EDW.DIM_DISPOSITION dsp\non lds.DispositionID = dsp.DispositionID\nleft join EDW.DIM_BRANCH brn\non lds.BranchID = brn.BranchID\nleft join EDW.DIM_LEAD_SUB_SOURCE srs\non lds.LeadSubSourceID = srs.LeadSubSourceID\nleft join EDW.DIM_CALL_RESULT clr\non lds.LastCallResultID = clr.CallResultID\nWHERE\nlds.Division = 'FHI'\nand DATEDIFF(HOUR,lds.DateEntered,GETDATE()) <= (24*90)\norder by \nlds.EntryDate asc\n,lds.LastCallDate asc",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

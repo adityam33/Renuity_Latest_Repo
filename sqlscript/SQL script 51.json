@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 51",
+	"properties": {
+		"content": {
+			"query": "SELECT distinct\ncst.FirstName as [FIRST_NAME]\n,cst.LastName as [LAST_NAME]\n,cst.Email as [EMAIL_ADDRESS]\n,cst.Phone as [PHONE_NUMBER]\n,'English' as [LANGUAGE]\n,'US' as [COUNTRY]\n,'RTW' as [BRAND_NAME]\n,'' AS CHANNEL\n,job.contractid AS CONTRACT_ID\n,job.cst_id AS ACCOUNT_ID\n,job.ins_installer1 AS SERVICE_TECHNICIAN_1_ID\n,job.ins_installer2 AS SERVICE_TECHNICIAN_2_ID\n,job.ins_installer3 AS SERVICE_TECHNICIAN_3_ID\n,job.ins_installer4 AS SERVICE_TECHNICIAN_4_ID\n,brp.LongName as PRODUCTION_BRANCH_NAME\n,mld.ActDate as SERVICE_DATETIME\n,prg.Descr as PRODUCT_LINE\n,ISNULL((select rpm.descr from [ODS].[LP_RTW_rpm_ReportingMarket] rpm where id=brn.rpm_id),'Undefined') as REPORTING_MARKET  --Add Reporting Market and Type request\n,ISNULL((select tof.descr from [ODS].[LP_RTW_tof_TypeOfMarket] tof where id=brn.tof_id),'Undefined') as REPORTING_MARKET_TYPE  --Add Reporting Market and Type request\nFROM \n[ODS].[LP_RTW_job_Jobs] job\n,[ODS].[LP_RTW_cst_Customers] cst\n,[ODS].[LP_RTW_prd_Products] prd\n,[ODS].[LP_RTW_prg_Product_Groups] prg\n,[ODS].[LP_RTW_brp_ProductionBranches] brp\n,[ODS].[LP_RTW_mld_MilestoneDetail] mld\n,[ODS].[LP_RTW_mdt_MilestoneDateTypes] mdt\n,[ODS].[LP_RTW_brn_Branches] brn  --Add Reporting Market and Type request\n,[ODS].[LP_RTW_Lds_Leads] leads --To ignore Kohler records\nWHERE \nmld.mdt_id = mdt.id\nand job.cst_id = cst.id\nand job.ProductID = prd.ProductID\nand prd.prg_id = prg.id\nand job.id = mld.job_id\nand job.brp_id = brp.id\nand brp.id=brn.id  --Add Reporting Market and Type request\nand mdt.Descr = 'Completion'\nand mld.ActDate is NOT NULL\nAND datediff(DAY, mld.ActDate, dbo.fnConvertUTCtoPST (getdate())) between 0 and 30\nand leads.id = job.lds_id\nand leads.src_id not like 'kohler%' ",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

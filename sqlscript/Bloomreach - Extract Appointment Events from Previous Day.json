@@ -1,0 +1,17 @@
+{
+	"name": "Bloomreach - Extract Appointment Events from Previous Day",
+	"properties": {
+		"content": {
+			"query": "SELECT\n'lp_appointment_set' as event_type\n,'lp' as data_source\n,app.Division as division\n,lower(cst.CustomerID) as Prospect_ID\n,lower(lds.LeadID) as Lead_ID\n,lower(cst.Email) as email_id\n,case \n    when cst.[Phone] is not null then '+1'+Phone\n    else cst.[Phone]\nend as [phone_id]\n,cst.[FirstName] as first_name\n,cst.[LastName] as last_name\n,cst.[Address1] as address1\n,cst.[Address2] as address2\n,cst.[City] as city\n,cst.[State] as [state]\n,trim(str(cst.[Zip])) as zip\n,app.SetDate as set_date\n,app.ApptDate as appointment_date\n,lds.EntryDate as entry_date\n,lower(srs.LeadSubSourceID) as lead_subsource_id\n,lower(srs.LeadSubSource) as lead_subsource\n,lower(srs.[SourceCode]) as lead_sourcecode\n,dbo.fnConvertUTCtoEST (getdate()) as [timestamp]\nFROM\nEDW.FACT_LEAD lds\n,EDW.DIM_CUSTOMER cst\n,EDW.FACT_APPOINTMENT app\n,EDW.DIM_LEAD_SUB_SOURCE srs\nWHERE\nlds.CustomerID = cst.CustomerID\nand lds.LeadID = app.LeadID\nand lds.LeadSubSourceID = srs.LeadSubSourceID\nand app.SetDate is not null\nand lds.ApptSet = 'True'\nand DATEDIFF(DAY,app.SetDate,cast(dbo.fnConvertUtcToEST(GETDATE()) as DATE)) = 1\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

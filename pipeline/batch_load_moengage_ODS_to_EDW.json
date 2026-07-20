@@ -1,0 +1,923 @@
+{
+	"name": "batch_load_moengage_ODS_to_EDW",
+	"properties": {
+		"activities": [
+			{
+				"name": "DIM lifecycle events",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": " SELECT \n\tcase when App_name ='HomeOrg' then 'CTA'\n\twhen App_name ='MadCity' then 'MAC' \n    when App_name ='FHIA' then 'FHI'\n    when App_name ='Statewide' then 'SWR'\n    when App_name ='RiteWindow' then 'RTW'\n\twhen App_name ='RenuityWest' then 'PBC'\n    end as Division,\n\tHashbytes('MD5', Case when [Flow ID] is null then Concat(coalesce(MOE_F_PID,'xxx'), Coalesce(Flow_version_Id,'yyy'), coalesce(Campaign_ID,'zzz')) \n\t\telse Concat([Flow ID], Coalesce(Flow_Version_ID,'xxx')) end ) as PK ,\n\tEvent_UUID ,Event_Code, Event_Name, Event_Source, Event_time, Event_type, \n\tUID as LeadID, Email_ID as EmailID, Mobile_number as Phone, \n\tAPP_Name, DB_Name, EventAttributes, UserAttributes, Campaign_Channel, Campaign_ID, Campaign_name, Campaign_Type, \n\tFlow_Version_Id, Flow_Version_Name, MOE_Campaign_channel, MOE_campaign_Content_Type, MOE_Campaign_Tags, MOE_Delivery_Type, MOE_F_PID, MOE_F_Pname,\n\tMOE_Event_category, MOE_Event_Source, MOE_Attribution_Type, MOE_Campaign_User_Type, MOE_Flow_Action_Cids,MOE_Flow_Conversion_Event, MOE_FLow_Goal_name, MOE_Flow_ID, MOE_Flow_Name,\n\tMOE_FLow_Name, MOE_Flow_Trip_ID, [Flow ID] as FlowID, FlowName, Flow_Type, MoEngage_user_ID, getdate() as InsertedTS, getdate() as LastUpdatedTS\n\tfrom ODS.MOENGAGE_EVENT_DATA\n\t--Where Event_time > (Select max(Event_time) from EDW.DIM_MKTNG_Lifecycle_Events)",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Upsert",
+						"upsertSettings": {
+							"keys": [
+								"Event_UUID"
+							],
+							"interimSchemaName": ""
+						},
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "staging"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Division",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PK",
+									"type": "Byte[]"
+								},
+								"sink": {
+									"name": "PK",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Event_UUID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Event_UUID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Event_Code",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Event_code",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Event_Name",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Event_name",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Event_Source",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Event_source",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Event_time",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Event_time",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "Event_type",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Event_type",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LeadId",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "EmailID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "EmailId",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Phone",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Phone",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "APP_Name",
+									"type": "String"
+								},
+								"sink": {
+									"name": "App_name",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DB_Name",
+									"type": "String"
+								},
+								"sink": {
+									"name": "DB_Name",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "EventAttributes",
+									"type": "String"
+								},
+								"sink": {
+									"name": "EventAttributes",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UserAttributes",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UserAttributes",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Campaign_Channel",
+									"type": "String"
+								},
+								"sink": {
+									"name": "campaign_channel",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Campaign_ID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "campaign_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Campaign_name",
+									"type": "String"
+								},
+								"sink": {
+									"name": "campaign_name",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Campaign_Type",
+									"type": "String"
+								},
+								"sink": {
+									"name": "campaign_type",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Flow_Version_Id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "flow_version_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Flow_Version_Name",
+									"type": "String"
+								},
+								"sink": {
+									"name": "flow_version_name",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "MOE_Campaign_channel",
+									"type": "String"
+								},
+								"sink": {
+									"name": "moe_campaign_channel",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "MOE_campaign_Content_Type",
+									"type": "String"
+								},
+								"sink": {
+									"name": "moe_campaign_content_type",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "MOE_Campaign_Tags",
+									"type": "String"
+								},
+								"sink": {
+									"name": "moe_campaign_tags",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "MOE_Delivery_Type",
+									"type": "String"
+								},
+								"sink": {
+									"name": "moe_delivery_type",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "MOE_F_PID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "moe_f_pid",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "MOE_F_Pname",
+									"type": "String"
+								},
+								"sink": {
+									"name": "moe_f_pname",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "MOE_Event_category",
+									"type": "String"
+								},
+								"sink": {
+									"name": "moe_event_category",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "MOE_Event_Source",
+									"type": "String"
+								},
+								"sink": {
+									"name": "moe_event_source",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "MOE_Attribution_Type",
+									"type": "String"
+								},
+								"sink": {
+									"name": "moe_attribution_type",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "MOE_Campaign_User_Type",
+									"type": "String"
+								},
+								"sink": {
+									"name": "moe_campaign_user_type",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "MOE_Flow_Action_Cids",
+									"type": "String"
+								},
+								"sink": {
+									"name": "moe_flow_action_cids",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "MOE_Flow_Conversion_Event",
+									"type": "String"
+								},
+								"sink": {
+									"name": "moe_flow_conversion_event",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "MOE_FLow_Goal_name",
+									"type": "String"
+								},
+								"sink": {
+									"name": "moe_flow_goal_name",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "MOE_Flow_ID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "moe_flow_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "MOE_Flow_Name",
+									"type": "String"
+								},
+								"sink": {
+									"name": "moe_flow_name",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "MOE_Flow_Trip_ID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "moe_flow_trip_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "FlowID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "FlowId",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "FlowName",
+									"type": "String"
+								},
+								"sink": {
+									"name": "FlowName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Flow_Type",
+									"type": "String"
+								},
+								"sink": {
+									"name": "flow_type",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "MoEngage_user_ID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "moengage_user_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "InsertedTS",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "InsertedTS",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_ODS_PBC_slt_SalesTypes",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_CTA_TEST_DYN_DIM_CUSTOMER",
+						"type": "DatasetReference",
+						"parameters": {
+							"SchemaName": "EDW",
+							"TableName": "DIM_MKTNG_LIFECYCLE_EVENTS"
+						}
+					}
+				]
+			},
+			{
+				"name": "FACT event stats",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "DIM lifecycle events",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"additionalColumns": [
+							{
+								"name": "CreatedTS",
+								"value": {
+									"value": "@utcNow()",
+									"type": "Expression"
+								}
+							},
+							{
+								"name": "LastUpdatedTS",
+								"value": {
+									"value": "@utcNow()",
+									"type": "Expression"
+								}
+							}
+						],
+						"sqlReaderQuery": "With MKTNG_Campaign_Events as (\n\nSelect App_name, EventDate, Campaign_ID, MOE_F_PID, FLOW_Version_ID, FLOWID ,\nCampaign_name, MOE_F_Pname, Flow_version_Name, FlowName, Campaign_Channel,\n\n---Email\nSum(Case when Event_name='Email Sent' then 1 else 0 end ) as EmailSent,\nSum(Case when Event_name='Email Delivered' then 1 else 0 end ) as EmailDelivered,\nSum(Case when Event_name='Email Opened' then 1 else 0 end ) as EmailOpened,\nSum(Case when Event_name='Email Clicked' then 1 else 0 end ) as EmailClicked,\nSum(Case when Event_name='Email Bounced' then 1 else 0 end ) as EmailBounced,\nSum(Case when Event_name='Email Deferred' then 1 else 0 end ) as EmailDeferred,\nSum(Case when Event_name='Email Dropped' then 1 else 0 end ) as EmailDropped,\nSum(Case when Event_name='Email Soft Bounced' then 1 else 0 end ) as EmailSoftBounced,\nSum(Case when Event_name='Email Unsubscribed' then 1 else 0 end ) as EmailUnsubscribed,\nSum(Case when Event_name='MOE_EMAIL_ESP_DROPPED' then 1 else 0 end ) as MOE_EMAIL_ESP_DROPPED,\n\n--SMS\nSum(Case when Event_name='SMS Sent' then 1 else 0 end ) as SMSSent,\nSum(Case when Event_name='SMS Delivered' then 1 else 0 end ) as SMSDelivered,\nSum(Case when Event_name='SMS Delivery Failed' then 1 else 0 end ) as SMSDeliveryFailed,\nSum(Case when Event_name='SMS Clicked' then 1 else 0 end ) as SMSClicked,\n\n\n\n--Flow\nSum(Case when Event_name='User Entered Flow' then 1 else 0 end ) as UserEnteredFlow,\nSum(Case when Event_name='User Exited Flow' then 1 else 0 end ) as UserExitedFlow,\nSum(Case when Event_name='MOE_FLOW_TRIP_CONVERSION' then 1 else 0 end ) as MOE_FLOW_TRIP_CONVERSION\n\nfrom (\nSelect Distinct App_name,Cast(Event_Time as date) as EventDate, Campaign_ID, MOE_F_PID, FLOW_Version_ID, FLOWID ,\nCampaign_name, MOE_F_Pname, Flow_version_Name, FlowName, LeadId, Event_Name,Campaign_Channel\nfrom EDW.DIM_MKTNG_Lifecycle_Events\nwhere  Coalesce(Campaign_id, MOE_F_PID, FlowID) is not null \n)a\n\nGroup by App_name,EventDate, Campaign_ID, MOE_F_PID, FLOW_Version_ID, FLOWID\n,Campaign_name, MOE_F_Pname, Flow_version_Name, FlowName,Campaign_Channel\n\n), \n\nFlow_Conversion_events as (\n\nSelect Cast(Event_Time as date) as EventDate,MOE_Flow_ID,MOE_Flow_Name,Flow_Version_Id,Flow_Version_Name, MOE_Attribution_type,\nSum(Case when Moe_Flow_Conversion_Event='Lead Appt Set' then 1 else 0 end) as LeadApptSet,\nSum(Case when Moe_Flow_Conversion_Event='Lead Created' then 1 else 0 end ) as LeadCreated,\nSum(Case when Moe_Flow_Conversion_Event='Lead Issued' then 1 else 0 end) as LeadIssued,\nSum(Case when Moe_Flow_Conversion_Event='Lead Sold' then 1 else 0 end) as LeadSold,\nSum(Case when Moe_Flow_Conversion_Event='Lead Sat' then 1 else 0 end) as LeadSat,\nSum(Case when Moe_Flow_Conversion_Event='Lead Disposition Change' then 1 else 0 end) as LeadDispositionChange\n\nfrom EDW.DIM_MKTNG_Lifecycle_Events where event_name='MOE_FLOW_TRIP_CONVERSION' \n\nGroup by Cast(Event_Time as date),MOE_Flow_ID,MOE_Flow_Name,Flow_Version_Id,Flow_Version_Name, MOE_Attribution_type\n),\n\nT_Flow_Campaign_SplitData AS (\n    SELECT  \n\t\tCast(Event_Time as date) as EventDate,\n        MOE_Flow_Name, \n        MOE_Flow_Id, \n        MOE_Flow_goal_Name, \n        TRIM(value) AS MOE_Flow_Action_Cid,\n        Flow_version_id, \n        Flow_version_name,\n        MOE_Attribution_Type,\n        MOE_Flow_Conversion_Event,\n        LeadId\n    FROM EDW.DIM_MKTNG_LIFECYCLE_Events\n    CROSS APPLY STRING_SPLIT(MOE_Flow_Action_Cids, ',')\n    WHERE event_name = 'MOE_FLOW_TRIP_CONVERSION'  --AND CAST(Event_time AS date) = '2025-09-09'\n)\n, \nT_Flow_Campaign_Conversion_metrics as (\nSELECT \n\tEventDate,\n    MOE_Flow_Name,\n    MOE_Flow_Id,\n   -- MOE_Flow_goal_Name,\n    MOE_Flow_Action_Cid,\n    Flow_version_id,\n    Flow_version_name,\n    MOE_Attribution_Type,\n    ISNULL([Lead Created], 0)      AS LeadCreated,\n    ISNULL([Lead Appt Set], 0)     AS LeadApptSet,\n    ISNULL([Lead Disposition Change], 0)    AS LeadDispositionChange,\n    ISNULL([Lead Issued], 0)       AS LeadIssued,\n    ISNULL([Lead Sold], 0)         AS LeadSold,\n    ISNULL([Lead Sat], 0)          AS LeadSat\nFROM (\n    SELECT  \n\t\tEventDate,\n        MOE_Flow_Name,\n        MOE_Flow_Id,\n       -- MOE_Flow_goal_Name,\n        MOE_Flow_Action_Cid,\n        Flow_version_id,\n        Flow_version_name,\n        MOE_Attribution_Type,\n        MOE_Flow_Conversion_Event,\n        LeadId\n    FROM T_Flow_Campaign_SplitData\n\t) AS src\nPIVOT (\n    COUNT(LeadId)\n    FOR MOE_Flow_Conversion_Event IN (\n        [Lead Created], \n        [Lead Appt Set], \n        [Lead Disposition Change], \n        [Lead Issued], \n        [Lead Sold], \n        [Lead Sat]\n    )\n\t) AS p\n),\n\n\nFlow_Campaign_Conversion_events as (\n\nSelect T1.* , T2. Campaign_name , null as FlowId\nfrom T_Flow_Campaign_Conversion_metrics  T1 Left join \n(Select Distinct  Campaign_id, Campaign_name\n from EDW.DIM_MKTNG_LIFECYCLE_Events where MOE_F_Pid is not null \n ) T2 on T1.MOE_Flow_Action_Cid =T2.Campaign_id\n\n),\n\nT_Standalone_Campaigns as (\nSelect Distinct Campaign_ID,Event_Time as Event_Time,Event_name, LeadID \nfrom EDW.DIM_MKTNG_LIFECYCLE_Events \nwhere Campaign_id is not null and Event_name in ('Email Sent','Email Delivered', 'SMS Sent') \n),\nT_Standalone_campaign_Conv as (\nSelect Distinct  A.Campaign_id, 'View Through Attribution' as Attribution_type,  C.Event_name, C.Event_Time as Event_time,C.LeadID \nfrom T_Standalone_Campaigns A\nLeft join EDW.DIM_MKTNG_LIFECYCLE_Events C on A.LeadID=C.LeadID and  C.Event_Time  BETWEEN  A.Event_Time AND DATEADD(day, 7, A.Event_Time)\nwhere C.event_name  in ('Lead Disposition Change','Lead Issued','Lead Sold','Lead Sat','Lead Appt Set','Lead Created') \n),\nStandalone_Campaign_Conversion_Metrics as (\nSelect  Cast(Event_time as date) As EventDate, Campaign_Id,Attribution_type as MOE_Attribution_type,\nSum(Case when Event_name='Lead Created' then 1 else 0 end) as LeadCreated,\nSum(Case when Event_name='Lead Appt Set' then 1 else 0 end) as LeadApptSet,\nSum(Case when Event_name='Lead Issued' then 1 else 0 end) as LeadIssued,\nSum(Case when Event_name='Lead Sold' then 1 else 0 end) as LeadSold,\nSum(Case when Event_name='Lead Sat' then 1 else 0 end) as LeadSat,\nSum(Case when Event_name='Lead Disposition Change' then 1 else 0 end) as LeadDispositionChange\nfrom T_Standalone_campaign_Conv \nGroup by  Cast(Event_time as date), Campaign_Id,Attribution_type\n)\n\n---------------------------------------------Final query \n\nSelect \n--case when M.App_name ='HomeOrg' then 'CTA' when M.App_Name='MadCity' then 'MAC' end as Division,\ncase when M.App_name ='HomeOrg' then 'CTA'\n\twhen M.App_name ='MadCity' then 'MAC' \n    when M.App_name ='FHIA' then 'FHI'\n    when M.App_name ='Statewide' then 'SWR'\n    when M.App_name ='RiteWindow' then 'RTW'\n    when App_name ='RenuityWest' then 'PBC'\n    end as Division,\nHashbytes('MD5', Case when M.FlowID is null then Concat(Coalesce(M.MOE_F_PID,'xxx'), Coalesce(M.Flow_version_Id,'yyy'), Coalesce(M.Campaign_ID,'zzz')) \n\telse Concat(M.FlowID, Coalesce(M.Flow_Version_ID,'xxx')) end ) as PK ,\n\t\nM.EventDate, M.Campaign_ID, M.MOE_F_PID, M.FLOW_Version_ID, M.FlowID,\n--M.MOE_F_Pname, M.Campaign_name, M.Flow_version_Name, M.FlowName,M.Campaign_Channel,\n\nM.EmailBounced,\nM.EmailClicked,\nM.EmailDeferred,\nM.EmailDelivered,\nM.EmailDropped,\nM.EmailOpened,\nM.EmailSent,\nM.EmailSoftBounced,\nM.EmailUnsubscribed,\nM.MOE_EMAIL_ESP_DROPPED,\nM.SMSClicked,\nM.SMSDelivered,\nM.SMSDeliveryFailed,\nM.SMSSent,\nM.UserEnteredFlow,\nM.UserExitedFlow,\nM.MOE_FLOW_TRIP_CONVERSION,\n\n\ncase When M.FlowID is null and M.MOE_F_PID is null then SC.MOE_Attribution_type \n\t when M.FlowId is null and M.MOE_F_PID is not null then C.MOE_Attribution_type \n\t when M.FlowId is not null then F.MOE_Attribution_type  end as MOE_Attribution_type,\n\ncase When M.FlowID is null and M.MOE_F_PID is null then SC.LeadCreated \n\t when M.FlowId is null and M.MOE_F_PID is not null then C.LeadCreated \n\t when M.FlowId is not null then F.LeadCreated end as LeadCreated,  \n\t \ncase When M.FlowID is null and M.MOE_F_PID is null then SC.LeadApptSet \n\t when M.FlowId is null and M.MOE_F_PID is not null then C.LeadApptSet \n\t when M.FlowId is not null then F.LeadApptSet end as LeadApptSet , \n\t \ncase When M.FlowID is null and M.MOE_F_PID is null then SC.LeadIssued \n\t when M.FlowId is null and M.MOE_F_PID is not null then C.LeadIssued \n\t when M.FlowId is not null then F.LeadIssued end as LeadIssued  ,\n\t \ncase When M.FlowID is null and M.MOE_F_PID is null then SC.LeadSold \n\t when M.FlowId is null and M.MOE_F_PID is not null then C.LeadSold \n\t when M.FlowId is not null then F.LeadSold end as LeadSold,  \n\t \ncase When M.FlowID is null and M.MOE_F_PID is null then SC.LeadSat \n\t when M.FlowId is null and M.MOE_F_PID is not null then C.LeadSat \n\t when M.FlowId is not null then F.LeadSat end as LeadSat,  \n\t \ncase When M.FlowID is null and M.MOE_F_PID is null then SC.LeadDispositionChange \n\t when M.FlowId is null and M.MOE_F_PID is not null then C.LeadDispositionChange \n\t when M.FlowId is not null then F.LeadDispositionChange end as LeadDispositionChange  \n\n--case When M.FlowID is null then C.LeadCreated else F.LeadCreated end LeadCreated,\n--case When M.FlowID is null then C.LeadApptSet else F.LeadApptSet end LeadApptSet,\n--case When M.FlowID is null then C.LeadIssued else F.LeadIssued end LeadIssued,\n--case When M.FlowID is null then C.LeadSold else F.LeadSold end LeadSold,\n--case When M.FlowID is null then C.LeadSat else F.LeadSat end LeadSat,\n--case When M.FlowID is null then C.LeadDispositionChange else F.LeadDispositionChange end LeadDispositionChange\n\n\nfrom MKTNG_Campaign_Events M \nLeft join Flow_Conversion_Events F  on M.FlowID is not null and M.EventDate=F.EventDate and M.FlowId=F.MOE_Flow_ID and M.FLOW_Version_ID=F.FLOW_Version_ID\nLeft join Flow_Campaign_Conversion_events C on M.FlowID is null and M.EventDate=C.EventDate and M.MOE_F_Pid=C.MOE_Flow_Id and M.Campaign_ID=C.MOE_Flow_Action_Cid and M.FLOW_Version_ID=C.FLOW_Version_ID\nLeft join Standalone_Campaign_Conversion_Metrics SC on M.FlowId is null and M.MOE_F_PID is null and M.EventDate=SC.EventDate and  M.Campaign_ID=SC.Campaign_id\n\n--where M.Campaign_id='68ca4c147c589cfff1e87812' and SC.MOE_Attribution_type='View Through Attribution' --and M.Flow_Version_id='68b5ceda33baf661cbbae1cb'\n--and --M.Campaign_channel='SMS' and M.EventDate>='2025-09-06'\n\n\nOrder by 3\n\n\n\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "Truncate table EDW.FACT_SUMM_MKTNG_LIFECYCLE_CAMPAIGN",
+						"allowCopyCommand": true,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "staging"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Division",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "EventDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "EventDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "PK",
+									"type": "Byte[]"
+								},
+								"sink": {
+									"name": "PK",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Campaign_ID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CampaignId",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "MOE_F_PID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "MOE_F_PID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "FLOW_Version_ID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "FLOW_Version_Id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "FlowID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "FlowID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "EmailBounced",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EmailBounced",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "EmailClicked",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EmailClicked",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "EmailDeferred",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EmailDeferred",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "EmailDelivered",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EmailDelivered",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "EmailDropped",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EmailDropped",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "EmailOpened",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EmailOpened",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "EmailSent",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EmailSent",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "EmailSoftBounced",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EmailSoftBounced",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "EmailUnsubscribed",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EmailUnsubscribed",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "MOE_EMAIL_ESP_DROPPED",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "MOE_Email_ESP_Dropped",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "SMSClicked",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "SMSClicked",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "SMSDelivered",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "SMSDelivered",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "SMSDeliveryFailed",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "SMSDeliveryFailed",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "SMSSent",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "SMSSent",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "UserEnteredFlow",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "UserEnteredFlow",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "UserExitedFlow",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "UserExitedFlow",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "MOE_FLOW_TRIP_CONVERSION",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "MOE_FLOW_TRIP_CONVERSION",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "MOE_Attribution_type",
+									"type": "String"
+								},
+								"sink": {
+									"name": "MOE_Attribution_Type",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadCreated",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "LeadCreated",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadApptSet",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "LeadApptSet",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadDispositionChange",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "LeadDispositionChange",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadIssued",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "LeadIssued",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadSat",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "LeadSat",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadSold",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "LeadSold",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "CreatedTS",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CreatedTS",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "LastUpdatedTS",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_ODS_PBC_slt_SalesTypes",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_CTA_TEST_DYN_DIM_CUSTOMER",
+						"type": "DatasetReference",
+						"parameters": {
+							"SchemaName": "EDW",
+							"TableName": "FACT_SUMM_MKTNG_LIFECYCLE_CAMPAIGN"
+						}
+					}
+				]
+			}
+		],
+		"parameters": {
+			"EventDate": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "MoEngage to EDW"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-04-03T23:37:18Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

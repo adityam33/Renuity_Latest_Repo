@@ -1,0 +1,346 @@
+{
+	"name": "Copy_load_CubeSW_Summ_ERP_GL_tran_Stage",
+	"properties": {
+		"activities": [
+			{
+				"name": "Update Last 2 months Balance",
+				"description": "Update last 2 months balance amount in CubeSW_SUMM_ERP_GL_Tran_Stage table",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Cpy CubeSW SUMM ERP GL Stage Load",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "Update Out.CUBESW_SUMM_ERP_GL_TRANSACTION_STAGE set BalanceAMount=T1.BalanceAmount \r\nfrom \r\nOut.CUBESW_SUMM_ERP_GL_TRANSACTION_STAGE T Join (\r\nSelect \r\n\t\t\tEomonth(concat(substring(finperiodid,1,charindex('-',finperiodid)),'01-',substring(finperiodid,charindex('-',finperiodid)+1,len(finperiodid)))) AS FIN_MONTH,\r\n\t\t\tAccountCOde,\r\n\t\t\tAccounTClass,\r\n\t\t\tAccounTDescription,\r\n\t\t\tBranchCode,\r\n\t\t\tFinPeriodID,\r\n\t\t\tLedgerID,\r\n\t\t\tSUM(BalanceAmount) BalanceAMount\r\n\t\t\tfrom OUT.CUBESW_ERP_GL_TRANSACTION_STAGE\r\n\t\t\tWHERE  AccountCode<'60000'  \r\n\t\t\tand Eomonth(concat(substring(finperiodid,1,charindex('-',finperiodid)),'01-',substring(finperiodid,charindex('-',finperiodid)+1,len(finperiodid))))>=Dateadd(M,-6,Getdate())\r\n\t\t\tGroup by \r\n\t\tEomonth(concat(substring(finperiodid,1,charindex('-',finperiodid)),'01-',substring(finperiodid,charindex('-',finperiodid)+1,len(finperiodid)))),\r\n\t\tAccountCode,\r\n\t\tAccountClass,\r\n\t\tAccountDescription,\r\n\t\tBranchCode,\r\n\t\tFinPeriodID,\r\n\t\tLedgerID ) T1\r\n\t\tOn T.AccountCode=T1.AccountCode and\r\n\t\t\tT.BranchCode=T1.BranchCode and\r\n\t\t\tT.FinperiodID=T1.FInperiodId and\r\n\t\t\tT.LedgerID=T1.LedgerID\r\n\t\t\tWhere T.AccountCode<'60000'\r\n\r\n"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Cpy CubeSW SUMM ERP GL Stage Load",
+				"description": "Insert new records into CubeSW_SUMM_ERP_GL_transaction table",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Insert CurrentMon records",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "Select \r\n\tEomonth(concat(substring(A.finperiodid,1,charindex('-',A.finperiodid)),'01-',substring(A.finperiodid,charindex('-',A.finperiodid)+1,len(A.finperiodid)))) As CalendarDate,\r\n\tA.AccountCode,\r\n\tA.AccountClass,\r\n\tA.AccountDescription,\r\n\tA.BranchCode,\r\n\tA.FinperiodID,\r\n\tA.LedgerID,\r\n\t0 AS BalanceAmount,\r\n\t'New' AS Flag,\r\n\t'ETLAdmin' CreatedBy,\r\n\tGetdate() as CreatedDateTime,\r\n\tGetdate() AS LastModifiedDateTime\r\nfrom \r\n(\r\n\tSelect \r\n\t\tAccountCode,\r\n\t\tAccountClass,\r\n\t\tAccountDescription,\r\n\t\tBRANCHCode,\r\n\t\tFinPeriodID,\r\n\t\tLedgerID,\r\n\t\tSum(BalanceAmount) As BalanceAmount\r\n\t\t\tfrom OUT.CUBESW_ERP_GL_TRANSACTION_STAGE\r\n\t\t\tWHERE  AccountCode<'60000'  \r\n\t\t\t\r\n\t\tGROUP BY  \r\n\t\tAccountCode,\r\n\t\tAccountClass,\r\n\t\tAccountDescription,\r\n\t\tBRANCHCode,\r\n\t\tFinPeriodID,\r\n\t\tLedgerID \r\n) A Left Join OUT.CUBESW_SUMM_ERP_GL_TRANSACTION_STAGE B\r\nOn A.AccountCode=B.AccountCode and\r\n   A.BranchCode=B.BranchCode and \r\n   A.Finperiodid=B.FInperiodID and\r\n   A.LedgerID=B.LedgerID\r\n\r\nWhere B.AccountCode is null and B.BranchCode is null and B.FinperiodID is null and B.LedgerID is null \r\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "CalendarDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "CalendarDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "AccountCode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "AccountCode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AccountClass",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "AccountClass",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AccountDescription",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "AccountDescription",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchCode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "BranchCode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "FinperiodID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "FinPeriodID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LedgerID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "LedgerID",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "BalanceAmount",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "BalanceAmount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 4,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "Flag",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Flag",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CreatedBy",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "CreatedBy",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CreatedDateTime",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "CreatedDateTime",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "LastModifiedDateTime",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "LastModifiedDateTime",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "OUT_CUBESW_ERP_GL_TRANSACTION_STAGE",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "OUT_CUBESW_SUMM_ERP_GL_TRANSACTION_STAGE",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Insert CurrentMon records",
+				"description": "Delete and insert current month entries in  \nOUT.CUBESW_SUMM_ERP_GL_TRANSACTION_STAGE",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Remove Duplicates from Stage",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "Delete from OUT.CUBESW_SUMM_ERP_GL_TRANSACTION_STAGE\r\nWhere CalendarDate=Eomonth(Getdate());\r\n\r\nInsert into OUT.CUBESW_SUMM_ERP_GL_TRANSACTION_STAGE\r\nSelect \r\nDistinct EOMONTH(GETDATE()) as CalendarDate,\r\n\t     AccountCode,\r\n\t\t AccountClass,\r\n\t\t AccountDescription,\r\n\t\t BranchCode,\r\n\t\t Format(Getdate(),'MM-yyyy') AS FinperiodID,\r\n\t\t LedgerID,\r\n\t\t 0 AS BalanceAmount,\r\n\t\t 'New' AS Flag,\r\n\t\t 'ETLAdmin' CreatedBy,\r\n\t\t Getdate() as CreatedDateTime,\r\n\t\t Getdate() AS LastModifiedDateTime\r\nfrom OUT.CUBESW_SUMM_ERP_GL_TRANSACTION_STAGE\r\n;\r\n\r\nWith T_GL As (\r\n\tSelect * ,\r\n\t\tRow_number() over(Partition by AccountCode,BranchCode,LedgerID order by \r\n\t\tEomonth(concat(substring(finperiodid,1,charindex('-',finperiodid)),'01-',substring(finperiodid,charindex('-',finperiodid)+1,len(finperiodid))))\r\n\t\t\t\t\t\t ) AS RowNum\r\n\t\tFrom (\r\n\t\t\tSelect Distinct\r\n\t\t\t\tAccountCode,\r\n\t\t\t\tAccountClass,\r\n\t\t\t\tAccountDescription,\r\n\t\t\t\tBRANCHCode,\r\n\t\t\t\tFinPeriodID,\r\n\t\t\t\tEomonth(concat(substring(finperiodid,1,charindex('-',finperiodid)),'01-',substring(finperiodid,charindex('-',finperiodid)+1,len(finperiodid)))) As CalendarDate,\r\n\t\t\t\tLedgerID\r\n\t\t\t\t\tfrom OUT.CUBESW_ERP_GL_TRANSACTION_STAGE\r\n\t\t\t\t\tWHERE  AccountCode<'60000'  \r\n        \t ) A\r\n\r\n),\r\nT_DummyTran AS (\r\n\tSelect\tDIstinct C.CalendarDate,T.AccountCode, T.AccountClass,T.AccountDescription,T.BranchCode,T.FinPeriodID,T.LedgerID\r\n\t\tfrom \r\n\t\t( Select distinct Eomonth(CalendarDate) as CalendarDate,Month, Year from EDW.DIM_calendar ) C Left Join T_GL T\r\n\t\t\t\tOn C.CalendarDate >= T.CalendarDate  And C.CalendarDate <= Eomonth(Getdate()) and T.Rownum=1\r\n\t\t Where C.CalendarDate >=T.CalendarDate And  C.CalendarDate <= Eomonth(Getdate())\r\n)\r\nInsert into OUT.CUBESW_SUMM_ERP_GL_TRANSACTION_STAGE\r\nSelect D.CalendarDate,D.AccountCode,D.AccountClass,D.AccountDescription,D.BranchCode,Format(D.CalendarDate,'MM-yyyy') as FinperiodID,D.LedgerID, \r\n\t\t0 as BalanceAmount,\r\n\t\t'New' AS Flag,\r\n\t\t 'ETLAdmin' CreatedBy,\r\n\t\t Getdate() as CreatedDateTime,\r\n\t\t Getdate() AS LastModifiedDateTime\r\nfrom T_DummyTran D Left Join OUT.CUBESW_SUMM_ERP_GL_Transaction_stage SS  \r\n\t\t\t on  D.AccountCode  =SS.AccountCode and\r\n\t\t\t\t D.BranchCode   =SS.BranchCode  and \r\n\t\t\t\t D.CalendarDate =SS.Calendardate and\r\n\t\t\t\t D.LedgerID     =SS.LedgerID\r\n\t\t\t\t where   SS.AccountCode   Is NULL and\r\n\t\t\t\t\t\t SS.BranchCode    Is NULL and\r\n\t\t\t\t\t\t SS.CalendarDate  Is NULL and\r\n\t\t\t\t\t\t SS.LedgerID      Is NULL ;\r\n"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Update Bal for GL exceptions",
+				"description": "Update balance for transaction exceptions for which Account, branch, ledger ID and fin period is not exist in GL ",
+				"type": "Script",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "Update  OUT.CubeSW_SUMM_ERP_GL_Transaction_stage set\r\nBalanceAmount=0\r\nFrom \r\n\tOUT.CubeSW_SUMM_ERP_GL_Transaction_stage S left Join \r\n\t( Select  AccountCode, BranchCode, LedgerID, FinperiodID, sum(BalanceAmount) as BalanceAmount FROM EDW.FACT_ERP_GL_transaction \r\n\t\twhere Posted='1' \r\n\t\tGroup by AccountCode, BranchCode, LedgerID, FinperiodID\r\n\t) F\r\n\ton \r\n\t\tS.AccountCode = F.AccountCode and \r\n\t\tS.BranchCode  = F.BranchCode and \r\n\t\tS.LedgerID    = F.LedgerID   and \r\n\t\tS.FinperiodID = F.FinperiodID \r\n Where  S.Calendardate>=Dateadd(M,-6,Getdate()) and \r\n \t\tS.BalanceAmount<>0 and \r\n\t\tF.AccountCode is NULL and \r\n\t\tF.BranchCode  is NULL and \r\n\t\tF.LedgerID    is NULL and \r\n\t\tF.FinperiodID is NULL ;\r\n\r\n/*Update  OUT.CUbeSW_ERP_GL_Transaction set BalanceAmount=0\r\n\tFrom \r\n\t\tOUT.CUbeSW_ERP_GL_Transaction C left Join \r\n\t\t( Select  AccountCode, BranchCode, LedgerID, FinperiodID, sum(BalanceAmount) as BalanceAmount FROM OUT.CUbeSW_SUMM_ERP_GL_Transaction_STAGE\r\n\t\t\t\t\tGroup by AccountCode, BranchCode, LedgerID, FinperiodID\r\n\t\t) S\r\n\t\ton \r\n\t\t\tC.AccountCode = S.AccountCode and \r\n\t\t\tC.BranchCode  = S.BranchCode and \r\n\t\t\tC.LedgerID    = S.LedgerID   and \r\n\t\t\tC.FinperiodID = S.FinperiodID \r\n Where  C.AccountCode<'60000' and \r\n\t\tEomonth(concat(substring(C.finperiodid,1,charindex('-',C.finperiodid)),'01-',substring(C.finperiodid,charindex('-',C.finperiodid)+1,len(C.finperiodid)))) >=Dateadd(M,-6,Getdate()) and \r\n\t\tC.BalanceAmount<>0 and \r\n\t\tS.AccountCode is NULL and \r\n\t\tS.BranchCode  is NULL and \r\n\t\tS.LedgerID    is NULL and \r\n\t\tS.FinperiodID is NULL  \r\n\r\n*/\r\nUpdate  OUT.CUbeSW_ERP_GL_Transaction_New set BalanceAmount=0\r\n\tFrom \r\n\t\tOUT.CUbeSW_ERP_GL_Transaction_New C left Join \r\n\t\t( Select  AccountCode, BranchCode, LedgerID, FinperiodID, sum(BalanceAmount) as BalanceAmount FROM OUT.CUbeSW_SUMM_ERP_GL_Transaction_STAGE\r\n\t\t\t\t\tGroup by AccountCode, BranchCode, LedgerID, FinperiodID\r\n\t\t) S\r\n\t\ton \r\n\t\t\tC.AccountCode = S.AccountCode and \r\n\t\t\tC.BranchCode  = S.BranchCode and \r\n\t\t\tC.LedgerID    = S.LedgerID   and \r\n\t\t\tC.FinperiodID = S.FinperiodID \r\n Where  C.AccountCode<'60000' and Eomonth(concat(substring(C.finperiodid,1,charindex('-',C.finperiodid)),'01-',substring(C.finperiodid,charindex('-',C.finperiodid)+1,len(C.finperiodid)))) >=Dateadd(M,-6,Getdate()) and \r\n\t\tC.BalanceAmount<>0 and \r\n\t\tS.AccountCode is NULL and \r\n\t\tS.BranchCode  is NULL and \r\n\t\tS.LedgerID    is NULL and \r\n\t\tS.FinperiodID is NULL \r\n\r\n\r\nUpdate  OUT.CUbeSW_ERP_GL_Transaction_New set BalanceAmount=0\r\n\tFrom \r\n\t\tOUT.CUbeSW_ERP_GL_Transaction_New C left Join \r\n\t\t( Select  AccountCode, BranchCode, LedgerID, FinperiodID,DepartmentID,ProductID,MarketingAccountID, sum(BalanceAmount) as BalanceAmount \r\n\t\tFROM OUT.CUbeSW_ERP_GL_Transaction_STAGE\r\n\t\t\tGroup by AccountCode, BranchCode, LedgerID, FinperiodID,DepartmentID,ProductID,MarketingAccountID\r\n\t\t) S\r\n\t\ton \r\n\t\t\tC.AccountCode = S.AccountCode and \r\n\t\t\tC.BranchCode  = S.BranchCode and \r\n\t\t\tC.LedgerID    = S.LedgerID   and \r\n\t\t\tC.FinperiodID = S.FinperiodID and\r\n\t\t\tC.DepartmentID = S.DepartmentID and\r\n\t\t\tC.ProductID = S.ProductID and\r\n\t\t\tC.MarketingAccountID = S.MarketingAccountID\r\n Where  C.AccountCode>='60000' and Eomonth(concat(substring(C.finperiodid,1,charindex('-',C.finperiodid)),'01-',substring(C.finperiodid,charindex('-',C.finperiodid)+1,len(C.finperiodid)))) >=Dateadd(M,-6,Getdate()) and \r\n\t\tC.BalanceAmount<>0 and \r\n\t\tS.AccountCode is NULL and \r\n\t\tS.BranchCode  is NULL and \r\n\t\tS.LedgerID    is NULL and \r\n\t\tS.FinperiodID is NULL and\r\n\t\tS.DepartmentID is NULL and\r\n\t\tS.ProductID is NULL and\r\n\t\tS.MarketingAccountID is NULL"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Remove Duplicates from Stage",
+				"description": "Remove duplicates  from Stage where Accountcode>=60000",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Update Bal for GL exceptions",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "WITH CTE as\r\n(\r\n    SELECT *, row_num = ROW_NUMBER() OVER (\r\n                PARTITION BY GL_LINE_KEY\r\n                ORDER BY (SELECT NULL)\r\n                )\r\n    FROM OUT.CUbeSW_ERP_GL_Transaction_STAGE\r\n    where  --AccountCode>='60000' and \r\n    GL_LINE_KEY in \r\n    (\r\n        SELECT [GL_LINE_KEY]\r\n        FROM OUT.CUbeSW_ERP_GL_Transaction_STAGE\r\n\t\t--Where AccountCode>='60000'\r\n        group by \r\n        [GL_LINE_KEY]\r\n        having count(1) > 1\r\n    )\r\n)\r\nDELETE FROM cte\r\nWHERE row_num > 1;"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			}
+		],
+		"folder": {
+			"name": "RDC_to_Cube"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-07-21T21:40:17Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

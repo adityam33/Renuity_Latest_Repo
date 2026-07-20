@@ -1,0 +1,61 @@
+{
+	"name": "Dataflow3",
+	"properties": {
+		"folder": {
+			"name": "Test-Dataflows"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Json3",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "DelimitedText1",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "flatten1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          value as (id as string, name as string, type as string, etag as string, properties as (activities as (name as string, type as string, dependsOn as string[], policy as (timeout as string, retry as integer, retryIntervalInSeconds as integer, secureOutput as boolean, secureInput as boolean), userProperties as (name as string, value as string)[], typeProperties as (source as (type as string, storeSettings as (type as string, recursive as boolean, enablePartitionDiscovery as boolean), formatSettings as (type as string, skipLineCount as integer)), sink as (type as string, preCopyScript as string, writeBehavior as string, tableOption as string), enableStaging as boolean, translator as (type as string, mappings as (source as (name as string, type as string), sink as (name as string, type as string))[])), inputs as (referenceName as string, type as string, parameters as ({} as string))[], outputs as (referenceName as string, type as string, parameters as ({} as string))[])[], policy as (elapsedTimeMetric as ({} as string), cancelAfter as ({} as string)), folder as (name as string), annotations as string[], lastPublishTime as string))[],",
+				"          nextLink as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     documentForm: 'documentPerLine') ~> source1",
+				"source1 foldDown(unroll(value, value),",
+				"     mapColumn(",
+				"          id = value.id,",
+				"          name = value.name,",
+				"          type = value.type,",
+				"          etag = value.etag,",
+				"          properties = value.properties",
+				"     ),",
+				"     skipDuplicateMapInputs: false,",
+				"     skipDuplicateMapOutputs: false) ~> flatten1",
+				"flatten1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     mapColumn(",
+				"          name",
+				"     )) ~> sink1"
+			]
+		}
+	}
+}

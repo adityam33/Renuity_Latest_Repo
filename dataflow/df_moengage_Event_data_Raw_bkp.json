@@ -1,0 +1,263 @@
+{
+	"name": "df_moengage_Event_data_Raw_bkp",
+	"properties": {
+		"folder": {
+			"name": "ODS_to_EDW/FACTS/Moengage"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "SRC_MOENGAGE_CAMPAIGN_STATS_UNZIPPED_CTA",
+						"type": "DatasetReference"
+					},
+					"name": "CTA"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_MOENGAGE_CAMPAIGN_STATS_UNZIPPED_MAC",
+						"type": "DatasetReference"
+					},
+					"name": "MAC"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_MOENGAGE_CAMPAIGN_STATS_UNZIPPED_DYN",
+						"type": "DatasetReference"
+					},
+					"name": "FHI"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_MOENGAGE_CAMPAIGN_STATS_UNZIPPED_DYN",
+						"type": "DatasetReference"
+					},
+					"name": "RTW"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_MOENGAGE_CAMPAIGN_STATS_UNZIPPED_DYN",
+						"type": "DatasetReference"
+					},
+					"name": "SWR"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ODS_DYN_TGT_TBL",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "derivedColumnCTA"
+				},
+				{
+					"name": "select1"
+				},
+				{
+					"name": "derivedColumnMAC"
+				},
+				{
+					"name": "union1"
+				},
+				{
+					"name": "derivedColumnFHI"
+				},
+				{
+					"name": "derivedColumnRTW"
+				},
+				{
+					"name": "derivedColumnSWR"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          app_name as string,",
+				"          db_name as string,",
+				"          event as (email_id as string, event_attributes as ({100completed} as string, {Consent Acquisition medium} as string, {Conversion Event} as string, {Conversion Goal Name} as string, {Flow Id} as string, {Flow Name} as string, {Is Fuzzy Match} as boolean, {Mobile Number} as long, Referee as string, Source as string, {Stage Id} as string, {Trigger Event Met} as string, {With control group} as boolean, act_date as string, act_time as string, address as string, agent_first_name as string, agent_last_name as string, api_t as string, appointment_date as string, appointment_time as string, b_id as string, business as string, call_date as string, call_result as string, call_type as string, callback_type as string, campaign_channel as string, campaign_id as string, campaign_name as string, campaign_type as string, campaign_version_no as boolean, cancelled_appointment as string, city as string, click_link as string, click_url as string, data_type as string, delivery_code as short, delivery_description as string, delivery_status as string, disposition as string, email as string, email_subject as string, entered_on as string, entry_date as string, est_date as string, event as string, exit_reason as string, field_market as string, first_name as string, flow_type as string, flow_version_id as string, flow_version_name as string, gclid as string, gross_sale_amount as double, job_id as integer, job_status as string, keyword as string, {keyword type} as string, keyword_type as string, last_name as string, lead_created_date as string, lead_created_time as string, lead_id as integer, link as string, lp_branch_id as string, lp_entry_date as string, lp_instance_key as string, lp_prospect_id as string, market as string, marketing_customer_id as string, marketing_id as string, mdt_id as string, message_parts as short, milestone_id as integer, moe_attribution_type as string, moe_campaign_channel as string, moe_campaign_content_type as string, moe_campaign_tags as string[], moe_campaign_user_type as string, moe_delivery_type as string, moe_email_machine_open as boolean, moe_event_category as string, moe_event_source as string, moe_f_pid as string, moe_f_pname as string, moe_flow_action_cids as string, moe_flow_conversion_event as string, moe_flow_goal_name as string, moe_flow_id as string, moe_flow_name as string, moe_flow_trip_id as long, moe_revenue as double, moe_sms_subscription as string, moe_user_agent as string, phone as long, platform as string, product as string, profile_attribution as string, reason as string, referee_code as string, referee_id as string, reply_text as string, response as string, sender_name as string, sender_number as long, sent_epoch_time as integer, source_description as string, source_sub_source_description as string, srs_id as string, stage_name as string, state as string, status as string, status_code as short, timestamp as string, u_em as string, u_fn as string, u_ln as string, u_mb as string, user_entry_day as short, user_entry_identifier as long, utm_ad_id as string, utm_ad_set_id as string, utm_campaign as string, utm_campaign_id as string, utm_content as string, utm_medium as string, utm_source as string, zip as string), event_code as string, event_name as string, event_source as string, event_time as integer, event_type as string, event_uuid as string, mobile_number as long, uid as string, user_attributes as ({100completed} as long, QTY as short, Referee as boolean, address as string, agent_first_name as string, agent_last_name as string, appointment_date as long, appointment_time as string, approved_date as long, appt_date_time as string, business as string, call_date as long, call_result as string, call_type as string, cancelled_appointment as boolean, city as string, current_job_milestone as string, current_job_status as string, demo as boolean, disposition as string, {em_notif．dropped_hard_timestamp} as long, email as string, event as string, field_market as string, first_name as string, first_seen as long, gclid as string, gross_issue as boolean, gross_sale_amount as double, hard_bounce as boolean, id as string, install_start as long, install_status as boolean, internal_marketing_id as string, issued_by_first_name as string, issued_by_last_name as string, last_call_date as long, last_name as string, last_seen as long, lead_confirmed_date as long, lead_confirmed_time as string, lead_created_date as long, lead_created_time as string, lead_id as integer, lead_set_date as long, lead_set_time as string, lead_sold_time as string, lead_verified_time as string, lp_entry_date as long, lp_instance_key as string, lp_prospect_id as integer, lp_service_mode as boolean, ltv as double, market as string, marketing_customer_id as string, marketing_id as string, measure_date as long, mobile_number as long, moe_rsu as short, moe_sms_subscription as string, moengage_user_id as string, net_issue as boolean, net_sale_amount as double, no_of_conversions as boolean, no_of_sessions as boolean, phone as long, product as string, referee_code as string, referee_id as string, referral_code as string, sale as boolean, sales_associate_first_name as string, sales_associate_last_name as string, sales_rep_name as string, sold_date as long, sold_time as string, source_description as string, source_sub_source_description as string, spam as boolean, srs_id as short, state as string, token as string, unsubscribe as boolean, user_creation_source as string, {user_time_zone_offset_(mins)} as short, utm_ad_id as string, utm_ad_set_id as string, utm_campaign as string, utm_campaign_id as string, utm_content as string, utm_medium as string, utm_source as string, zip as short)),",
+				"          export_day as date,",
+				"          export_doc_id as string,",
+				"          export_hour as short",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     rowUrlColumn: 'FileName',",
+				"     documentForm: 'documentPerLine') ~> CTA",
+				"source(output(",
+				"          app_name as string,",
+				"          db_name as string,",
+				"          event as (email_id as string, event_attributes as ({100completed} as string, {Flow Id} as string, {Flow Name} as string, Referee as string, {Stage Id} as string, {Trigger Event Met} as string, {Unsubscribe Source} as string, {With control group} as boolean, act_date as string, act_time as string, address as string, agent_first_name as string, agent_last_name as string, api_t as string, appointment_date as string, appointment_time as string, approved_date as string, b_id as string, base_flow_id as string, business as string, call_date as string, call_result as string, call_type as string, campaign_channel as string, campaign_id as string, campaign_name as string, campaign_type as string, campaign_version_no as boolean, cancelled_appointment as boolean, city as string, click_link as string, customer_id as string, data_type as string, demo as string, disposition as string, email as string, {email subject} as string, entered_on as string, entry_date as string, est_date as string, event as string, exit_reason as string, field_market as string, first_name as string, flow_type as string, flow_version_id as string, flow_version_name as string, gclid as string, gross_issue as string, gross_sale_amount as double, install_start_date as string, issued_by_first_name as string, issued_by_last_name as string, job_id as integer, job_status as string, last_name as string, lead_created_date as string, lead_created_time as string, lead_id as integer, lead_verified_date as string, lead_verified_time as string, link as string, lp_branch_id as string, lp_entry_date as string, lp_instance_key as string, lp_prospect_id as integer, market as string, marketing_customer_id as string, marketing_id as string, mdt_id as string, measure_date as string, milestone_id as integer, moe_attribution_type as string, moe_campaign_channel as string, moe_campaign_content_type as string, moe_campaign_tags as string[], moe_campaign_user_type as string, moe_delivery_type as string, moe_email_machine_open as boolean, moe_event_category as string, moe_event_source as string, moe_f_pid as string, moe_f_pname as string, moe_flow_action_cids as string, moe_flow_conversion_event as string, moe_flow_goal_name as string, moe_flow_id as string, moe_flow_name as string, moe_flow_trip_id as string, moe_revenue as string, moe_sms_subscription as string, moe_user_agent as string, net_issue as string, phone as long, platform as string, product as string, reason as string, response as string, sale as string, sales_associate_first_name as string, sales_associate_last_name as string, sent_epoch_time as integer, set_by_first_name as string, set_by_last_name as string, source_description as string, source_sub_source_description as string, srs_id as short, state as string, status as string, u_em as string, u_fn as string, u_ln as string, u_mb as string, user_entry_day as short, user_entry_identifier as long, utm_ad_id as string, utm_ad_set_id as string, utm_campaign as string, utm_campaign_id as string, utm_content as string, utm_medium as string, utm_source as string, verified_by_first_name as string, verified_by_last_name as string, zip as integer), event_code as string, event_name as string, event_source as string, event_time as integer, event_type as string, event_uuid as string, uid as string, user_attributes as ({100completed} as long, Referee as boolean, address as string, agent_first_name as string, agent_last_name as string, appointment_date as long, appointment_time as string, approved_date as long, business as string, call_date as long, call_result as string, call_type as string, cancelled_appointment as boolean, city as string, current_job_milestone as string, current_job_status as string, demo as boolean, disposition as string, {em_notif．dropped_hard_timestamp} as long, email as string, entry_date as string, event as string, field_market as string, first_name as string, first_seen as long, gclid as string, gross_issue as boolean, gross_sale_amount as double, guild_quality_score as string, guild_response_date as string, hard_bounce as boolean, id as string, install_start_date as string, install_status as boolean, issued_by_first_name as string, issued_by_last_name as string, last_call_date as long, last_name as string, last_seen as long, lead_confirmed_date as long, lead_confirmed_time as string, lead_created_date as long, lead_created_time as string, lead_id as integer, lead_set_date as string, lead_set_time as string, lead_verified_date as long, lead_verified_time as string, lp_entry_date as long, lp_instance_key as string, lp_prospect_id as integer, ltv as double, market as string, marketing_customer_id as string, marketing_id as string, measure_date as long, mobile_number as long, moe_rsu as short, moe_sms_subscription as string, moengage_user_id as string, net_issue as boolean, net_sale_amount as double, no_of_conversions as boolean, no_of_sessions as boolean, phone as long, product as string, referral_code as string, sale as boolean, sales_associate_first_name as string, sales_associate_last_name as string, sales_rep_name as string, sold_date as long, sold_time as string, source_description as string, source_sub_source_description as string, spam as boolean, srs_id as short, state as string, unsubscribe as boolean, user_creation_source as string, {user_time_zone_offset_(mins)} as short, utm_ad_id as long, utm_ad_set_id as long, utm_campaign as string, utm_campaign_id as long, utm_content as string, utm_medium as string, utm_source as string, zip as integer)),",
+				"          export_day as date,",
+				"          export_doc_id as string,",
+				"          export_hour as short",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     rowUrlColumn: 'FileName',",
+				"     documentForm: 'documentPerLine') ~> MAC",
+				"source(output(",
+				"          app_name as string,",
+				"          db_name as string,",
+				"          event as (email_id as string, event_attributes as ({100completed} as string, {Email Preview Text} as string, {Flow Id} as string, {Flow Name} as string, Referee as boolean, {Stage Id} as string, {Trigger Event Met} as string, {Unsubscribe Source} as string, {With control group} as boolean, act_date as string, act_time as string, address as string, api_t as string, appointment_date as string, appointment_time as string, approved_date as string, b_id as short, base_flow_id as string, business as string, campaign_channel as string, campaign_id as string, campaign_name as string, campaign_type as string, campaign_version_no as boolean, cancelled_appointment as boolean, city as string, click_link as string, confirmed_by_first_name as string, confirmed_by_last_name as string, customer_id as integer, data_type as string, demo as string, disposition as string, email as string, email_subject as string, entered_on as string, entry_date as string, est_date as string, event as string, exit_reason as string, field_market as string, first_name as string, flow_type as string, flow_version_id as string, flow_version_name as string, gclid as string, gross_issue as string, gross_sale_amount as double, install_start as string, issued_by_first_name as string, issued_by_last_name as string, job_id as integer, job_status as string, last_name as string, lead_confirmed_date as string, lead_confirmed_time as string, lead_created_date as string, lead_created_time as string, lead_id as integer, lead_verified_date as string, lead_verified_time as string, link as string, lp_branch_id as string, lp_entry_date as string, lp_instance_key as string, lp_prospect_id as integer, market as string, marketing_customer_id as string, marketing_id as string, mdt_id as string, measure_date as string, milestone_id as integer, moe_attribution_type as string, moe_campaign_channel as string, moe_campaign_content_type as string, moe_campaign_user_type as string, moe_delivery_type as string, moe_email_from_address as string, moe_email_machine_open as boolean, moe_event_category as string, moe_event_source as string, moe_f_pid as string, moe_f_pname as string, moe_flow_action_cids as string, moe_flow_conversion_event as string, moe_flow_goal_name as string, moe_flow_id as string, moe_flow_name as string, moe_flow_trip_id as long, moe_revenue as double, moe_sms_subscription as string, moe_user_agent as string, net_issue as string, phone as long, platform as string, product as string, reason as string, response as string, sale as string, sales_associate_first_name as string, sales_associate_last_name as string, sales_rep_name as string, sent_epoch_time as integer, set_by_first_name as string, set_by_last_name as string, source_description as string, source_sub_source_description as string, srs_id as short, stage_name as string, state as string, status as string, u_em as string, u_fn as string, u_ln as string, u_mb as long, user_entry_day as short, user_entry_identifier as long, utm_ad_id as long, utm_ad_set_id as long, utm_campaign as string, utm_campaign_id as long, utm_content as string, utm_medium as string, utm_source as string, verified_by_first_name as string, verified_by_last_name as string, zip as integer), event_code as string, event_name as string, event_source as string, event_time as integer, event_type as string, event_uuid as string, uid as string, user_attributes as ({100completed} as long, Referee as boolean, address as string, appointment_date as long, appointment_time as string, approved_date as long, business as string, cancelled_appointment as boolean, city as string, current_job_milestone as string, current_job_status as string, customer_id as integer, demo as boolean, disposition as string, {em_notif．dropped_hard_timestamp} as long, email as string, entry_date as string, event as string, field_market as string, first_name as string, first_seen as long, gclid as string, gross_issue as boolean, gross_sale_amount as double, hard_bounce as boolean, id as string, install_start as long, install_status as boolean, internal_marketing_id as string, issued_by_first_name as string, issued_by_last_name as string, last_call_date as string, last_name as string, last_seen as long, lead_confirmed_date as long, lead_confirmed_time as string, lead_created_date as long, lead_created_time as string, lead_id as integer, lead_set_date as long, lead_set_time as string, lead_verified_date as long, lead_verified_time as string, lp_entry_date as long, lp_instance_key as string, lp_prospect_id as integer, ltv as double, market as string, marketing_customer_id as string, marketing_id as string, measure_date as long, mobile_number as long, moe_rsu as short, moe_sms_subscription as string, moengage_user_id as string, net_issue as boolean, net_sale_amount as double, no_of_conversions as boolean, no_of_sessions as boolean, product as string, referral_code as string, sale as boolean, sales_associate_first_name as string, sales_associate_last_name as string, sales_rep_name as string, sold_date as long, sold_time as string, source_description as string, source_sub_source_description as string, spam as boolean, srs_id as short, state as string, unsubscribe as boolean, user_creation_source as string, {user_time_zone_offset_(mins)} as short, utm_ad_id as long, utm_ad_set_id as long, utm_campaign as string, utm_campaign_id as long, utm_content as string, utm_medium as string, utm_source as string, zip as integer)),",
+				"          export_day as date,",
+				"          export_doc_id as string,",
+				"          export_hour as short",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     rowUrlColumn: 'FileName',",
+				"     documentForm: 'documentPerLine') ~> FHI",
+				"source(output(",
+				"          app_name as string,",
+				"          db_name as string,",
+				"          event as (event_attributes as (Referee as boolean, act_date as string, act_time as string, address as string, api_t as string, appointment_date as string, appointment_time as string, business as string, cancelled_appointment as boolean, city as string, confirmed_by_first_name as string, confirmed_by_last_name as string, customer_id as integer, data_type as string, demo as boolean, disposition as string, email as string, entered_on as string, entry_date as string, est_date as string, event as string, field_market as string, first_name as string, gclid as string, gross_issue as boolean, gross_sale_amount as double, issued_by_first_name as string, issued_by_last_name as string, job_id as integer, job_status as string, last_name as string, lead_confirmed_date as string, lead_confirmed_time as string, lead_created_date as string, lead_created_time as string, lead_id as integer, lp_branch_id as string, lp_entry_date as string, lp_instance_key as string, lp_prospect_id as integer, lp_service_mode as boolean, market as string, marketing_customer_id as string, marketing_id as string, mdt_id as string, milestone_id as integer, moe_event_category as string, moe_event_source as string, moe_sms_subscription as string, net_issue as boolean, phone as long, platform as string, product as string, sale as boolean, sales_associate_first_name as string, sales_associate_last_name as string, sales_rep_name as string, set_by_first_name as string, set_by_last_name as string, source_description as string, source_sub_source_description as string, srs_id as short, state as string, token as string, u_em as string, u_fn as string, u_ln as string, u_mb as long, uid as string, utm_ad_id as long, utm_ad_set_id as long, utm_campaign as string, utm_campaign_id as long, utm_content as string, utm_medium as string, utm_source as string, zip as short), event_code as string, event_name as string, event_source as string, event_time as integer, event_type as string, event_uuid as string, uid as string, user_attributes as (Referee as boolean, address as string, appointment_date as long, appointment_time as string, business as string, cancelled_appointment as boolean, city as string, current_job_milestone as string, current_job_status as string, customer_id as integer, demo as boolean, disposition as string, email as string, entry_date as string, event as string, field_market as string, first_name as string, first_seen as long, gclid as string, gross_issue as boolean, gross_sale_amount as double, hard_bounce as boolean, id as string, install_status as boolean, issued_by_first_name as string, issued_by_last_name as string, last_call_date as string, last_name as string, last_seen as long, lead_confirmed_date as long, lead_confirmed_time as string, lead_created_date as long, lead_created_time as string, lead_id as integer, lead_set_date as long, lead_set_time as string, lead_verified_time as string, lp_entry_date as long, lp_instance_key as string, lp_prospect_id as integer, lp_service_mode as boolean, ltv as double, market as string, marketing_customer_id as string, marketing_id as string, measure_date as long, mobile_number as long, moe_rsu as short, moe_sms_subscription as string, moengage_user_id as string, net_issue as boolean, net_sale_amount as double, no_of_conversions as boolean, no_of_sessions as boolean, product as string, referral_code as string, sale as boolean, sales_associate_first_name as string, sales_associate_last_name as string, sales_rep_name as string, sold_date as long, sold_time as string, source_description as string, source_sub_source_description as string, spam as boolean, srs_id as short, state as string, token as string, unsubscribe as boolean, user_creation_source as string, {user_time_zone_offset_(mins)} as short, utm_ad_id as long, utm_ad_set_id as long, utm_campaign as string, utm_campaign_id as long, utm_content as string, utm_medium as string, utm_source as string, zip as short)),",
+				"          export_day as date,",
+				"          export_doc_id as string,",
+				"          export_hour as short",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     rowUrlColumn: 'FileName',",
+				"     documentForm: 'documentPerLine') ~> RTW",
+				"source(output(",
+				"          app_name as string,",
+				"          db_name as string,",
+				"          event as (email_id as string, event_attributes as ({100completed} as string, {Consent Acquisition medium} as string, {Conversion Event} as string, {Conversion Goal Name} as string, {Email Preview Text} as string, {Flow Id} as string, {Flow Name} as string, {Mobile Number} as string, Referee as string, Source as string, {Stage Id} as string, {Trigger Event Met} as string, {Unsubscribe Source} as string, {With control group} as boolean, act_date as string, act_time as string, address as string, api_t as string, appointment_date as string, appointment_time as string, approved_date as string, b_id as string, business as string, callback_type as string, campaign_channel as string, campaign_id as string, campaign_name as string, campaign_type as string, campaign_version_no as boolean, cancelled_appointment as boolean, city as string, click_link as string, click_url as string, confirmed_by_first_name as string, confirmed_by_last_name as string, customer_id as string, data_type as string, delivery_code as string, delivery_description as string, delivery_status as string, demo as boolean, disposition as string, email as string, email_subject as string, entered_on as string, entry_date as string, est_date as string, event as string, exit_reason as string, field_market as string, first_name as string, flow_type as string, flow_version_id as string, flow_version_name as string, gclid as string, gross_issue as boolean, gross_sale_amount as double, install_start as string, issued_by_first_name as string, issued_by_last_name as string, job_id as integer, job_status as string, keyword as string, {keyword type} as string, keyword_type as string, last_name as string, lead_confirmed_date as string, lead_confirmed_time as string, lead_created_date as string, lead_created_time as string, lead_id as integer, lead_verified_date as string, lead_verified_time as string, link as string, lp_branch_id as string, lp_entry_date as string, lp_instance_key as string, lp_prospect_id as integer, market as string, marketing_customer_id as string, marketing_id as string, mdt_id as string, measure_date as string, message_parts as short, milestone_id as integer, moe_attribution_type as string, moe_campaign_channel as string, moe_campaign_content_type as string, moe_campaign_tags as string[], moe_campaign_user_type as string, moe_delivery_type as string, moe_email_from_address as string, moe_email_machine_open as boolean, moe_event_category as string, moe_event_source as string, moe_f_pid as string, moe_f_pname as string, moe_flow_action_cids as string, moe_flow_conversion_event as string, moe_flow_goal_name as string, moe_flow_id as string, moe_flow_name as string, moe_flow_trip_id as long, moe_revenue as double, moe_sms_subscription as string, moe_user_agent as string, net_issue as boolean, phone as long, platform as string, product as string, profile_attribution as string, reason as string, reply_text as string, response as string, sale as boolean, sales_associate_first_name as string, sales_associate_last_name as string, sales_rep_name as string, sender_name as string, sender_number as string, sent_epoch_time as integer, set_by_first_name as string, set_by_last_name as string, source_description as string, source_sub_source_description as string, srs_id as short, stage_name as string, state as string, status as string, status_code as short, timestamp as string, u_em as string, u_fn as string, u_ln as string, u_mb as string, user_entry_day as short, user_entry_identifier as long, utm_ad_id as string, utm_ad_set_id as string, utm_campaign as string, utm_campaign_id as string, utm_content as string, utm_medium as string, utm_source as string, verified_by_first_name as string, verified_by_last_name as string, zip as integer), event_code as string, event_name as string, event_source as string, event_time as integer, event_type as string, event_uuid as string, mobile_number as long, uid as string, user_attributes as ({100completed} as long, Referee as boolean, address as string, appointment_date as long, appointment_time as string, approved_date as long, business as string, cancelled_appointment as boolean, city as string, current_job_milestone as string, current_job_status as string, customer_id as integer, demo as boolean, disposition as string, {em_notif．dropped_hard_timestamp} as long, email as string, entry_date as string, event as string, field_market as string, first_name as string, first_seen as long, gclid as string, gross_issue as boolean, gross_sale_amount as double, hard_bounce as boolean, id as string, install_start as long, install_status as boolean, internal_marketing_id as string, issued_by_first_name as string, issued_by_last_name as string, last_call_date as string, last_name as string, last_seen as long, lead_confirmed_date as long, lead_confirmed_time as string, lead_created_date as long, lead_created_time as string, lead_id as integer, lead_set_date as string, lead_set_time as string, lead_verified_date as long, lead_verified_time as string, lp_entry_date as long, lp_instance_key as string, lp_prospect_id as integer, ltv as double, market as string, marketing_customer_id as string, marketing_id as string, measure_date as long, mobile_number as long, moe_rsu as short, moe_sms_subscription as string, moengage_user_id as string, net_issue as boolean, net_sale_amount as string, no_of_conversions as boolean, no_of_sessions as boolean, product as string, referral_code as string, sale as boolean, sales_associate_first_name as string, sales_associate_last_name as string, sales_rep_name as string, sold_date as long, sold_time as string, source_description as string, source_sub_source_description as string, spam as boolean, srs_id as short, state as string, unsubscribe as boolean, user_creation_source as string, {user_time_zone_offset_(mins)} as short, utm_ad_id as long, utm_ad_set_id as long, utm_campaign as string, utm_campaign_id as long, utm_content as string, utm_medium as string, utm_source as string, zip as string)),",
+				"          export_day as date,",
+				"          export_doc_id as string,",
+				"          export_hour as short",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     rowUrlColumn: 'FileName',",
+				"     documentForm: 'documentPerLine') ~> SWR",
+				"CTA derive(EventAttributes = toString(event.event_attributes),",
+				"          UserAttributes = toString(event.user_attributes),",
+				"          event_code = event.event_code,",
+				"          event_name = event.event_name,",
+				"          event_source = event.event_source,",
+				"          event_time = event.event_time,",
+				"          event_type = event.event_type,",
+				"          event_uuid = event.event_uuid,",
+				"          event = toString(event),",
+				"          email_id = event.email_id,",
+				"          mobile_number = event.mobile_number,",
+				"          uid = event.uid) ~> derivedColumnCTA",
+				"union1 select(mapColumn(",
+				"          app_name,",
+				"          db_name,",
+				"          event,",
+				"          export_day,",
+				"          export_doc_id,",
+				"          export_hour,",
+				"          FileName,",
+				"          EventAttributes,",
+				"          UserAttributes,",
+				"          event_code,",
+				"          event_name,",
+				"          event_source,",
+				"          event_time,",
+				"          event_type,",
+				"          event_uuid,",
+				"          uid,",
+				"          email_id,",
+				"          mobile_number",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"MAC derive(EventAttributes = toString(event.event_attributes),",
+				"          UserAttributes = toString(event.user_attributes),",
+				"          event_code = event.event_code,",
+				"          event_name = event.event_name,",
+				"          event_source = event.event_source,",
+				"          event_time = event.event_time,",
+				"          event_type = event.event_type,",
+				"          event_uuid = event.event_uuid,",
+				"          event = toString(event),",
+				"          email_id = event.email_id,",
+				"          mobile_number = event.user_attributes.mobile_number,",
+				"          uid = event.uid) ~> derivedColumnMAC",
+				"derivedColumnCTA, derivedColumnMAC, derivedColumnFHI, derivedColumnRTW, derivedColumnSWR union(byName: true)~> union1",
+				"FHI derive(EventAttributes = toString(event.event_attributes),",
+				"          UserAttributes = toString(event.user_attributes),",
+				"          event_code = event.event_code,",
+				"          event_name = event.event_name,",
+				"          event_source = event.event_source,",
+				"          event_time = event.event_time,",
+				"          event_type = event.event_type,",
+				"          event_uuid = event.event_uuid,",
+				"          event = toString(event),",
+				"          email_id = event.email_id,",
+				"          mobile_number = event.user_attributes.mobile_number,",
+				"          uid = event.uid) ~> derivedColumnFHI",
+				"RTW derive(EventAttributes = toString(event.event_attributes),",
+				"          UserAttributes = toString(event.user_attributes),",
+				"          event_code = event.event_code,",
+				"          event_name = event.event_name,",
+				"          event_source = event.event_source,",
+				"          event_time = event.event_time,",
+				"          event_type = event.event_type,",
+				"          event_uuid = event.event_uuid,",
+				"          event = toString(event),",
+				"          email_id = event.user_attributes.email,",
+				"          mobile_number = event.user_attributes.mobile_number,",
+				"          uid = event.uid) ~> derivedColumnRTW",
+				"SWR derive(EventAttributes = toString(event.event_attributes),",
+				"          UserAttributes = toString(event.user_attributes),",
+				"          event_code = event.event_code,",
+				"          event_name = event.event_name,",
+				"          event_source = event.event_source,",
+				"          event_time = event.event_time,",
+				"          event_type = event.event_type,",
+				"          event_uuid = event.event_uuid,",
+				"          event = toString(event),",
+				"          email_id = event.email_id,",
+				"          mobile_number = event.mobile_number,",
+				"          uid = event.uid) ~> derivedColumnSWR",
+				"select1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          ID as integer,",
+				"          inq_id as integer,",
+				"          lds_id as integer,",
+				"          GCLID as string,",
+				"          UTMAccount as string,",
+				"          UTMMedium as string,",
+				"          UTMSource as string,",
+				"          UTMCampaign as string,",
+				"          UTMContent as string,",
+				"          UTMTerm as string,",
+				"          PropertyType as string,",
+				"          UTMCampaignID as string,",
+				"          UTMAdID as string,",
+				"          UTMAdSetID as string,",
+				"          MarketingID as string,",
+				"          MarketingCustomerID as string,",
+				"          GbraID as string,",
+				"          UnitCPL as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     truncate:true,",
+				"     format: 'table',",
+				"     staged: true,",
+				"     allowCopyCommand: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> sink1"
+			]
+		}
+	}
+}

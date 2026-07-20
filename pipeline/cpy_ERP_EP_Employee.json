@@ -1,0 +1,175 @@
+{
+	"name": "cpy_ERP_EP_Employee",
+	"properties": {
+		"activities": [
+			{
+				"name": "cpy_ERP_EP_EMPLOYEE_SRC_TO_ODS",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.6:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ODataSource",
+						"httpRequestTimeout": "00:05:00"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE ODS.ERP_EP_EMPLOYEE",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "EmployeeID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "EmployeeID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "EmployeeName",
+									"type": "String"
+								},
+								"sink": {
+									"name": "EmployeeName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "EmployeeRefNo",
+									"type": "String"
+								},
+								"sink": {
+									"name": "EmployeeRefNum",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ClassID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ClassID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Department",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Department",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "AccountID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "AccountID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "BaseCurrencyID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BaseCurrency",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "_1099Box",
+									"type": "Int16"
+								},
+								"sink": {
+									"name": "Box1099",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CreatedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "CreatedDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "CreatedBy",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CreatedBy",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LastModifiedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastModifiedDate"
+								}
+							},
+							{
+								"source": {
+									"name": "LastModifiedBy",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LastModifiedBy"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_ERP_EP_EMPLOYEE",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_ERP_EP_EMPLOYEE",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "SRC_to_ODS/ERP/Acumatica/MASTER DATA"
+		},
+		"annotations": [],
+		"lastPublishTime": "2023-07-10T07:30:02Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

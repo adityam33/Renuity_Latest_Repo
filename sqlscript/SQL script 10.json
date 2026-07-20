@@ -1,0 +1,20 @@
+{
+	"name": "SQL script 10",
+	"properties": {
+		"folder": {
+			"name": "Temp"
+		},
+		"content": {
+			"query": "SELECT TOP (100) [id]\n,[job_id]\n,[PmtAmount]\n,[PmtDate]\n,[pmt_id]\n,[pmm_id]\n,[ARBatchNo]\n,[ARBatchDate]\n,[ARBatchFlag]\n,[IncBatchNo]\n,[IncBatchDate]\n,[IncBatchFlag]\n,[EnteredOn]\n,[EnteredBy]\n,[LastChangedOn]\n,[LastChangedBy]\n,[PmtNotes]\n FROM [ODS].[LP_FHI_jbp_JobPayments] ods\n left JOIN\n (\n SELECT\n[LP_JobPaymentID]\n FROM [EDW].[FACT_JOB_PAYMENT]\nwhere [OperatingCompany] = 'FHI'\n ) edw\n on ods.id = edw.LP_JobPaymentID\n WHERE\n edw.LP_JobPaymentID is null",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

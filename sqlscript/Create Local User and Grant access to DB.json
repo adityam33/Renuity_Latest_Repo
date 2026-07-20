@@ -1,0 +1,20 @@
+{
+	"name": "Create Local User and Grant access to DB",
+	"properties": {
+		"folder": {
+			"name": "Security and Helper SQL"
+		},
+		"content": {
+			"query": "--Create login in the master database\n use [master]\n CREATE LOGIN [RenuityBloomreach] WITH PASSWORD = '****';\n--Create user in the database \n use [rdc_sqlpool_prod]\n CREATE USER RenuityBloomreach FROM LOGIN RenuityBloomreach;\n --Grant role to the user in the database\n EXEC sp_addrolemember 'db_datareader', 'RenuityBloomreach';\n \n\n\nCREATE LOGIN rivery WITH PASSWORD = '*******';\nCREATE USER rivery FOR LOGIN rivery;\n\nCREATE USER rivery FOR LOGIN rivery;\nGRANT CONTROL ON DATABASE::rdc_sqlpool_prod to rivery;",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

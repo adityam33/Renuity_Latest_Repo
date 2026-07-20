@@ -1,0 +1,106 @@
+{
+	"name": "cpy_ERP_GL_SUMM_BY_MODULE_PERIOD",
+	"properties": {
+		"activities": [
+			{
+				"name": "GL Tran - Summary - By Module and Period",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "01:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ODataSource",
+						"httpRequestTimeout": "01:00:00"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.ERP_GLSUMM_BY_MODULE_PERIOD')  IS NOT NULL TRUNCATE TABLE ODS.ERP_GLSUMM_BY_MODULE_PERIOD",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Module",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Module",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PeriodID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PeriodID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CreditAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "CreditAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "DebitAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "DebitAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "GLTran_Count85c0654be4ed45a1a0ad7d3084bcd91f",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "LineCount"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ERP_GLSUMM_BY_MODULE_PERIOD",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_ERP_GLSUMM_BY_MODULE_PERIOD",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "SRC_to_ODS/ERP/Acumatica/SUMMARY"
+		},
+		"annotations": [],
+		"lastPublishTime": "2022-09-19T01:28:49Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

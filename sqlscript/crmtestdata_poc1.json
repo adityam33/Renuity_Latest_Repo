@@ -1,0 +1,20 @@
+{
+	"name": "crmtestdata_poc1",
+	"properties": {
+		"folder": {
+			"name": "Temp/Navneet"
+		},
+		"content": {
+			"query": "DECLARE @count INT \ndeclare @maxcount INT\nBEGIN\nselect  @count = (select   count(*)+1   from crmtestdb.dbo.test_src_emp);\nset @maxcount=@count+100 ;  \nWHILE @count <= @maxcount \nbegin\nINSERT into crmtestdb.dbo.test_src_emp (fname, minit, lname)  \nVALUES  \n   ('Karin-'+ CAST(@count as varchar), 'F', 'Josephs-'+ CAST(@count as varchar));\n   \n   SET @count = @count + 1;  \n end\nEND; ",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "master",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

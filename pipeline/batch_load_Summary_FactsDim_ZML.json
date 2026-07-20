@@ -1,0 +1,68 @@
+{
+	"name": "batch_load_Summary_FactsDim_ZML",
+	"properties": {
+		"activities": [
+			{
+				"name": "cpy_load_SUMM_FACT_ZIP_CODE_PERFORMANCE",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_load_SUMM_FACT_ZIP_CODE_PERFORMANCE_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_load_SUMM_FACT_DIVISION_PERFORMANCE",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_load_SUMM_FACT_DIVISION_PERFORMANCE_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_load_SUMM_FACT_PERF_MKTNG_LEADS",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_load_SUMM_FACT_ZIP_CODE_PERFORMANCE",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_load_SUMM_FACT_PERF_MKTNG_LEADS_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"folder": {
+			"name": "Temp/Anuj/ZML/SUMM_FACTS"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-12-22T08:31:20Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

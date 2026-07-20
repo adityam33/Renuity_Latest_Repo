@@ -1,0 +1,54 @@
+{
+	"name": "PBI_Refresh_DSO_Dataset",
+	"properties": {
+		"activities": [
+			{
+				"name": "PBIRefreshTest_DSO",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:30:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"url": {
+						"value": "https://api.powerbi.com/v1.0/myorg/groups/@{pipeline().parameters.groups}/datasets/@{pipeline().parameters.datasets}/refreshes",
+						"type": "Expression"
+					},
+					"connectVia": {
+						"referenceName": "AutoResolveIntegrationRuntime",
+						"type": "IntegrationRuntimeReference"
+					},
+					"body": {
+						"notifyOption": ""
+					},
+					"authentication": {
+						"type": "MSI",
+						"resource": "https://analysis.windows.net/powerbi/api"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"groups": {
+				"type": "string",
+				"defaultValue": "a8648dc0-c694-4bbe-99bc-fbf976549542"
+			},
+			"datasets": {
+				"type": "string",
+				"defaultValue": "f0ce9b8b-58cd-4df7-8279-51d4f5f16a13"
+			}
+		},
+		"folder": {
+			"name": "ODS_to_EDW/FACTS/LP"
+		},
+		"annotations": [],
+		"lastPublishTime": "2023-06-08T11:30:44Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

@@ -1,0 +1,121 @@
+{
+	"name": "batch_load_Guild_Quality_API_to_FACT_Paginated_New_Survey",
+	"properties": {
+		"activities": [
+			{
+				"name": "API to ODS By Created Date",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Check Deleted Surveys",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "guild_new_template_CreatedAt_EndedAt",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Fact Load",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "API to ODS By Created Date",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "batch_load_Fact_Guild_Quality_CustomerSurvey_Pagination_New_Survey",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "API to ODS by Updated At",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Fact Load",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "guild_new_template_UpdatedAt_LastActivityAt",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Fact Load_copy1",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "API to ODS by Updated At",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "batch_load_Fact_Guild_Quality_CustomerSurvey_Pagination_New_Survey",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Check Deleted Surveys",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_guild_quality_deleted_surveys",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/FACTS/GuildQuality/New Template"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-01-09T16:37:05Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

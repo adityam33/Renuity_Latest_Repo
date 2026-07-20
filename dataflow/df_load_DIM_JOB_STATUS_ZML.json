@@ -1,0 +1,136 @@
+{
+	"name": "df_load_DIM_JOB_STATUS_ZML",
+	"properties": {
+		"folder": {
+			"name": "ZML_ODS_to_EDW/DIMENSIONS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ZML_ODS_FHI_jbs_JobStatus",
+						"type": "DatasetReference"
+					},
+					"name": "FHI"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_DIM_JOB_STATUS_ZML",
+						"type": "DatasetReference"
+					},
+					"name": "targetDim",
+					"description": "Export data to EDW_DIM_JOB_STATUS",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "selectColsFHI"
+				},
+				{
+					"name": "createIDsFHI"
+				},
+				{
+					"name": "unionAllOpCos"
+				},
+				{
+					"name": "addLastUpdateTimestamp"
+				},
+				{
+					"name": "AlterRow"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          Id as string,",
+				"          Descr as string,",
+				"          isBackLog as boolean,",
+				"          isRestricted as boolean,",
+				"          jsc_id as integer,",
+				"          Active as boolean,",
+				"          SortOrder as integer,",
+				"          isBacklog1 as boolean,",
+				"          isBacklog2 as boolean,",
+				"          isBacklog3 as boolean,",
+				"          isBacklog4 as boolean,",
+				"          isBacklog5 as boolean,",
+				"          isBacklog6 as boolean,",
+				"          isBacklog7 as boolean,",
+				"          isBacklog8 as boolean,",
+				"          isBacklog9 as boolean,",
+				"          ForeColor as string,",
+				"          BackColor as string,",
+				"          idpkey as integer,",
+				"          por_id as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> FHI",
+				"FHI select(mapColumn(",
+				"          LP_JobStatusID = Id,",
+				"          LP_JobStatusCategoryID = jsc_id,",
+				"          JobStatus = Descr,",
+				"          isBackLog,",
+				"          isRestricted,",
+				"          Active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColsFHI",
+				"selectColsFHI derive(JobStatusID = concat('FHI-',toString(LP_JobStatusID)),",
+				"          JobStatusCategoryID = concat('FHI-',toString(LP_JobStatusCategoryID)),",
+				"          Division = 'FHI') ~> createIDsFHI",
+				"createIDsFHI union(byName: true)~> unionAllOpCos",
+				"unionAllOpCos derive(LastUpdateTS = currentTimestamp()) ~> addLastUpdateTimestamp",
+				"addLastUpdateTimestamp alterRow(upsertIf(true())) ~> AlterRow",
+				"AlterRow sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          JobStatusID as string,",
+				"          JobStatusCategoryID as string,",
+				"          JobStatus as string,",
+				"          isBackLog as boolean,",
+				"          isRestricted as boolean,",
+				"          Active as boolean,",
+				"          LP_JobStatusID as string,",
+				"          LP_JobStatusCategoryID as string,",
+				"          Division as string,",
+				"          UNI_JobStatus as string,",
+				"          UNI_JobStatusGroup as string,",
+				"          LastUpdateTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['JobStatusID'],",
+				"     format: 'table',",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          LP_JobStatusID,",
+				"          LP_JobStatusCategoryID,",
+				"          JobStatus,",
+				"          isBackLog,",
+				"          isRestricted,",
+				"          Active,",
+				"          JobStatusID,",
+				"          JobStatusCategoryID,",
+				"          Division,",
+				"          LastUpdateTS",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> targetDim"
+			]
+		}
+	}
+}

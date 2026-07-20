@@ -1,0 +1,17 @@
+{
+	"name": "Get Funded Amount of Jobs by FInance Source",
+	"properties": {
+		"content": {
+			"query": "SELECT\nfns.[Division]\n,fns.[LP_FinanceSourceID]\n,fns.[FinanceSource]\n,fns.[Active]\n,sum([GrossAmount]) as GrossAmount\n,sum([FundedAmount]) as [FundedAmount]\n,sum([FinanceFee]) as FinanceFee\nFROM \n[EDW].[DIM_FINANCE_SOURCE] fns\n,[EDW].[FACT_JOB] job\nWHERE\nfns.FinanceSourceID = job.FinanceSourceID\ngroup BY\nfns.[Division]\n,fns.[LP_FinanceSourceID]\n,fns.[FinanceSource]\n,fns.[Active]\norder by \nFundedAmount desc\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

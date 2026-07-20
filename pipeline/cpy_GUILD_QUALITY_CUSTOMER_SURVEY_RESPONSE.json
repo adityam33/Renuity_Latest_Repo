@@ -1,0 +1,768 @@
+{
+	"name": "cpy_GUILD_QUALITY_CUSTOMER_SURVEY_RESPONSE",
+	"properties": {
+		"activities": [
+			{
+				"name": "cpy_Guild Quality_survey_toODS",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": false,
+							"wildcardFolderPath": "GuildQuality",
+							"wildcardFileName": "Renuity_gq_survey_responses_data_*.csv",
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "TRUNCATE TABLE ODS.GUILD_QUALITY_CUSTOMER_SURVEY",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Survey ID",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Survey_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Responsedate",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Response_Date",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "Program",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Program",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Development Cycle",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Development_Cycle",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Brand - new",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Brand",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Template",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Template",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Old Survey Id",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Old_Survey_Id",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Contact",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Contact",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Address",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Address",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "City",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "City",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "State/Province",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "State",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Zip/Postal code",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Zip",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Email",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Email",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Phone",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Phone",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "External Id",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "External_Id",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Value",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Value",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "Survey status",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Surveystatus",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Contact Creation Date",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "ContactCreationDate",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Project Start Date",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "ProjectStartDate",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Service Date",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "ServiceDate",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Creationdate",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Creationdate",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Channel",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Channel",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Satisfaction Score",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "SatisfactionScore",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Sales Representative",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "SalesRepresentative",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "In-Home Sales",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "In_Home_Sales_Rating",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "In-Home Sales (2020) Add Comment",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "In_Home_Sales_Comments",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Install Team",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Install_Team_Rating",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Install Team (2020) Add Comment",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Install_Team_Comments",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Installation",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Installation_Rating",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Installation (2020) Add Comment",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Installation_Comments",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Product Walkthrough",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Product_Walkthrough",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Demonstration (2020) Add Comment",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Demonstration",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Experience",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Experience_Rating",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Experience (2020) Add Comment",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Experience_Comments",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Service NPS",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Service_NPS",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Likely To Recommend: Comment",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Likely_To_Recommend",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Satisfaction",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Satisfaction_Rating",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Satisfaction (2020) Add Comment",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Satisfaction_Comments",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Area for Improvement",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Area_for_Improvement",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Area of Satisfaction",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Area_of_Satisfaction",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Testimonial",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Testimonial",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Testimonial (2020) Add Comment",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Testimonial_Comments",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Additional Comments",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Additional_Comments",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Area(s) For Improvement (2020): Rating",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Areas_For_Improvement_Rating",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Area(s) For Improvement (2020): Comment",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Areas_For_Improvement_Comment",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Area(s) Of Satisfaction (2020): Rating",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Areas_Of_Satisfaction_Rating",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Area(s) Of Satisfaction (2020): Comment",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Areas_Of_Satisfaction_Comment",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "2nd Email",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "SecondaryEmail",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "2nd Phone",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "SecondaryPhone",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Needs Action",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "NeedsAction",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Notes",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Notes",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Google Review Boost",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "GoogleReviewBoost",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "VIP Program Awareness: Choice",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "VIPProgramAwarenessChoice",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "VIP Program Awareness: Comment",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "VIPProgramAwarenessComment",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Testimonial: Choice 1",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Testimonial_Choice",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Testimonial: Comment 1",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Testimonial_Comment",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Referral Program Awareness: Choice",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "ReferralProgramAwareness_Choice",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Referral Program Awareness: Comment",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "ReferralProgramAwareness_Comment",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_GUILD_QUALITY_SURVEY_DATA",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_GUILD_QUALITY_CUSTOMER_SURVEY",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/FACTS/MEDALLIA"
+		},
+		"annotations": [],
+		"lastPublishTime": "2024-04-01T07:05:46Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

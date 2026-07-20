@@ -1,0 +1,363 @@
+{
+	"name": "cpy_INSTALL_FORECAST_PRODUCTS",
+	"properties": {
+		"activities": [
+			{
+				"name": "cpy_INSTALL_FORECAST_PRODUCTS",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ExcelSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						}
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE [ODS].[INSTALL_PRODUCTS_FORECAST]",
+						"allowCopyCommand": true,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"type": "String",
+									"ordinal": 1
+								},
+								"sink": {
+									"name": "Date",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"type": "String",
+									"ordinal": 2
+								},
+								"sink": {
+									"name": "Company",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"type": "String",
+									"ordinal": 3
+								},
+								"sink": {
+									"name": "Market",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"type": "String",
+									"ordinal": 4
+								},
+								"sink": {
+									"name": "Product",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"type": "String",
+									"ordinal": 5
+								},
+								"sink": {
+									"name": "ProjectedAmount",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_INSTALL_FORECAST",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_INSTALL_PRODUCTS_FORECAST",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "cpy_RDM_INSTALL_FORECAST_PRODUCTS",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "cpy_INSTALL_FORECAST_PRODUCTS",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT\nCAST(DATE AS DATE) AS DATE,\n\tCompany,\n\tCASE \n\t\tWHEN Company='A.FHIA'\t\t\tTHEN 'FHI'\n\t\tWHEN Company='H.Rite Window'\tTHEN 'RTW'\n\t\tWHEN Company='B.Statewide'\t\tTHEN 'SWR'\n\t\tWHEN Company='G.Pacific Bath'\tTHEN 'PBC'\n\t\tWHEN Company='C.Mad City'\t\tTHEN 'MAC'\n\t\tWHEN Company='F.Max Home'\t\tTHEN 'MXH'\n\t\tWHEN Company='E.Home Smart'\t\tTHEN 'HSI'\n\t\tWHEN Company='J.Closet America' THEN 'CTA'\n\t\tWHEN Company='I.Garage Coating' THEN 'CTA'\n\t\tEND AS Division,\n\t\tMarket,\n\t\tProduct,\n\t\tCOALESCE(\n\t\t(CASE WHEN LEN(TRIM(ProjectedAmount))<=2 AND  ProjectedAmount like '%$%' THEN NULL ELSE ProjectedAmount END),0) AS ProjectedAmount\n\t\tFROM  [ODS].[INSTALL_PRODUCTS_FORECAST]\n\t\tWHERE  COMPANY NOT LIKE '%Total%'",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"writeBehavior": "Upsert",
+						"upsertSettings": {
+							"keys": [
+								"Company",
+								"Market",
+								"Product",
+								"DATE"
+							],
+							"interimSchemaName": ""
+						},
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "DATE",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "DATE",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "Company",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Company",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Market",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Market",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Product",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Product",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ProjectedAmount",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ProjectedAmount",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ODS_INSTALL_PRODUCTS_FORECAST",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_RDM_INSTALL_PRODUCTS_FORECAST",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "File_Archive",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Last Updated Date",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ExcelSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"wildcardFolderPath": "in",
+							"wildcardFileName": "*",
+							"enablePartitionDiscovery": false
+						}
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_INSTALL_FORECAST",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "Install_File_Archive",
+						"type": "DatasetReference",
+						"parameters": {
+							"daily_folder": {
+								"value": "@concat('Archive/',substring(activity('Last Updated Date').output.lastModified,0,10))",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "Last Updated Date",
+				"type": "GetMetadata",
+				"dependsOn": [
+					{
+						"activity": "cpy_RDM_INSTALL_FORECAST_PRODUCTS",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "SRC_INSTALL_FORECAST",
+						"type": "DatasetReference"
+					},
+					"fieldList": [
+						"lastModified"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					}
+				}
+			}
+		],
+		"variables": {
+			"YearMonth": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "Temp/Anuj"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-02-05T13:43:07Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

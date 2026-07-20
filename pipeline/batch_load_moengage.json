@@ -1,0 +1,425 @@
+{
+	"name": "batch_load_moengage",
+	"properties": {
+		"activities": [
+			{
+				"name": "Campaign and user tracked events",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Raw data load",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": " SELECT \n\tApp_name, DB_Name, Export_Day, Export_Doc_Id, Export_hour,Filename, UID, Email_id, Mobile_number,\n\tEvent_code, Event_name, Event_source, Dateadd(Second, Event_time, '1970') as Event_time, Event_type, Event_UUID,\n    JSON_VALUE(EventAttributes, '$.campaign_channel') \t\t\tAS campaign_channel,\n    JSON_VALUE(EventAttributes, '$.campaign_id')  \t\t\t\tAS campaign_id,\n    JSON_VALUE(EventAttributes, '$.campaign_name')        \t\tAS campaign_name,\n    JSON_VALUE(EventAttributes, '$.campaign_type')      \t\tAS campaign_type,\n    JSON_VALUE(EventAttributes, '$.flow_version_id')        \tAS flow_version_id,\n    JSON_VALUE(EventAttributes, '$.flow_version_name')          AS flow_version_name,\n    JSON_VALUE(EventAttributes, '$.moe_campaign_channel')       AS moe_campaign_channel,\n\tJSON_VALUE(EventAttributes, '$.moe_campaign_content_type')  AS moe_campaign_content_type,\n    JSON_VALUE(EventAttributes, '$.moe_campaign_tags')        \tAS moe_campaign_tags,\n    JSON_VALUE(EventAttributes, '$.moe_delivery_type')\t\t\tAS moe_delivery_type,\n    JSON_VALUE(EventAttributes, '$.moe_f_pid')        \t\t\tAS moe_f_pid,\n    JSON_VALUE(EventAttributes, '$.moe_f_pname')\t\t\t\tAS moe_f_pname,\n    JSON_VALUE(EventAttributes, '$.moengage_user_id')         \tAS moengage_user_id,\n\tJSON_VALUE(EventAttributes, '$.moe_event_category') \t\tAS moe_event_category,\n    JSON_VALUE(EventAttributes, '$.moe_event_source')        \tAS moe_event_source,\n    JSON_VALUE(EventAttributes, '$.internal_marketing_id')      AS internal_marketing_id,\n    JSON_VALUE(EventAttributes, '$.marketing_id')        \t\tAS marketing_id,\n    JSON_VALUE(EventAttributes, '$.moe_attribution_type')       AS moe_attribution_type,\n    JSON_VALUE(EventAttributes, '$.moe_campaign_user_type')     AS moe_campaign_user_type,\n\tJSON_VALUE(EventAttributes, '$.moe_flow_action_cids')       AS moe_flow_action_cids,\n    JSON_VALUE(EventAttributes, '$.moe_flow_conversion_event')  AS moe_flow_conversion_event,\n    JSON_VALUE(EventAttributes, '$.moe_flow_goal_name')\t\t\tAS moe_flow_goal_name,\n    JSON_VALUE(EventAttributes, '$.moe_flow_id')\t\t\t\tAS moe_flow_id,\n    JSON_VALUE(EventAttributes, '$.moe_flow_name')\t\t\t\tAS moe_flow_name,\n\tJSON_VALUE(EventAttributes, '$.moe_flow_trip_id')\t\t\tAS moe_flow_trip_id,\n    JSON_VALUE(EventAttributes, '$.\"Flow Id\"')         \t\t\tAS [Flow Id],\n\tJSON_VALUE(EventAttributes, '$.\"Flow Name\"')        \t\tAS FlowName,\n    JSON_VALUE(EventAttributes, '$.flow_type')      \t\t\tAS flow_type,\n\tEventAttributes, UserAttributes\nfrom ODS.MOENGAGE_EVENT_RAW_DATA",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"allowCopyCommand": true,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "staging"
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_ODS_PBC_slt_SalesTypes",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_DYN_TGT_TBL",
+						"type": "DatasetReference",
+						"parameters": {
+							"Tablename": "MOENGAGE_EVENT_DATA"
+						}
+					}
+				]
+			},
+			{
+				"name": "Data flow1",
+				"type": "ExecuteDataFlow",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_moengage_campaign_stats_load",
+						"type": "DataFlowReference",
+						"datasetParameters": {
+							"source1": {
+								"ExportDay": {
+									"value": "@pipeline().parameters.ExportDay",
+									"type": "Expression"
+								}
+							},
+							"sink1": {
+								"Tablename": "MOENGAGE_CAMPAIGN_STATS"
+							}
+						}
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "staging"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "Raw data load",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "ForEach1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_moengage_Event_data_Raw",
+						"type": "DataFlowReference",
+						"datasetParameters": {
+							"CTA": {
+								"ExportDay": "2025-09-05"
+							},
+							"MAC": {
+								"ExportDay": "2025-09-05"
+							},
+							"FHI": {
+								"ExportDay": "2025-09-05",
+								"Division": "MAC"
+							},
+							"RTW": {
+								"ExportDay": "2025-09-05",
+								"Division": "MAC"
+							},
+							"SWR": {
+								"ExportDay": "2025-09-05",
+								"Division": "MAC"
+							},
+							"RenuityWest": {
+								"ExportDay": "2026-04-02"
+							},
+							"sink1": {
+								"Tablename": "MOENGAGE_EVENT_RAW_DATA"
+							}
+						}
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "staging"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "Get Filenames",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "SRC_MOENGAGE_CAMPAIGN_STATS_CTA",
+						"type": "DatasetReference",
+						"parameters": {
+							"Exportday": {
+								"value": "@pipeline().parameters.ExportDay",
+								"type": "Expression"
+							}
+						}
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "JsonReadSettings"
+					}
+				}
+			},
+			{
+				"name": "ForEach1",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Get Filenames",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Get Filenames').output.childItems",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"batchCount": 40,
+					"activities": [
+						{
+							"name": "unzip gz files",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "JsonSource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": false,
+										"wildcardFolderPath": {
+											"value": "@concat('in/Data_Core_Campaign_Stats_Export/export_day=',formatDateTime(pipeline().parameters.ExportDay,'yyyy-MM-dd'))",
+											"type": "Expression"
+										},
+										"wildcardFileName": {
+											"value": "@item().name",
+											"type": "Expression"
+										},
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "JsonReadSettings"
+									}
+								},
+								"sink": {
+									"type": "JsonSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "JsonWriteSettings"
+									}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "SRC_MOENGAGE_CAMPAIGN_STATS_CTA",
+									"type": "DatasetReference",
+									"parameters": {
+										"Exportday": {
+											"value": "@pipeline().parameters.ExportDay",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "SRC_MOENGAGE_CAMPAIGN_STATS_UNZIPPED_CTA",
+									"type": "DatasetReference",
+									"parameters": {
+										"ExportDay": {
+											"value": "@pipeline().parameters.ExportDay",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			},
+			{
+				"name": "DIM lifecycle events",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Campaign and user tracked events",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": " SELECT \n\tcase when App_name ='HomeOrg' then 'CTA' end as Division,Event_UUID ,Event_Code, Event_Name, Event_Source, Event_time, Event_type, \n\tUID as LeadID, Email_ID as Email, Mobile_number as Phone, \n\tAPP_Name, DB_Name, EventAttributes, UserAttributes, Campaign_Channel, Campaign_ID, Campaign_name, Campaign_Type, \n\tFlow_Version_Id, Flow_Version_Name, MOE_Campaign_channel, MOE_campaign_Content_Type, MOE_Campaign_Tags, MOE_Delivery_Type, MOE_F_PID, MOE_F_Pname,\n\tMOE_Event_category, MOE_Event_Source, MOE_Attribution_Type, MOE_Campaign_User_Type, MOE_Flow_Action_Cids,MOE_Flow_Conversion_Event, MOE_FLow_Goal_name, MOE_Flow_ID, MOE_Flow_Name,\n\tMOE_FLow_Name, MOE_Flow_Trip_ID, [Flow ID] as FlowID, FlowName, Flow_Type, MoEngage_user_ID, getdate() as InsertedTS, getdate() as LastUpdatedTS\n\tfrom ODS.MOENGAGE_EVENT_DATA",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"allowCopyCommand": true,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "staging"
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_ODS_PBC_slt_SalesTypes",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_CTA_TEST_DYN_DIM_CUSTOMER",
+						"type": "DatasetReference",
+						"parameters": {
+							"SchemaName": "EDW",
+							"TableName": "DIM_MKTNG_LIFECYCLE_EVENTS"
+						}
+					}
+				]
+			},
+			{
+				"name": "FACT event stats",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "DIM lifecycle events",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": " SELECT  \n\tApp_name, DB_Name, Export_Day, Export_Doc_Id, Export_hour,Filename,\n\tEventAttributes, UserAttributes,\n\tEvent_code, Event_name, Event_source, Dateadd(Second, Event_time, '1970') as Event_time, Event_type, Event_UUID,\n    JSON_VALUE(EventAttributes, '$.campaign_channel') \t\t\tAS campaign_channel,\n    JSON_VALUE(EventAttributes, '$.campaign_id')  \t\t\t\tAS campaign_id,\n    JSON_VALUE(EventAttributes, '$.campaign_name')        \t\tAS campaign_name,\n    JSON_VALUE(EventAttributes, '$.campaign_type')      \t\tAS campaign_type,\n    JSON_VALUE(EventAttributes, '$.flow_version_id')        \tAS flow_version_id,\n    JSON_VALUE(EventAttributes, '$.flow_version_name')          AS flow_version_name,\n    JSON_VALUE(EventAttributes, '$.moe_campaign_channel')       AS moe_campaign_channel,\n\tJSON_VALUE(EventAttributes, '$.moe_campaign_content_type')  AS moe_campaign_content_type,\n    JSON_VALUE(EventAttributes, '$.moe_campaign_tags')        \tAS moe_campaign_tags,\n    JSON_VALUE(EventAttributes, '$.moe_delivery_type')\t\t\tAS moe_delivery_type,\n    JSON_VALUE(EventAttributes, '$.moe_f_pid')        \t\t\tAS moe_f_pid,\n    JSON_VALUE(EventAttributes, '$.moe_f_pname')\t\t\t\tAS moe_f_pname,\n    JSON_VALUE(EventAttributes, '$.lead_id')         \t\t\tAS lead_id,\n\tJSON_VALUE(EventAttributes, '$.moe_event_category') \t\tAS moe_event_category,\n    JSON_VALUE(EventAttributes, '$.moe_event_source')        \tAS moe_event_source,\n    JSON_VALUE(EventAttributes, '$.internal_marketing_id')      AS internal_marketing_id,\n    JSON_VALUE(EventAttributes, '$.marketing_id')        \t\tAS marketing_id,\n    JSON_VALUE(EventAttributes, '$.moe_attribution_type')       AS moe_attribution_type,\n    JSON_VALUE(EventAttributes, '$.moe_campaign_user_type')     AS moe_campaign_user_type,\n\tJSON_VALUE(EventAttributes, '$.moe_flow_action_cids')       AS moe_flow_action_cids,\n    JSON_VALUE(EventAttributes, '$.moe_flow_conversion_event')  AS moe_flow_conversion_event,\n    JSON_VALUE(EventAttributes, '$.moe_flow_goal_name')\t\t\tAS moe_flow_goal_name,\n    JSON_VALUE(EventAttributes, '$.moe_flow_id')\t\t\t\tAS moe_flow_id,\n    JSON_VALUE(EventAttributes, '$.moe_flow_name')\t\t\t\tAS moe_flow_name,\n\tJSON_VALUE(EventAttributes, '$.moe_flow_trip_id')\t\t\tAS moe_flow_trip_id,\n    JSON_VALUE(EventAttributes, '$.\"Flow Id\"')         \t\t\tAS [Flow Id],\n\tJSON_VALUE(EventAttributes, '$.\"Flow Name\"')        \t\tAS FlowName,\n    JSON_VALUE(EventAttributes, '$.flow_type')      \t\t\tAS flow_type\nfrom ODS.MOENGAGE_EVENT_RAW_DATA",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"allowCopyCommand": true,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "staging"
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_ODS_PBC_slt_SalesTypes",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_DYN_TGT_TBL",
+						"type": "DatasetReference",
+						"parameters": {
+							"Tablename": "MOENGAGE_EVENT_DATA"
+						}
+					}
+				]
+			}
+		],
+		"parameters": {
+			"ExportDay": {
+				"type": "string",
+				"defaultValue": "2025-09-10"
+			}
+		},
+		"folder": {
+			"name": "Temp/Anandan"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-04-03T22:46:26Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

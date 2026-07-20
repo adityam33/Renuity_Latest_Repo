@@ -1,0 +1,17 @@
+{
+	"name": "Get List of Past Sold Prospects for an OpCo",
+	"properties": {
+		"content": {
+			"query": "SELECT distinct\ncst.CustomerID\n,cst.Address1\n,cst.City\n,cst.[State]\n,cst.Zip\n FROM \n [EDW].[FACT_LEAD] lds\n ,[EDW].[DIM_CUSTOMER] cst\n ,[EDW].[DIM_DISPOSITION] dsp\n where \n lds.CustomerID = cst.CustomerID\n and lds.DispositionID = dsp.DispositionID\nand lds.Division = 'PHI'\nand dsp.Disposition = 'Sale'",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

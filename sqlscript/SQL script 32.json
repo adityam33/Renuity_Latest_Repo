@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 32",
+	"properties": {
+		"content": {
+			"query": "SELECT\nsum(case \n    when jsc.JobStatusCategory is NULL then 0\n    when jsc.JobStatusCategory in ('Cancelled', 'Credit Decline') then job.GrossAmount\n    else 0\nend) as NetSalesAmount\n\nFROM \n[EDW].[FACT_LEAD] lds\ninner join [EDW].[DIM_CUSTOMER] cst\non lds.CustomerID = cst.CustomerID\nleft join [EDW].[DIM_BRANCH] brn\non lds.BranchID = brn.BranchID\nleft join [EDW].[DIM_PRODUCT] prd\non lds.ProductID = prd.ProductID\nleft join [EDW].[FACT_JOB] job\non lds.LeadID = job.LeadID\nleft join [EDW].[DIM_JOB_STATUS] jbs\non job.JobStatusID = jbs.JobStatusID\nleft join [EDW].[DIM_JOB_STATUS_CATEGORY] jsc\non jbs.JobStatusCategoryID = jsc.JobStatusCategoryID\nWHERE\nlds.EntryDate between '2023-01-01' and '2023-04-30'\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

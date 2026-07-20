@@ -1,0 +1,390 @@
+{
+	"name": "df_load_FACT_COMMISSION",
+	"properties": {
+		"folder": {
+			"name": "ODS_to_EDW/FACTS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_FHI_Com_Commissions",
+						"type": "DatasetReference"
+					},
+					"name": "FHI"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_PBC_Com_Commissions",
+						"type": "DatasetReference"
+					},
+					"name": "PBC"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_RTW_Com_Commissions",
+						"type": "DatasetReference"
+					},
+					"name": "RTW"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_MAC_Com_Commissions",
+						"type": "DatasetReference"
+					},
+					"name": "MAC"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_SWR_Com_Commissions",
+						"type": "DatasetReference"
+					},
+					"name": "SWR"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_HSI_Com_Commissions",
+						"type": "DatasetReference"
+					},
+					"name": "HSI"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_MXH_Com_Commissions",
+						"type": "DatasetReference"
+					},
+					"name": "MXH"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_CTA_Com_Commissions",
+						"type": "DatasetReference"
+					},
+					"name": "CTA"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_FACT_COMMISSION",
+						"type": "DatasetReference"
+					},
+					"name": "targetFact",
+					"description": "Export data to EDW_FACT_COMMISSION",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "addOpCoNameFHI"
+				},
+				{
+					"name": "addOpCoNamePBC"
+				},
+				{
+					"name": "addOpCoNameRTW"
+				},
+				{
+					"name": "addOpCoNameMAC"
+				},
+				{
+					"name": "addOpCoNameSWR"
+				},
+				{
+					"name": "addOpCoNameHSI"
+				},
+				{
+					"name": "unionAllOpCos"
+				},
+				{
+					"name": "selectRenameColumns"
+				},
+				{
+					"name": "derivedColumns"
+				},
+				{
+					"name": "addOpCoNameMXH"
+				},
+				{
+					"name": "addOpCoNameCTA"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          ID as integer,",
+				"          Job_ID as integer,",
+				"          PmtAmount as decimal(19,4),",
+				"          cpt_ID as integer,",
+				"          slr_id as integer,",
+				"          EnteredOn as timestamp,",
+				"          EnteredBy as integer,",
+				"          UpdatedOn as timestamp,",
+				"          UpdatedBy as integer,",
+				"          BatchFlag as boolean,",
+				"          BatchNo as integer,",
+				"          BatchDate as timestamp,",
+				"          CoCode as string,",
+				"          FileNo as string,",
+				"          Comments as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> FHI",
+				"source(output(",
+				"          ID as integer,",
+				"          Job_ID as integer,",
+				"          PmtAmount as decimal(19,4),",
+				"          cpt_ID as integer,",
+				"          slr_id as integer,",
+				"          EnteredOn as timestamp,",
+				"          EnteredBy as integer,",
+				"          UpdatedOn as timestamp,",
+				"          UpdatedBy as integer,",
+				"          BatchFlag as boolean,",
+				"          BatchNo as integer,",
+				"          BatchDate as timestamp,",
+				"          CoCode as string,",
+				"          FileNo as string,",
+				"          Comments as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> PBC",
+				"source(output(",
+				"          ID as integer,",
+				"          Job_ID as integer,",
+				"          PmtAmount as decimal(19,4),",
+				"          cpt_ID as integer,",
+				"          slr_id as integer,",
+				"          EnteredOn as timestamp,",
+				"          EnteredBy as integer,",
+				"          UpdatedOn as timestamp,",
+				"          UpdatedBy as integer,",
+				"          BatchFlag as boolean,",
+				"          BatchNo as integer,",
+				"          BatchDate as timestamp,",
+				"          CoCode as string,",
+				"          FileNo as string,",
+				"          Comments as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> RTW",
+				"source(output(",
+				"          ID as integer,",
+				"          Job_ID as integer,",
+				"          PmtAmount as decimal(19,4),",
+				"          cpt_ID as integer,",
+				"          slr_id as integer,",
+				"          EnteredOn as timestamp,",
+				"          EnteredBy as integer,",
+				"          UpdatedOn as timestamp,",
+				"          UpdatedBy as integer,",
+				"          BatchFlag as boolean,",
+				"          BatchNo as integer,",
+				"          BatchDate as timestamp,",
+				"          CoCode as string,",
+				"          FileNo as string,",
+				"          Comments as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> MAC",
+				"source(output(",
+				"          ID as integer,",
+				"          Job_ID as integer,",
+				"          PmtAmount as decimal(19,4),",
+				"          cpt_ID as integer,",
+				"          slr_id as integer,",
+				"          EnteredOn as timestamp,",
+				"          EnteredBy as integer,",
+				"          UpdatedOn as timestamp,",
+				"          UpdatedBy as integer,",
+				"          BatchFlag as boolean,",
+				"          BatchNo as integer,",
+				"          BatchDate as timestamp,",
+				"          CoCode as string,",
+				"          FileNo as string,",
+				"          Comments as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> SWR",
+				"source(output(",
+				"          ID as integer,",
+				"          Job_ID as integer,",
+				"          PmtAmount as decimal(19,4),",
+				"          cpt_ID as integer,",
+				"          slr_id as integer,",
+				"          EnteredOn as timestamp,",
+				"          EnteredBy as integer,",
+				"          UpdatedOn as timestamp,",
+				"          UpdatedBy as integer,",
+				"          BatchFlag as boolean,",
+				"          BatchNo as integer,",
+				"          BatchDate as timestamp,",
+				"          CoCode as string,",
+				"          FileNo as string,",
+				"          Comments as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> HSI",
+				"source(output(",
+				"          ID as integer,",
+				"          Job_ID as integer,",
+				"          PmtAmount as decimal(19,4),",
+				"          cpt_ID as integer,",
+				"          slr_id as integer,",
+				"          EnteredOn as timestamp,",
+				"          EnteredBy as integer,",
+				"          UpdatedOn as timestamp,",
+				"          UpdatedBy as integer,",
+				"          BatchFlag as boolean,",
+				"          BatchNo as integer,",
+				"          BatchDate as timestamp,",
+				"          CoCode as string,",
+				"          FileNo as string,",
+				"          Comments as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> MXH",
+				"source(output(",
+				"          ID as integer,",
+				"          Job_ID as integer,",
+				"          PmtAmount as decimal(19,4),",
+				"          cpt_ID as integer,",
+				"          slr_id as integer,",
+				"          EnteredOn as timestamp,",
+				"          EnteredBy as integer,",
+				"          UpdatedOn as timestamp,",
+				"          UpdatedBy as integer,",
+				"          BatchFlag as boolean,",
+				"          BatchNo as integer,",
+				"          BatchDate as timestamp,",
+				"          CoCode as string,",
+				"          FileNo as string,",
+				"          Comments as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> CTA",
+				"FHI derive(Division = 'FHI') ~> addOpCoNameFHI",
+				"PBC derive(Division = 'PBC') ~> addOpCoNamePBC",
+				"RTW derive(Division = 'RTW') ~> addOpCoNameRTW",
+				"MAC derive(Division = 'MAC') ~> addOpCoNameMAC",
+				"SWR derive(Division = 'SWR') ~> addOpCoNameSWR",
+				"HSI derive(Division = 'HSI') ~> addOpCoNameHSI",
+				"addOpCoNameFHI, addOpCoNamePBC, addOpCoNameRTW, addOpCoNameMAC, addOpCoNameSWR, addOpCoNameHSI, addOpCoNameMXH, addOpCoNameCTA union(byName: true)~> unionAllOpCos",
+				"unionAllOpCos select(mapColumn(",
+				"          LP_CommissionID = ID,",
+				"          LP_JobID = Job_ID,",
+				"          LP_CommissionPaymentTypeID = cpt_ID,",
+				"          LP_SalesRepID = slr_id,",
+				"          PaymentAmount = PmtAmount,",
+				"          EnteredOn,",
+				"          EnteredBy,",
+				"          UpdatedOn,",
+				"          UpdatedBy,",
+				"          BatchFlag,",
+				"          BatchNumber = BatchNo,",
+				"          BatchDate,",
+				"          CoCode,",
+				"          FileNumber = FileNo,",
+				"          Comments,",
+				"          Division",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectRenameColumns",
+				"selectRenameColumns derive(LastUpdateTS = currentTimestamp(),",
+				"          CommissionID = concat(Division,'-',toString(LP_CommissionID)),",
+				"          JobID = concat(Division,'-',toString(LP_JobID)),",
+				"          CommissionPaymentTypeID = concat(Division,'-',toString(LP_CommissionPaymentTypeID)),",
+				"          SalesRepID = concat(Division,'-',toString(LP_SalesRepID))) ~> derivedColumns",
+				"MXH derive(Division = 'MXH') ~> addOpCoNameMXH",
+				"CTA derive(Division = 'CTA') ~> addOpCoNameCTA",
+				"derivedColumns sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          CommissionID as string,",
+				"          JobID as string,",
+				"          CommissionPaymentTypeID as string,",
+				"          SalesRepID as string,",
+				"          PaymentAmount as decimal(38,18),",
+				"          BatchFlag as boolean,",
+				"          BatchNumber as integer,",
+				"          BatchDate as timestamp,",
+				"          CoCode as string,",
+				"          FileNumber as string,",
+				"          Comments as string,",
+				"          EnteredOn as timestamp,",
+				"          EnteredBy as integer,",
+				"          UpdatedOn as timestamp,",
+				"          UpdatedBy as integer,",
+				"          LP_CommissionID as integer,",
+				"          LP_JobID as integer,",
+				"          LP_CommissionPaymentTypeID as integer,",
+				"          LP_SalesRepID as integer,",
+				"          Division as string,",
+				"          LastUpdateTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     truncate:true,",
+				"     format: 'table',",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          LP_CommissionID,",
+				"          LP_JobID,",
+				"          LP_CommissionPaymentTypeID,",
+				"          LP_SalesRepID,",
+				"          PaymentAmount,",
+				"          EnteredOn,",
+				"          EnteredBy,",
+				"          UpdatedOn,",
+				"          UpdatedBy,",
+				"          BatchFlag,",
+				"          BatchNumber,",
+				"          BatchDate,",
+				"          CoCode,",
+				"          FileNumber,",
+				"          Comments,",
+				"          Division,",
+				"          LastUpdateTS,",
+				"          CommissionID,",
+				"          JobID,",
+				"          CommissionPaymentTypeID,",
+				"          SalesRepID",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> targetFact"
+			]
+		}
+	}
+}

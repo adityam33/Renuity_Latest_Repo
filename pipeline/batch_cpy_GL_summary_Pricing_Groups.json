@@ -1,0 +1,260 @@
+{
+	"name": "batch_cpy_GL_summary_Pricing_Groups",
+	"properties": {
+		"activities": [
+			{
+				"name": "cpy_gl_summ_pricing_group",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT \n    g.FinPeriodID,\n    g.ProjectID,\n    SUM(g.BalanceAmount) AS SumOfBalanceAmount,\n    CASE \n        WHEN (-1) * SUM(CASE WHEN UPPER(a.AccountClass) = 'SALES' THEN g.BalanceAmount ELSE 0 END) > 0 \n             AND (-1) * SUM(CASE WHEN UPPER(a.AccountClass) = 'SALES' THEN g.BalanceAmount ELSE 0 END) <= 5000 THEN '$0-$5K'\n        WHEN (-1) * SUM(CASE WHEN UPPER(a.AccountClass) = 'SALES' THEN g.BalanceAmount ELSE 0 END) > 5000 \n             AND (-1) * SUM(CASE WHEN UPPER(a.AccountClass) = 'SALES' THEN g.BalanceAmount ELSE 0 END) <= 10000 THEN '$5-$10K'\n        WHEN (-1) * SUM(CASE WHEN UPPER(a.AccountClass) = 'SALES' THEN g.BalanceAmount ELSE 0 END) > 10000 \n             AND (-1) * SUM(CASE WHEN UPPER(a.AccountClass) = 'SALES' THEN g.BalanceAmount ELSE 0 END) <= 15000 THEN '$10K-$15K'\n        WHEN (-1) * SUM(CASE WHEN UPPER(a.AccountClass) = 'SALES' THEN g.BalanceAmount ELSE 0 END) > 15000 \n             AND (-1) * SUM(CASE WHEN UPPER(a.AccountClass) = 'SALES' THEN g.BalanceAmount ELSE 0 END) <= 20000 THEN '$15K-$20K'\n        WHEN (-1) * SUM(CASE WHEN UPPER(a.AccountClass) = 'SALES' THEN g.BalanceAmount ELSE 0 END) > 20000 \n             AND (-1) * SUM(CASE WHEN UPPER(a.AccountClass) = 'SALES' THEN g.BalanceAmount ELSE 0 END) <= 30000 THEN '$20K-$30K'\n        WHEN (-1) * SUM(CASE WHEN UPPER(a.AccountClass) = 'SALES' THEN g.BalanceAmount ELSE 0 END) > 30000 \n             AND (-1) * SUM(CASE WHEN UPPER(a.AccountClass) = 'SALES' THEN g.BalanceAmount ELSE 0 END) <= 40000 THEN '$30K-$40K'\n        WHEN (-1) * SUM(CASE WHEN UPPER(a.AccountClass) = 'SALES' THEN g.BalanceAmount ELSE 0 END) > 40000 \n             AND (-1) * SUM(CASE WHEN UPPER(a.AccountClass) = 'SALES' THEN g.BalanceAmount ELSE 0 END) <= 50000 THEN '$40K-$50K'\n        WHEN (-1) * SUM(CASE WHEN UPPER(a.AccountClass) = 'SALES' THEN g.BalanceAmount ELSE 0 END) > 50000 THEN '$50K+' \n        ELSE 'Other'\n    END AS PriceGroup,\n    (-1) * SUM(CASE WHEN UPPER(a.AccountClass) = 'SALES' THEN g.BalanceAmount ELSE 0 END) AS ACU_Revenue,\n    SUM(CASE WHEN UPPER(a.AccountClass) IN ('COGS', 'EXCOMMISSION') THEN g.BalanceAmount ELSE 0 END) AS ACU_Cogs,\n    SUM(CASE WHEN UPPER(a.AccountClass) = 'EXCOMMISSION' THEN g.BalanceAmount ELSE 0 END) AS ACU_Commission,\n    SUM(CASE WHEN UPPER(a.AccountClass) IN ('EXMARKETING', 'EXF2F') THEN g.BalanceAmount ELSE 0 END) AS ACU_Marketing_All,\n    SUM(CASE WHEN g.AccountCode IN ('63005', '71027') THEN g.BalanceAmount ELSE 0 END) AS ACU_Labor,\n    SUM(CASE WHEN g.AccountCode IN ('62000', '62002') THEN g.BalanceAmount ELSE 0 END) AS ACU_Materials,\n    SUM(CASE WHEN g.AccountCode = '65000' THEN g.BalanceAmount ELSE 0 END) AS ACU_NetCreditFees,\n    SUM(CASE WHEN g.AccountCode = '64000' THEN g.BalanceAmount ELSE 0 END) AS ACU_Permits,\n    SUM(CASE WHEN g.AccountCode IN ('66000', '66005', '66010') THEN g.BalanceAmount ELSE 0 END) AS ACU_Service\nFROM EDW.FACT_ERP_GL_TRANSACTION g \nLEFT JOIN EDW.DIM_ERP_ACCOUNT a \n    ON g.AccountCode = a.AccountCode\nWHERE CAST(RIGHT(g.FinPeriodID, 4) AS INT) >= 2024 \nGROUP BY g.FinPeriodID, g.ProjectID;\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "Truncate table EDW.FACT_SUMM_GL_PRICING_GROUP",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "FinPeriodID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "FinPeriodID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ProjectID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ProjectID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SumOfBalanceAmount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								},
+								"sink": {
+									"name": "BalanceAmount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "PriceGroup",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PricingGroup",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ACU_Revenue",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 16,
+									"precision": 38
+								},
+								"sink": {
+									"name": "ACU_Revenue",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "ACU_Cogs",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								},
+								"sink": {
+									"name": "ACU_Cogs",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "ACU_Commission",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								},
+								"sink": {
+									"name": "ACU_Commission",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "ACU_Marketing_All",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								},
+								"sink": {
+									"name": "ACU_Marketing_All",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "ACU_Labor",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								},
+								"sink": {
+									"name": "ACU_Labor",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "ACU_Materials",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								},
+								"sink": {
+									"name": "ACU_Materials",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "ACU_NetCreditFees",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								},
+								"sink": {
+									"name": "ACU_NetCreditFees",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "ACU_Permits",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								},
+								"sink": {
+									"name": "ACU_Permits",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "ACU_Service",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								},
+								"sink": {
+									"name": "ACU_Service",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 16
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_FACT_ERP_GL_TRANSACTION",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_FACT_SUMM_GL_PRICING_GROUP",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/FACTS/ERP"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-01-19T08:52:00Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

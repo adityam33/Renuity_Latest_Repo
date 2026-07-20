@@ -1,0 +1,77 @@
+{
+	"name": "df_load_ODS_USA_TV_DMA_MAP",
+	"properties": {
+		"folder": {
+			"name": "SRC_to_ODS/MKTDATA/DMA"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "USA_TV_DMA_COUNTY_MAP",
+						"type": "DatasetReference"
+					},
+					"name": "USATVDMACountyMap"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ODS_MKTDATA_USA_TV_DMA_MAP",
+						"type": "DatasetReference"
+					},
+					"name": "sinkUSATVDMAMap"
+				}
+			],
+			"transformations": [
+				{
+					"name": "trimSpaces"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          STATE as string,",
+				"          STATE_AB as string,",
+				"          COUNTY as string,",
+				"          Internal_State_Region as string,",
+				"          TVDMA as string,",
+				"          Metropolitan_Statistical_Areas as string,",
+				"          Metro_Grp as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> USATVDMACountyMap",
+				"USATVDMACountyMap derive(STATE = trim(STATE),",
+				"          STATE_AB = trim(STATE_AB),",
+				"          COUNTY = trim(COUNTY),",
+				"          INTERNAL_STATE_REGION = trim(Internal_State_Region),",
+				"          DMA = trim(replace(TVDMA,' DMA','')),",
+				"          MSA = trim(Metropolitan_Statistical_Areas),",
+				"          METRO_GROUP = trim(Metro_Grp)) ~> trimSpaces",
+				"trimSpaces sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     recreate:true,",
+				"     format: 'table',",
+				"     staged: true,",
+				"     allowCopyCommand: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          STATE,",
+				"          STATE_AB,",
+				"          COUNTY,",
+				"          INTERNAL_STATE_REGION = trimSpaces@INTERNAL_STATE_REGION,",
+				"          DMA,",
+				"          MSA,",
+				"          METRO_GROUP",
+				"     )) ~> sinkUSATVDMAMap"
+			]
+		}
+	}
+}

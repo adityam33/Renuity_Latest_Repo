@@ -1,0 +1,144 @@
+{
+	"name": "df_load_FACT_MARKETING_COST_DETAIL_ZML",
+	"properties": {
+		"folder": {
+			"name": "ZML_ODS_to_EDW/FACTS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ZML_ODS_FHI_mcd_MarketingCostDetail",
+						"type": "DatasetReference"
+					},
+					"name": "FHI",
+					"description": "Import data from SRC_ODS_LP_FHI_mcd_MarketingCostDetail"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_FACT_MARKETING_COST_DETAIL_ZML",
+						"type": "DatasetReference"
+					},
+					"name": "targetFact",
+					"description": "Export data to FACT_MARKETING_COST_DETAIL",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "addOpCoNameFHI"
+				},
+				{
+					"name": "unionAllOpCos"
+				},
+				{
+					"name": "selectRenameColumns"
+				},
+				{
+					"name": "derivedColumns"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          id as integer,",
+				"          srs_id as integer,",
+				"          SDate as timestamp,",
+				"          mcc_id as integer,",
+				"          Descr as string,",
+				"          Amount as decimal(19,4),",
+				"          ValidFromDate as timestamp,",
+				"          ValidToDate as timestamp,",
+				"          recordsource as string,",
+				"          ProductID as string,",
+				"          brn_id as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> FHI",
+				"FHI derive(Division = 'FHI') ~> addOpCoNameFHI",
+				"addOpCoNameFHI union(byName: true)~> unionAllOpCos",
+				"unionAllOpCos select(mapColumn(",
+				"          MarketingCostDetailId = id,",
+				"          LP_LeadSubSourceID = srs_id,",
+				"          SDate,",
+				"          LP_MarketingCostCategoryID = mcc_id,",
+				"          Description = Descr,",
+				"          Amount,",
+				"          ValidFromDate,",
+				"          ValidToDate,",
+				"          Recordsource = recordsource,",
+				"          LP_ProductID = ProductID,",
+				"          LP_BranchID = brn_id,",
+				"          Division",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectRenameColumns",
+				"selectRenameColumns derive(LastUpdateTS = currentTimestamp(),",
+				"          LeadSubSourceID = concat(Division,'-',toString(LP_LeadSubSourceID)),",
+				"          MarketingCostCategoryID = concat(Division,'-',toString(LP_MarketingCostCategoryID)),",
+				"          ProductID = concat(Division,'-',toString(LP_ProductID)),",
+				"          BranchID = concat(Division,'-',toString(LP_BranchID))) ~> derivedColumns",
+				"derivedColumns sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          MarketingCostDetailId as integer,",
+				"          LeadSubSourceID as string,",
+				"          SDate as timestamp,",
+				"          MarketingCostCategoryID as string,",
+				"          Description as string,",
+				"          Amount as decimal(16,2),",
+				"          ValidFromDate as timestamp,",
+				"          ValidToDate as timestamp,",
+				"          Recordsource as string,",
+				"          ProductID as string,",
+				"          BranchID as string,",
+				"          LP_LeadSubSourceID as integer,",
+				"          LP_MarketingCostCategoryID as integer,",
+				"          LP_ProductID as string,",
+				"          LP_BranchID as string,",
+				"          Division as string,",
+				"          LastUpdateTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     truncate:true,",
+				"     format: 'table',",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          MarketingCostDetailId,",
+				"          LeadSubSourceID,",
+				"          SDate,",
+				"          MarketingCostCategoryID,",
+				"          Description,",
+				"          Amount,",
+				"          ValidFromDate,",
+				"          ValidToDate,",
+				"          Recordsource,",
+				"          ProductID,",
+				"          BranchID,",
+				"          LP_LeadSubSourceID,",
+				"          LP_MarketingCostCategoryID,",
+				"          LP_ProductID,",
+				"          LP_BranchID,",
+				"          Division,",
+				"          LastUpdateTS",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> targetFact"
+			]
+		}
+	}
+}

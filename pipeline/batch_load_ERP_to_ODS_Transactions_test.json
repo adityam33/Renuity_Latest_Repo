@@ -1,0 +1,84 @@
+{
+	"name": "batch_load_ERP_to_ODS_Transactions_test",
+	"properties": {
+		"activities": [
+			{
+				"name": "cpy_ERP_ACCOUNT_RECEIVABLE",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_ERP_ACCOUNT_RECEIVABLE_test",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_ERP_ACCOUNT_PAYABLES",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_ERP_PM_REVENUE_BUDGET_SRC_TO_ODS",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_ERP_ACCOUNT_PAYABLES_test",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_ERP_CA_BANKING",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_ERP_CA_BANKING_test",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_ERP_PM_REVENUE_BUDGET_SRC_TO_ODS",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_ERP_PM_REVENUE_BUDGET_test",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"folder": {
+			"name": "SRC_to_ODS/ERP/Acumatica/TRANSACTIONS"
+		},
+		"annotations": [],
+		"lastPublishTime": "2024-09-11T14:59:32Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

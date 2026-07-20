@@ -1,0 +1,41 @@
+{
+	"name": "Jobs_and_Service_ALL_DIV",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@concat('LCF_ALL_DIV_', formatDateTime(utcNow(), 'yyyy-MM-dd-hh:mm:ss'), '.csv')",
+					"type": "Expression"
+				},
+				"folderPath": "lp-extracts/Jobs_and_Service_with_StartDate",
+				"fileSystem": "lp-to-adp-automation"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "ServiceID",
+				"type": "String"
+			},
+			{
+				"name": "TicketNumber",
+				"type": "String"
+			},
+			{
+				"name": "JobNumber",
+				"type": "String"
+			}
+		]
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}

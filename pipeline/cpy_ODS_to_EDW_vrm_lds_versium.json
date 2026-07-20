@@ -1,0 +1,193 @@
+{
+	"name": "cpy_ODS_to_EDW_vrm_lds_versium",
+	"properties": {
+		"activities": [
+			{
+				"name": "cp_VRM_LDS_VERSIUM_ODS_EDW",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"sqlReaderQuery": "SELECT \nCONCAT(Division,'-',id) as VersiumID,\nCONCAT(Division,'-',lds_id) as LeadID,\nEthnicity,\nAgeRange,\nEstimatedNetWorth,\nCreditRating,\nHouseholdIncome,\nMortgagePurchaseAmount,\nLoantoValue,\nRefinanceAmount,\nDivision,\nid as LP_VersiumID,\nlds_id as LP_LeadID\nfrom ODS.LP_MXH_vrm_lds_versium\nUnion \nSELECT \nCONCAT(Division,'-',id) as VersiumID,\nCONCAT(Division,'-',lds_id) as LeadID,\nEthnicity,\nAgeRange,\nEstimatedNetWorth,\nCreditRating,\nHouseholdIncome,\nMortgagePurchaseAmount,\nLoantoValue,\nRefinanceAmount,\nDivision,\nid as LP_VersiumID,\nlds_id as LP_LeadID\nfrom ODS.LP_RTW_vrm_lds_versium\nUNION \nSELECT \nCONCAT(Division,'-',id) as VersiumID,\nCONCAT(Division,'-',lds_id) as LeadID,\nEthnicity,\nAgeRange,\nEstimatedNetWorth,\nCreditRating,\nHouseholdIncome,\nMortgagePurchaseAmount,\nLoantoValue,\nRefinanceAmount,\nDivision,\nid as LP_VersiumID,\nlds_id as LP_LeadID\nfrom ODS.LP_PBC_vrm_lds_versium\n",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "IF OBJECT_ID('EDW.DIM_VRM_VERSIUM_DETAILS')  IS NOT NULL TRUNCATE TABLE EDW.DIM_VRM_VERSIUM_DETAILS",
+						"allowCopyCommand": true
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "VersiumID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "VersiumID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LeadID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Ethnicity",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Ethnicity",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "AgeRange",
+									"type": "String"
+								},
+								"sink": {
+									"name": "AgeRange",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "EstimatedNetWorth",
+									"type": "String"
+								},
+								"sink": {
+									"name": "EstimatedNetWorth",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CreditRating",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CreditRating",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "HouseholdIncome",
+									"type": "String"
+								},
+								"sink": {
+									"name": "HouseholdIncome",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "MortgagePurchaseAmount",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "MortgagePurchaseAmount",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LoantoValue",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LoantoValue",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "RefinanceAmount",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "RefinanceAmount",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Division",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_VersiumID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "LP_VersiumID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_LeadID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LP_LeadID",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ODS_MXH_vrm_lds_Versium",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_VRM_VERSIUM_DATA",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/DIMENSIONS/LP"
+		},
+		"annotations": [],
+		"lastPublishTime": "2023-10-11T16:16:37Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

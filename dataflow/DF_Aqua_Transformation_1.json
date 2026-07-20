@@ -1,0 +1,341 @@
+{
+	"name": "DF_Aqua_Transformation_1",
+	"properties": {
+		"folder": {
+			"name": "ODS_to_EDW/FACTS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "df_acqua_raw",
+						"type": "DatasetReference"
+					},
+					"name": "SRCFloridaHome"
+				},
+				{
+					"dataset": {
+						"referenceName": "df_acqua_raw",
+						"type": "DatasetReference"
+					},
+					"name": "Statewide"
+				},
+				{
+					"dataset": {
+						"referenceName": "df_acqua_raw",
+						"type": "DatasetReference"
+					},
+					"name": "MadCity"
+				},
+				{
+					"dataset": {
+						"referenceName": "df_acqua_raw",
+						"type": "DatasetReference"
+					},
+					"name": "HomeSmart"
+				},
+				{
+					"dataset": {
+						"referenceName": "df_acqua_raw",
+						"type": "DatasetReference"
+					},
+					"name": "MaxHome"
+				},
+				{
+					"dataset": {
+						"referenceName": "df_acqua_raw",
+						"type": "DatasetReference"
+					},
+					"name": "PacificBath"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ODS_aquaficoband",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "filter1"
+				},
+				{
+					"name": "surrogateKey1"
+				},
+				{
+					"name": "surrogateKey2"
+				},
+				{
+					"name": "filter2"
+				},
+				{
+					"name": "DCStateWide"
+				},
+				{
+					"name": "surrogateKey3"
+				},
+				{
+					"name": "filter3"
+				},
+				{
+					"name": "DCMadCity"
+				},
+				{
+					"name": "surrogateKey4"
+				},
+				{
+					"name": "filter4"
+				},
+				{
+					"name": "DCHomeSmart"
+				},
+				{
+					"name": "surrogateKey5"
+				},
+				{
+					"name": "filter5"
+				},
+				{
+					"name": "DCMaxHome"
+				},
+				{
+					"name": "surrogateKey6"
+				},
+				{
+					"name": "filter6"
+				},
+				{
+					"name": "DCPacificBath"
+				},
+				{
+					"name": "union1"
+				},
+				{
+					"name": "MapDrifted2"
+				},
+				{
+					"name": "MapDrifted3",
+					"description": "Creates an explicit mapping for each drifted column"
+				},
+				{
+					"name": "MapDrifted4",
+					"description": "Creates an explicit mapping for each drifted column"
+				},
+				{
+					"name": "MapDrifted5",
+					"description": "Creates an explicit mapping for each drifted column"
+				},
+				{
+					"name": "MapDrifted6",
+					"description": "Creates an explicit mapping for each drifted column"
+				},
+				{
+					"name": "MapDrifted7",
+					"description": "Creates an explicit mapping for each drifted column"
+				},
+				{
+					"name": "DCFloridaHome"
+				},
+				{
+					"name": "union2"
+				},
+				{
+					"name": "union3"
+				},
+				{
+					"name": "union4"
+				},
+				{
+					"name": "union5"
+				},
+				{
+					"name": "select1"
+				}
+			],
+			"scriptLines": [
+				"parameters{",
+				"     Week as string ('8/18/24 - 8/24/24')",
+				"}",
+				"source(output(",
+				"          Prop_0 as string,",
+				"          Prop_1 as string,",
+				"          Prop_2 as string,",
+				"          Prop_3 as string,",
+				"          Prop_4 as string,",
+				"          Prop_5 as string,",
+				"          Prop_6 as string,",
+				"          Prop_7 as string,",
+				"          Prop_8 as string,",
+				"          Prop_9 as string,",
+				"          Prop_10 as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> SRCFloridaHome",
+				"source(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> Statewide",
+				"source(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> MadCity",
+				"source(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> HomeSmart",
+				"source(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> MaxHome",
+				"source(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> PacificBath",
+				"surrogateKey1 filter(and(rowNumber >= 13,rowNumber <= 18)) ~> filter1",
+				"SRCFloridaHome keyGenerate(output(rowNumber as long),",
+				"     startAt: 1L,",
+				"     stepValue: 1L) ~> surrogateKey1",
+				"Statewide keyGenerate(output(rowNumber as long),",
+				"     startAt: 1L,",
+				"     stepValue: 1L) ~> surrogateKey2",
+				"surrogateKey2 filter(and(rowNumber >= 22,rowNumber <= 27)) ~> filter2",
+				"MapDrifted3 derive(Division = 'Statewide',",
+				"          Week = concat(toString(toDate(replace(split(replace($Week, ' ', ''), '-')[1], '/', '-'), 'MM-dd-yy'), 'MM-dd-yyyy'), ' - ', toString(toDate(replace(split(replace($Week, ' ', ''), '-')[2], '/', '-'), 'MM-dd-yy'), 'MM-dd-yyyy'))) ~> DCStateWide",
+				"MadCity keyGenerate(output(rowNumber as long),",
+				"     startAt: 1L,",
+				"     stepValue: 1L) ~> surrogateKey3",
+				"surrogateKey3 filter(and(rowNumber >= 31,rowNumber <= 36)) ~> filter3",
+				"MapDrifted4 derive(Division = 'Mad City',",
+				"          Week = concat(toString(toDate(replace(split(replace($Week, ' ', ''), '-')[1], '/', '-'), 'MM-dd-yy'), 'MM-dd-yyyy'), ' - ', toString(toDate(replace(split(replace($Week, ' ', ''), '-')[2], '/', '-'), 'MM-dd-yy'), 'MM-dd-yyyy'))) ~> DCMadCity",
+				"HomeSmart keyGenerate(output(rowNumber as long),",
+				"     startAt: 1L,",
+				"     stepValue: 1L) ~> surrogateKey4",
+				"surrogateKey4 filter(and(rowNumber >= 40,rowNumber <= 45)) ~> filter4",
+				"MapDrifted5 derive(Division = 'HomeSmart',",
+				"          Week = concat(toString(toDate(replace(split(replace($Week, ' ', ''), '-')[1], '/', '-'), 'MM-dd-yy'), 'MM-dd-yyyy'), ' - ', toString(toDate(replace(split(replace($Week, ' ', ''), '-')[2], '/', '-'), 'MM-dd-yy'), 'MM-dd-yyyy'))) ~> DCHomeSmart",
+				"MaxHome keyGenerate(output(rowNumber as long),",
+				"     startAt: 1L,",
+				"     stepValue: 1L) ~> surrogateKey5",
+				"surrogateKey5 filter(and(rowNumber >= 49,rowNumber <= 54)) ~> filter5",
+				"MapDrifted6 derive(Division = 'Max Home',",
+				"          Week = concat(toString(toDate(replace(split(replace($Week, ' ', ''), '-')[1], '/', '-'), 'MM-dd-yy'), 'MM-dd-yyyy'), ' - ', toString(toDate(replace(split(replace($Week, ' ', ''), '-')[2], '/', '-'), 'MM-dd-yy'), 'MM-dd-yyyy'))) ~> DCMaxHome",
+				"PacificBath keyGenerate(output(rowNumber as long),",
+				"     startAt: 1L,",
+				"     stepValue: 1L) ~> surrogateKey6",
+				"surrogateKey6 filter(and(rowNumber >= 58,rowNumber <= 63)) ~> filter6",
+				"MapDrifted7 derive(Division = 'Pacific Bath Comp',",
+				"          Week = concat(toString(toDate(replace(split(replace($Week, ' ', ''), '-')[1], '/', '-'), 'MM-dd-yy'), 'MM-dd-yyyy'), ' - ', toString(toDate(replace(split(replace($Week, ' ', ''), '-')[2], '/', '-'), 'MM-dd-yy'), 'MM-dd-yyyy'))) ~> DCPacificBath",
+				"DCFloridaHome, DCStateWide union(byName: true)~> union1",
+				"filter1 derive({FICO Band} = toString(byName('Prop_0')),",
+				"          Aprvd = toString(byName('Prop_1')),",
+				"          Denied = toString(byName('Prop_2')),",
+				"          Total = toString(byName('Prop_3')),",
+				"          {Approval %} = toString(byName('Prop_4')),",
+				"          Contracted = toString(byName('Prop_5')),",
+				"          {Contracted/Approved} = toString(byName('Prop_6')),",
+				"          {Apvd $} = toString(byName('Prop_7')),",
+				"          {Denied $s} = toString(byName('Prop_8')),",
+				"          {Total $s} = toString(byName('Prop_9')),",
+				"          {Approval %s} = toString(byName('Prop_10')),",
+				"          Lender = 'Acqua') ~> MapDrifted2",
+				"filter2 derive({FICO Band} = toString(byName('Prop_0')),",
+				"          Aprvd = toString(byName('Prop_1')),",
+				"          Denied = toString(byName('Prop_2')),",
+				"          Total = toString(byName('Prop_3')),",
+				"          {Approval %} = toString(byName('Prop_4')),",
+				"          Contracted = toString(byName('Prop_5')),",
+				"          {Contracted/Approved} = toString(byName('Prop_6')),",
+				"          {Apvd $} = toString(byName('Prop_7')),",
+				"          {Denied $s} = toString(byName('Prop_8')),",
+				"          {Total $s} = toString(byName('Prop_9')),",
+				"          {Approval %s} = toString(byName('Prop_10')),",
+				"          Lender = 'Acqua') ~> MapDrifted3",
+				"filter3 derive({FICO Band} = toString(byName('Prop_0')),",
+				"          Aprvd = toString(byName('Prop_1')),",
+				"          Denied = toString(byName('Prop_2')),",
+				"          Total = toString(byName('Prop_3')),",
+				"          {Approval %} = toString(byName('Prop_4')),",
+				"          Contracted = toString(byName('Prop_5')),",
+				"          {Contracted/Approved} = toString(byName('Prop_6')),",
+				"          {Apvd $} = toString(byName('Prop_7')),",
+				"          {Denied $s} = toString(byName('Prop_8')),",
+				"          {Total $s} = toString(byName('Prop_9')),",
+				"          {Approval %s} = toString(byName('Prop_10')),",
+				"          Lender = 'Acqua') ~> MapDrifted4",
+				"filter4 derive({FICO Band} = toString(byName('Prop_0')),",
+				"          Aprvd = toString(byName('Prop_1')),",
+				"          Denied = toString(byName('Prop_2')),",
+				"          Total = toString(byName('Prop_3')),",
+				"          {Approval %} = toString(byName('Prop_4')),",
+				"          Contracted = toString(byName('Prop_5')),",
+				"          {Contracted/Approved} = toString(byName('Prop_6')),",
+				"          {Apvd $} = toString(byName('Prop_7')),",
+				"          {Denied $s} = toString(byName('Prop_8')),",
+				"          {Total $s} = toString(byName('Prop_9')),",
+				"          {Approval %s} = toString(byName('Prop_10')),",
+				"          Lender = 'Acqua') ~> MapDrifted5",
+				"filter5 derive({FICO Band} = toString(byName('Prop_0')),",
+				"          Aprvd = toString(byName('Prop_1')),",
+				"          Denied = toString(byName('Prop_2')),",
+				"          Total = toString(byName('Prop_3')),",
+				"          {Approval %} = toString(byName('Prop_4')),",
+				"          Contracted = toString(byName('Prop_5')),",
+				"          {Contracted/Approved} = toString(byName('Prop_6')),",
+				"          {Apvd $} = toString(byName('Prop_7')),",
+				"          {Denied $s} = toString(byName('Prop_8')),",
+				"          {Total $s} = toString(byName('Prop_9')),",
+				"          {Approval %s} = toString(byName('Prop_10')),",
+				"          Lender = 'Acqua') ~> MapDrifted6",
+				"filter6 derive({FICO Band} = toString(byName('Prop_0')),",
+				"          Aprvd = toString(byName('Prop_1')),",
+				"          Denied = toString(byName('Prop_2')),",
+				"          Total = toString(byName('Prop_3')),",
+				"          {Approval %} = toString(byName('Prop_4')),",
+				"          Contracted = toString(byName('Prop_5')),",
+				"          {Contracted/Approved} = toString(byName('Prop_6')),",
+				"          {Apvd $} = toString(byName('Prop_7')),",
+				"          {Denied $s} = toString(byName('Prop_8')),",
+				"          {Total $s} = toString(byName('Prop_9')),",
+				"          {Approval %s} = toString(byName('Prop_10')),",
+				"          Lender = 'Acqua') ~> MapDrifted7",
+				"MapDrifted2 derive(Division = 'Florida Home',",
+				"          Week = concat(toString(toDate(replace(split(replace($Week, ' ', ''), '-')[1], '/', '-'), 'MM-dd-yy'), 'MM-dd-yyyy'), ' - ', toString(toDate(replace(split(replace($Week, ' ', ''), '-')[2], '/', '-'), 'MM-dd-yy'), 'MM-dd-yyyy'))) ~> DCFloridaHome",
+				"union1, DCMadCity union(byName: true)~> union2",
+				"union2, DCHomeSmart union(byName: true)~> union3",
+				"union3, DCMaxHome union(byName: true)~> union4",
+				"union4, DCPacificBath union(byName: true)~> union5",
+				"union5 select(mapColumn(",
+				"          rowNumber,",
+				"          FICO_Band = {FICO Band},",
+				"          Aprvd,",
+				"          Denied,",
+				"          Total,",
+				"          {Approval%} = {Approval %},",
+				"          Contracted,",
+				"          Contracted_Approved = {Contracted/Approved},",
+				"          Apvd_Amount = {Apvd $},",
+				"          Denied_Amount = {Denied $s},",
+				"          Total_Amount = {Total $s},",
+				"          {Approval_%} = {Approval %s},",
+				"          Division_Name = Division,",
+				"          Week,",
+				"          Lender",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"select1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     truncate:true,",
+				"     format: 'table',",
+				"     staged: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> sink1"
+			]
+		}
+	}
+}

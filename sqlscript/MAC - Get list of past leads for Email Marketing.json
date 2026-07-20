@@ -1,0 +1,20 @@
+{
+	"name": "MAC - Get list of past leads for Email Marketing",
+	"properties": {
+		"folder": {
+			"name": "DMLs/Analysis SQL/Performance Marketing"
+		},
+		"content": {
+			"query": "SELECT\ncst.[CustomerID]\n,cst.FirstName\n,cst.LastName\n,cst.[Email]\n,brn.LongName as [Market]\n,lds.EntryDate\n,lds.GrossSalesAmount\n,lds.LP_DispositionID\n,lds.LP_ProductID\nFROM \n[EDW].[DIM_CUSTOMER] cst\n,[EDW].[DIM_BRANCH] brn\n,[EDW].[FACT_LEAD] lds\nwhere \ncst.CustomerID = lds.CustomerID\nand lds.BranchID = brn.BranchID\nand lds.Sold = 'True'\nand cst.OperatingCompany = 'MAC'\n--and lds.EntryDate > '2022-01-01' \nand brn.LongName = 'Green Bay'\nand cst.Email is not NULL\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

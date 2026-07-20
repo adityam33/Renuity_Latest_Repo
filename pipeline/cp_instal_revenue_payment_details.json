@@ -1,0 +1,367 @@
+{
+	"name": "cp_instal_revenue_payment_details",
+	"properties": {
+		"activities": [
+			{
+				"name": "cp_instal_revenue_detail",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT \n    g.Module,\n    g.BatchNumber,\n    g.ReferenceNumber,\n    g.TransactionDate,\n    g.ProjectID,\n    g.CustomerVendor AS BusinessAccountName,\n    g.TransactionDescription,\n    g.AccountCode,\n    g.SubAccount,\n    g.BranchCode,\n    g.FinPeriodID,\n    g.SourceVendorID,\n    g.MarketingAccountID,\n    g.CreditAmount,\n    g.DebitAmount,\n    g.BalanceAmount,\n    g.Posted,\n    g.Released,\n    g.ServicePeriod,\n    (-1) * (g.DebitAmount - g.CreditAmount) AS Amount,\n\n    CASE \n        WHEN g.BranchCode LIKE '00%' THEN 'Ren'\n        WHEN g.BranchCode LIKE '03%' THEN 'CTA'\n        WHEN g.BranchCode LIKE '1%' THEN 'RTW-N'\n        WHEN g.BranchCode LIKE '2%' THEN 'FHIA'\n        WHEN g.BranchCode LIKE '3%' THEN 'SWR'\n        WHEN g.BranchCode LIKE '4%' THEN 'MAC'\n        WHEN g.BranchCode LIKE '5%' THEN 'CTA'\n        WHEN g.BranchCode LIKE '6%' THEN 'RTW-S'\n        WHEN g.BranchCode LIKE '7%' THEN 'MXH'\n        WHEN g.BranchCode LIKE '8%' THEN 'PBC'\n        WHEN g.BranchCode LIKE '9%' THEN 'Bylte'\n    END AS Division,\n    cs.Description AS Product,\n    CASE WHEN p.PaymentMethod is not null then p.PaymentMethod ELSE 'Not Paid' END as PaymentMethod,\n    EOMONTH(DATEADD(m,-1,CAST(GETDATE() AS DATE))) AS SnapshotDate\nFROM \n    EDW.FACT_ERP_GL_TRANSACTION g\nLEFT JOIN \n    ODS.ERP_SUBACCOUNT_SEGMENT_MASTER cs \n    ON g.ProductID = cs.Value AND cs.SegmentID = 1\nLEFT JOIN \n    (Select Project,PaymentMethod,PaymentDate,ROW_NUMBER() OVER (PARTITION BY Project ORDER BY PaymentDate DESC) AS rn from ODS.ERP_AR_PAYMENT where Type not in ('Refund') AND (PaymentDate is NULL or CAST(PaymentDate AS DATE) >= '2024-01-01')) p \n    ON p.Project = g.ProjectID and rn=1 \n\nWHERE \n    g.AccountCode = '60000'\n    AND CAST(CONCAT(RIGHT(g.FinPeriodID,4),'-',LEFT(g.FinPeriodID,2),'-01') as DATE) >= '2024-09-01'\n    AND CAST(CONCAT(RIGHT(g.FinPeriodID,4),'-',LEFT(g.FinPeriodID,2),'-01') as DATE) < CAST(DATEADD(month, DATEDIFF(month, 0, GETDATE()), 0) as DATE)\n    --AND (p.PaymentDate is NULL or CAST(p.PaymentDate AS DATE) >= '2024-09-01')\n   -- AND CAST(p.PaymentDate AS DATE) <= CAST(GETDATE() AS DATE)\nORDER BY \n    g.FinPeriodID;\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Module",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Module",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchNumber",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "BatchNumber",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ReferenceNumber",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ReferenceNumber",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "TransactionDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "TransactionDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "ProjectID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ProjectID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "BusinessAccountName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "BusinessAccountName",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "TransactionDescription",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "TransactionDescription",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AccountCode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "AccountCode",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SubAccount",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "SubAccount",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchCode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "BranchCode",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "FinPeriodID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "FinPeriodID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SourceVendorID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "SourceVendorID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "MarketingAccountID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "MarketingAccountID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CreditAmount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								},
+								"sink": {
+									"name": "CreditAmount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 18
+								}
+							},
+							{
+								"source": {
+									"name": "DebitAmount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								},
+								"sink": {
+									"name": "DebitAmount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 18
+								}
+							},
+							{
+								"source": {
+									"name": "BalanceAmount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								},
+								"sink": {
+									"name": "BalanceAmount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 18
+								}
+							},
+							{
+								"source": {
+									"name": "Posted",
+									"type": "Boolean",
+									"physicalType": "bit"
+								},
+								"sink": {
+									"name": "Posted",
+									"type": "Boolean",
+									"physicalType": "bit"
+								}
+							},
+							{
+								"source": {
+									"name": "Released",
+									"type": "Boolean",
+									"physicalType": "bit"
+								},
+								"sink": {
+									"name": "Released",
+									"type": "Boolean",
+									"physicalType": "bit"
+								}
+							},
+							{
+								"source": {
+									"name": "ServicePeriod",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ServicePeriod",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Amount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 16,
+									"precision": 38
+								},
+								"sink": {
+									"name": "Amount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 18
+								}
+							},
+							{
+								"source": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Product",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Product",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PaymentMethod",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "PaymentMethod",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SnapshotDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "SnapshotDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ODS_ERP_AR_PAYMENT",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_INSTAL_REVENUE_PAYMENT_DETAIL",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "Temp/Akshay"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-09-12T12:43:03Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

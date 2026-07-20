@@ -1,0 +1,307 @@
+{
+	"name": "df_load_FACT_ZIP_DISTRICT_MATRIX",
+	"properties": {
+		"folder": {
+			"name": "ODS_to_EDW/DIMENSIONS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ODS_LP_FHI_zdm_ZipDistMatrix",
+						"type": "DatasetReference"
+					},
+					"name": "FHI"
+				},
+				{
+					"dataset": {
+						"referenceName": "ODS_LP_MAC_zdm_ZipDistMatrix",
+						"type": "DatasetReference"
+					},
+					"name": "MAC"
+				},
+				{
+					"dataset": {
+						"referenceName": "ODS_LP_PBC_zdm_ZipDistMatrix",
+						"type": "DatasetReference"
+					},
+					"name": "PBC"
+				},
+				{
+					"dataset": {
+						"referenceName": "ODS_LP_SWR_zdm_ZipDistMatrix",
+						"type": "DatasetReference"
+					},
+					"name": "SWR"
+				},
+				{
+					"dataset": {
+						"referenceName": "ODS_LP_RTW_zdm_ZipDistMatrix",
+						"type": "DatasetReference"
+					},
+					"name": "RTW"
+				},
+				{
+					"dataset": {
+						"referenceName": "ODS_LP_MXH_zdm_ZipDistMatrix",
+						"type": "DatasetReference"
+					},
+					"name": "MXH"
+				},
+				{
+					"dataset": {
+						"referenceName": "ODS_LP_CTA_zdm_ZipDistMatrix",
+						"type": "DatasetReference"
+					},
+					"name": "CTA"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_FACT_ZIP_DISTRICT_MATRIX",
+						"type": "DatasetReference"
+					},
+					"name": "targetDim",
+					"description": "Export data to EDW_DIM_CALL_TYPE",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "selectColsFHI"
+				},
+				{
+					"name": "createIDsFHI"
+				},
+				{
+					"name": "selectColsMAC"
+				},
+				{
+					"name": "selectPBC"
+				},
+				{
+					"name": "selectSWR"
+				},
+				{
+					"name": "createIDsMAC"
+				},
+				{
+					"name": "createIDsPBC"
+				},
+				{
+					"name": "createIDsSWR"
+				},
+				{
+					"name": "unionAllOpCos"
+				},
+				{
+					"name": "addLastUpdateTimestamp"
+				},
+				{
+					"name": "selectRTW"
+				},
+				{
+					"name": "createIDsRTW"
+				},
+				{
+					"name": "selectMXH"
+				},
+				{
+					"name": "createIDsMXH"
+				},
+				{
+					"name": "selectCTA"
+				},
+				{
+					"name": "createIDsCTA"
+				},
+				{
+					"name": "AlterRow"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          Zip1 as string,",
+				"          Zip2 as string,",
+				"          Distance as decimal(16,2),",
+				"          DrivingTime as decimal(16,2)",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> FHI",
+				"source(output(",
+				"          Zip1 as string,",
+				"          Zip2 as string,",
+				"          Distance as decimal(16,2),",
+				"          DrivingTime as decimal(16,2)",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> MAC",
+				"source(output(",
+				"          Zip1 as string,",
+				"          Zip2 as string,",
+				"          Distance as decimal(16,2),",
+				"          DrivingTime as decimal(16,2)",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> PBC",
+				"source(output(",
+				"          Zip1 as string,",
+				"          Zip2 as string,",
+				"          Distance as decimal(16,2),",
+				"          DrivingTime as decimal(16,2)",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> SWR",
+				"source(output(",
+				"          Zip1 as string,",
+				"          Zip2 as string,",
+				"          Distance as decimal(16,2),",
+				"          DrivingTime as decimal(16,2)",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> RTW",
+				"source(output(",
+				"          Zip1 as string,",
+				"          Zip2 as string,",
+				"          Distance as decimal(16,2),",
+				"          DrivingTime as decimal(16,2)",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> MXH",
+				"source(output(",
+				"          Zip1 as string,",
+				"          Zip2 as string,",
+				"          Distance as decimal(16,2),",
+				"          DrivingTime as decimal(16,2)",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> CTA",
+				"FHI select(mapColumn(",
+				"          Zip1,",
+				"          Zip2,",
+				"          Distance,",
+				"          DrivingTime",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColsFHI",
+				"selectColsFHI derive(Division = 'FHI') ~> createIDsFHI",
+				"MAC select(mapColumn(",
+				"          Zip1,",
+				"          Zip2,",
+				"          Distance,",
+				"          DrivingTime",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColsMAC",
+				"PBC select(mapColumn(",
+				"          Zip1,",
+				"          Zip2,",
+				"          Distance,",
+				"          DrivingTime",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectPBC",
+				"SWR select(mapColumn(",
+				"          Zip1,",
+				"          Zip2,",
+				"          Distance,",
+				"          DrivingTime",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectSWR",
+				"selectColsMAC derive(Division = 'MAC') ~> createIDsMAC",
+				"selectPBC derive(Division = 'PBC') ~> createIDsPBC",
+				"selectSWR derive(Division = 'SWR') ~> createIDsSWR",
+				"createIDsFHI, createIDsMAC, createIDsPBC, createIDsSWR, createIDsRTW, createIDsMXH, createIDsCTA union(byName: true)~> unionAllOpCos",
+				"unionAllOpCos derive(LastUpdateTS = currentTimestamp(),",
+				"          CreatedTS = currentTimestamp()) ~> addLastUpdateTimestamp",
+				"RTW select(mapColumn(",
+				"          Zip1,",
+				"          Zip2,",
+				"          Distance,",
+				"          DrivingTime",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectRTW",
+				"selectRTW derive(Division = 'RTW') ~> createIDsRTW",
+				"MXH select(mapColumn(",
+				"          Zip1,",
+				"          Zip2,",
+				"          Distance,",
+				"          DrivingTime",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectMXH",
+				"selectMXH derive(Division = 'MXH') ~> createIDsMXH",
+				"CTA select(mapColumn(",
+				"          Zip1,",
+				"          Zip2,",
+				"          Distance,",
+				"          DrivingTime",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectCTA",
+				"selectCTA derive(Division = 'CTA') ~> createIDsCTA",
+				"addLastUpdateTimestamp alterRow(upsertIf(true())) ~> AlterRow",
+				"AlterRow sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          Zip1 as string,",
+				"          Zip2 as string,",
+				"          Distance as string,",
+				"          DrivingTime as string,",
+				"          Division as string,",
+				"          CreatedTS as timestamp,",
+				"          LastUpdatedTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['Zip1','Zip2','Division'],",
+				"     format: 'table',",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          Zip1,",
+				"          Zip2,",
+				"          Distance,",
+				"          DrivingTime,",
+				"          Division,",
+				"          CreatedTS,",
+				"          LastUpdatedTS = LastUpdateTS",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> targetDim"
+			]
+		}
+	}
+}

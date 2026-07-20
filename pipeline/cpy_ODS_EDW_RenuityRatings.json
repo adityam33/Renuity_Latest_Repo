@@ -1,0 +1,278 @@
+{
+	"name": "cpy_ODS_EDW_RenuityRatings",
+	"properties": {
+		"activities": [
+			{
+				"name": "Renuity_Ratings_ODS_EDW",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"sqlReaderQuery": "SeLECT \tid,\nlds_id,\ncst_id,\ncreditscore,\nleadscore,\nCreatedDate,\nModifiedDate,\nCreatedBy,\nModifiedBy,\nExperian_CreditScore,\nExperian_CreditRating,\nRen_CreditRating,\nDivision,\nLP_id,\nLP_lds_id,\nLP_cst_id,\nclass,\nprob\nFROM \n(\n\tSELECT \n\tCONCAT(Division,'-',id) as id,\n\tCONCAT(Division,'-',lds_id) as lds_id,\n\tCONCAT(Division,'-',cst_id) as cst_id,\n\tcreditscore,\n\tleadscore,\n\tCreatedDate,\n\tModifiedDate,\n\tCreatedBy,\n\tModifiedBy,\n\t'0' as Experian_CreditScore,\n\tNULL as Experian_CreditRating,\n\tRen_CreditRating,\n\tDivision,\n\tid as LP_id,\n\tlds_id as LP_lds_id,\n\tcst_id as LP_cst_id,\n\tNULL as class,\n\tNULL as prob,\n\tROW_NUMBER() OVER (PARTITION BY CONCAT(Division,'-',lds_id) ORDER BY CreatedDate DESC) AS RW\n\tfrom ODS.LP_PBC_rrt_RenuityRatings\n\t\t) A2\nWHERE RW=1\n\n\nUNION \n\n\nSeLECT \tid,\nlds_id,\ncst_id,\ncreditscore,\nleadscore,\nCreatedDate,\nModifiedDate,\nCreatedBy,\nModifiedBy,\nExperian_CreditScore,\nExperian_CreditRating,\nRen_CreditRating,\nDivision,\nLP_id,\nLP_lds_id,\nLP_cst_id,\nclass,\nprob\nFROM \n(\n\tSELECT \n\tCONCAT(Division,'-',id) as id,\n\tCONCAT(Division,'-',lds_id) as lds_id,\n\tCONCAT(Division,'-',cst_id) as cst_id,\n\tcreditscore,\n\tleadscore,\n\tCreatedDate,\n\tModifiedDate,\n\tCreatedBy,\n\tModifiedBy,\n\tExperian_CreditScore,\n\tExperian_CreditRating,\n\tRen_CreditRating,\n\tDivision,\n\tid as LP_id,\n\tlds_id as LP_lds_id,\n\tcst_id as LP_cst_id,\n\tNULL as class,\n\tNULL as prob,\n\tROW_NUMBER() OVER (PARTITION BY CONCAT(Division,'-',lds_id) ORDER BY CreatedDate DESC) AS RW\n\tfrom ODS.LP_RTW_rrt_RenuityRatings\n\t\t\t) A3\nWHERE RW=1\n\nUnion\n\nSeLECT \tid,\nlds_id,\ncst_id,\ncreditscore,\nleadscore,\nCreatedDate,\nModifiedDate,\nCreatedBy,\nModifiedBy,\nExperian_CreditScore,\nExperian_CreditRating,\nRen_CreditRating,\nDivision,\nLP_id,\nLP_lds_id,\nLP_cst_id,\nclass,\nprob\nFROM \n(\n\tSELECT \n\tCONCAT(Division,'-',id) as id,\n\tCONCAT(Division,'-',lds_id) as lds_id,\n\tCONCAT(Division,'-',cst_id) as cst_id,\n\tcreditscore,\n\tleadscore,\n\tCreatedDate,\n\tModifiedDate,\n\tCreatedBy,\n\tModifiedBy,\n\tExperian_CreditScore,\n\tExperian_CreditRating,\n\tRen_CreditRating,\n\tDivision,\n\tid as LP_id,\n\tlds_id as LP_lds_id,\n\tcst_id as LP_cst_id,\n\tclass,\n\tprob,\n\tROW_NUMBER() OVER (PARTITION BY CONCAT(Division,'-',lds_id) ORDER BY CreatedDate DESC) AS RW\n\tfrom ODS.LP_CTA_rrt_RenuityRatings\n\t) A1\nWHERE RW=1\n\nUnion\n\nSeLECT \tid,\nlds_id,\ncst_id,\ncreditscore,\nleadscore,\nCreatedDate,\nModifiedDate,\nCreatedBy,\nModifiedBy,\nExperian_CreditScore,\nExperian_CreditRating,\nRen_CreditRating,\nDivision,\nLP_id,\nLP_lds_id,\nLP_cst_id,\nclass,\nprob\nFROM \n(\n\tSELECT \n\tCONCAT(Division,'-',id) as id,\n\tCONCAT(Division,'-',lds_id) as lds_id,\n\tCONCAT(Division,'-',cst_id) as cst_id,\n\tcreditscore,\n\tleadscore,\n\tCreatedDate,\n\tModifiedDate,\n\tCreatedBy,\n\tModifiedBy,\n\tExperian_CreditScore,\n\tExperian_CreditRating,\n\tRen_CreditRating,\n\tDivision,\n\tid as LP_id,\n\tlds_id as LP_lds_id,\n\tcst_id as LP_cst_id,\n\tNULL as class,\n\tNULL as prob,\n\tROW_NUMBER() OVER (PARTITION BY CONCAT(Division,'-',lds_id) ORDER BY CreatedDate DESC) AS RW\n\tfrom ODS.LP_MAC_rrt_RenuityRatings\n\t) A1\nWHERE RW=1\n\nUNION\n\nSELECT \tid,\nlds_id,\ncst_id,\ncreditscore,\nleadscore,\nCreatedDate,\nModifiedDate,\nCreatedBy,\nModifiedBy,\nExperian_CreditScore,\nExperian_CreditRating,\nRen_CreditRating,\nDivision,\nLP_id,\nLP_lds_id,\nLP_cst_id,\nclass,\nprob\nFROM \n(\n\tSELECT \n\tCONCAT(Division,'-',id) as id,\n\tCONCAT(Division,'-',lds_id) as lds_id,\n\tCONCAT(Division,'-',cst_id) as cst_id,\n\tcreditscore,\n\tleadscore,\n\tCreatedDate,\n\tModifiedDate,\n\tCreatedBy,\n\tModifiedBy,\n\tExperian_CreditScore,\n\tExperian_CreditRating,\n\tRen_CreditRating,\n\tDivision,\n\tid as LP_id,\n\tlds_id as LP_lds_id,\n\tcst_id as LP_cst_id,\n\tclass,\n\tprob,\n\tROW_NUMBER() OVER (PARTITION BY CONCAT(Division,'-',lds_id) ORDER BY CreatedDate DESC) AS RW\n\tfrom ODS.LP_SWR_rrt_RenuityRatings\n\t) A1\nWHERE RW=1\n\nUNION\n\nSELECT \tid,\nlds_id,\ncst_id,\ncreditscore,\nleadscore,\nCreatedDate,\nModifiedDate,\nCreatedBy,\nModifiedBy,\nExperian_CreditScore,\nExperian_CreditRating,\nRen_CreditRating,\nDivision,\nLP_id,\nLP_lds_id,\nLP_cst_id,\nclass,\nprob\nFROM \n(\n\tSELECT \n\tCONCAT(Division,'-',id) as id,\n\tCONCAT(Division,'-',lds_id) as lds_id,\n\tCONCAT(Division,'-',cst_id) as cst_id,\n\tcreditscore,\n\tleadscore,\n\tCreatedDate,\n\tModifiedDate,\n\tCreatedBy,\n\tModifiedBy,\n\tExperian_CreditScore,\n\tExperian_CreditRating,\n\tRen_CreditRating,\n\tDivision,\n\tid as LP_id,\n\tlds_id as LP_lds_id,\n\tcst_id as LP_cst_id,\n\tclass,\n\tprob,\n\tROW_NUMBER() OVER (PARTITION BY CONCAT(Division,'-',lds_id) ORDER BY CreatedDate DESC) AS RW\n\tfrom ODS.LP_FHI_rrt_RenuityRatings\n\t) A1\nWHERE RW=1\n\n\n\n\n",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "IF OBJECT_ID('EDW.DIM_RENUITYRATINGS')  IS NOT NULL TRUNCATE TABLE EDW.DIM_RENUITYRATINGS",
+						"allowCopyCommand": true
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "RenuityRatingID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "lds_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LeadID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "cst_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CustomerID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "creditscore",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CreditScore",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "leadscore",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LeadScore",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CreatedDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "CreatedDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "ModifiedDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "ModifiedDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "CreatedBy",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CreatedBy",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ModifiedBy",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ModifiedBy",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Division",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "LP_RenuityRatingID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_lds_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LP_LeadID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_cst_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LP_CustomerID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Experian_CreditScore",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Experian_CreditScore",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Experian_CreditRating",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Experian_CreditRating",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Ren_CreditRating",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Ren_CreditRating",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "prob",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "Prob",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "class",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Class",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ODS_MXH_rrt_RenuityRatings",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_rrt_RenuityRatings",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "MXH renuity rating",
+				"type": "Script",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Renuity_Ratings_ODS_EDW",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "Update EDW.[DIM_RENUITYRATINGS] Set Ren_CreditRating=  CASE \n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tWHEN Creditscore ='A' THEN 'A'\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tWHEN Experian_Creditrating ='A' THEN 'A'\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tWHEN Creditscore ='B' and Experian_Creditrating in ('B','C','D','U') THEN 'B'\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tWHEN Creditscore ='C' and Experian_Creditrating in ('C','D','U') THEN 'C'\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tWHEN Creditscore ='D' and Experian_Creditrating in ('D','U') THEN 'D'\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tWHEN Experian_Creditrating ='B' and Creditscore in ('B','C','D','U') THEN 'B'\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tWHEN Experian_Creditrating ='C' and Creditscore in ('C','D','U') THEN 'C'\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tWHEN Experian_Creditrating ='D' and Creditscore in ('D','U') THEN 'D'\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tWHEN Experian_Creditrating ='U' and Creditscore in ('A','B','C','D') THEN creditscore\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tWHEN Creditscore ='U' and Experian_Creditrating in ('A','B','C','D') THEN Experian_Creditrating\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tWHEN Creditscore ='U' and Experian_Creditrating ='U' THEN 'U'\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tELSE 'U'\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tEND \n\t\t\t\t\t\t  where Division='MXH' "
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/DIMENSIONS/LP"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-12-23T12:28:42Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

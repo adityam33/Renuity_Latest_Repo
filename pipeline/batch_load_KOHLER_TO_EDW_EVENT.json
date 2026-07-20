@@ -1,0 +1,583 @@
+{
+	"name": "batch_load_KOHLER_TO_EDW_EVENT",
+	"properties": {
+		"activities": [
+			{
+				"name": "df_Kohler_Cost_Inq",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "DF_Kohler_Cost_Inquiries",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "AzureBlobStorage1",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdctestanuj/erros_kohler_data"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "kohler_moveFiles",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "df_Kohler_Cost_Inq",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "KOHLER_MOVEFILES",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "kohler_lead_Cost_Txn",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "kohler_moveFiles",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT\nGETDATE() AS Timestamp\n,CASE \n\tWHEN A.Division='HSI' THEN 'Home Smart'\n\tWHEN A.Division='RTW' THEN 'Rite Window'\n\tWHEN A.Division='PBC' THEN 'Pacific Bath'\n\tWHEN A.Division='SWR' THEN 'Statewide' End AS Company\n,A.Division\n,B.LeadID\n,A.BusinessGroup \t\t\n,A.DealerName \t\t\t\n,CAST( SUBSTRING(A.LeadCreatedDate, 1, CHARINDEX(',',A.LeadCreatedDate) - 1) AS DATE) AS LeadCreatedDate\n,A.LeadStatus \t\t\t\n,A.UnqualifiedReason \t\n,A.Stage \t\t\t\t\n,A.AppointmentStatus \t\n,A.JobStatus \t\t\t\n,A.LossReason \t\t\t\n,A.AppointmentDate \t\n,A.OpportunityAmount \t\n,A.GrossSale \t\t\t\n,A.NetSale \t\t\t\n,A.Source \t\t\t\t\n,A.CampaignName \t\t\n,A.ChargeBackPrice \t\n,A.CostPerSale \n,(COALESCE(A.ChargeBackPrice,0.00) + COALESCE(A.CostPerSale,0.00)) AS MarketingCostTotal\n,A.LPExternalID \t\t\n,A.Phone \t\t\t\t\n,A.LeadSource \t\t\t\n,P.UNI_ProductName\n,CAST(GETDATE() AS DATE) AS LastUpdatedTS\nFROM ODS.KOHLER_LEAD_COST_INQUIRIES A\nLEFT JOIN [EDW].[FACT_INBOUND_QUEUE_LOG] B\nON A.LPExternalID = SUBSTRING(B.User11, 1, CHARINDEX('.', B.User11) - 1) \nAND A.Division = B.Division\nLEFT JOIN EDW.DIM_PRODUCT P \nON B.ProductID = P.PRODUCTNAME\nAND B.Division = P.Division;",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "DELETE FROM EDW.FACT_KOHLER_LEAD_COST_MTD WHERE CAST(LastUpdatedTS AS DATE) = CAST(GETDATE() AS DATE);",
+						"allowCopyCommand": true
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdctestanuj"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Timestamp",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "Timestamp",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "Company",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Company",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Division",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LeadID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "BusinessGroup",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BusinessGroup",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DealerName",
+									"type": "String"
+								},
+								"sink": {
+									"name": "DealerName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadCreatedDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LeadCreatedDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadStatus",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LeadStatus",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UnqualifiedReason",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UnqualifiedReason",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Stage",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Stage",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "AppointmentStatus",
+									"type": "String"
+								},
+								"sink": {
+									"name": "AppointmentStatus",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "JobStatus",
+									"type": "String"
+								},
+								"sink": {
+									"name": "JobStatus",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LossReason",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LossReason",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "AppointmentDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "AppointmentDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "OpportunityAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "OpportunityAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "GrossSale",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "GrossSale",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "NetSale",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "NetSale",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "Source",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Source",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CampaignName",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CampaignName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ChargeBackPrice",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "ChargeBackPrice",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "CostPerSale",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "CostPerSale",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "MarketingCostTotal",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "MarketingCostTotal",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "LPExternalID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LPExternalID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Phone",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Phone",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadSource",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LeadSource",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UNI_ProductName",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UNI_ProductName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ODS_KOHLER_LEAD_COST_INQUIRIES",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_FACT_KOHLER_LEAD_COST_MTD",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "kohler_lead_Cost_Summ",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "kohler_lead_Cost_Txn",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"sqlReaderQuery": "SELECT \nTimestamp\t\t\n,Company\t\t\t\n,Division\t\t\n,LeadID\t\t\t\n,BusinessGroup \n,UNI_ProductName\n,LeadCreatedDate \n,ChargeBackPrice \n,CostPerSale \t \n,MarketingCostTotal\t\n,LPExternalID \t\t\n,Phone \t\t\t\t\n,LeadSource \t\t\t\n,GETDATE() AS LastUpdatedTS\nFROM\n(\n\tSELECT *\n\t,ROW_NUMBER() OVER (PARTITION BY LPExternalID,DIVISION ORDER BY Timestamp DESC) AS RW\n\tFROM EDW.FACT_KOHLER_LEAD_COST_MTD\n\tWHERE LPExternalID IS NOT NULL\n\t\n\t) M1\nWHERE RW=1\n\n\nUNION ALL \n\n\nSELECT \nTimestamp\t\t\n,Company\t\t\t\n,Division\t\t\n,LeadID\t\t\t\n,BusinessGroup \n,UNI_ProductName\n,LeadCreatedDate \n,ChargeBackPrice \n,CostPerSale \t \n,MarketingCostTotal\t\n,LPExternalID \t\t\n,Phone \t\t\t\t\n,LeadSource \t\t\t\n,GETDATE() AS LastUpdatedTS\nFROM\n(\n\tSELECT *\n\t,ROW_NUMBER() OVER (PARTITION BY Company,Division,LeadID,BusinessGroup,UNI_ProductName,LeadCreatedDate ,\n\t\t\t\t\t\t\t\t\tChargeBackPrice ,CostPerSale ,MarketingCostTotal,LPExternalID ,Phone,LeadSource \t \n\t\t\t\t\t\tORDER BY Timestamp DESC) AS RW\n\tFROM EDW.FACT_KOHLER_LEAD_COST_MTD\n\tWHERE LPExternalID IS NULL\n\t\n\t) M1\nWHERE RW=1;",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "TRUNCATE TABLE EDW.FACT_KOHLER_LEAD_COST;",
+						"allowCopyCommand": true
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdctestanuj"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Timestamp",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "Timestamp",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "Company",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Company",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Division",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LeadID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "BusinessGroup",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BusinessGroup",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UNI_ProductName",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UNI_Product",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadCreatedDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LeadCreatedDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "ChargeBackPrice",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "ChargeBackPrice",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "CostPerSale",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "CostPerSale",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "LPExternalID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LPExternalID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Phone",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Phone",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "MarketingCostTotal",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "MarketingCostTotal",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_FACT_KOHLER_LEAD_COST_MTD",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "FACT_KOHLER_LEAD_COST",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"concurrency": 1,
+		"folder": {
+			"name": "ODS_to_EDW/SRC_to_EDW"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-01-21T15:12:05Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

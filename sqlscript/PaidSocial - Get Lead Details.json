@@ -1,0 +1,17 @@
+{
+	"name": "PaidSocial - Get Lead Details",
+	"properties": {
+		"content": {
+			"query": "SELECT\nlds.Division\n,srs.SourceCode\n,srs.LeadSubSourceID\n,srs.LeadSubSource\n,brn.LongName as Market\n,prd.ProductName as ProductID\n,prd.LongDescription as Product\n,dsp.Comments as Disposition\n,cast(lds.EntryDate as Date) as EntryDate\n,appt.[ApptDate]\n,appt.SetDate\n,job.ContractDate\n,lds.LeadID\n,cst.CustomerID\n,cst.FirstName\n,cst.LastName\n,cst.Email\n,cst.Phone\n,cst.Address1\n,cst.City\n,cst.[State]\n,cst.Zip\n,lds.ApptSet\n,lds.NetIssued\n,lds.Sat\n,lds.Sold\n,jbs.JobStatus\n,jsc.JobStatusCategory\n,job.GrossAmount\n,case \n    when jsc.JobStatusCategory is NULL then 0\n    when jsc.JobStatusCategory in ('Cancelled', 'Credit Decline') then 0 \n    else job.GrossAmount\nend as [NetSalesAmount]\n,lds.[LeadScore_ExpectedValueRank]\n,lds.[LeadScore_LogisticRegressionRank]\n,lds.[LeadScore_RegressionRank]\n,lds.[LeadScore_Initial_LikelihoodToBuy]\n,lds.[LeadScore_Initial_LikelySaleAmount]\n,lds.[LeadScore_Initial_ExpectedValue]\n,lds.[LeadScore_Current_LikelihoodToBuy]\n,lds.[LeadScore_Current_LikelySaleAmount]\n,lds.[LeadScore_Current_ExpectedValue]\nFROM \n[EDW].[FACT_LEAD] lds\nleft join [EDW].[DIM_PRODUCT] prd\non lds.ProductID = prd.ProductID\nleft join [EDW].[DIM_CUSTOMER] cst\non lds.CustomerID = cst.CustomerID\nleft join (\n    SELECT \n        [LeadID]\n        ,MAX([ApptDate]) as [ApptDate]\n        ,MAX(SetDate) as [SetDate]\n    FROM \n        [EDW].[FACT_APPOINTMENT]\n    group by \n    LeadID\n) appt\non lds.LeadID = appt.LeadID\nleft join [EDW].[DIM_LEAD_SUB_SOURCE] srs\non lds.LeadSubSourceID = srs.LeadSubSourceID\nleft join [EDW].[DIM_DISPOSITION] dsp\non lds.DispositionID = dsp.DispositionID\nleft join [EDW].[DIM_BRANCH] brn\non lds.BranchID = brn.BranchID\nleft join [EDW].[FACT_JOB] job\non lds.LeadID = job.LeadID\nleft join [EDW].[DIM_JOB_STATUS] jbs\non job.JobStatusID = jbs.JobStatusID\nleft join [EDW].[DIM_JOB_STATUS_CATEGORY] jsc\non jbs.JobStatusCategoryID = jsc.JobStatusCategoryID\nwhere \nlds.LeadSubSourceID IN\n(\n'SWR-2823'\n,'FHI-954'\n,'MAC-2495' -- Coatings\n,'RTW-1492'\n,'PHI-291'\n,'HSI-4839'\n,'MAC-2299' -- Win and Bath\n,'PBC-128'\n,'MAC-2404'\n,'MXH-5950' -- new Bath\n,'MXH-5951' -- new Window\n,'MXH-2527' -- old Bath\n,'MXH-2673' -- old Window\n)\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

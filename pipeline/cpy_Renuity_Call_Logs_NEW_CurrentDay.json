@@ -1,0 +1,114 @@
+{
+	"name": "cpy_Renuity_Call_Logs_NEW_CurrentDay",
+	"properties": {
+		"activities": [
+			{
+				"name": "Execute_Five9_Call_Log_New_DIM_Load",
+				"description": "Incrementally loads new dimensions into DIM_Five9 tables",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "EXEC_SP_FACT_FIVE9_CALL_ALL_CURRDAY_UPD",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_Renuity_Call_Log_DIM_Load",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Execute_Five9_Call_Log_New_FACT_Load",
+				"description": "Loads last 1 day of data from Call log table to Call log NEW table",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute_Five9_Call_Log_New_DIM_Load",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_Five9_FACT_CALL_LOG_ALL_NEW_CurrentDay",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "UPD_Unification",
+				"description": "Unification scripts to update the unified values in Dim Five9 tables",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute_Five9_Call_Log_New_FACT_Load",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "batch_load_Dimensions_FIVE9_UNI_Upd_Scripts",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "EXEC_SP_FACT_FIVE9_CALL_ALL_CURRDAY_UPD",
+				"description": "SP to correct dimension values in Call log table for current day",
+				"type": "Script",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "EXEC [EDW].[SP_FACT_FIVE9_CALL_ALL_CURRDAY_UPD]"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			}
+		],
+		"folder": {
+			"name": "Five9_to_EDW/Current Day Load"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-07-03T10:44:30Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

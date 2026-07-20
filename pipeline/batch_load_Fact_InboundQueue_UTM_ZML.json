@@ -1,0 +1,117 @@
+{
+	"name": "batch_load_Fact_InboundQueue_UTM_ZML",
+	"properties": {
+		"activities": [
+			{
+				"name": "df_load_FACT_INBOUND_QUEUE_LOG",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_FACT_INBOUND_QUEUE_LOG_ZML",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/FACTS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse"
+				}
+			},
+			{
+				"name": "DF load FACT_UTM_PARAMETERS_VALUE",
+				"description": "Loading Fact_UTM_Parameters_Value from ODS to STAGE",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_load_FACT_INBOUND_QUEUE_LOG",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_FACT_UTM_PARAMETERS_VALUE_ZML",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/Fact_UTM_Parameters"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse",
+					"sourceStagingConcurrency": 1
+				}
+			},
+			{
+				"name": "Script_DUP_DEL_TEMP",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "DF load FACT_UTM_PARAMETERS_VALUE",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "\nDELETE FROM  ZML.FACT_UTM_PARAMETERS_VALUE\nWHERE InboundQueueID IN \n(\nSELECT \n    InboundQueueID\n    FROM \n    (\n\tSELECT InboundQueueID,Count(1) AS CT FROM ZML.FACT_UTM_PARAMETERS_VALUE\n\tGROUP  BY InboundQueueID\n\tHAVING Count(1)>1\n        ) A1\n\t\n    ) ;\n\n\nDELETE FROM ZML.FACT_UTM_PARAMETERS_VALUE WHERE InboundQueueID IS NULL OR InboundQueueID=''"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			}
+		],
+		"folder": {
+			"name": "Temp/Anuj/ZML/LP_ODS_to_EDW"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-11-13T13:55:27Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

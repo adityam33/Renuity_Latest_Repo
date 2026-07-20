@@ -1,0 +1,681 @@
+{
+	"name": "cpy_Renuity_Call_Log_DIM_Load_ZML",
+	"properties": {
+		"activities": [
+			{
+				"name": "cpy_DIM_FIVE9_CALL_RESULT_DISPOSITION",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"additionalColumns": [
+							{
+								"name": "UNI_CallResult",
+								"value": ""
+							},
+							{
+								"name": "AnsweredCall",
+								"value": "0"
+							},
+							{
+								"name": "VoiceMail",
+								"value": "0"
+							},
+							{
+								"name": "Qualified",
+								"value": "0"
+							}
+						],
+						"sqlReaderQuery": "-- DISPOSITION \n\n\nWITH A AS \n(\n\tSELECT DIVISION,DISPOSITION\n\tFROM \n\t(\n\t\tSELECT \n\t\tIN_1.DIVISION,\n\t\tIN_1.DISPOSITION\n\t\tFROM \n\t\t\t(\n\t\t\tSELECT DISTINCT DIVISION,\n\t\t\tDISPOSITION\n\t\t\t\n\t\t\tFROM [ZML].[FACT_FIVE9_CALL_LOG_ALL]\n\t\t\tWHERE DIVISION IN ('FHI','MAC','MXH','PBC','RTW','SWR','CTA','HSI')\n\t\t\tAND DISPOSITION IS NOT NULL\n\t\t\t\n\t\t\tUNION \n\t\t\t\n\t\t\tSELECT DISTINCT DIVISION,\n\t\t\tLP_DISPOSITION AS DISPOSITION\n\t\t\tFROM [ZML].[FACT_FIVE9_CALL_LOG_ALL]\n\t\t\tWHERE DIVISION IN ('FHI','MAC','MXH','PBC','RTW','SWR','CTA','HSI')\n\t\t\tAND DISPOSITION IS NULL AND LP_DISPOSITION IS NOT NULL\n\t\t\t\n\t\t\t\n\t\t\t) IN_1\n\t\t\tLEFT JOIN [ZML].[DIM_FIVE9_CALL_RESULT_DISPOSITION]  IN_2\n\t\t\tON IN_1.DISPOSITION = IN_2.CallResult\n\t\t\tAND IN_1.DIVISION = IN_2.DIVISION\n\t\tWHERE IN_2.CallResultID IS NULL\n\t\t\t\n\t\t) A1 \t\n\t),\n\nB AS \n( \n\tSELECT \n\tA.DIVISION,\n\tA.DISPOSITION,\n\tB1.RW\n\tFROM A \n\tLEFT JOIN \n\t(\n\t\tSELECT\n\t\t\tCOALESCE(DISPOSITION,'NA1') AS DISPOSITION,\n\t\t\tROW_NUMBER() OVER (ORDER BY DISPOSITION) AS RW\n\t\t\tFROM \n\t\t\t(SELECT DISTINCT DISPOSITION FROM A ) A1\n\t\t\t\n\t\t\t) B1\n\t\n\tON A.DISPOSITION = B1.DISPOSITION\n\t\t\t\n\t),\n\t\n C AS \n( \n\tSELECT COALESCE(MAX(CallResultID_KEY),0) AS CallResultID_KEY FROM \n\t(\n\t\tSELECT \n\t\tCAST(RIGHT(CallResultID, LEN(CallResultID) - CHARINDEX('-', CallResultID)) AS INT) AS CallResultID_KEY \n\t\tFROM [ZML].[DIM_FIVE9_CALL_RESULT_DISPOSITION]\n\t\t) C1\n\t\t)\n\n\n\nSELECT \nCONCAT(CONCAT(DIVISION,'-'),(B.RW + C.CallResultID_KEY)) AS  CallResultID,\nB.DIVISION,\nB.DISPOSITION AS CallResult,\nCAST(GETDATE() AS DATE) AS LASTUPDATEDTS \n\nFROM B LEFT JOIN C ON 1=1;",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "CallResultID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "CallResultId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CallResult",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "CallResult",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "UNI_CallResult",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UNI_CallResult",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AnsweredCall",
+									"type": "String"
+								},
+								"sink": {
+									"name": "AnsweredCall",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "VoiceMail",
+									"type": "String"
+								},
+								"sink": {
+									"name": "VoiceMail",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Qualified",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Qualified",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "DIVISION",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LASTUPDATEDTS",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_FACT_FIVE9_CALL_LOG_ALL",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ZML_DIM_FIVE9_CALL_RESULT_DISPOSITION",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "cpy_DIM_FIVE9_PRODUCT",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "cpy_DIM_FIVE9_CALL_RESULT_DISPOSITION",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"additionalColumns": [
+							{
+								"name": "UNI_ProductName",
+								"value": ""
+							}
+						],
+						"sqlReaderQuery": "-- PRODUCT \n\nWITH A AS \n(\n\nSELECT M1.DIVISION,M1.PRODUCT\nFROM \n(\n\tSELECT DISTINCT DIVISION,\n\tPRODUCT AS PRODUCT\n\tFROM [ZML].[FACT_FIVE9_CALL_LOG_ALL]\n\tWHERE DIVISION IN ('FHI','PHI','MAC','MXH','PBC','RTW','SWR','CTA','HSI') \n\tAND PRODUCT IS NOT NULL\n\t\n\tUNION \n\t\n\tSELECT DISTINCT DIVISION,\n\tLP_PRODUCT AS PRODUCT\n\tFROM [ZML].[FACT_FIVE9_CALL_LOG_ALL]\n\tWHERE DIVISION IN ('FHI','PHI','MAC','MXH','PBC','RTW','SWR','CTA','HSI') \n\tAND PRODUCT IS NULL AND LP_PRODUCT IS NOT NULL\n\t\n\t) M1\n\nLEFT JOIN [ZML].[DIM_FIVE9_PRODUCT] P \nON  M1.DIVISION = P.DIVISION\nAND M1.PRODUCT  = P.PRODUCTNAME\n\nWHERE P.PRODUCTID IS NULL\n\n)\n,\nB AS \n( \n\tSELECT \n\tA.DIVISION,\n\tA.PRODUCT,\n\tB1.RW \n\tFROM A LEFT JOIN\n\t(\n\n\t\tSELECT\n\t\t\tCOALESCE(PRODUCT,'NA1') AS PRODUCT,\n\t\t\tROW_NUMBER() OVER (ORDER BY PRODUCT) AS RW\n\t\t\tFROM \n\t\t\t(SELECT DISTINCT PRODUCT FROM A) A1\n\t\t\t\n\t\t\t) B1\n\tON A.PRODUCT = B1.PRODUCT\n\t\t),\n \n C AS \n( \n\tSELECT COALESCE(MAX(ProductID_KEY),0) AS ProductID_KEY FROM \n\t(\n\t\tSELECT \n\t\tCAST(RIGHT(PRODUCTID, LEN(PRODUCTID) - CHARINDEX('-', PRODUCTID)) AS INT) AS ProductID_KEY \n\t\tFROM [ZML].[DIM_FIVE9_PRODUCT]\n\t\t) C1\n\t\t)\n\t\t\nSELECT \nCONCAT(CONCAT(DIVISION,'-'),(B.RW + C.ProductID_KEY)) AS PRODUCTID,\nB.DIVISION,\nB.PRODUCT,\nCAST(GETDATE() AS DATE) AS LASTUPDATEDTS \n\nFROM B LEFT JOIN C ON 1=1;",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "PRODUCTID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ProductId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PRODUCT",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ProductName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "UNI_ProductName",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UNI_ProductName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DIVISION",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LASTUPDATEDTS",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_FACT_FIVE9_CALL_LOG_ALL",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ZML_EDW_DIM_FIVE9_PRODUCT",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "cpy_DIM_FIVE9_MARKET",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "cpy_DIM_FIVE9_PRODUCT",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"additionalColumns": [
+							{
+								"name": "UNI_Market",
+								"value": ""
+							},
+							{
+								"name": "UNI_MarketGroup",
+								"value": ""
+							}
+						],
+						"sqlReaderQuery": "-- Market\n\nWITH A AS \n(\n\tSELECT \n\tIN_1.DIVISION,\n\tIN_1.MARKET\n\tFROM \n\t\t(\n\t\t\tSELECT DISTINCT A.Division,A.Market\n\t\t\tFROM [ZML].[FACT_FIVE9_CALL_LOG_ALL] A \n\t\t\tJOIN ZML.DIM_BRANCH B\n\t\t\tON A.Market = B.LP_BranchID\n\t\t\tAND A.Division = B.Division\n\t\t\tWHERE A.DIVISION IN ('FHI', 'PHI', 'MAC', 'MXH', 'PBC', 'RTW', 'SWR', 'CTA', 'HSI')\n\t\t\t\n\t\t\tUNION \n\t\t\t\n\t\t\tSELECT DISTINCT A.Division,A.LP_BranchID AS Market\n\t\t\tFROM [ZML].[FACT_FIVE9_CALL_LOG_ALL] A \n\t\t\tJOIN ZML.DIM_BRANCH B\n\t\t\tON A.LP_BranchID = B.LP_BranchID\n\t\t\tAND A.Division = B.Division\n\t\t\tWHERE A.DIVISION IN ('FHI', 'PHI', 'MAC', 'MXH', 'PBC', 'RTW', 'SWR', 'CTA', 'HSI')\n\t\t\t\n\t\t\t) IN_1\n\t\t\t\n\t\tLEFT JOIN ZML.DIM_FIVE9_MARKET IN_2\n\t\tON IN_1.DIVISION = IN_2.DIVISION\n\t\tAND IN_1.MARKET = IN_2.MARKET \n\tWHERE IN_2.MARKETID IS NULL\n\t\n),\n\nB AS \n( \n\tSELECT \n\tA.DIVISION,\n\tA.MARKET,\n\tB1.RW\n\tFROM A \n\tLEFT JOIN \n\t(\n\t\tSELECT\n\t\t\tCOALESCE(MARKET,'NA1') AS MARKET,\n\t\t\tROW_NUMBER() OVER (ORDER BY MARKET) AS RW\n\t\t\tFROM \n\t\t\t(SELECT DISTINCT MARKET FROM A ) A1\n\t\t\t\n\t\t\t) B1\n\t\n\tON A.MARKET = B1.MARKET\n\t\t\t\n\t),\n\t\n C AS \n( \n\tSELECT COALESCE(MAX(MARKETID_KEY),0) AS MARKETID_KEY FROM \n\t(\n\t\tSELECT \n\t\tCAST(RIGHT(MARKETID, LEN(MARKETID) - CHARINDEX('-', MARKETID)) AS INT) AS MARKETID_KEY \n\t\tFROM ZML.DIM_FIVE9_MARKET\n\t\t) C1\n\t\t)\n\n\n\nSELECT \nCONCAT(CONCAT(B.DIVISION,'-'),(B.RW + C.MARKETID_KEY)) AS  MARKETID,\nB.DIVISION,\nB.MARKET,\nCAST(GETDATE() AS DATE) AS LASTUPDATEDTS \n\nFROM B LEFT JOIN C ON 1=1;",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "MARKETID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "MarketId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "MARKET",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Market",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "UNI_Market",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UNI_Market",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "UNI_MarketGroup",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UNI_MarketGroup",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DIVISION",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LASTUPDATEDTS",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_FACT_FIVE9_CALL_LOG_ALL",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ZML_DIM_FIVE9_MARKET",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "cpy_DIM_FIVE9_SUBSOURCE",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "cpy_DIM_FIVE9_MARKET",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"additionalColumns": [
+							{
+								"name": "UNI_Channel",
+								"value": ""
+							},
+							{
+								"name": "UNI_SourceGroup",
+								"value": ""
+							},
+							{
+								"name": "UNI_SourceCode",
+								"value": ""
+							},
+							{
+								"name": "MappingInd",
+								"value": ""
+							}
+						],
+						"sqlReaderQuery": "-- LeadSubSOurce \n\n\nWITH A AS \n(\t\n\tSELECT\n\tIN_1.DIVISION,\n\tIN_1.SOURCEGROUP,\n\tIN_1.SOURCE,\n\tIN_1.SUBSOURCE \n\tFROM \n\t\t(\n\n\t\tSELECT DISTINCT DIVISION,\n\t\tSOURCEGROUP,\n\t\tSOURCE,\n\t\tSUBSOURCE\n\t\tFROM\n\t\t(\n\t\t\tSELECT DISTINCT DIVISION,\n\t\t\t\tCOALESCE(SOURCEGROUP,LP_SOURCEGROUP) \tAS SOURCEGROUP,\n\t\t\t\tCOALESCE(SOURCE,LP_SOURCECODE) \t\t\tAS SOURCE,\n\t\t\t\tCOALESCE(SUBSOURCE,LP_LeadSUBSOURCE)\tAS SUBSOURCE\n\t\t\t\tFROM [ZML].[FACT_FIVE9_CALL_LOG_ALL]\n\t\t\tWHERE DIVISION IN ('FHI','PHI','MAC','MXH','PBC','RTW','SWR','CTA','HSI')\t\n\t\t\t) M1\n\t\t\tWHERE  NOT (\n    \t\t\t\t\tSOURCEGROUP IS NULL AND\n  \t\t\t\t\t  \tSOURCE IS NULL AND\n    \t\t\t\t\tSUBSOURCE IS NULL\n\t\t\t\t\t\t)\n\t\t\t\n\t\t\t) IN_1\n\t\t\n\t\tLEFT JOIN [ZML].[DIM_FIVE9_SUB_SOURCE_MAPPING] IN_2\n\t\tON  IN_1.DIVISION \t\t\t\t\t\t= IN_2.DIVISION \n        AND COALESCE(IN_1.SOURCEGROUP,'NA') \t= COALESCE(IN_2.SOURCEGROUP,'NA')\n        AND COALESCE(IN_1.SOURCE,'NA') \t\t\t= COALESCE(IN_2.SOURCE,'NA')\n        AND COALESCE(IN_1.SUBSOURCE,'NA') \t\t= COALESCE(IN_2.SUBSOURCE,'NA') \n\t\t\n\t\tWHERE IN_2.LEADSUBSOURCEID IS NULL\n\t\t\n),\n\nB AS \n( \n\tSELECT \n\tA.DIVISION,\n\tA.SOURCEGROUP,\n\tA.SOURCE,\n\tA.SUBSOURCE,\n\tB1.RW\n\tFROM A \n\tLEFT JOIN \n\t(\n\t\tSELECT\n\t\t\tSOURCEGROUP,\n\t\t\tSOURCE,\n\t\t\tSUBSOURCE,\n\t\t\tROW_NUMBER() OVER (ORDER BY SOURCEGROUP,SOURCE,SUBSOURCE) AS RW\n\t\t\tFROM \n\t\t\t(SELECT DISTINCT SOURCEGROUP,SOURCE,SUBSOURCE FROM A ) A1\n\t\t\t\n\t\t\t) B1\n\t\n\tON \tCOALESCE(A.SOURCEGROUP,'NA') \t= COALESCE(B1.SOURCEGROUP,'NA')\n\tAND COALESCE(A.SOURCE,'NA') \t\t= COALESCE(B1.SOURCE,'NA')\n\tAND COALESCE(A.SUBSOURCE,'NA') \t\t= COALESCE(B1.SUBSOURCE,'NA')\n\t\t\t\n\t),\n\n\t\n C AS \n( \n\tSELECT COALESCE(MAX(LEADSUBSOURCEID_KEY),0) AS LEADSUBSOURCEID_KEY FROM \n\t(\n\t\tSELECT \n\t\tCAST(RIGHT(LEADSUBSOURCEID, LEN(LEADSUBSOURCEID) - CHARINDEX('-', LEADSUBSOURCEID)) AS INT) AS LEADSUBSOURCEID_KEY \n\t\tFROM [ZML].[DIM_FIVE9_SUB_SOURCE_MAPPING]\n\t\t) C1\n\t\t)\n\t\t\n\n\n\t\t\nSELECT \nCONCAT(CONCAT(B.DIVISION,'-'),(B.RW + C.LEADSUBSOURCEID_KEY)) AS  LEADSUBSOURCEID,\nB.DIVISION,\nB.SOURCEGROUP,\nB.SOURCE,\nB.SUBSOURCE,\nCAST(GETDATE() AS DATE) AS LASTUPDATEDTS \n\nFROM B LEFT JOIN C ON 1=1;",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "LEADSUBSOURCEID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LeadSubSourceId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SOURCEGROUP",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SourceGroup",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SOURCE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Source",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SUBSOURCE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SubSource",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "UNI_Channel",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UNI_Channel",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "UNI_SourceGroup",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UNI_SourceGroup",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "UNI_SourceCode",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UNI_SourceCode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "MappingInd",
+									"type": "String"
+								},
+								"sink": {
+									"name": "MappingInd",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DIVISION",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LASTUPDATEDTS",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_FACT_FIVE9_CALL_LOG_ALL",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ZML_DIM_FIVE9_SUB_SOURCE_MAPPING",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "UPD_VOICEMAIL_ANSWERED",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "cpy_DIM_FIVE9_SUBSOURCE",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "\nUPDATE EDW.DIM_FIVE9_CALL_RESULT_DISPOSITION\nSET AnsweredCall=0,\nVoiceMail=0;\n\n\n--****** ANSWERED CALLS ********\n\nUPDATE EDW.DIM_FIVE9_CALL_RESULT_DISPOSITION\nSET AnsweredCall=1\nWHERE CallResult IN\n('Appointment Already Set'\t,\n'Appointment Cancelled'\t,\n'Appointment Confirmation Voicemail'\t,\n'Appointment Reset'\t,\n'Appointment Set'\t,\n'Appointment Set - Rehash'\t,\n'Appointment Set - Reset'\t,\n'Bought Competition'\t,\n'Callback Scheduled'\t,\n'CallBack Set'\t,\n'Cancelled Appt'\t,\n'Canvassing Call'\t,\n'Condo Docs'\t,\n'Confirmed'\t,\n'Cust Refuse'\t,\n'Customer Hung Up'\t,\n'CustServCall'\t,\n'Designer Called In'\t,\n'Disconnected Number'\t,\n'End of Call'\t,\n'Hangup'\t,\n'Internal Call'\t,\n'Internal Transfer'\t,\n'Job Request Call'\t,\n'Not Interested'\t,\n'Not Qualified'\t,\n'NQ - 1 Leg'\t,\n'NQ - Bought Competition'\t,\n'NQ - Foreign Language'\t,\n'NQ - Insurance, VA, Medicare, Subsidy'\t,\n'NQ - New Build'\t,\n'NQ - Non-Homeowner'\t,\n'NQ - Out of Area'\t,\n'NQ - Prior Credit Decline'\t,\n'NQ - Product Only'\t,\n'NQ - Property Out of Scope'\t,\n'NQ - Repair Only'\t,\n'NQ - Service Not Offered'\t,\n'NQ-Never Requested'\t,\n'NQ-New Build'\t,\n'NQ-Service Call'\t,\n'Out Of Scope'\t,\n'Outbound GB'\t,\n'Overflow Transfer'\t,\n'Pitch Not Set'\t,\n'Price Drop'\t,\n'Price Given'\t,\n'Promoter Call'\t,\n'Queue Callback Assigned'\t,\n'Queue Callback Timeout'\t,\n'Recycle'\t,\n'Rep Call'\t,\n'Rep Questions'\t,\n'Rep Running Late'\t,\n'Sales Thank You'\t,\n'Service Call'\t,\n'System Shutdown'\t,\n'Telemarketer'\t,\n'Timeout'\t,\n'Verified'\t,\n'3rd party conference'\t,\n'Caller Disconnected'\t,\n'DNC - Do Not Call'\t,\n'Do Not Call'\t,\n'No Demo'\t,\n'Appointment - CONFIRMED'\t,\n'Appointment - SET'\t,\n'Cancel Appointment Saved'\t,\n'Cancel Requested'\t,\n'Contacted'\t,\n'Contacted - Retry'\t,\n'Customer Requested DNC'\t,\n'Foreign Language'\t,\n'Hung Up'\t,\n'NQ - No Home'\t,\n'NQ - Out of Service'\t,\n'Wrong Number'\t,\n'No Disposition',\n'Test Lead'\n);\n\n\n\n--****** VOICEMAIL ********\n\n\nUPDATE EDW.DIM_FIVE9_CALL_RESULT_DISPOSITION\nSET VoiceMail=1\nWHERE CallResult IN \n('AnsMach - VM'\t,\n'AnsMach- WITH Msg'\t,\n'Answering Machine'\t,\n'Appointment Confirmation Voicemail'\t,\n'Conf - Left Message'\t,\n'Conf - Voicemail - No Answer'\t,\n'Foreign Language'\t,\n'Full Voicemail - No Answer'\t,\n'Left Message'\t,\n'Sent To Voicemail'\t,\n'Voicemail - No Answer'\t,\n'Voicemail Dump'\t,\n'Voicemail No Answer'\t,\n'Voicemail Processed'\t,\n'Voicemail Returned'\t,\n'Voicemail-No Answer'\t,\n'Voicemail-No Answer2'\t,\n'No Answer - Agent',\n'Answering Machine - NO MESSAGE'\n);\n\n\n/*\n\n--************ MAC OVERRIDE ******************\n\nUPDATE EDW.DIM_FIVE9_CALL_RESULT_DISPOSITION SET AnsweredCall=0 WHERE DIVISION='MAC';\n\n\n\nUPDATE EDW.DIM_FIVE9_CALL_RESULT_DISPOSITION\nSET AnsweredCall=1\nWHERE DIVISION='MAC'\nAND CallResult IN \n('3rd party conference'\t,\n'Already Set'\t,\n'Appointment'\t,\n'Appointment - CONFIRMED'\t,\n'Appointment - SET'\t,\n'Appointment Already Set'\t,\n'Appointment Reset'\t,\n'Appointment Set'\t,\n'Appointment Set - Reset'\t,\n'Asked DNC'\t,\n'Bought Competition'\t,\n'CallBack Set'\t,\n'Caller Disconnected'\t,\n'Caller Disconnected - Skill Transfer'\t,\n'Cancel Appointment Saved'\t,\n'Cancel Requested'\t,\n'Cancelled Appointment'\t,\n'Cancelled Appt'\t,\n'Confirmed'\t,\n'Contacted'\t,\n'Contacted - Retry'\t,\n'Customer Hung Up'\t,\n'Customer Requested DNC'\t,\n'DNC - Do Not Call'\t,\n'DNC List'\t,\n'Do Not Call'\t,\n'Foreign Language'\t,\n'Hangup'\t,\n'Hung Up'\t,\n'Insurance or Grant'\t,\n'Internal Call'\t,\n'No Disposition'\t,\n'Non-Homeowner'\t,\n'Not Interested'\t,\n'NQ - Bought Competition'\t,\n'NQ - Foreign Language'\t,\n'NQ - Insurance, VA, Medicare, Subsidy'\t,\n'NQ - No Home'\t,\n'NQ - Non-Homeowner'\t,\n'NQ - Out of Area'\t,\n'NQ - Out of Service'\t,\n'NQ - Prior Credit Decline'\t,\n'NQ - Property Out of Scope'\t,\n'NQ - Repair Only'\t,\n'NQ - Service Not Offered'\t,\n'Out of Area'\t,\n'Out of Service'\t,\n'Property Out of Scope'\t,\n'Service Call'\t,\n'Service Not Offered'\t,\n'Test Lead'\t,\n'Verified'\t,\n'Wrong Number'\t\n);\n\n\n*/"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "UPD_Qualified",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "UPD_VOICEMAIL_ANSWERED",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "UPDATE [EDW].[DIM_FIVE9_CALL_RESULT_DISPOSITION] SET Qualified=0;\n\n\nUPDATE [EDW].[DIM_FIVE9_CALL_RESULT_DISPOSITION]\nSET Qualified=1 \nWHERE CallResult IN \n('1 MONTH CALL REQUEST'\t,\n'1 WEEK CALL REQUEST'\t,\n'2 MONTH CALL REQUEST'\t,\n'2 WEEK CALL REQUEST'\t,\n'3 DAY CALL BACK'\t,\n'Cust Could Not Talk'\t,\n'6 WEEK CALL REQUEST'\t,\n'Already Set'\t,\n'Appointment'\t,\n'Appointment - CONFIRMED'\t,\n'Appointment - SET'\t,\n'Appointment Already Set'\t,\n'Appointment Cancelled'\t,\n'Appointment Reset'\t,\n'Appointment Set'\t,\n'Appointment Set - Rehash'\t,\n'Appointment Set - Reset'\t,\n'Appt Confirmed'\t,\n'Appt Reset'\t,\n'Appt Set'\t,\n'Ballpark'\t,\n'BallPark / Low Budet'\t,\n'Below Minimum'\t,\n'Call Back'\t,\n'Callback Cleared '\t,\n'CallBack Decline'\t,\n'Callback Scheduled'\t,\n'CallBack Set'\t,\n'Cancel Appointment'\t,\n'Cancelled'\t,\n'Cancelled Appt'\t,\n'Changed Mind'\t,\n'Confirmed'\t,\n'LOW PV'\t,\n'No English'\t,\n'No Interest Now'\t,\n'CXL'\t,\n'Cxl - Plus'\t,\n'Dec. Promo Attmpt'\t,\n'Not Interested'\t,\n'Not Ready - 3 Months'\t,\n'Not Ready-1 year'\t,\n'Not Ready-6 Months'\t,\n'Overflow Transfer'\t,\n'Price Drop'\t,\n'Price Given'\t,\n'Skip for 1 Day'\t,\n'Unconfirmed'\t,\n'3rd party conference'\t,\n'CB-Not Scheduled'\t,\n'Contacted'\t,\n'NO SET-Adamant 1Leg'\t,\n'Contacted - Retry'\t,\n'End of Call'\t,\n'NQ - 1 Leg'\t,\n'NQ - Foreign Language'\t,\n'Foreign Language'\t,\n'Pitch Not Set'\t,\n'Queue Callback'\t,\n'PrvCstmrNI'\t,\n'Selling House'\t,\n'Selling The Home'\t,\n'REVISIT'\t,\n'Subsidy'\t,\n'Verified'\t,\n'Wants Info Mailed'\t\n\n);\n"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			}
+		],
+		"folder": {
+			"name": "Temp/Anuj/ZML/Five9"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-12-10T11:52:31Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

@@ -1,0 +1,159 @@
+{
+	"name": "df_load_FACT_COMMISSION_ZML",
+	"properties": {
+		"folder": {
+			"name": "ZML_ODS_to_EDW/FACTS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ZML_ODS_FHI_Com_Commissions",
+						"type": "DatasetReference"
+					},
+					"name": "FHI"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_FACT_COMMISSION_ZML",
+						"type": "DatasetReference"
+					},
+					"name": "targetFact",
+					"description": "Export data to EDW_FACT_COMMISSION",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "addOpCoNameFHI"
+				},
+				{
+					"name": "unionAllOpCos"
+				},
+				{
+					"name": "selectRenameColumns"
+				},
+				{
+					"name": "derivedColumns"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          ID as integer,",
+				"          Job_ID as integer,",
+				"          PmtAmount as decimal(19,4),",
+				"          cpt_ID as integer,",
+				"          slr_id as integer,",
+				"          EnteredOn as timestamp,",
+				"          EnteredBy as integer,",
+				"          UpdatedOn as timestamp,",
+				"          UpdatedBy as integer,",
+				"          BatchFlag as boolean,",
+				"          BatchNo as integer,",
+				"          BatchDate as timestamp,",
+				"          CoCode as string,",
+				"          FileNo as string,",
+				"          Comments as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> FHI",
+				"FHI derive(Division = 'FHI') ~> addOpCoNameFHI",
+				"addOpCoNameFHI union(byName: true)~> unionAllOpCos",
+				"unionAllOpCos select(mapColumn(",
+				"          LP_CommissionID = ID,",
+				"          LP_JobID = Job_ID,",
+				"          LP_CommissionPaymentTypeID = cpt_ID,",
+				"          LP_SalesRepID = slr_id,",
+				"          PaymentAmount = PmtAmount,",
+				"          EnteredOn,",
+				"          EnteredBy,",
+				"          UpdatedOn,",
+				"          UpdatedBy,",
+				"          BatchFlag,",
+				"          BatchNumber = BatchNo,",
+				"          BatchDate,",
+				"          CoCode,",
+				"          FileNumber = FileNo,",
+				"          Comments,",
+				"          Division",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectRenameColumns",
+				"selectRenameColumns derive(LastUpdateTS = currentTimestamp(),",
+				"          CommissionID = concat(Division,'-',toString(LP_CommissionID)),",
+				"          JobID = concat(Division,'-',toString(LP_JobID)),",
+				"          CommissionPaymentTypeID = concat(Division,'-',toString(LP_CommissionPaymentTypeID)),",
+				"          SalesRepID = concat(Division,'-',toString(LP_SalesRepID))) ~> derivedColumns",
+				"derivedColumns sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          CommissionID as string,",
+				"          JobID as string,",
+				"          CommissionPaymentTypeID as string,",
+				"          SalesRepID as string,",
+				"          PaymentAmount as decimal(38,18),",
+				"          BatchFlag as boolean,",
+				"          BatchNumber as integer,",
+				"          BatchDate as timestamp,",
+				"          CoCode as string,",
+				"          FileNumber as string,",
+				"          Comments as string,",
+				"          EnteredOn as timestamp,",
+				"          EnteredBy as integer,",
+				"          UpdatedOn as timestamp,",
+				"          UpdatedBy as integer,",
+				"          LP_CommissionID as integer,",
+				"          LP_JobID as integer,",
+				"          LP_CommissionPaymentTypeID as integer,",
+				"          LP_SalesRepID as integer,",
+				"          Division as string,",
+				"          LastUpdateTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     truncate:true,",
+				"     format: 'table',",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          LP_CommissionID,",
+				"          LP_JobID,",
+				"          LP_CommissionPaymentTypeID,",
+				"          LP_SalesRepID,",
+				"          PaymentAmount,",
+				"          EnteredOn,",
+				"          EnteredBy,",
+				"          UpdatedOn,",
+				"          UpdatedBy,",
+				"          BatchFlag,",
+				"          BatchNumber,",
+				"          BatchDate,",
+				"          CoCode,",
+				"          FileNumber,",
+				"          Comments,",
+				"          Division,",
+				"          LastUpdateTS,",
+				"          CommissionID,",
+				"          JobID,",
+				"          CommissionPaymentTypeID,",
+				"          SalesRepID",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> targetFact"
+			]
+		}
+	}
+}

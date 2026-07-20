@@ -1,0 +1,17 @@
+{
+	"name": "Find Non Standard Products in Inbound Log",
+	"properties": {
+		"content": {
+			"query": "select \nin1.Division\n,in1.LeadSubSourceID\n,srs.LeadSubSource\n,in1.ProductID\n,count(1) as LeadCount\nfrom\nEDW.FACT_INBOUND_QUEUE_LOG in1\nleft join EDW.DIM_PRODUCT prd\non in1.productid = prd.ProductName\nand in1.Division = prd.Division\nleft join EDW.DIM_LEAD_SUB_SOURCE srs\non in1.LeadSubSourceID = srs.LeadSubSourceID\nwhere\nin1.DateReceived >= DATEADD(d, -365, GetDate()) \nAND prd.productid IS NULL\ngroup by\nin1.Division\n,in1.productid\n,in1.LeadSubSourceID\n,srs.LeadSubSource\norder by \nLeadCount desc\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

@@ -1,0 +1,801 @@
+{
+	"name": "batch_1andFund_Finance_Applications_ODS_Bkup",
+	"properties": {
+		"activities": [
+			{
+				"name": "ODS",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Get the JobResults to Blob",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.03:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "HttpReadSettings",
+							"requestMethod": "GET",
+							"additionalHeaders": {
+								"value": "@concat('Authorization: Bearer ',\n        activity('GetBearerToken').output.access_token,\n    '\n    X-1LOOK-SALES-REPRESENTATIVE: ',pipeline().parameters.Email)",
+								"type": "Expression"
+							},
+							"requestTimeout": ""
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE ODS.FINANCE_APPLICATIONS",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Application Id",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "ApplicationId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Application Friendly Id",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "ApplicationFriendlyId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Source Platform Id",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "SourcePlatformId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Project Numbers",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "ProjectNumbers",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "TransUnion Credit Range",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "TransUnionCreditRange",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Experian Credit Range",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "ExperianCreditRange",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Appetite Engine Status",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "AppetiteEngineStatus",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Postal Code",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "PostalCode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Has CoApplicant",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "HasCoApplicant",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CoApplicant TransUnion Credit Range",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "CoApplicantTransUnionCreditRange",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CoApplicant Experian Credit Range",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "CoApplicantExperianCreditRange",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Sales Representative Email",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "SalesRepresentativeEmail",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Project Amount",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "ProjectAmount",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Declined Lenders",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "DeclinedLenders",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Eligible Lenders",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "EligibleLenders",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Lender",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Lender",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Lender Status",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "LenderStatus",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Credit Limit",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "CreditLimit",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Plan Selected",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "PlanSelected",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Term Length",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "TermLength",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Interest Rate",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "InterestRate",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "APR",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "APR",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Monthly Payment",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "MonthlyPayment",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Payment Factor",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "PaymentFactor",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Financed Amount",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "FinancedAmount",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Down Payment",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "DownPayment",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Expires At",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "ExpiresAt",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Submitted At",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "SubmittedAt",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Lender Last Updated At",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "LenderLastUpdatedAt",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Prospect ID"
+								},
+								"sink": {
+									"name": "ProspectId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Tombstoned At"
+								},
+								"sink": {
+									"name": "Tombstoned_At"
+								}
+							},
+							{
+								"source": {
+									"name": "Tombstone Type"
+								},
+								"sink": {
+									"name": "Tombstone_Type"
+								}
+							},
+							{
+								"source": {
+									"name": "Tombstone Source"
+								},
+								"sink": {
+									"name": "Tombstone_Source"
+								}
+							},
+							{
+								"source": {
+									"name": "Tombstone Reason"
+								},
+								"sink": {
+									"name": "Tombstone_Reason"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ONEANDFUND_API_RESPONSE_CSV_SRC",
+						"type": "DatasetReference",
+						"parameters": {
+							"JobId": {
+								"value": "@activity('Get JobId').output.resultSets[0].rows[0].JobId",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_CTA_TEST_DYN_DIM_CUSTOMER",
+						"type": "DatasetReference",
+						"parameters": {
+							"SchemaName": "ODS",
+							"TableName": "FINANCE_APPLICATIONS"
+						}
+					}
+				]
+			},
+			{
+				"name": "GetJobResults",
+				"type": "WebActivity",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "GET",
+					"headers": {
+						"Authorization": {
+							"value": "@concat('Bearer ',activity('GetBearerToken').output.access_token)",
+							"type": "Expression"
+						},
+						"X-1LOOK-SALES-REPRESENTATIVE": {
+							"value": "@pipeline().parameters.Email",
+							"type": "Expression"
+						},
+						"Content-Type": "application/json"
+					},
+					"url": {
+						"value": "@concat('https://renuity.1look.cloud/api/v4/job/',activity('Get JobId').output.resultSets[0].rows[0].JobId)",
+						"type": "Expression"
+					},
+					"connectVia": {
+						"referenceName": "AutoResolveIntegrationRuntime",
+						"type": "IntegrationRuntimeReference"
+					}
+				}
+			},
+			{
+				"name": "Backup to Blob",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Raw response Load",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.03:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "WITH CleanResponse AS (\n    SELECT \n        REPLACE(\n            REPLACE(ApplicationResponse, CHAR(13), CHAR(10)),\n        CHAR(10)+CHAR(10), CHAR(10)) AS CleanText\n    FROM ODS.FINANCE_API_RESPONSE_RAW where ExportType='applications' and ID = (Select max(Id) from ODS.FINANCE_API_Response_RAw where ExportType='applications')\n),\nRows AS (\n    -- Split the entire blob into proper rows\n    SELECT \n        ROW_NUMBER() OVER(ORDER BY (SELECT NULL)) AS rn,\n        value AS line\n    FROM CleanResponse\n    CROSS APPLY STRING_SPLIT(CleanText, CHAR(10))\n    WHERE value <> ''\n),\nData AS (\n    SELECT line FROM Rows WHERE rn > 1\n),\nFixed AS (\n    -- Replace commas *inside JSON arrays* with a placeholder\n    SELECT \n        line,\n        REPLACE(\n            REPLACE(\n                line,\n                '\",\"', '\"~\"'          -- inside array\n            ),\n        ', ', '~ ') AS FixedLine\n    FROM Data\n),\nSplitColumns AS (\n    -- Split using comma that is NOT inside an array\n    SELECT\n        f.line,\n        ROW_NUMBER() OVER(PARTITION BY f.line ORDER BY (SELECT NULL)) AS ColIndex,\n        REPLACE(REPLACE(value, '~\"', '\",\"'), '~ ', ', ') AS ColValue\n    FROM Fixed f\n    CROSS APPLY STRING_SPLIT(FixedLine, ',')\n)\nSELECT\n    MAX(CASE WHEN ColIndex = 1 THEN ColValue END) AS ApplicationId,\n    MAX(CASE WHEN ColIndex = 2 THEN ColValue END) AS ApplicationFriendlyId,\n    MAX(CASE WHEN ColIndex = 3 THEN ColValue END) AS SourcePlatformId,\n    MAX(CASE WHEN ColIndex = 4 THEN ColValue END) AS ProjectNumbers,\n    MAX(CASE WHEN ColIndex = 5 THEN ColValue END) AS TransUnionCreditRange,\n    MAX(CASE WHEN ColIndex = 6 THEN ColValue END) AS ExperianCreditRange,\n    MAX(CASE WHEN ColIndex = 7 THEN ColValue END) AS AppetiteEngineStatus,\n    MAX(CASE WHEN ColIndex = 8 THEN ColValue END) AS PostalCode,\n    MAX(CASE WHEN ColIndex = 9 THEN ColValue END) AS HasCoApplicant,\n    MAX(CASE WHEN ColIndex = 10 THEN ColValue END) AS CoApplicantTransUnionCreditRange,\n    MAX(CASE WHEN ColIndex = 11 THEN ColValue END) AS CoApplicantExperianCreditRange,\n    MAX(CASE WHEN ColIndex = 12 THEN ColValue END) AS SalesRepresentativeEmail,\n    MAX(CASE WHEN ColIndex = 13 THEN ColValue END) AS ProjectAmount,\n    MAX(CASE WHEN ColIndex = 14 THEN ColValue END) AS DeclinedLenders,\n    MAX(CASE WHEN ColIndex = 15 THEN ColValue END) AS EligibleLender,\n    MAX(CASE WHEN ColIndex = 16 THEN ColValue END) AS Lender,\n    MAX(CASE WHEN ColIndex = 17 THEN ColValue END) AS LenderStatus,\n    MAX(CASE WHEN ColIndex = 18 THEN ColValue END) AS CreditLimit,\n    MAX(CASE WHEN ColIndex = 19 THEN ColValue END) AS PlanSelected,\n    MAX(CASE WHEN ColIndex = 20 THEN ColValue END) AS TermLength,\n    MAX(CASE WHEN ColIndex = 21 THEN ColValue END) AS InterestRate,\n    MAX(CASE WHEN ColIndex = 22 THEN ColValue END) AS APR,\n    MAX(CASE WHEN ColIndex = 23 THEN ColValue END) AS MonthlyPayment,\n    MAX(CASE WHEN ColIndex = 24 THEN ColValue END) AS PaymentFactor,\n    MAX(CASE WHEN ColIndex = 25 THEN ColValue END) AS FinancedAmount,\n    MAX(CASE WHEN ColIndex = 26 THEN ColValue END) AS DownPayment,\n    MAX(CASE WHEN ColIndex = 27 THEN ColValue END) AS ExpiresAt,\n    MAX(CASE WHEN ColIndex = 28 THEN ColValue END) AS SubmittedAt,\n    MAX(CASE WHEN ColIndex = 29 THEN ColValue END) AS LenderLastUpdatedAt\nFROM SplitColumns\nGROUP BY line;\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_DIM_BRANCH",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "1ANDFUND_API_RESPONSE_Applications",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Get JobId",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "GetBearerToken",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "Select JobId from ODS.FINANCE_API_RESPONSE_RAW where Id = (Select Max(Id) from ODS.FINANCE_API_RESPONSE_RAW Where ExportType='applications')"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "GetBearerToken",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"url": "https://auth.1andfund.com/oauth/token",
+					"connectVia": {
+						"referenceName": "AutoResolveIntegrationRuntime",
+						"type": "IntegrationRuntimeReference"
+					},
+					"body": {
+						"value": "@concat('{\n    \"client_id\":\"',pipeline().parameters.client_id,'\",\n    \"client_secret\":\"',pipeline().parameters.client_secret,'\",\n    \"audience\":\"',pipeline().parameters.audience,'\",\n    \"grant_type\":\"client_credentials\"\n}')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Raw response Load",
+				"type": "Script",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "GetJobResults",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"parameters": [
+								{
+									"name": "ApplicationResponse",
+									"type": "String",
+									"value": {
+										"value": "@activity('GetJobResults').output.Response",
+										"type": "Expression"
+									},
+									"direction": "Input"
+								},
+								{
+									"name": "JobId",
+									"type": "String",
+									"value": {
+										"value": "@activity('Get JobId').output.resultSets[0].rows[0].JobId",
+										"type": "Expression"
+									},
+									"direction": "Input"
+								},
+								{
+									"name": "UpdatedTS",
+									"type": "Datetime",
+									"value": {
+										"value": "@formatDateTime(convertTimeZone(utcNow(), 'UTC', 'Eastern Standard Time'), 'yyyy-MM-dd HH:mm:ss')",
+										"type": "Expression"
+									},
+									"direction": "Input"
+								}
+							],
+							"type": "Query",
+							"text": {
+								"value": "DECLARE @JobIdParam VARCHAR(50) = @JobId;\nDECLARE @UpdatedTSParam DATETIME = @UpdatedTS;\nDECLARE @ApplicationResponseParam Varchar(Max) = @ApplicationResponse;\n\nUpdate ODS.FINANCE_API_RESPONSE_RAW\nSet ApplicationResponse= @ApplicationResponseParam ,\n     UpdatedTs= @UpdatedTSParam\nWhere JobId = @JobIdParam and ExportType='applications';\n",
+								"type": "Expression"
+							}
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Get the JobResults to Blob",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Get JobId",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.03:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "HttpReadSettings",
+							"requestMethod": "GET",
+							"additionalHeaders": {
+								"value": "@concat('Authorization: Bearer ',\n        activity('GetBearerToken').output.access_token,\n    '\n    X-1LOOK-SALES-REPRESENTATIVE: ',pipeline().parameters.Email)",
+								"type": "Expression"
+							},
+							"requestTimeout": ""
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ONEANDFUND_API_RESPONSE_CSV_SRC",
+						"type": "DatasetReference",
+						"parameters": {
+							"JobId": {
+								"value": "@activity('Get JobId').output.resultSets[0].rows[0].JobId",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "1ANDFUND_API_RESPONSE_Applications",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"parameters": {
+			"client_id": {
+				"type": "string",
+				"defaultValue": "ufLT2EvnzUsCN8kBtlnxToEeVaXgLksu"
+			},
+			"client_secret": {
+				"type": "string",
+				"defaultValue": "XqWv56kq2qRPWo9QqbkswUd6Wc5ivJR-2KzIITl0xjRmtMJbt2iofcvJZ97bTzTh"
+			},
+			"audience": {
+				"type": "string",
+				"defaultValue": "https://1look.1andfund.com/"
+			},
+			"BaseURL": {
+				"type": "string",
+				"defaultValue": "https://renuity.1look.cloud/api"
+			},
+			"Email": {
+				"type": "string",
+				"defaultValue": " renuity.datacore@renuityhome.com"
+			}
+		},
+		"folder": {
+			"name": "1andFund to EDW/Bkup"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-02-03T10:23:15Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

@@ -1,0 +1,17 @@
+{
+	"name": "Get all Job Statuses for the Divisions",
+	"properties": {
+		"content": {
+			"query": "SELECT\njob.[Division]\n,job.[LP_JobStatusID]\n,jbs.[LP_JobStatusCategoryID]\n,jbs.[JobStatus]\n,jsc.[JobStatusCategory]\n,jbs.[Active]\n,count(1) as JobCount\n FROM \n [EDW].[FACT_JOB] job\n ,[EDW].[DIM_JOB_STATUS] jbs\n ,[EDW].[DIM_JOB_STATUS_CATEGORY] jsc\n where\n job.JobStatusID = jbs.JobStatusID\n and jbs.JobStatusCategoryID = jsc.JobStatusCategoryID\ngroup by\njob.[Division]\n,job.[LP_JobStatusID]\n,jbs.[LP_JobStatusCategoryID]\n,jbs.[JobStatus]\n,jsc.[JobStatusCategory]\n,jbs.[Active]\norder by\njob.Division\n,count(1)",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

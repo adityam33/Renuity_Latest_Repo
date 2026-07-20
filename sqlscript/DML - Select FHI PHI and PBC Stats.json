@@ -1,0 +1,20 @@
+{
+	"name": "DML - Select FHI PHI and PBC Stats",
+	"properties": {
+		"folder": {
+			"name": "DMLs/Medallia"
+		},
+		"content": {
+			"query": "/* Count of Agents */\n\nSELECT \n'FHI' as OpCo\n,count(distinct emp.id) as AgentCount\n,emp.Active\n FROM [ODS].[LP_FHI_cls_calls] cls\n ,[ODS].[LP_FHI_emp_Employees] emp\n where \n cls.emp_id = emp.id\n group BY\n emp.Active\n UNION\n SELECT \n'PHI' as OpCo\n,count(distinct emp.id) as AgentCount\n,emp.Active\n FROM [ODS].[LP_PHI_cls_calls] cls\n ,[ODS].[LP_PHI_emp_Employees] emp\n where \n cls.emp_id = emp.id\n group BY\n emp.Active\n UNION\n SELECT \n'PBC' as OpCo\n,count(distinct emp.id) as AgentCount\n,emp.Active\n FROM [ODS].[LP_PBC_cls_calls] cls\n ,[ODS].[LP_PBC_emp_Employees] emp\n where \n cls.emp_id = emp.id\n group BY\n emp.Active\n\n/* Count of Agents */\n\n SELECT \n'FHI' as OpCo\n,count(distinct emp.id) as SalesRepCount\n,emp.Active\n FROM [ODS].[LP_FHI_lds_Leads] lds\n ,[ODS].[LP_FHI_emp_Employees] emp\n where \n lds.slr_id = emp.id\n group BY\n emp.Active\n\nUNION\n\n SELECT \n'PBC' as OpCo\n,count(distinct emp.id) as SalesRepCount\n,emp.Active\n FROM [ODS].[LP_PBC_lds_Leads] lds\n ,[ODS].[LP_PBC_emp_Employees] emp\n where \n lds.slr_id = emp.id\n group BY\n emp.Active\n\nUNION\n\n SELECT \n'PHI' as OpCo\n,count(distinct emp.id) as SalesRepCount\n,emp.Active\n FROM [ODS].[LP_PHI_lds_Leads] lds\n ,[ODS].[LP_PHI_emp_Employees] emp\n where \n lds.slr_id = emp.id\n group BY\n emp.Active\n\n/* Count of Installers */\n \nSELECT \n'FHI' as OpCo\n,count(1) as InstallerCount\n,[Active]\nFROM [ODS].[LP_FHI_ins_installers]\ngroup by [Active]\nunion\nSELECT \n'PHI' as OpCo\n,count(1) as InstallerCount\n,[Active]\nFROM [dbo].[LP_PHI_ins_installers]\ngroup by [Active]\nunion\nSELECT \n'PBC' as OpCo\n,count(1) as InstallerCount\n,[Active]\nFROM [dbo].[LP_PBC_ins_installers]\ngroup by [Active]",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

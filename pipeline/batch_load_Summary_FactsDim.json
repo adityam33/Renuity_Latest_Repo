@@ -1,0 +1,68 @@
+{
+	"name": "batch_load_Summary_FactsDim",
+	"properties": {
+		"activities": [
+			{
+				"name": "cpy_load_SUMM_FACT_ZIP_CODE_PERFORMANCE",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_load_SUMM_FACT_ZIP_CODE_PERFORMANCE",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_load_SUMM_FACT_DIVISION_PERFORMANCE",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_load_SUMM_FACT_DIVISION_PERFORMANCE",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_load_SUMM_FACT_PERF_MKTNG_LEADS",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_load_SUMM_FACT_ZIP_CODE_PERFORMANCE",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_load_SUMM_FACT_PERF_MKTNG_LEADS",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/SUMM_FACTS/LP"
+		},
+		"annotations": [],
+		"lastPublishTime": "2024-08-02T09:28:22Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

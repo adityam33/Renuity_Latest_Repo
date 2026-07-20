@@ -1,0 +1,20 @@
+{
+	"name": "Get Lead Performance for Calls in a Month",
+	"properties": {
+		"folder": {
+			"name": "DMLs/Analysis SQL"
+		},
+		"content": {
+			"query": "SELECT distinct\nlds.LeadID\n,lds.CustomerID\n,lds.EntryDate\n,dsp.Comments as DispositionDescription\n,srs.LeadSubSource\n,lds.GrossSalesAmount\n,customerList.LastCallDate\nFROM\n[EDW].[FACT_LEAD] lds,\n(\n    SELECT \n    cst.CustomerID\n    ,cst.Zip\n    ,MAX(cls.CallDate) as LastCallDate\n    ,count(distinct cls.CallID) as CallCount\n    FROM \n    [EDW].[FACT_CALL] cls\n    ,[EDW].[DIM_CUSTOMER] cst\n    where\n    cls.CustomerID = cst.CustomerID\n    and cls.OperatingCompany = 'FHI' \n    and cls.CallDate >= '2022-09-01'\n    and cst.Zip = '33143'\n    group BY\n    cst.CustomerID\n    ,cst.Zip\n    ,MONTH(cls.CallDate)\n) customerList\n,[EDW].[DIM_LEAD_SUB_SOURCE] srs\n,[EDW].[DIM_DISPOSITION] dsp\nwhere\nlds.CustomerID = customerList.CustomerID\nand lds.LeadSubSourceID = srs.LeadSubSourceID\nand lds.DispositionID = dsp.OperatingCompany + '-' + dsp.Disposition\norder by \ncustomerList.LastCallDate asc",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

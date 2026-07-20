@@ -1,0 +1,20 @@
+{
+	"name": "Get GL Lines by Account and Company",
+	"properties": {
+		"folder": {
+			"name": "DMLs/Analysis SQL/Acumatica Recon Analysis"
+		},
+		"content": {
+			"query": "SELECT \norg.CompanyID\n,sum(gl.DebitAmount - gl.CreditAmount)\nFROM \n[EDW].[FACT_ERP_GL_TRANSACTION] gl\n,[EDW].[DIM_ERP_ACCOUNT] acc\n,[EDW].[DIM_ERP_BRANCH] brn\n,[EDW].[DIM_ERP_ORGANIZATION] org\nwhere \ngl.AccountCode = acc.AccountCode\nand gl.BranchCode = brn.BranchCode\nand brn.CompanyID = org.CompanyID\nand acc.AccountCode in \n('71000','71002','71004','71008','71009','71010','71011','71012','71013','71014','71015','71016','71017','71018','71020')\nand org.CompanyID in ('0001','0003')\nand gl.PeriodID = '072022'\ngroup BY\norg.CompanyID\n\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

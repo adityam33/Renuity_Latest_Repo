@@ -1,0 +1,75 @@
+{
+	"name": "batch_ToCreate_API_List",
+	"properties": {
+		"activities": [
+			{
+				"name": "Create API List",
+				"description": "Creates API List for Zipcodes",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.01:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/json",
+						"Accept": "*/*",
+						"Accept-Encoding": "gzip, deflate, br"
+					},
+					"url": "https://app.suppressionlist.com/lists",
+					"connectVia": {
+						"referenceName": "RDC-SelfHostedIntegrationRunTime",
+						"type": "IntegrationRuntimeReference"
+					},
+					"body": {
+						"value": "@concat('{\"name\":\"',pipeline().parameters.Listname,'\",\"url_name\":\"',concat(pipeline().parameters.ListURLName,'\"}'))",
+						"type": "Expression"
+					},
+					"authentication": {
+						"type": "Basic",
+						"username": "API",
+						"password": {
+							"type": "AzureKeyVaultSecret",
+							"store": {
+								"referenceName": "AzureKeyVaultDataCore",
+								"type": "LinkedServiceReference"
+							},
+							"secretName": "api"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"APIUserName": {
+				"type": "string",
+				"defaultValue": "API"
+			},
+			"Listname": {
+				"type": "string",
+				"defaultValue": "renuity__last_30_days__phone"
+			},
+			"ListURLName": {
+				"type": "string",
+				"defaultValue": "renuity__last_30_days__phone"
+			}
+		},
+		"variables": {
+			"P_Zipcode": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "RDC_to_ActiveProspect"
+		},
+		"annotations": [],
+		"lastPublishTime": "2023-12-07T06:51:01Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

@@ -1,0 +1,150 @@
+{
+	"name": "batch_load_Fact_InboundQueue_UTM",
+	"properties": {
+		"activities": [
+			{
+				"name": "df_load_FACT_INBOUND_QUEUE_LOG",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_FACT_INBOUND_QUEUE_LOG",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/FACTS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse"
+				}
+			},
+			{
+				"name": "DF load FACT_UTM_PARAMETERS_VALUE",
+				"description": "Loading Fact_UTM_Parameters_Value from ODS to STAGE",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "df_load_FACT_INBOUND_QUEUE_LOG",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_FACT_UTM_PARAMETERS_VALUE",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/Fact_UTM_Parameters"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse"
+				}
+			},
+			{
+				"name": "Script_DUP_DEL_TEMP",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "DF load FACT_UTM_PARAMETERS_VALUE",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "WITH M1 AS \n(\n\tSELECT * \n\tFROM \n\t(\n\t\tSELECT UTMID,InboundQueueID,\n\t\tROW_NUMBER() OVER (PARTITION BY InboundQueueID ORDER BY UTMID) AS RW \n\t\tFROM EDW.FACT_UTM_PARAMETERS_VALUE\n\t\t) M1\n\tWHERE RW > 1\n\t)\n\t\n\nUPDATE EDW.FACT_UTM_PARAMETERS_VALUE\nSET InboundQueueID = NULL\nWHERE UTMID IN (SELECT UTMID FROM M1);\n\n\n\n/*\n\nDELETE FROM  EDW.FACT_UTM_PARAMETERS_VALUE\nWHERE InboundQueueID IN \n(\nSELECT \n    InboundQueueID\n    FROM \n    (\n\tSELECT InboundQueueID,Count(1) AS CT FROM EDW.FACT_UTM_PARAMETERS_VALUE\n\tGROUP  BY InboundQueueID\n\tHAVING Count(1)>1\n        ) A1\n\t\n    ) \nAND InboundQueueID IS NOT NULL\nAND InboundQueueID!='';\n\n\n--DELETE FROM EDW.FACT_UTM_PARAMETERS_VALUE WHERE InboundQueueID IS NULL OR InboundQueueID=''\n\n*/\n\n"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Unit CPL update for BP",
+				"description": "Updating the Unit CPL for BP source group since Guru spend is configured from Funnel. AP estimated CPL will be removed. Meanwhile updating the CPL to 0 by this script",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Script_DUP_DEL_TEMP",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "Update U Set UnitCpl=0 \r\nfrom EDW.FACT_UTM_Parameters_value U \r\njoin EDW.Fact_lead L on U.LeadId=L.LeadId\r\nwhere L.LeadsubsourceId in (\r\n'FHI-1549',\r\n'PBC-951',\r\n'CTA-709',\r\n'SWR-3819',\r\n'MAC-4766',--New srs Ids below\r\n'CTA-789',\r\n'CTA-790',\r\n'FHI-6767',\r\n'MAC-5575',\r\n'PBC-1221',\r\n'PBC-1222',\r\n'SWR-4084',\r\n'RTW-1970',--Old\r\n'RTW-8455'--New\r\n);"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/FACTS/LP"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-04-21T19:52:03Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

@@ -1,0 +1,3916 @@
+{
+	"name": "cpy_test_Active_prospect_lead_data",
+	"properties": {
+		"activities": [
+			{
+				"name": "cp_activeprospect_lead_data",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Set variable3",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:01:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "GET",
+						"additionalHeaders": {
+							"Accept": {
+								"value": "application/json",
+								"type": "Expression"
+							}
+						},
+						"paginationRules": {
+							"supportRFC5988": "true"
+						}
+					},
+					"sink": {
+						"type": "JsonSink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings",
+							"copyBehavior": "FlattenHierarchy"
+						},
+						"formatSettings": {
+							"type": "JsonWriteSettings",
+							"filePattern": "arrayOfObjects"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "ActiveProspect_LeadConduit_All_Events",
+						"type": "DatasetReference",
+						"parameters": {
+							"Date": {
+								"value": "@variables('v_Date')",
+								"type": "Expression"
+							},
+							"StartTime": {
+								"value": "@variables('StartTime')",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "Test_ActiveProspect_LeadData",
+						"type": "DatasetReference",
+						"parameters": {
+							"FileName": {
+								"value": "@concat('ActiveProspect_Lead_Data_New_',replace(variables('v_Date'),'-', '_'),'_',replace(variables('StartTime'), ':', '_'),'.json')",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "Set variable1",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Script1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "v_Date",
+					"value": "2025-12-31"
+				}
+			},
+			{
+				"name": "Script1",
+				"type": "Script",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": {
+								"value": "DECLARE @NewID INT;\r\n\r\nINSERT INTO LeadConduit_Batch_Log (WindowStart, WindowEnd, Last_After_ID, Status, RecordsFetched)\r\nVALUES ('@{pipeline().parameters.p_WindowStart}', '@{pipeline().parameters.p_WindowEnd}', '@{pipeline().parameters.p_LastAfterID}', 'RUNNING', 0);\r\n\r\nSET @NewID = SCOPE_IDENTITY();\r\n\r\nSELECT @NewID as LogID;",
+								"type": "Expression"
+							}
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Set variable2",
+				"type": "SetVariable",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Script1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "v_LogID",
+					"value": {
+						"value": "@activity('Script1').output.resultSets[0].rows[0].LogID",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Set variable3",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Set variable1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "StartTime",
+					"value": "00:10:00"
+				}
+			},
+			{
+				"name": "Web1",
+				"type": "WebActivity",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Set variable3",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "GET",
+					"headers": {
+						"Accept": {
+							"value": "application/json",
+							"type": "Expression"
+						}
+					},
+					"url": {
+						"value": "@concat(\n    'https://app.leadconduit.com/events?start=',\n    concat(variables('v_Date'), 'T', variables('StartTime'), 'Z'),\n    '&end=',\n    concat(\n        formatDateTime(\n            addSeconds(\n                concat(variables('v_Date'), 'T', variables('StartTime')),\n                299\n            ),\n            'yyyy-MM-ddTHH:mm:ss'\n        ),\n        'Z'\n    ),\n    '&sort=asc&limit=10'\n)",
+						"type": "Expression"
+					},
+					"connectVia": {
+						"referenceName": "AutoResolveIntegrationRuntime",
+						"type": "IntegrationRuntimeReference"
+					},
+					"authentication": {
+						"type": "Basic",
+						"username": "API",
+						"password": {
+							"type": "SecureString",
+							"value": "**********"
+						}
+					}
+				}
+			},
+			{
+				"name": "Script Initialize Log Table",
+				"type": "Script",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": {
+								"value": "-- SQL Query for Log_Batch_Start\n\nINSERT INTO OUT.AP_LeadConduit_Batch_Log (WindowStart, WindowEnd, After_ID, RecordsFetched, Status, RunDateTime)\nVALUES (\n    '@{pipeline().parameters.p_WindowStart}', \n    '@{pipeline().parameters.p_WindowEnd}', \n    '@{pipeline().parameters.p_LastAfterID}',\n    0, \n    'RUNNING',\n    '@{formatDateTime(utcNow(), 'yyyy-MM-ddTHH:mm:ssZ')}' -- **SUPPLYING THE CURRENT TIME**\n);\n\n-- MAX(ID) Retrieval remains the same:\nSELECT TOP 1 ID AS LogID \nFROM OUT.AP_LeadConduit_Batch_Log\nWHERE\n    WindowStart = '@{pipeline().parameters.p_WindowStart}' \n    AND WindowEnd = '@{pipeline().parameters.p_WindowEnd}'\n    AND Status = 'RUNNING'\nORDER BY \n    ID DESC;",
+								"type": "Expression"
+							}
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Until1",
+				"type": "Until",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Script Initialize Log Table",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(variables('v_RecordCount'),1000)",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "cp_activeprospect_lead_data_copy1",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "RestSource",
+									"httpRequestTimeout": "00:01:40",
+									"requestInterval": "00.00:00:00.010",
+									"requestMethod": "GET",
+									"additionalHeaders": {
+										"Accept": {
+											"value": "application/json",
+											"type": "Expression"
+										}
+									},
+									"paginationRules": {
+										"supportRFC5988": "true"
+									}
+								},
+								"sink": {
+									"type": "JsonSink",
+									"storeSettings": {
+										"type": "AzureBlobStorageWriteSettings",
+										"copyBehavior": "FlattenHierarchy"
+									},
+									"formatSettings": {
+										"type": "JsonWriteSettings"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"mappings": [
+										{
+											"source": {
+												"path": "$['id']"
+											},
+											"sink": {
+												"path": "$['id']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['type']"
+											},
+											"sink": {
+												"path": "$['type']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['outcome']"
+											},
+											"sink": {
+												"path": "$['outcome']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['reason']"
+											},
+											"sink": {
+												"path": "$['reason']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['submission']['ip']"
+											},
+											"sink": {
+												"path": "$['vars']['submission']['ip']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['submission']['timestamp']"
+											},
+											"sink": {
+												"path": "$['vars']['submission']['timestamp']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['account']['id']"
+											},
+											"sink": {
+												"path": "$['vars']['account']['id']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['account']['name']"
+											},
+											"sink": {
+												"path": "$['vars']['account']['name']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['account']['sso_id']"
+											},
+											"sink": {
+												"path": "$['vars']['account']['sso_id']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['flow']['id']"
+											},
+											"sink": {
+												"path": "$['vars']['flow']['id']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['flow']['name']"
+											},
+											"sink": {
+												"path": "$['vars']['flow']['name']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['random']"
+											},
+											"sink": {
+												"path": "$['vars']['random']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['source']['id']"
+											},
+											"sink": {
+												"path": "$['vars']['source']['id']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['source']['name']"
+											},
+											"sink": {
+												"path": "$['vars']['source']['name']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['marketingcustomer_tracking_api']['api_version']"
+											},
+											"sink": {
+												"path": "$['vars']['marketingcustomer_tracking_api']['api_version']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['marketingcustomer_tracking_api']['customer_hash']"
+											},
+											"sink": {
+												"path": "$['vars']['marketingcustomer_tracking_api']['customer_hash']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['marketingcustomer_tracking_api']['tracking_code']"
+											},
+											"sink": {
+												"path": "$['vars']['marketingcustomer_tracking_api']['tracking_code']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['marketingcustomer_tracking_api']['outcome']"
+											},
+											"sink": {
+												"path": "$['vars']['marketingcustomer_tracking_api']['outcome']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['marketingcustomer_tracking_api']['price']['normal']"
+											},
+											"sink": {
+												"path": "$['vars']['marketingcustomer_tracking_api']['price']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['marketingcustomer_tracking_api']['price']['valid']"
+											},
+											"sink": {
+												"path": "$['vars']['marketingcustomer_tracking_api']['price']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['marketingcustomer_tracking_api']['price']['raw']"
+											},
+											"sink": {
+												"path": "$['vars']['marketingcustomer_tracking_api']['price']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['azure_credit_filter_v20']['api_version']"
+											},
+											"sink": {
+												"path": "$['vars']['azure_credit_filter_v20']['api_version']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['azure_credit_filter_v20']['approved']"
+											},
+											"sink": {
+												"path": "$['vars']['azure_credit_filter_v20']['approved']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['azure_credit_filter_v20']['credit_score']"
+											},
+											"sink": {
+												"path": "$['vars']['azure_credit_filter_v20']['credit_score']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['azure_credit_filter_v20']['debug']"
+											},
+											"sink": {
+												"path": "$['vars']['azure_credit_filter_v20']['debug']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['azure_credit_filter_v20']['error']"
+											},
+											"sink": {
+												"path": "$['vars']['azure_credit_filter_v20']['error']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['azure_credit_filter_v20']['msg']"
+											},
+											"sink": {
+												"path": "$['vars']['azure_credit_filter_v20']['msg']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['azure_credit_filter_v20']['scoring_used']"
+											},
+											"sink": {
+												"path": "$['vars']['azure_credit_filter_v20']['scoring_used']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['azure_credit_filter_v20']['time_debug']"
+											},
+											"sink": {
+												"path": "$['vars']['azure_credit_filter_v20']['time_debug']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['azure_credit_filter_v20']['outcome']"
+											},
+											"sink": {
+												"path": "$['vars']['azure_credit_filter_v20']['outcome']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['azure_credit_filter_v20']['price']['normal']"
+											},
+											"sink": {
+												"path": "$['vars']['azure_credit_filter_v20']['price']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['azure_credit_filter_v20']['price']['valid']"
+											},
+											"sink": {
+												"path": "$['vars']['azure_credit_filter_v20']['price']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['azure_credit_filter_v20']['price']['raw']"
+											},
+											"sink": {
+												"path": "$['vars']['azure_credit_filter_v20']['price']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['suppressionlist']['query_item']['key']"
+											},
+											"sink": {
+												"path": "$['vars']['suppressionlist']['query_item']['key']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['suppressionlist']['query_item']['found']['normal']"
+											},
+											"sink": {
+												"path": "$['vars']['suppressionlist']['query_item']['found']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['suppressionlist']['query_item']['found']['valid']"
+											},
+											"sink": {
+												"path": "$['vars']['suppressionlist']['query_item']['found']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['suppressionlist']['query_item']['found']['raw']"
+											},
+											"sink": {
+												"path": "$['vars']['suppressionlist']['query_item']['found']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['suppressionlist']['query_item']['outcome']"
+											},
+											"sink": {
+												"path": "$['vars']['suppressionlist']['query_item']['outcome']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['suppressionlist']['query_item']['reason']"
+											},
+											"sink": {
+												"path": "$['vars']['suppressionlist']['query_item']['reason']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['suppressionlist']['query_item']['duration']['normal']"
+											},
+											"sink": {
+												"path": "$['vars']['suppressionlist']['query_item']['duration']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['suppressionlist']['query_item']['duration']['valid']"
+											},
+											"sink": {
+												"path": "$['vars']['suppressionlist']['query_item']['duration']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['suppressionlist']['query_item']['duration']['raw']"
+											},
+											"sink": {
+												"path": "$['vars']['suppressionlist']['query_item']['duration']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['suppressionlist']['query_item']['added_at']['normal']"
+											},
+											"sink": {
+												"path": "$['vars']['suppressionlist']['query_item']['added_at']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['suppressionlist']['query_item']['added_at']['raw']"
+											},
+											"sink": {
+												"path": "$['vars']['suppressionlist']['query_item']['added_at']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['suppressionlist']['query_item']['added_at']['valid']"
+											},
+											"sink": {
+												"path": "$['vars']['suppressionlist']['query_item']['added_at']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['suppressionlist']['add_item']['accepted']['normal']"
+											},
+											"sink": {
+												"path": "$['vars']['suppressionlist']['add_item']['accepted']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['suppressionlist']['add_item']['accepted']['valid']"
+											},
+											"sink": {
+												"path": "$['vars']['suppressionlist']['add_item']['accepted']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['suppressionlist']['add_item']['accepted']['raw']"
+											},
+											"sink": {
+												"path": "$['vars']['suppressionlist']['add_item']['accepted']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['suppressionlist']['add_item']['rejected']['normal']"
+											},
+											"sink": {
+												"path": "$['vars']['suppressionlist']['add_item']['rejected']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['suppressionlist']['add_item']['rejected']['valid']"
+											},
+											"sink": {
+												"path": "$['vars']['suppressionlist']['add_item']['rejected']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['suppressionlist']['add_item']['rejected']['raw']"
+											},
+											"sink": {
+												"path": "$['vars']['suppressionlist']['add_item']['rejected']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['suppressionlist']['add_item']['outcome']"
+											},
+											"sink": {
+												"path": "$['vars']['suppressionlist']['add_item']['outcome']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['suppressionlist']['add_item']['reason']"
+											},
+											"sink": {
+												"path": "$['vars']['suppressionlist']['add_item']['reason']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['suppressionlist']['add_item']['duration']['normal']"
+											},
+											"sink": {
+												"path": "$['vars']['suppressionlist']['add_item']['duration']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['suppressionlist']['add_item']['duration']['valid']"
+											},
+											"sink": {
+												"path": "$['vars']['suppressionlist']['add_item']['duration']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['suppressionlist']['add_item']['duration']['raw']"
+											},
+											"sink": {
+												"path": "$['vars']['suppressionlist']['add_item']['duration']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['blacklist_alliance']['litigation_firewall']['status']"
+											},
+											"sink": {
+												"path": "$['vars']['blacklist_alliance']['litigation_firewall']['status']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['blacklist_alliance']['litigation_firewall']['message']"
+											},
+											"sink": {
+												"path": "$['vars']['blacklist_alliance']['litigation_firewall']['message']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['blacklist_alliance']['litigation_firewall']['code']"
+											},
+											"sink": {
+												"path": "$['vars']['blacklist_alliance']['litigation_firewall']['code']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['blacklist_alliance']['litigation_firewall']['code_level']['normal']"
+											},
+											"sink": {
+												"path": "$['vars']['blacklist_alliance']['litigation_firewall']['code_level']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['blacklist_alliance']['litigation_firewall']['code_level']['valid']"
+											},
+											"sink": {
+												"path": "$['vars']['blacklist_alliance']['litigation_firewall']['code_level']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['blacklist_alliance']['litigation_firewall']['code_level']['raw']"
+											},
+											"sink": {
+												"path": "$['vars']['blacklist_alliance']['litigation_firewall']['code_level']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['blacklist_alliance']['litigation_firewall']['wireless']"
+											},
+											"sink": {
+												"path": "$['vars']['blacklist_alliance']['litigation_firewall']['wireless']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['blacklist_alliance']['litigation_firewall']['carrier_type']"
+											},
+											"sink": {
+												"path": "$['vars']['blacklist_alliance']['litigation_firewall']['carrier_type']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['blacklist_alliance']['litigation_firewall']['carrier_name']"
+											},
+											"sink": {
+												"path": "$['vars']['blacklist_alliance']['litigation_firewall']['carrier_name']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['blacklist_alliance']['litigation_firewall']['carrier_state']['normal']"
+											},
+											"sink": {
+												"path": "$['vars']['blacklist_alliance']['litigation_firewall']['carrier_state']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['blacklist_alliance']['litigation_firewall']['carrier_state']['raw']"
+											},
+											"sink": {
+												"path": "$['vars']['blacklist_alliance']['litigation_firewall']['carrier_state']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['blacklist_alliance']['litigation_firewall']['carrier_state']['name']"
+											},
+											"sink": {
+												"path": "$['vars']['blacklist_alliance']['litigation_firewall']['carrier_state']['name']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['blacklist_alliance']['litigation_firewall']['carrier_state']['valid']"
+											},
+											"sink": {
+												"path": "$['vars']['blacklist_alliance']['litigation_firewall']['carrier_state']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['blacklist_alliance']['litigation_firewall']['outcome']"
+											},
+											"sink": {
+												"path": "$['vars']['blacklist_alliance']['litigation_firewall']['outcome']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['blacklist_alliance']['litigation_firewall']['billable']['normal']"
+											},
+											"sink": {
+												"path": "$['vars']['blacklist_alliance']['litigation_firewall']['billable']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['blacklist_alliance']['litigation_firewall']['billable']['valid']"
+											},
+											"sink": {
+												"path": "$['vars']['blacklist_alliance']['litigation_firewall']['billable']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['blacklist_alliance']['litigation_firewall']['billable']['raw']"
+											},
+											"sink": {
+												"path": "$['vars']['blacklist_alliance']['litigation_firewall']['billable']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trestle']['phone_intelligence']['phone_number']"
+											},
+											"sink": {
+												"path": "$['vars']['trestle']['phone_intelligence']['phone_number']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trestle']['phone_intelligence']['is_valid']['normal']"
+											},
+											"sink": {
+												"path": "$['vars']['trestle']['phone_intelligence']['is_valid']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trestle']['phone_intelligence']['is_valid']['valid']"
+											},
+											"sink": {
+												"path": "$['vars']['trestle']['phone_intelligence']['is_valid']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trestle']['phone_intelligence']['is_valid']['raw']"
+											},
+											"sink": {
+												"path": "$['vars']['trestle']['phone_intelligence']['is_valid']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trestle']['phone_intelligence']['activity_score']['normal']"
+											},
+											"sink": {
+												"path": "$['vars']['trestle']['phone_intelligence']['activity_score']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trestle']['phone_intelligence']['activity_score']['valid']"
+											},
+											"sink": {
+												"path": "$['vars']['trestle']['phone_intelligence']['activity_score']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trestle']['phone_intelligence']['activity_score']['raw']"
+											},
+											"sink": {
+												"path": "$['vars']['trestle']['phone_intelligence']['activity_score']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trestle']['phone_intelligence']['country_calling_code']"
+											},
+											"sink": {
+												"path": "$['vars']['trestle']['phone_intelligence']['country_calling_code']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trestle']['phone_intelligence']['country_code']"
+											},
+											"sink": {
+												"path": "$['vars']['trestle']['phone_intelligence']['country_code']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trestle']['phone_intelligence']['country_name']"
+											},
+											"sink": {
+												"path": "$['vars']['trestle']['phone_intelligence']['country_name']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trestle']['phone_intelligence']['line_type']"
+											},
+											"sink": {
+												"path": "$['vars']['trestle']['phone_intelligence']['line_type']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trestle']['phone_intelligence']['carrier']"
+											},
+											"sink": {
+												"path": "$['vars']['trestle']['phone_intelligence']['carrier']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trestle']['phone_intelligence']['is_prepaid']['normal']"
+											},
+											"sink": {
+												"path": "$['vars']['trestle']['phone_intelligence']['is_prepaid']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trestle']['phone_intelligence']['is_prepaid']['valid']"
+											},
+											"sink": {
+												"path": "$['vars']['trestle']['phone_intelligence']['is_prepaid']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trestle']['phone_intelligence']['is_prepaid']['raw']"
+											},
+											"sink": {
+												"path": "$['vars']['trestle']['phone_intelligence']['is_prepaid']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trestle']['phone_intelligence']['error']"
+											},
+											"sink": {
+												"path": "$['vars']['trestle']['phone_intelligence']['error']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trestle']['phone_intelligence']['outcome']"
+											},
+											"sink": {
+												"path": "$['vars']['trestle']['phone_intelligence']['outcome']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trestle']['phone_intelligence']['warnings_pretty']"
+											},
+											"sink": {
+												"path": "$['vars']['trestle']['phone_intelligence']['warnings_pretty']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trestle']['phone_intelligence']['billable']"
+											},
+											"sink": {
+												"path": "$['vars']['trestle']['phone_intelligence']['billable']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['zipcodescom']['lookup']['city']"
+											},
+											"sink": {
+												"path": "$['vars']['zipcodescom']['lookup']['city']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['zipcodescom']['lookup']['latitude']['normal']"
+											},
+											"sink": {
+												"path": "$['vars']['zipcodescom']['lookup']['latitude']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['zipcodescom']['lookup']['latitude']['valid']"
+											},
+											"sink": {
+												"path": "$['vars']['zipcodescom']['lookup']['latitude']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['zipcodescom']['lookup']['latitude']['raw']"
+											},
+											"sink": {
+												"path": "$['vars']['zipcodescom']['lookup']['latitude']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['zipcodescom']['lookup']['longitude']['normal']"
+											},
+											"sink": {
+												"path": "$['vars']['zipcodescom']['lookup']['longitude']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['zipcodescom']['lookup']['longitude']['valid']"
+											},
+											"sink": {
+												"path": "$['vars']['zipcodescom']['lookup']['longitude']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['zipcodescom']['lookup']['longitude']['raw']"
+											},
+											"sink": {
+												"path": "$['vars']['zipcodescom']['lookup']['longitude']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['zipcodescom']['lookup']['state']['normal']"
+											},
+											"sink": {
+												"path": "$['vars']['zipcodescom']['lookup']['state']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['zipcodescom']['lookup']['state']['raw']"
+											},
+											"sink": {
+												"path": "$['vars']['zipcodescom']['lookup']['state']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['zipcodescom']['lookup']['state']['name']"
+											},
+											"sink": {
+												"path": "$['vars']['zipcodescom']['lookup']['state']['name']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['zipcodescom']['lookup']['state']['valid']"
+											},
+											"sink": {
+												"path": "$['vars']['zipcodescom']['lookup']['state']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['zipcodescom']['lookup']['cbsa']"
+											},
+											"sink": {
+												"path": "$['vars']['zipcodescom']['lookup']['cbsa']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['zipcodescom']['lookup']['cbsa_name']"
+											},
+											"sink": {
+												"path": "$['vars']['zipcodescom']['lookup']['cbsa_name']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['zipcodescom']['lookup']['county']"
+											},
+											"sink": {
+												"path": "$['vars']['zipcodescom']['lookup']['county']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['zipcodescom']['lookup']['outcome']"
+											},
+											"sink": {
+												"path": "$['vars']['zipcodescom']['lookup']['outcome']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['zipcodescom']['lookup']['billable']['normal']"
+											},
+											"sink": {
+												"path": "$['vars']['zipcodescom']['lookup']['billable']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['zipcodescom']['lookup']['billable']['valid']"
+											},
+											"sink": {
+												"path": "$['vars']['zipcodescom']['lookup']['billable']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['zipcodescom']['lookup']['billable']['raw']"
+											},
+											"sink": {
+												"path": "$['vars']['zipcodescom']['lookup']['billable']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['outcome']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['outcome']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['reason']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['reason']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['matched_email']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['matched_email']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['matched_phone']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['matched_phone']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['successful_match']['normal']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['successful_match']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['successful_match']['valid']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['successful_match']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['successful_match']['raw']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['successful_match']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['email_fingerprint_matched']['normal']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['email_fingerprint_matched']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['email_fingerprint_matched']['valid']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['email_fingerprint_matched']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['email_fingerprint_matched']['raw']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['email_fingerprint_matched']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['phone_fingerprint_matched']['normal']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['phone_fingerprint_matched']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['phone_fingerprint_matched']['valid']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['phone_fingerprint_matched']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['phone_fingerprint_matched']['raw']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['phone_fingerprint_matched']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['reference_code']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['reference_code']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['vendor']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['vendor']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['previously_retained']['normal']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['previously_retained']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['previously_retained']['valid']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['previously_retained']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['previously_retained']['raw']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['previously_retained']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['masked_cert_url']['normal']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['masked_cert_url']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['masked_cert_url']['protocol']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['masked_cert_url']['protocol']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['masked_cert_url']['host']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['masked_cert_url']['host']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['masked_cert_url']['port']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['masked_cert_url']['port']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['masked_cert_url']['path']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['masked_cert_url']['path']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['masked_cert_url']['query']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['masked_cert_url']['query']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['masked_cert_url']['hash']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['masked_cert_url']['hash']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['masked_cert_url']['valid']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['masked_cert_url']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['masked_cert_url']['raw']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['masked_cert_url']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['expires_at']['normal']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['expires_at']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['expires_at']['raw']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['expires_at']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['expires_at']['valid']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['expires_at']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['scans_result']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['scans_result']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['age_in_seconds']['normal']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['age_in_seconds']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['age_in_seconds']['valid']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['age_in_seconds']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['age_in_seconds']['raw']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['age_in_seconds']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['city']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['city']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['country_code']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['country_code']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['latitude']['normal']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['latitude']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['latitude']['valid']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['latitude']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['latitude']['raw']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['latitude']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['longitude']['normal']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['longitude']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['longitude']['valid']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['longitude']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['longitude']['raw']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['longitude']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['postal_code']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['postal_code']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['state']['normal']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['state']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['state']['raw']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['state']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['state']['name']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['state']['name']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['state']['valid']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['state']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['time_zone']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['time_zone']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['browser_full']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['browser_full']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['user_agent']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['user_agent']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['created_at']['normal']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['created_at']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['created_at']['raw']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['created_at']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['created_at']['valid']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['created_at']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['domain']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['domain']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['time_on_page_in_seconds']['normal']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['time_on_page_in_seconds']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['time_on_page_in_seconds']['valid']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['time_on_page_in_seconds']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['time_on_page_in_seconds']['raw']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['time_on_page_in_seconds']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['kpm']['normal']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['kpm']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['kpm']['valid']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['kpm']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['kpm']['raw']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['kpm']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['wpm']['normal']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['wpm']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['wpm']['valid']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['wpm']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['wpm']['raw']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['wpm']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['ip']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['ip']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['is_framed']['normal']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['is_framed']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['is_framed']['valid']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['is_framed']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['is_framed']['raw']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['is_framed']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['is_masked']['normal']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['is_masked']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['is_masked']['valid']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['is_masked']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['is_masked']['raw']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['is_masked']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['sensitive_hidden_content_elements']['normal']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['sensitive_hidden_content_elements']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['sensitive_hidden_content_elements']['valid']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['sensitive_hidden_content_elements']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['sensitive_hidden_content_elements']['raw']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['sensitive_hidden_content_elements']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['sensitive_hidden_form_elements']['normal']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['sensitive_hidden_form_elements']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['sensitive_hidden_form_elements']['valid']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['sensitive_hidden_form_elements']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['sensitive_hidden_form_elements']['raw']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['sensitive_hidden_form_elements']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['os_full']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['os_full']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['is_mobile']['normal']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['is_mobile']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['is_mobile']['valid']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['is_mobile']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['is_mobile']['raw']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['is_mobile']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['os_name']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['os_name']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['page_url']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['page_url']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['parent_page_url']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['parent_page_url']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['amount_required_matched']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['amount_required_matched']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['amount_forbidden_matched']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['amount_forbidden_matched']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['email_mac_gmail']['send']['outcome']"
+											},
+											"sink": {
+												"path": "$['vars']['email_mac_gmail']['send']['outcome']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['email_mac_gmail']['send']['reason']"
+											},
+											"sink": {
+												"path": "$['vars']['email_mac_gmail']['send']['reason']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['email_delivery']['send']['outcome']"
+											},
+											"sink": {
+												"path": "$['vars']['email_delivery']['send']['outcome']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['email_delivery']['send']['reason']"
+											},
+											"sink": {
+												"path": "$['vars']['email_delivery']['send']['reason']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['home_org_email_notification']['send']['outcome']"
+											},
+											"sink": {
+												"path": "$['vars']['home_org_email_notification']['send']['outcome']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['home_org_email_notification']['send']['reason']"
+											},
+											"sink": {
+												"path": "$['vars']['home_org_email_notification']['send']['reason']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['fhi_lp_instance_form']['outcome']"
+											},
+											"sink": {
+												"path": "$['vars']['fhi_lp_instance_form']['outcome']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['fhi_lp_instance_form']['reason']"
+											},
+											"sink": {
+												"path": "$['vars']['fhi_lp_instance_form']['reason']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['mac_lp_instance_form']['outcome']"
+											},
+											"sink": {
+												"path": "$['vars']['mac_lp_instance_form']['outcome']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['mac_lp_instance_form']['reason']"
+											},
+											"sink": {
+												"path": "$['vars']['mac_lp_instance_form']['reason']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['mxh_lp_instance_form']['outcome']"
+											},
+											"sink": {
+												"path": "$['vars']['mxh_lp_instance_form']['outcome']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['mxh_lp_instance_form']['reason']"
+											},
+											"sink": {
+												"path": "$['vars']['mxh_lp_instance_form']['reason']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['pbc_lp_instance_form']['outcome']"
+											},
+											"sink": {
+												"path": "$['vars']['pbc_lp_instance_form']['outcome']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['pbc_lp_instance_form']['price']['normal']"
+											},
+											"sink": {
+												"path": "$['vars']['pbc_lp_instance_form']['price']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['pbc_lp_instance_form']['price']['valid']"
+											},
+											"sink": {
+												"path": "$['vars']['pbc_lp_instance_form']['price']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['pbc_lp_instance_form']['price']['raw']"
+											},
+											"sink": {
+												"path": "$['vars']['pbc_lp_instance_form']['price']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['pbc_lp_instance_form']['reason']"
+											},
+											"sink": {
+												"path": "$['vars']['pbc_lp_instance_form']['reason']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['rcc_lp_instance_form']['outcome']"
+											},
+											"sink": {
+												"path": "$['vars']['rcc_lp_instance_form']['outcome']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['rcc_lp_instance_form']['reason']"
+											},
+											"sink": {
+												"path": "$['vars']['rcc_lp_instance_form']['reason']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['rtw_lp_instance_form']['outcome']"
+											},
+											"sink": {
+												"path": "$['vars']['rtw_lp_instance_form']['outcome']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['rtw_lp_instance_form']['reason']"
+											},
+											"sink": {
+												"path": "$['vars']['rtw_lp_instance_form']['reason']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['swr_lp_instance_form']['outcome']"
+											},
+											"sink": {
+												"path": "$['vars']['swr_lp_instance_form']['outcome']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['swr_lp_instance_form']['reason']"
+											},
+											"sink": {
+												"path": "$['vars']['swr_lp_instance_form']['reason']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['cla_lp_instance_form']['outcome']"
+											},
+											"sink": {
+												"path": "$['vars']['cla_lp_instance_form']['outcome']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['cla_lp_instance_form']['reason']"
+											},
+											"sink": {
+												"path": "$['vars']['cla_lp_instance_form']['reason']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['id']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['id']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['address_1']['normal']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['address_1']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['address_1']['raw']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['address_1']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['address_1']['number']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['address_1']['number']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['address_1']['name']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['address_1']['name']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['address_1']['valid']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['address_1']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['city']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['city']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['email']['normal']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['email']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['email']['raw']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['email']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['email']['user']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['email']['user']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['email']['is_free']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['email']['is_free']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['email']['is_disposable']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['email']['is_disposable']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['email']['domain']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['email']['domain']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['email']['host']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['email']['host']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['email']['tld']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['email']['tld']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['email']['valid']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['email']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['first_name']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['first_name']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['last_name']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['last_name']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['lead_cost_type_srsid']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['lead_cost_type_srsid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['phone_1']['normal']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['phone_1']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['phone_1']['raw']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['phone_1']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['phone_1']['area']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['phone_1']['area']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['phone_1']['exchange']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['phone_1']['exchange']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['phone_1']['line']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['phone_1']['line']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['phone_1']['number']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['phone_1']['number']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['phone_1']['extension']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['phone_1']['extension']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['phone_1']['country_code']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['phone_1']['country_code']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['phone_1']['country_calling_code']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['phone_1']['country_calling_code']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['phone_1']['is_tollfree']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['phone_1']['is_tollfree']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['phone_1']['type']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['phone_1']['type']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['phone_1']['valid']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['phone_1']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['postal_code']['normal']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['postal_code']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['postal_code']['raw']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['postal_code']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['postal_code']['country_code']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['postal_code']['country_code']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['postal_code']['code']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['postal_code']['code']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['postal_code']['zip']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['postal_code']['zip']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['postal_code']['four']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['postal_code']['four']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['postal_code']['valid']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['postal_code']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['price']['normal']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['price']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['price']['valid']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['price']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['price']['raw']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['price']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['product']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['product']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['reference']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['reference']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['state']['normal']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['state']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['state']['raw']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['state']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['state']['name']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['state']['name']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['state']['valid']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['state']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['trustedform_cert_url']['normal']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['trustedform_cert_url']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['trustedform_cert_url']['raw']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['trustedform_cert_url']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['trustedform_cert_url']['type']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['trustedform_cert_url']['type']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['trustedform_cert_url']['cert_id']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['trustedform_cert_url']['cert_id']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['trustedform_cert_url']['is_web']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['trustedform_cert_url']['is_web']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['trustedform_cert_url']['is_mobile']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['trustedform_cert_url']['is_mobile']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['trustedform_cert_url']['is_facebook']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['trustedform_cert_url']['is_facebook']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['trustedform_cert_url']['is_masked']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['trustedform_cert_url']['is_masked']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['trustedform_cert_url']['host']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['trustedform_cert_url']['host']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['trustedform_cert_url']['path']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['trustedform_cert_url']['path']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['lead']['trustedform_cert_url']['valid']"
+											},
+											"sink": {
+												"path": "$['vars']['lead']['trustedform_cert_url']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['recipient']['id']"
+											},
+											"sink": {
+												"path": "$['vars']['recipient']['id']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['recipient']['name']"
+											},
+											"sink": {
+												"path": "$['vars']['recipient']['name']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['price']"
+											},
+											"sink": {
+												"path": "$['vars']['price']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['purchase_price']"
+											},
+											"sink": {
+												"path": "$['vars']['purchase_price']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['suppressionlist']['query_item']['specified_lists']"
+											},
+											"sink": {
+												"path": "$['vars']['suppressionlist']['query_item']['specified_lists']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['suppressionlist']['query_item']['found_in']"
+											},
+											"sink": {
+												"path": "$['vars']['suppressionlist']['query_item']['found_in']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trestle']['phone_intelligence']['warnings']"
+											},
+											"sink": {
+												"path": "$['vars']['trestle']['phone_intelligence']['warnings']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['required_scans_found']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['required_scans_found']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['required_scans_not_found']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['required_scans_not_found']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['forbidden_scans_found']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['forbidden_scans_found']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['forbidden_scans_not_found']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['forbidden_scans_not_found']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['vars']['trustedform']['form_input_method']"
+											},
+											"sink": {
+												"path": "$['vars']['trustedform']['form_input_method']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['module_id']"
+											},
+											"sink": {
+												"path": "$['module_id']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['acceptance_criteria']"
+											},
+											"sink": {
+												"path": "$['acceptance_criteria']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['flow_acceptance_criteria']['outcome']"
+											},
+											"sink": {
+												"path": "$['flow_acceptance_criteria']['outcome']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['flow_acceptance_criteria']['rule_set']['op']"
+											},
+											"sink": {
+												"path": "$['flow_acceptance_criteria']['rule_set']['op']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['flow_acceptance_criteria']['rule_set']['rules']['op']"
+											},
+											"sink": {
+												"path": "$['flow_acceptance_criteria']['rule_set']['rules']['op']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['flow_acceptance_criteria']['rule_set']['rules']['lhv']"
+											},
+											"sink": {
+												"path": "$['flow_acceptance_criteria']['rule_set']['rules']['lhv']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['flow_acceptance_criteria']['rule_set']['rules']['id']"
+											},
+											"sink": {
+												"path": "$['flow_acceptance_criteria']['rule_set']['rules']['id']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['pricing']['override']"
+											},
+											"sink": {
+												"path": "$['pricing']['override']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['pricing']['prices']"
+											},
+											"sink": {
+												"path": "$['pricing']['prices']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['flow_pricing']"
+											},
+											"sink": {
+												"path": "$['flow_pricing']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['pricing_service']"
+											},
+											"sink": {
+												"path": "$['pricing_service']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['flow_pricing_service']"
+											},
+											"sink": {
+												"path": "$['flow_pricing_service']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['cost']"
+											},
+											"sink": {
+												"path": "$['cost']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['purchase_price']"
+											},
+											"sink": {
+												"path": "$['purchase_price']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['recipient_revenue']"
+											},
+											"sink": {
+												"path": "$['recipient_revenue']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['step_count']"
+											},
+											"sink": {
+												"path": "$['step_count']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['disabled_step_count']"
+											},
+											"sink": {
+												"path": "$['disabled_step_count']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['package_version']"
+											},
+											"sink": {
+												"path": "$['package_version']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['handler_version']"
+											},
+											"sink": {
+												"path": "$['handler_version']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['request']['method']"
+											},
+											"sink": {
+												"path": "$['request']['method']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['request']['uri']"
+											},
+											"sink": {
+												"path": "$['request']['uri']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['request']['version']"
+											},
+											"sink": {
+												"path": "$['request']['version']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['request']['headers']['X-Forwarded-For']"
+											},
+											"sink": {
+												"path": "$['request']['headers']['X-Forwarded-For']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['request']['headers']['X-Forwarded-Proto']"
+											},
+											"sink": {
+												"path": "$['request']['headers']['X-Forwarded-Proto']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['request']['headers']['X-Forwarded-Port']"
+											},
+											"sink": {
+												"path": "$['request']['headers']['X-Forwarded-Port']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['request']['headers']['Host']"
+											},
+											"sink": {
+												"path": "$['request']['headers']['Host']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['request']['headers']['X-Amzn-Trace-Id']"
+											},
+											"sink": {
+												"path": "$['request']['headers']['X-Amzn-Trace-Id']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['request']['headers']['Content-Length']"
+											},
+											"sink": {
+												"path": "$['request']['headers']['Content-Length']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['request']['headers']['Content-Type']"
+											},
+											"sink": {
+												"path": "$['request']['headers']['Content-Type']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['request']['headers']['Cache-Control']"
+											},
+											"sink": {
+												"path": "$['request']['headers']['Cache-Control']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['request']['headers']['Pragma']"
+											},
+											"sink": {
+												"path": "$['request']['headers']['Pragma']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['request']['headers']['User-Agent']"
+											},
+											"sink": {
+												"path": "$['request']['headers']['User-Agent']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['request']['headers']['Accept']"
+											},
+											"sink": {
+												"path": "$['request']['headers']['Accept']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['request']['body']"
+											},
+											"sink": {
+												"path": "$['request']['body']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['request']['timestamp']"
+											},
+											"sink": {
+												"path": "$['request']['timestamp']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['response']['status']"
+											},
+											"sink": {
+												"path": "$['response']['status']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['response']['headers']['Content-Type']"
+											},
+											"sink": {
+												"path": "$['response']['headers']['Content-Type']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['response']['headers']['Content-Length']"
+											},
+											"sink": {
+												"path": "$['response']['headers']['Content-Length']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['response']['headers']['Date']"
+											},
+											"sink": {
+												"path": "$['response']['headers']['Date']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['response']['headers']['Connection']"
+											},
+											"sink": {
+												"path": "$['response']['headers']['Connection']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['response']['body']"
+											},
+											"sink": {
+												"path": "$['response']['body']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['response']['status_text']"
+											},
+											"sink": {
+												"path": "$['response']['status_text']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['response']['timestamp']"
+											},
+											"sink": {
+												"path": "$['response']['timestamp']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['start_timestamp']"
+											},
+											"sink": {
+												"path": "$['start_timestamp']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['firehose']"
+											},
+											"sink": {
+												"path": "$['firehose']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['end_timestamp']"
+											},
+											"sink": {
+												"path": "$['end_timestamp']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['ms']"
+											},
+											"sink": {
+												"path": "$['ms']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['wait_ms']"
+											},
+											"sink": {
+												"path": "$['wait_ms']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['overhead_ms']"
+											},
+											"sink": {
+												"path": "$['overhead_ms']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['lag_ms']"
+											},
+											"sink": {
+												"path": "$['lag_ms']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['host']"
+											},
+											"sink": {
+												"path": "$['host']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['flow_caps']"
+											},
+											"sink": {
+												"path": "$['flow_caps']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['source_caps']"
+											},
+											"sink": {
+												"path": "$['source_caps']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['cap_reached']"
+											},
+											"sink": {
+												"path": "$['cap_reached']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['flow_ping_limits']"
+											},
+											"sink": {
+												"path": "$['flow_ping_limits']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['source_ping_limits']"
+											},
+											"sink": {
+												"path": "$['source_ping_limits']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['ping_limit_reached']"
+											},
+											"sink": {
+												"path": "$['ping_limit_reached']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['expires_at']"
+											},
+											"sink": {
+												"path": "$['expires_at']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['step_id']"
+											},
+											"sink": {
+												"path": "$['step_id']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['key']"
+											},
+											"sink": {
+												"path": "$['key']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['revenue']"
+											},
+											"sink": {
+												"path": "$['revenue']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['credential']"
+											},
+											"sink": {
+												"path": "$['credential']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['credential_updated']"
+											},
+											"sink": {
+												"path": "$['credential_updated']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['transactions']['request']['uri']"
+											},
+											"sink": {
+												"path": "$['transactions']['request']['uri']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['transactions']['request']['method']"
+											},
+											"sink": {
+												"path": "$['transactions']['request']['method']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['transactions']['request']['version']"
+											},
+											"sink": {
+												"path": "$['transactions']['request']['version']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['transactions']['request']['headers']['Content-Type']"
+											},
+											"sink": {
+												"path": "$['transactions']['request']['headers']['Content-Type']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['transactions']['request']['headers']['Accept']"
+											},
+											"sink": {
+												"path": "$['transactions']['request']['headers']['Accept']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['transactions']['request']['headers']['Authorization']"
+											},
+											"sink": {
+												"path": "$['transactions']['request']['headers']['Authorization']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['transactions']['request']['headers']['Host']"
+											},
+											"sink": {
+												"path": "$['transactions']['request']['headers']['Host']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['transactions']['request']['headers']['Content-Length']"
+											},
+											"sink": {
+												"path": "$['transactions']['request']['headers']['Content-Length']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['transactions']['request']['body']"
+											},
+											"sink": {
+												"path": "$['transactions']['request']['body']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['transactions']['request']['timeout']"
+											},
+											"sink": {
+												"path": "$['transactions']['request']['timeout']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['transactions']['request']['timestamp']"
+											},
+											"sink": {
+												"path": "$['transactions']['request']['timestamp']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['transactions']['response']['status']"
+											},
+											"sink": {
+												"path": "$['transactions']['response']['status']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['transactions']['response']['status_text']"
+											},
+											"sink": {
+												"path": "$['transactions']['response']['status_text']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['transactions']['response']['version']"
+											},
+											"sink": {
+												"path": "$['transactions']['response']['version']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['transactions']['response']['headers']['Date']"
+											},
+											"sink": {
+												"path": "$['transactions']['response']['headers']['Date']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['transactions']['response']['headers']['Content-Type']"
+											},
+											"sink": {
+												"path": "$['transactions']['response']['headers']['Content-Type']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['transactions']['response']['headers']['Transfer-Encoding']"
+											},
+											"sink": {
+												"path": "$['transactions']['response']['headers']['Transfer-Encoding']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['transactions']['response']['headers']['Connection']"
+											},
+											"sink": {
+												"path": "$['transactions']['response']['headers']['Connection']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['transactions']['response']['headers']['Cache-Control']"
+											},
+											"sink": {
+												"path": "$['transactions']['response']['headers']['Cache-Control']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['transactions']['response']['headers']['Etag']"
+											},
+											"sink": {
+												"path": "$['transactions']['response']['headers']['Etag']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['transactions']['response']['headers']['Referrer-Policy']"
+											},
+											"sink": {
+												"path": "$['transactions']['response']['headers']['Referrer-Policy']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['transactions']['response']['headers']['Rndr-Id']"
+											},
+											"sink": {
+												"path": "$['transactions']['response']['headers']['Rndr-Id']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['transactions']['response']['headers']['Vary']"
+											},
+											"sink": {
+												"path": "$['transactions']['response']['headers']['Vary']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['transactions']['response']['headers']['X-Content-Type-Options']"
+											},
+											"sink": {
+												"path": "$['transactions']['response']['headers']['X-Content-Type-Options']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['transactions']['response']['headers']['X-Download-Options']"
+											},
+											"sink": {
+												"path": "$['transactions']['response']['headers']['X-Download-Options']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['transactions']['response']['headers']['X-Frame-Options']"
+											},
+											"sink": {
+												"path": "$['transactions']['response']['headers']['X-Frame-Options']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['transactions']['response']['headers']['X-Permitted-Cross-Domain-Policies']"
+											},
+											"sink": {
+												"path": "$['transactions']['response']['headers']['X-Permitted-Cross-Domain-Policies']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['transactions']['response']['headers']['X-Render-Origin-Server']"
+											},
+											"sink": {
+												"path": "$['transactions']['response']['headers']['X-Render-Origin-Server']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['transactions']['response']['headers']['X-Request-Id']"
+											},
+											"sink": {
+												"path": "$['transactions']['response']['headers']['X-Request-Id']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['transactions']['response']['headers']['X-Runtime']"
+											},
+											"sink": {
+												"path": "$['transactions']['response']['headers']['X-Runtime']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['transactions']['response']['headers']['X-Xss-Protection']"
+											},
+											"sink": {
+												"path": "$['transactions']['response']['headers']['X-Xss-Protection']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['transactions']['response']['headers']['Cf-Cache-Status']"
+											},
+											"sink": {
+												"path": "$['transactions']['response']['headers']['Cf-Cache-Status']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['transactions']['response']['headers']['Server']"
+											},
+											"sink": {
+												"path": "$['transactions']['response']['headers']['Server']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['transactions']['response']['headers']['Cf-Ray']"
+											},
+											"sink": {
+												"path": "$['transactions']['response']['headers']['Cf-Ray']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['transactions']['response']['headers']['Alt-Svc']"
+											},
+											"sink": {
+												"path": "$['transactions']['response']['headers']['Alt-Svc']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['transactions']['response']['body']"
+											},
+											"sink": {
+												"path": "$['transactions']['response']['body']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['transactions']['response']['timestamp']"
+											},
+											"sink": {
+												"path": "$['transactions']['response']['timestamp']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['transactions']['timings']['start_at']"
+											},
+											"sink": {
+												"path": "$['transactions']['timings']['start_at']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['transactions']['timings']['dns_lookup_at']"
+											},
+											"sink": {
+												"path": "$['transactions']['timings']['dns_lookup_at']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['transactions']['timings']['tcp_connection_at']"
+											},
+											"sink": {
+												"path": "$['transactions']['timings']['tcp_connection_at']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['transactions']['timings']['tls_handshake_at']"
+											},
+											"sink": {
+												"path": "$['transactions']['timings']['tls_handshake_at']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['transactions']['timings']['first_byte_at']"
+											},
+											"sink": {
+												"path": "$['transactions']['timings']['first_byte_at']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['transactions']['timings']['end_at']"
+											},
+											"sink": {
+												"path": "$['transactions']['timings']['end_at']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['transactions']['ms']"
+											},
+											"sink": {
+												"path": "$['transactions']['ms']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['mappings']['property']"
+											},
+											"sink": {
+												"path": "$['mappings']['property']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['mappings']['value']"
+											},
+											"sink": {
+												"path": "$['mappings']['value']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['mappings']['rule_set']"
+											},
+											"sink": {
+												"path": "$['mappings']['rule_set']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['mappings']['id']"
+											},
+											"sink": {
+												"path": "$['mappings']['id']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['total_ms']"
+											},
+											"sink": {
+												"path": "$['total_ms']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['caps']"
+											},
+											"sink": {
+												"path": "$['caps']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['rule_set']['op']"
+											},
+											"sink": {
+												"path": "$['rule_set']['op']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['rule_set']['rules']['op']"
+											},
+											"sink": {
+												"path": "$['rule_set']['rules']['op']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['rule_set']['rules']['rhv']"
+											},
+											"sink": {
+												"path": "$['rule_set']['rules']['rhv']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['rule_set']['rules']['lhv']"
+											},
+											"sink": {
+												"path": "$['rule_set']['rules']['lhv']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['rule_set']['rules']['id']"
+											},
+											"sink": {
+												"path": "$['rule_set']['rules']['id']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['recipient_record_id']"
+											},
+											"sink": {
+												"path": "$['recipient_record_id']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['marketingcustomer_tracking_api']['api_version']"
+											},
+											"sink": {
+												"path": "$['marketingcustomer_tracking_api']['api_version']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['marketingcustomer_tracking_api']['customer_hash']"
+											},
+											"sink": {
+												"path": "$['marketingcustomer_tracking_api']['customer_hash']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['marketingcustomer_tracking_api']['tracking_code']"
+											},
+											"sink": {
+												"path": "$['marketingcustomer_tracking_api']['tracking_code']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['marketingcustomer_tracking_api']['outcome']"
+											},
+											"sink": {
+												"path": "$['marketingcustomer_tracking_api']['outcome']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['marketingcustomer_tracking_api']['price']['normal']"
+											},
+											"sink": {
+												"path": "$['marketingcustomer_tracking_api']['price']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['marketingcustomer_tracking_api']['price']['valid']"
+											},
+											"sink": {
+												"path": "$['marketingcustomer_tracking_api']['price']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['marketingcustomer_tracking_api']['price']['raw']"
+											},
+											"sink": {
+												"path": "$['marketingcustomer_tracking_api']['price']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['sale_price']"
+											},
+											"sink": {
+												"path": "$['sale_price']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['description']"
+											},
+											"sink": {
+												"path": "$['description']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['azure_credit_filter_v20']['api_version']"
+											},
+											"sink": {
+												"path": "$['azure_credit_filter_v20']['api_version']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['azure_credit_filter_v20']['approved']"
+											},
+											"sink": {
+												"path": "$['azure_credit_filter_v20']['approved']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['azure_credit_filter_v20']['credit_score']"
+											},
+											"sink": {
+												"path": "$['azure_credit_filter_v20']['credit_score']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['azure_credit_filter_v20']['debug']"
+											},
+											"sink": {
+												"path": "$['azure_credit_filter_v20']['debug']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['azure_credit_filter_v20']['error']"
+											},
+											"sink": {
+												"path": "$['azure_credit_filter_v20']['error']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['azure_credit_filter_v20']['msg']"
+											},
+											"sink": {
+												"path": "$['azure_credit_filter_v20']['msg']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['azure_credit_filter_v20']['scoring_used']"
+											},
+											"sink": {
+												"path": "$['azure_credit_filter_v20']['scoring_used']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['azure_credit_filter_v20']['time_debug']"
+											},
+											"sink": {
+												"path": "$['azure_credit_filter_v20']['time_debug']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['azure_credit_filter_v20']['outcome']"
+											},
+											"sink": {
+												"path": "$['azure_credit_filter_v20']['outcome']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['azure_credit_filter_v20']['price']['normal']"
+											},
+											"sink": {
+												"path": "$['azure_credit_filter_v20']['price']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['azure_credit_filter_v20']['price']['valid']"
+											},
+											"sink": {
+												"path": "$['azure_credit_filter_v20']['price']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['azure_credit_filter_v20']['price']['raw']"
+											},
+											"sink": {
+												"path": "$['azure_credit_filter_v20']['price']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['suppressionlist']['query_item']['key']"
+											},
+											"sink": {
+												"path": "$['suppressionlist']['query_item']['key']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['suppressionlist']['query_item']['found']['normal']"
+											},
+											"sink": {
+												"path": "$['suppressionlist']['query_item']['found']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['suppressionlist']['query_item']['found']['valid']"
+											},
+											"sink": {
+												"path": "$['suppressionlist']['query_item']['found']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['suppressionlist']['query_item']['found']['raw']"
+											},
+											"sink": {
+												"path": "$['suppressionlist']['query_item']['found']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['suppressionlist']['query_item']['outcome']"
+											},
+											"sink": {
+												"path": "$['suppressionlist']['query_item']['outcome']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['suppressionlist']['query_item']['reason']"
+											},
+											"sink": {
+												"path": "$['suppressionlist']['query_item']['reason']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['suppressionlist']['query_item']['duration']['normal']"
+											},
+											"sink": {
+												"path": "$['suppressionlist']['query_item']['duration']['normal']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['suppressionlist']['query_item']['duration']['valid']"
+											},
+											"sink": {
+												"path": "$['suppressionlist']['query_item']['duration']['valid']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['suppressionlist']['query_item']['duration']['raw']"
+											},
+											"sink": {
+												"path": "$['suppressionlist']['query_item']['duration']['raw']"
+											}
+										},
+										{
+											"source": {
+												"path": "$['suppressionlist']['query_item']['specified_lists']"
+											},
+											"sink": {
+												"path": "$['suppressionlist']['query_item']['specified_lists']"
+											}
+										}
+									],
+									"collectionReference": ""
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "ActiveProspect_LeadConduit_All_Events",
+									"type": "DatasetReference",
+									"parameters": {
+										"Date": {
+											"value": "@variables('v_Date')",
+											"type": "Expression"
+										},
+										"StartTime": {
+											"value": "@variables('StartTime')",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "Test_ActiveProspect_LeadData",
+									"type": "DatasetReference",
+									"parameters": {
+										"FileName": {
+											"value": "@concat('ActiveProspect_Lead_Data_New_',replace(variables('v_Date'),'-', '_'),'_',replace(variables('StartTime'), ':', '_'),'.json')",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					],
+					"timeout": "0.12:00:00"
+				}
+			}
+		],
+		"parameters": {
+			"p_WindowStart": {
+				"type": "string"
+			},
+			"p_WindowEnd": {
+				"type": "string"
+			},
+			"p_LastAfterID": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"v_Date": {
+				"type": "String"
+			},
+			"v_CurrentCursorID": {
+				"type": "String",
+				"defaultValue": "@pipeline().parameters.p_LastAfterID"
+			},
+			"v_RecordCount": {
+				"type": "Integer",
+				"defaultValue": 1000
+			},
+			"v_LogID": {
+				"type": "Integer"
+			},
+			"StartTime": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "Temp/Akshay"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-01-21T16:41:52Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

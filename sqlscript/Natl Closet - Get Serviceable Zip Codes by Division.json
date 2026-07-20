@@ -1,0 +1,17 @@
+{
+	"name": "Natl Closet - Get Serviceable Zip Codes by Division",
+	"properties": {
+		"content": {
+			"query": "\n/** Get the zip codes for SWR **/\nSELECT \nbrz.[ZipCode]\n,brz.[LP_BranchID]\n,prg.[ProductGroup]\n,brz.[Division]\n FROM \n [EDW].[DIM_BRANCH_ZIP] brz\n ,[EDW].[DIM_BRANCH] brn\n ,[EDW].[DIM_PRODUCT_GROUP] prg\n where\n brz.ProductGroupID = prg.ProductGroupID\n and brz.BranchID = brn.BranchID\n and brz.Division = 'SWR'\n and ZipCode not in ('00000')\n and prg.[Active] = 'True'\n and brn.[Active] = 'True'\n and brz.ProductGroupID in ('SWR-COR') \n and brn.BranchID in ('SWR-AUSHO', 'SWR-DALHO', 'SWR-SA')\n order BY\nprg.[ProductGroup]\n,brz.[LP_BranchID]\n,brz.[ZipCode]\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

@@ -1,0 +1,233 @@
+{
+	"name": "cpy_load_SUMM_FACT_CONTACT_CENTER_PERFORMANCE_ZML",
+	"properties": {
+		"activities": [
+			{
+				"name": "Load Contact Center Level Performance into Summary Fact",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT \n[Division]\n,SetBy as Agent_EmployeeID\n,count([AppointmentID]) as AppointmentCount\n,min([ApptDate]) EarliestAppointmentDate\n,min([SetDate]) as EarliestDateAppointmentSet\n,min([VerifiedDate]) as EarliestVerifiedDate\n,min([ConfirmedDate]) as EarliestConfirmedDate\n,sum(case when [ApptSet] = 'True' then 1 else 0 end) as ApptSetCount\n,sum(case when [Verified] = 'True' then 1 else 0 end) as VerifiedCount\n,sum(case when [Confirmed] = 'True' then 1 else 0 end) as ConfirmedCount\n,sum(case when [Issued] = 'True' then 1 else 0 end) as IssuedCount\n,sum(case when [NetIssued] = 'True' then 1 else 0 end) as NetIssuedCount\n,sum(case when [Sat] = 'True' then 1 else 0 end) as SatCount\n,sum(case when [Sold] = 'True' then 1 else 0 end) as SoldCount\n FROM [ZML].[FACT_APPOINTMENT]\ngroup BY\n[Division]\n,SetBy",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "IF OBJECT_ID('ZML.SUMM_FACT_CONTACT_CENTER_PERFORMANCE')  IS NOT NULL TRUNCATE TABLE ZML.SUMM_FACT_CONTACT_CENTER_PERFORMANCE",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"tableOption": "autoCreate",
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Agent_EmployeeID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Agent_EmployeeID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AppointmentCount",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "AppointmentCount",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "EarliestAppointmentDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "EarliestAppointmentDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "EarliestDateAppointmentSet",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "EarliestDateAppointmentSet",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "EarliestVerifiedDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "EarliestVerifiedDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "EarliestConfirmedDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "EarliestConfirmedDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "ApptSetCount",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "ApptSetCount",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "VerifiedCount",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "VerifiedCount",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "ConfirmedCount",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "ConfirmedCount",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "IssuedCount",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "IssuedCount",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "NetIssuedCount",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "NetIssuedCount",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "SatCount",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "SatCount",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "SoldCount",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "SoldCount",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_FACT_APPOINTMENT",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_SUMM_FACT_CONTACT_CENTER_PERFORMANCE_ZML",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "Temp/Anuj/ZML/SUMM_FACTS"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-12-22T08:04:06Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

@@ -1,0 +1,17 @@
+{
+	"name": "Get All Sold Windows Leads",
+	"properties": {
+		"content": {
+			"query": "select\ncst.CustomerID\n,cst.FirstName\n,cst.LastName\n,cst.Email\n,cst.Phone\n,cst.Address1\n,cst.City\n,cst.State\n,cst.Zip\n,lds.GrossSalesAmount\n,lds.EntryDate\n,lds.Sold\n,prd.ProductName\nfrom \nEDW.DIM_CUSTOMER cst\n,EDW.FACT_LEAD lds\n,EDW.DIM_PRODUCT prd\nwhere \nlds.CustomerID = cst.CustomerID\nand lds.ProductID = prd.ProductID\nand prd.LongDescription like '%Win%'\nand prd.Active = 'True'\nand lds.Sold = 'True'\nand lds.EntryDate >= '2021-01-01'",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

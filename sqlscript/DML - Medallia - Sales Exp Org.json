@@ -1,0 +1,20 @@
+{
+	"name": "DML - Medallia - Sales Exp Org",
+	"properties": {
+		"folder": {
+			"name": "DMLs/Medallia/Sales Experience"
+		},
+		"content": {
+			"query": "SELECT distinct\nemp.id as SALES_REP_ID\n,emp.FirstName + ' ' + emp.LastName as SALES_REP_NAME\n,'HSI' as BRAND_NAME\n FROM\n [ODS].[LP_HSI_app_Appointments] app\n ,[ODS].[LP_HSI_Lds_Leads] lds\n ,[ODS].[LP_HSI_emp_Employees] emp\n WHERE\n lds.slr_id = emp.id\nand app.id = lds.app_id\nand app.Sat = 1 \nand datediff(DAY, app.ApptDate, dbo.fnConvertUTCtoPST (getdate())) <= 30\n\nunion\n\nSELECT distinct\nemp.id as SALES_REP_ID\n,emp.FirstName + ' ' + emp.LastName as SALES_REP_NAME\n,'HSI' as BRAND_NAME\n FROM\n [ODS].[LP_HSI_app_Appointments] app\n ,[ODS].[LP_HSI_Lds_Leads] lds\n ,[ODS].[LP_HSI_emp_Employees] emp\n WHERE\n lds.slr_id2 = emp.id\nand app.id = lds.app_id\nand app.Sat = 1 \nand datediff(DAY, app.ApptDate, dbo.fnConvertUTCtoPST (getdate())) <= 30",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

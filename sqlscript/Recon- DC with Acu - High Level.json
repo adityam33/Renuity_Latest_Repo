@@ -1,0 +1,20 @@
+{
+	"name": "Recon- DC with Acu - High Level",
+	"properties": {
+		"folder": {
+			"name": "DMLs/Analysis SQL/Acumatica Recon Analysis"
+		},
+		"content": {
+			"query": "SELECT \nfactGL.[Module]\n,factGL.[FinPeriodID]\n,factGL.[RDC_CreditAmount]\n,factGL.[RDC_DebitAmount]\n,factGL.[RDC_BalanceAmount]\n,factGL.[RDC_LineCount]\n,glSumm.CreditAmount as ACU_CreditAmount\n,glSumm.DebitAmount as ACU_DebitAmount\n,(glSumm.DebitAmount - glSumm.CreditAmount)  as ACU_BalanceAmount\n,glSumm.LineCount as ACU_LineCount\n,factGL.RDC_BalanceAmount - (glSumm.DebitAmount - glSumm.CreditAmount) as Diff_BalanceAmount\n,factGL.RDC_LineCount - glSumm.LineCount AS Diff_LineCount\n,factGL.RDC_DebitAmount - glSumm.DebitAmount AS Diff_DebitAmount\nFROM\n (\n    select \n        [Module], \n        FinPeriodID, \n        sum(CreditAmount) as RDC_CreditAmount, \n        sum(DebitAmount) as RDC_DebitAmount, \n        sum(BalanceAmount) as RDC_BalanceAmount,\n        count(1) as RDC_LineCount\n    from\n        [EDW].[FACT_ERP_GL_TRANSACTION] \n    where\n        Posted = 'True'\n    group by\n        [Module], \n        FinPeriodID\n ) factGL\n ,[ODS].[ERP_GLSUMM_BY_MODULE_PERIOD] glSumm\n WHERE \n REPLACE(factGL.FinPeriodID,'-','') = glSumm.PeriodID\n AND factGL.[Module] = glSumm.[Module]\nAND factGL.RDC_LineCount != glSumm.LineCount\n--and factGL.FinPeriodID not in ('08-2022', '09-2022')\nORDER BY\nfactGL.[Module]\n,factGL.[FinPeriodID]\n\n\n\n--select GL_LINE_KEY from EDW.FACT_ERP_GL_TRANSACTION where FinPeriodID = '08-2021' and Module = 'AR'\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

@@ -1,0 +1,791 @@
+{
+	"name": "Kohler_Excel_to_SF_Mapping",
+	"properties": {
+		"activities": [
+			{
+				"name": "Get SF Mapping Excel File",
+				"type": "GetMetadata",
+				"dependsOn": [
+					{
+						"activity": "Set Sheet Name",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "Kohler_JobsExcelFile_toBeConverted",
+						"type": "DatasetReference",
+						"parameters": {
+							"FileName": {
+								"value": "@variables('FileName')",
+								"type": "Expression"
+							},
+							"SheetName": {
+								"value": "@variables('SheetName')",
+								"type": "Expression"
+							}
+						}
+					},
+					"fieldList": [
+						"exists"
+					],
+					"storeSettings": {
+						"type": "AzureBlobStorageReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					}
+				}
+			},
+			{
+				"name": "If Excel to SF Mapping File Exists",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Get SF Mapping Excel File",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@activity('Get SF Mapping Excel File').output.exists",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "Copy Excel Sheet to CSV",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "ExcelSource",
+									"storeSettings": {
+										"type": "AzureBlobStorageReadSettings",
+										"recursive": true,
+										"enablePartitionDiscovery": false
+									}
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobStorageWriteSettings"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"mappings": [
+										{
+											"source": {
+												"name": "EXCEL_STATE",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "EXCEL_STATE",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "EXCEL_NUMBER",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "EXCEL_NUMBER",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "SALESFORCE_OPPORTUNITY_ID",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "SALESFORCE_OPPORTUNITY_ID",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "External_Lead_Id__c",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "External_Lead_Id__c",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "ONE_CLICK_NUMBER",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "ONE_CLICK_NUMBER",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "FRIST",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "FRIST",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "LAST",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "LAST",
+												"type": "String",
+												"physicalType": "String"
+											}
+										},
+										{
+											"source": {
+												"name": "Row Number in Opportunity Sheet",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "Row_Number_in_Opportunity_Sheet",
+												"physicalType": "String"
+											}
+										}
+									],
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "Kohler_SF_MappingExcelFile_toBeConverted",
+									"type": "DatasetReference",
+									"parameters": {
+										"FileName": {
+											"value": "@variables('FileName')",
+											"type": "Expression"
+										},
+										"SheetName": {
+											"value": "@variables('SheetName')",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "Kohler_JobsRawFile_toCSV",
+									"type": "DatasetReference",
+									"parameters": {
+										"ConvertedFileName": {
+											"value": "@concat('KohlerSFMapping-', formatDateTime(utcNow(), 'MM_dd_yyyy'), '.csv')",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "Move Excel File from in to out",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "Copy Excel Sheet to CSV",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "BinarySource",
+									"storeSettings": {
+										"type": "AzureBlobStorageReadSettings",
+										"recursive": true
+									},
+									"formatSettings": {
+										"type": "BinaryReadSettings"
+									}
+								},
+								"sink": {
+									"type": "BinarySink",
+									"storeSettings": {
+										"type": "AzureBlobStorageWriteSettings"
+									}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "Kohler_JobsExcelFile_Converted",
+									"type": "DatasetReference",
+									"parameters": {
+										"Directory": "in",
+										"FileName": {
+											"value": "@variables('FileName')",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "Kohler_JobsExcelFile_Converted",
+									"type": "DatasetReference",
+									"parameters": {
+										"Directory": "out",
+										"FileName": {
+											"value": "@variables('FileName')",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "Delete in folder Excel File",
+							"type": "Delete",
+							"dependsOn": [
+								{
+									"activity": "Move Excel File from in to out",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "Kohler_JobsExcelFile_Converted",
+									"type": "DatasetReference",
+									"parameters": {
+										"Directory": "in",
+										"FileName": {
+											"value": "@variables('FileName')",
+											"type": "Expression"
+										}
+									}
+								},
+								"logStorageSettings": {
+									"linkedServiceName": {
+										"referenceName": "AzureBlobStorage1",
+										"type": "LinkedServiceReference"
+									},
+									"path": "kohlerhome-mn-wi/Staging_For_Logging"
+								},
+								"enableLogging": true,
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								}
+							}
+						},
+						{
+							"name": "Move SF Mapping File to error Folder",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "Copy SF Mapping CSV File to Table",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"storeSettings": {
+										"type": "AzureBlobStorageReadSettings",
+										"recursive": true,
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobStorageWriteSettings"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "Kohler_JobsRawFile_toCSV",
+									"type": "DatasetReference",
+									"parameters": {
+										"ConvertedFileName": "@concat('KohlerSFMapping-', formatDateTime(utcNow(), 'MM_dd_yyyy'), '.csv')"
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "Kohler_RawFiles_errorFolder",
+									"type": "DatasetReference"
+								}
+							]
+						},
+						{
+							"name": "Copy SF Mapping CSV File to Table",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "Delete in folder Excel File",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"storeSettings": {
+										"type": "AzureBlobStorageReadSettings",
+										"recursive": true,
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
+								},
+								"sink": {
+									"type": "SqlServerSink",
+									"preCopyScript": "TRUNCATE TABLE dbo.kohler_Jobs_SFMapping",
+									"writeBehavior": "insert",
+									"sqlWriterUseTableLock": false
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"mappings": [
+										{
+											"source": {
+												"name": "EXCEL_STATE",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "EXCEL_STATE",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "EXCEL_NUMBER",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "EXCEL_NUMBER",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "SALESFORCE_OPPORTUNITY_ID",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "SALESFORCE_OPPORTUNITY_ID",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "External_Lead_Id__c",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "External_Lead_Id__c",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "ONE_CLICK_NUMBER",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "ONE_CLICK_NUMBER",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "FRIST",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "FRIST",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "LAST",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "LAST",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Row_Number_in_Opportunity_Sheet",
+												"type": "String",
+												"physicalType": "String"
+											},
+											"sink": {
+												"name": "Row_Number_in_Opportunity_Sheet",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										}
+									],
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "Kohler_JobsRawFile_toCSV",
+									"type": "DatasetReference",
+									"parameters": {
+										"ConvertedFileName": {
+											"value": "@concat('KohlerSFMapping-', formatDateTime(utcNow(), 'MM_dd_yyyy'), '.csv')",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "Kohler_SqlServerTables",
+									"type": "DatasetReference",
+									"parameters": {
+										"TableName": "kohler_Jobs_SFMapping",
+										"SchemaName": "dbo"
+									}
+								}
+							]
+						},
+						{
+							"name": "Move SF Mapping File from in to out",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "Copy SF Mapping CSV File to Table",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"storeSettings": {
+										"type": "AzureBlobStorageReadSettings",
+										"recursive": true,
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobStorageWriteSettings"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "Kohler_JobsRawFile_toCSV",
+									"type": "DatasetReference",
+									"parameters": {
+										"ConvertedFileName": {
+											"value": "@concat('KohlerSFMapping-', formatDateTime(utcNow(), 'MM_dd_yyyy'), '.csv')",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "Kohler_RawFiles_outFolder",
+									"type": "DatasetReference"
+								}
+							]
+						},
+						{
+							"name": "Delete SF Mapping CSV from in",
+							"type": "Delete",
+							"dependsOn": [
+								{
+									"activity": "Move SF Mapping File from in to out",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "Kohler_JobsRawFile_toCSV",
+									"type": "DatasetReference",
+									"parameters": {
+										"ConvertedFileName": "@concat('KohlerSFMapping-', formatDateTime(utcNow(), 'MM_dd_yyyy'), '.csv')"
+									}
+								},
+								"logStorageSettings": {
+									"linkedServiceName": {
+										"referenceName": "AzureBlobStorage1",
+										"type": "LinkedServiceReference"
+									},
+									"path": "kohlerhome-mn-wi/Staging_For_Logging"
+								},
+								"enableLogging": true,
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								}
+							}
+						},
+						{
+							"name": "Delete SF Mapping CSV from in_copy1",
+							"type": "Delete",
+							"dependsOn": [
+								{
+									"activity": "Move SF Mapping File to error Folder",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "Kohler_JobsRawFile_toCSV",
+									"type": "DatasetReference",
+									"parameters": {
+										"ConvertedFileName": "@concat('KohlerSFMapping-', formatDateTime(utcNow(), 'MM_dd_yyyy'), '.csv')"
+									}
+								},
+								"logStorageSettings": {
+									"linkedServiceName": {
+										"referenceName": "AzureBlobStorage1",
+										"type": "LinkedServiceReference"
+									},
+									"path": "kohlerhome-mn-wi/Staging_For_Logging"
+								},
+								"enableLogging": true,
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Set Excel to SF Mapping File Name",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "FileName",
+					"value": "TESTING26v1 - LP - Excel to SF Opportunity Linking.xlsx"
+				}
+			},
+			{
+				"name": "Set Sheet Name",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Set Excel to SF Mapping File Name",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "SheetName",
+					"value": "Excel to SF Mapping 0217"
+				}
+			}
+		],
+		"variables": {
+			"FileName": {
+				"type": "String"
+			},
+			"SheetName": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "Temp/Sameen"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-02-25T17:54:42Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

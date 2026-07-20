@@ -1,0 +1,17 @@
+{
+	"name": "Get Day of the Week Metrics",
+	"properties": {
+		"content": {
+			"query": "SELECT\n[Division]\n,DATEPART(dw,[CallDate]) as WeekDay\n,count(1) CallCount\n FROM [EDW].[FACT_CALL]\n where \n [CallDate]>= '2022-01-01'\ngroup BY\n[Division]\n,DATEPART(dw,[CallDate])\norder BY\n[Division]\n,DATEPART(dw,[CallDate])\n\n\n\n\nSELECT\n[Division]\n,DATEPART(dw,[EntryDate]) as WeekDay\n,count(1) LeadCount\n FROM [EDW].[FACT_LEAD]\n where \n [EntryDate]>= '2022-01-01'\ngroup BY\n[Division]\n,DATEPART(dw,[EntryDate])\norder BY\n[Division]\n,DATEPART(dw,[EntryDate])\n\n\nSELECT\n[Division]\n,DATEPART(dw,[ContractDate]) as WeekDay\n,count(1) JobCount\n FROM [EDW].[FACT_JOB]\n where \n [ContractDate]>= '2022-01-01'\ngroup BY\n[Division]\n,DATEPART(dw,[ContractDate])\norder BY\n[Division]\n,DATEPART(dw,[ContractDate])",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

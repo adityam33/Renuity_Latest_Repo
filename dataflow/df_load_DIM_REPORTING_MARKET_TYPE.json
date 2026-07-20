@@ -1,0 +1,204 @@
+{
+	"name": "df_load_DIM_REPORTING_MARKET_TYPE",
+	"properties": {
+		"folder": {
+			"name": "ODS_to_EDW/DIMENSIONS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_FHI_tof_TypeOfMarket",
+						"type": "DatasetReference"
+					},
+					"name": "srcFHI"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_HSI_tof_TypeOfMarket",
+						"type": "DatasetReference"
+					},
+					"name": "srcHSI"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_MAC_tof_TypeOfMarket",
+						"type": "DatasetReference"
+					},
+					"name": "srcMAC"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_MXH_tof_TypeOfMarket",
+						"type": "DatasetReference"
+					},
+					"name": "srcMXH"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_PBC_tof_TypeOfMarket",
+						"type": "DatasetReference"
+					},
+					"name": "srcPBC"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_PHI_tof_TypeOfMarket",
+						"type": "DatasetReference"
+					},
+					"name": "srcPHI"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_RTW_tof_TypeOfMarket",
+						"type": "DatasetReference"
+					},
+					"name": "srcRTW"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_SWR_tof_TypeOfMarket",
+						"type": "DatasetReference"
+					},
+					"name": "srcSWR"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_STG_DIM_REPORTING_MARKET_TYPE",
+						"type": "DatasetReference"
+					},
+					"name": "targetSTG"
+				}
+			],
+			"transformations": [
+				{
+					"name": "unionAll"
+				},
+				{
+					"name": "derivedCol"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          LP_Reporting_MarketType_ID as integer,",
+				"          Reporting_MarketType_Descr as string,",
+				"          Active as boolean,",
+				"          Division as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT [id] as LP_Reporting_MarketType_ID\\n,[descr] as Reporting_MarketType_Descr\\n,[active] as Active\\n,\\'FHI\\' as Division\\n FROM [ODS].[LP_FHI_tof_TypeOfMarket]',",
+				"     format: 'query',",
+				"     staged: true) ~> srcFHI",
+				"source(output(",
+				"          LP_Reporting_MarketType_ID as integer,",
+				"          Reporting_MarketType_Descr as string,",
+				"          Active as boolean,",
+				"          Division as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT [id] as LP_Reporting_MarketType_ID\\n,[descr] as Reporting_MarketType_Descr\\n,[active] as Active\\n,\\'HSI\\' as Division\\n FROM [ODS].[LP_HSI_tof_TypeOfMarket]',",
+				"     format: 'query',",
+				"     staged: true) ~> srcHSI",
+				"source(output(",
+				"          LP_Reporting_MarketType_ID as integer,",
+				"          Reporting_MarketType_Descr as string,",
+				"          Active as boolean,",
+				"          Division as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT [id] as LP_Reporting_MarketType_ID\\n,[descr] as Reporting_MarketType_Descr\\n,[active] as Active\\n,\\'MAC\\' as Division\\n FROM [ODS].[LP_MAC_tof_TypeOfMarket]',",
+				"     format: 'query',",
+				"     staged: true) ~> srcMAC",
+				"source(output(",
+				"          LP_Reporting_MarketType_ID as integer,",
+				"          Reporting_MarketType_Descr as string,",
+				"          Active as boolean,",
+				"          Division as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT [id] as LP_Reporting_MarketType_ID\\n,[descr] as Reporting_MarketType_Descr\\n,[active] as Active\\n,\\'MXH\\' as Division\\n FROM [ODS].[LP_MXH_tof_TypeOfMarket]',",
+				"     format: 'query',",
+				"     staged: true) ~> srcMXH",
+				"source(output(",
+				"          LP_Reporting_MarketType_ID as integer,",
+				"          Reporting_MarketType_Descr as string,",
+				"          Active as boolean,",
+				"          Division as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT [id] as LP_Reporting_MarketType_ID\\n,[descr] as Reporting_MarketType_Descr\\n,[active] as Active\\n,\\'PBC\\' as Division\\n FROM [ODS].[LP_PBC_tof_TypeOfMarket]',",
+				"     format: 'query',",
+				"     staged: true) ~> srcPBC",
+				"source(output(",
+				"          LP_Reporting_MarketType_ID as integer,",
+				"          Reporting_MarketType_Descr as string,",
+				"          Active as boolean,",
+				"          Division as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT [id] as LP_Reporting_MarketType_ID\\n,[descr] as Reporting_MarketType_Descr\\n,[active] as Active\\n,\\'PHI\\' as Division\\n FROM [ODS].[LP_PHI_tof_TypeOfMarket]',",
+				"     format: 'query',",
+				"     staged: true) ~> srcPHI",
+				"source(output(",
+				"          LP_Reporting_MarketType_ID as integer,",
+				"          Reporting_MarketType_Descr as string,",
+				"          Active as boolean,",
+				"          Division as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT [id] as LP_Reporting_MarketType_ID\\n,[descr] as Reporting_MarketType_Descr\\n,[active] as Active\\n,\\'RTW\\' as Division\\n FROM [ODS].[LP_RTW_tof_TypeOfMarket]',",
+				"     format: 'query',",
+				"     staged: true) ~> srcRTW",
+				"source(output(",
+				"          LP_Reporting_MarketType_ID as integer,",
+				"          Reporting_MarketType_Descr as string,",
+				"          Active as boolean,",
+				"          Division as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT [id] as LP_Reporting_MarketType_ID\\n,[descr] as Reporting_MarketType_Descr\\n,[active] as Active\\n,\\'SWR\\' as Division\\n FROM [ODS].[LP_SWR_tof_TypeOfMarket]',",
+				"     format: 'query',",
+				"     staged: true) ~> srcSWR",
+				"srcFHI, srcHSI, srcMAC, srcMXH, srcPBC, srcPHI, srcRTW, srcSWR union(byName: true)~> unionAll",
+				"unionAll derive(Reporting_MarketType_ID = concat(Division,'-',toString(LP_Reporting_MarketType_ID)),",
+				"          LastUpdateTS = currentTimestamp()) ~> derivedCol",
+				"derivedCol sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'parquet',",
+				"     truncate: true,",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     mapColumn(",
+				"          LP_Reporting_MarketType_ID,",
+				"          Reporting_MarketType_Descr,",
+				"          Active,",
+				"          Division,",
+				"          Reporting_MarketType_ID,",
+				"          LastUpdateTS",
+				"     )) ~> targetSTG"
+			]
+		}
+	}
+}

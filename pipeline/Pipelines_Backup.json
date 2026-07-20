@@ -1,0 +1,90 @@
+{
+	"name": "Pipelines_Backup",
+	"properties": {
+		"activities": [
+			{
+				"name": "get tokenID",
+				"type": "WebActivity",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"headers": {
+						"api-version": "2018-02-01",
+						"resource": "https://dev.azuresynapse.net"
+					},
+					"url": "https://login.microsoftonline.com/701f7abf-167c-418b-babf-7c1b41cc06c8/oauth2/v2.0/token",
+					"connectVia": {
+						"referenceName": "AutoResolveIntegrationRuntime",
+						"type": "IntegrationRuntimeReference"
+					},
+					"body": "grant_type=client_credentials\n&client_id=<your-client-id>\n&client_secret=<your-client-secret>\n&scope=https://dev.azuresynapse.net/.default"
+				}
+			},
+			{
+				"name": "Copy data1",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:01:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "GET",
+						"additionalHeaders": {
+							"Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6IjNQYUs0RWZ5Qk5RdTNDdGpZc2EzWW1oUTVFMCIsImtpZCI6IjNQYUs0RWZ5Qk5RdTNDdGpZc2EzWW1oUTVFMCJ9.eyJhdWQiOiJodHRwczovL2Rldi5henVyZXN5bmFwc2UubmV0IiwiaXNzIjoiaHR0cHM6Ly9zdHMud2luZG93cy5uZXQvNzAxZjdhYmYtMTY3Yy00MThiLWJhYmYtN2MxYjQxY2MwNmM4LyIsImlhdCI6MTczMDQ3MjM3NCwibmJmIjoxNzMwNDcyMzc0LCJleHAiOjE3MzA0NzY3NjIsImFjciI6IjEiLCJhaW8iOiJBWlFBYS84WUFBQUFFYkNway9Ua3RsbEFVZlJRZHlmU1ora21TUVlYWFBEa096dkFTUXdUTXNVQlB0UlB1SCtVOHUyZlhMd0hqOVhsOFpTK3hTOEgzdEtwcWVlKytkYStDeTRvaytYUHJacGU4ZFpvVHFza3d4ZHdDZzhHd0tMaXVDYXBodmhPV0VRUitLaUhNMzFhZko2dmhPTlhYYWk1RWFhTnROU2tBS1AvejBVRVF0czMvVlByMC9Jb2JvdjRuQVdFdFpqa3dmMVYiLCJhbXIiOlsicnNhIiwibWZhIl0sImFwcGlkIjoiYjY3N2MyOTAtY2Y0Yi00YThlLWE2MGUtOTFiYTY1MGE0YWJlIiwiYXBwaWRhY3IiOiIwIiwiZGV2aWNlaWQiOiI5ZWIxMzQ3Yi0wMGU1LTQ5ZjQtYjNiZi1jMTIzYjVkNTc2NjUiLCJmYW1pbHlfbmFtZSI6IlNoYXVrYXQiLCJnaXZlbl9uYW1lIjoiU2FtZWVuIiwiZ3JvdXBzIjpbIjM4OWU1NjBhLTFhMTUtNDQ0NC1iYjBjLWYyYjM0MDRiOTIyYiIsImIzNWVkODBkLWEyNWMtNGM5OC05MjgzLTcwMzBkNDQ5MDk3YyIsIjRmMTgyMjFmLTQwMzUtNGRjNS1hYWQ1LTUwYzMzYjQ0MzU4ZCIsIjM5OWI0MzIyLTc5MTgtNGYxMS1hMDIzLWNiYjNhZDljODNmZiIsImVlMWI3ZTIzLTU3ZjAtNGY2My04ZjAyLWEwOGY2MjVjMDlhNiIsImNhZTQyZTI1LTFhYjMtNGM0Ni04ZDc0LTQ0ZThiMTkzNDk5NSIsImEwZWFlYzJjLTAyYzAtNDZkZC05ZjRkLWQ4NzY2YjMyZTc3OCIsIjU0MDlmMjJkLTMzNWItNDdmYi05MjE1LTkxMmRkYWJkZGM4ZiIsImZiOTQxOTMyLTE5NTctNDI5ZS05NDU0LWYyNTRmMjQ4ZjExMSIsIjg1NmIxZDQ1LWMwNjgtNDYyMS1iYWI0LWJhMDIwYWI4N2ZlMCIsImE3ZTFmNDUxLTc0N2YtNDg5Yy04MTkzLWI0Yzc3MzNlYmZmNSIsImQ5NDI2YjU0LWZlZTktNGM4Ni05ZmM3LTRmYTI1Y2NmZjNmZiIsImZmM2ZjYzU1LTBlNDUtNDZlOC1iMWE2LWVhNDJkZDkwOTc5OSIsIjA5ZGRmYTYxLTYzZGQtNDY5NC1iYWFmLWY4ZjgyMDliNDE1NSIsImU5NTA4MTY5LTYwMzktNDIyZi1hNzhiLTEyZDFiMTI5OWZmYSIsImVmOGY5ZDZmLWE2ZDQtNDA4ZC1hNTdiLTAxYmYyMzkwYmJmNCIsIjBiYTk3NTc2LWEyZjMtNGI4NS1iM2U4LTgxYzNkOWRmNTQ4YiIsImZkNTAyNzdkLTAyNjgtNDNiYy1iODFjLTE2MTBjZGNmNjlkYyIsIjUyNzdhMDg1LTE0YTMtNGQ3OS04ZDc1LTgyNDA2MDc3MDZjMiIsIjU5MmNiNjhjLTdjNGItNDQzNy05NWI3LTA4ODZkZmExNjg2ZSIsIjkwMDA3MTkwLTQ3MjAtNGZmOS04Y2I5LTM5NGZmNDYyNjJjOCIsImI5Yjc1YjljLWI0NWMtNDgxOS05MjA0LTM2MThmYmIyZjU5YiIsIjY0MDE3MjlmLWE3MmYtNDAwYy1hMzliLWI3NDExMTZlYzU0MSIsIjg3NjkwMWEwLTg5YmQtNDJiNi05NmI2LWQ4MTZiZDEwZGY5MiIsIjY0NTNkMGEyLTRjNjgtNGEyZC1hYjVhLWU4NmEyMmQ0ZDdlOCIsIjFkNDQzZGE2LWFlY2UtNGI5NC04MDI1LWQ5ZjgwMjc5MmJmZCIsIjIxOWMyM2I4LWU0OGUtNDc5YS1hMWNlLWVkNzVmMDI3MGQzOSIsIjM5MjhkM2JhLTM5NTEtNGUzOS04ZDRjLTgzOTNmZDUxYmUwZCIsIjhkY2Y0NWJjLTJiNTktNDJlMy04YjY3LTY3ZWU4ZTgyMTk2NiIsIjBlZmRlZmJmLTU2NGQtNDM5MS1iMWY5LTE2MzM3ZjUzYjU0ZSIsIjk5ZWFjM2M3LTI1MWQtNDkwMy1iZTk5LWZiODIyMTA5M2JkOCIsIjE5MDA1NGUxLWFkZWQtNGM5Yy05MThlLTVlYjUwM2I1ZGMxYiIsImNjMGYzM2Y3LTY5YjUtNDg2Mi1hZThmLTVhZWRkZGZhZjJjMCJdLCJpZHR5cCI6InVzZXIiLCJpcGFkZHIiOiIxNzMuNzkuMTEuMTE0IiwibmFtZSI6IlNhbWVlbiBTaGF1a2F0Iiwib2lkIjoiODFiYTIyNWYtMjJkYS00ZTJmLTg3OWItMTIwZjA0ZjQ2ODE4IiwicHVpZCI6IjEwMDMyMDAzNUZENUUxMjkiLCJyaCI6IjEuQVZnQXYzb2ZjSHdXaTBHNnYzd2JRY3dHeUg1Y3dCclNFZ1ZHdjUxVW5YQkJ4ck5ZQU9OWUFBLiIsInNjcCI6InVzZXJfaW1wZXJzb25hdGlvbiIsInN1YiI6IlJ3UTcxVHBsRURkQkJrZGNUVmFydWl0N2hQNW8weFBaMXkxRWFRZkZLc1UiLCJ0aWQiOiI3MDFmN2FiZi0xNjdjLTQxOGItYmFiZi03YzFiNDFjYzA2YzgiLCJ1bmlxdWVfbmFtZSI6InNzaGF1a2F0QHJlbnVpdHlob21lLmNvbSIsInVwbiI6InNzaGF1a2F0QHJlbnVpdHlob21lLmNvbSIsInV0aSI6ImFVdTR5Y2tFWWs2aEZjLWx0MmlUQUEiLCJ2ZXIiOiIxLjAiLCJ4bXNfaWRyZWwiOiIyMCAxIn0.CCoA1kgbYTL5HiVw4RuvkLhDIJOej3Lz5qwnjy_JkGzLLzU6GB_KiD-w19YaskyqaUbGsGb1LBZl0nZO1yfRsJQLmydJiUDdrbgrVcpxTotYHJiJn5VR1KCgUONHHW8tCW7wc-9R0GSDfGaFree7YxGS3Ofbj0fhN3KtVj6mUW05rvoRmS0uoYqs0f3S0CUGe1bQfhywB5-tGoHkaYKzyiGrO3mx8Wtaa_87gJCp5c_UxD2INhfUzPx-aU78AE21M7jaBYTSsyyRZuAl3o116KkJPup1ltpu8dW4za3vniWrFU1uZ3LKIPj_MeCK7ABt1EQRHgY2kJki4UmH1NHhsg"
+						},
+						"paginationRules": {
+							"supportRFC5988": "true"
+						}
+					},
+					"sink": {
+						"type": "JsonSink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings"
+						},
+						"formatSettings": {
+							"type": "JsonWriteSettings"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "DS_Api_List",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "Ds_Pipelines_Json",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "Temp/Sameen"
+		},
+		"annotations": [],
+		"lastPublishTime": "2024-11-01T16:07:37Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

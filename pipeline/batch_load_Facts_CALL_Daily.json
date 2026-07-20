@@ -1,0 +1,734 @@
+{
+	"name": "batch_load_Facts_CALL_Daily",
+	"properties": {
+		"activities": [
+			{
+				"name": "df_load_FACT_CALL",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "1.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_load_FACT_CALL",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/FACTS"
+					},
+					"integrationRuntime": {
+						"referenceName": "RDC-AutoIR-GP-Small-1",
+						"type": "IntegrationRuntimeReference"
+					},
+					"traceLevel": "Coarse"
+				}
+			},
+			{
+				"name": "Copy into FACT_CALL",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "df_load_FACT_CALL",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ParquetSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"wildcardFileName": "*.*",
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "ParquetReadSettings"
+						}
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "IF OBJECT_ID('EDW.FACT_CALL')  IS NOT NULL TRUNCATE TABLE EDW.FACT_CALL",
+						"allowCopyCommand": true,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Division",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_CallID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "LP_CallID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_CustomerID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "LP_CustomerID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_LeadID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "LP_LeadID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_AgentEmployeeID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "LP_AgentEmployeeID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_CallTypeID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LP_CallTypeID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_CallResultID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LP_CallResultID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_ColdCallListID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "LP_ColdCallListID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_ColdCallDetailID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "LP_ColdCallDetailID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_CallQueueDetailID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "LP_CallQueueDetailID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Phone",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Phone",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CallDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "CallDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "F9_Campaign",
+									"type": "String"
+								},
+								"sink": {
+									"name": "F9_Campaign",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "F9_IVRTime",
+									"type": "String"
+								},
+								"sink": {
+									"name": "F9_IVRTime",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "F9_RingTime",
+									"type": "String"
+								},
+								"sink": {
+									"name": "F9_RingTime",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "F9_ParkTime",
+									"type": "String"
+								},
+								"sink": {
+									"name": "F9_ParkTime",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "F9_AfterCallWorkTime",
+									"type": "String"
+								},
+								"sink": {
+									"name": "F9_AfterCallWorkTime",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "F9_Transfers",
+									"type": "String"
+								},
+								"sink": {
+									"name": "F9_Transfers",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "F9_Conferences",
+									"type": "String"
+								},
+								"sink": {
+									"name": "F9_Conferences",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "F9_Holds",
+									"type": "String"
+								},
+								"sink": {
+									"name": "F9_Holds",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "F9_Abandoned",
+									"type": "String"
+								},
+								"sink": {
+									"name": "F9_Abandoned",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "F9_CustomerName",
+									"type": "String"
+								},
+								"sink": {
+									"name": "F9_CustomerName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "F9_Recordings",
+									"type": "String"
+								},
+								"sink": {
+									"name": "F9_Recordings",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "F9_CallID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "F9_CallID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "F9_SessionID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "F9_SessionID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "F9_LeadScore",
+									"type": "String"
+								},
+								"sink": {
+									"name": "F9_LeadScore",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "F9_CustomerID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "F9_CustomerID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "F9_ANR_Logit_Rank",
+									"type": "String"
+								},
+								"sink": {
+									"name": "F9_ANR_Logit_Rank",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "F9_ListName",
+									"type": "String"
+								},
+								"sink": {
+									"name": "F9_ListName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "F9_ANR_EV_Rank",
+									"type": "String"
+								},
+								"sink": {
+									"name": "F9_ANR_EV_Rank",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "F9_ServiceLevel",
+									"type": "String"
+								},
+								"sink": {
+									"name": "F9_ServiceLevel",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "F9_CampaignType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "F9_CampaignType",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "F9_Skill",
+									"type": "String"
+								},
+								"sink": {
+									"name": "F9_Skill",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "F9_AgentGroup",
+									"type": "String"
+								},
+								"sink": {
+									"name": "F9_AgentGroup",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "F9_LPRecType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "F9_LPRecType",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "F9_SpeedOfAnswer",
+									"type": "String"
+								},
+								"sink": {
+									"name": "F9_SpeedOfAnswer",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "F9_NoPartyContact",
+									"type": "String"
+								},
+								"sink": {
+									"name": "F9_NoPartyContact",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "F9_Contacted",
+									"type": "String"
+								},
+								"sink": {
+									"name": "F9_Contacted",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "F9_LiveConnect",
+									"type": "String"
+								},
+								"sink": {
+									"name": "F9_LiveConnect",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "F9_DialTime",
+									"type": "String"
+								},
+								"sink": {
+									"name": "F9_DialTime",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "F9_TimeToAbandon",
+									"type": "String"
+								},
+								"sink": {
+									"name": "F9_TimeToAbandon",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "F9_TalkTIme",
+									"type": "String"
+								},
+								"sink": {
+									"name": "F9_TalkTIme",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "F9_ManualTime",
+									"type": "String"
+								},
+								"sink": {
+									"name": "F9_ManualTime",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "F9_TotalQueue",
+									"type": "String"
+								},
+								"sink": {
+									"name": "F9_TotalQueue",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "F9_ConsultTime",
+									"type": "String"
+								},
+								"sink": {
+									"name": "F9_ConsultTime",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "F9_TalkTimeLessHoldAndPark",
+									"type": "String"
+								},
+								"sink": {
+									"name": "F9_TalkTimeLessHoldAndPark",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "F9_Parks",
+									"type": "String"
+								},
+								"sink": {
+									"name": "F9_Parks",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "F9_PreviewTime",
+									"type": "String"
+								},
+								"sink": {
+									"name": "F9_PreviewTime",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "F9_Number1",
+									"type": "String"
+								},
+								"sink": {
+									"name": "F9_Number1",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "F9_Source",
+									"type": "String"
+								},
+								"sink": {
+									"name": "F9_Source",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "F9_SubSource",
+									"type": "String"
+								},
+								"sink": {
+									"name": "F9_SubSource",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "F9_Language",
+									"type": "String"
+								},
+								"sink": {
+									"name": "F9_Language",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "F9_Agent",
+									"type": "String"
+								},
+								"sink": {
+									"name": "F9_Agent",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LastUpdateTS",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastUpdateTS",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "CallID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CallID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CustomerID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CustomerID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LeadID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "AgentEmployeeID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "AgentEmployeeID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CallTypeID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CallTypeID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CallResultID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CallResultID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ColdCallListID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ColdCallListID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ColdCallDetailID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ColdCallDetailID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CallQueueDetailID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CallQueueDetailID",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_STG_FACT_CALL",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_FACT_CALL",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/FACTS/LP"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-02-04T11:03:29Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

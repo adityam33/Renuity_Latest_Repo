@@ -1,0 +1,133 @@
+{
+	"name": "df_load_DIM_PRODUCT_ZML",
+	"properties": {
+		"folder": {
+			"name": "ZML_ODS_to_EDW/DIMENSIONS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ZML_ODS_FHI_prd_Products",
+						"type": "DatasetReference"
+					},
+					"name": "FHI"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_DIM_PRODUCT_ZML",
+						"type": "DatasetReference"
+					},
+					"name": "targetDim",
+					"description": "Export data to EDW_DIM_PRODUCT",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "selectColsFHI"
+				},
+				{
+					"name": "createIDsFHI"
+				},
+				{
+					"name": "unionAllOpCos"
+				},
+				{
+					"name": "addLastUpdateTimestamp"
+				},
+				{
+					"name": "AlterRow"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          ProductID as string,",
+				"          prg_id as string,",
+				"          ShortDescr as string,",
+				"          MediumDescr as string,",
+				"          LongDescr as string,",
+				"          Aff_ProductID as string,",
+				"          SCI_ProductID as string,",
+				"          AvgDuration as integer,",
+				"          ForeColor as string,",
+				"          BackColor as string,",
+				"          active as boolean,",
+				"          SortOrder as integer,",
+				"          hdvendorid as string,",
+				"          hdprogramgroup as string,",
+				"          id as integer,",
+				"          GLAcct as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> FHI",
+				"FHI select(mapColumn(",
+				"          ProductName = ProductID,",
+				"          LP_ProductGroupID = prg_id,",
+				"          ShortDescription = ShortDescr,",
+				"          MediumDescription = MediumDescr,",
+				"          LongDescription = LongDescr,",
+				"          Active = active,",
+				"          LP_ProductID = id",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColsFHI",
+				"selectColsFHI derive(ProductID = concat('FHI-',toString(LP_ProductID)),",
+				"          Division = 'FHI',",
+				"          ProductGroupID = concat('FHI-',toString(LP_ProductGroupID))) ~> createIDsFHI",
+				"createIDsFHI union(byName: true)~> unionAllOpCos",
+				"unionAllOpCos derive(LastUpdateTS = currentTimestamp()) ~> addLastUpdateTimestamp",
+				"addLastUpdateTimestamp alterRow(upsertIf(true())) ~> AlterRow",
+				"AlterRow sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          ProductID as string,",
+				"          ProductGroupID as string,",
+				"          ProductName as string,",
+				"          ShortDescription as string,",
+				"          MediumDescription as string,",
+				"          LongDescription as string,",
+				"          Active as boolean,",
+				"          LP_ProductID as integer,",
+				"          LP_ProductGroupID as string,",
+				"          Division as string,",
+				"          LastUpdateTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['ProductID'],",
+				"     format: 'table',",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          ProductID,",
+				"          ProductGroupID,",
+				"          ProductName,",
+				"          ShortDescription,",
+				"          MediumDescription,",
+				"          LongDescription,",
+				"          Active,",
+				"          LP_ProductID,",
+				"          LP_ProductGroupID,",
+				"          Division,",
+				"          LastUpdateTS",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> targetDim"
+			]
+		}
+	}
+}

@@ -1,0 +1,2298 @@
+{
+	"name": "Test_Guild_Survey_Api_Sandbox",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy GQ Surveys to BS_By_UpdatedAt",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:01:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "GET",
+						"additionalHeaders": {
+							"Authorization": "Bearer Ale3uCQ4M77NgvhF"
+						},
+						"paginationRules": {
+							"supportRFC5988": "true"
+						}
+					},
+					"sink": {
+						"type": "JsonSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "JsonWriteSettings"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "GQ_All_Surveys_By_UpdatedAt_Sandbox",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "GQ_Survey_Json_Sandbox",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "DF_Flatten_Json_And_Sink_TO_ODS",
+				"type": "ExecuteDataFlow",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Copy GQ Surveys to BS_By_UpdatedAt",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"staging": {
+						"linkedService": {
+							"referenceName": "AzureBlobStorage1",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "sameen"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "Copy data Load Medallia EDW Invitations",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "DF_Flatten_Json_And_Sink_TO_ODS_copy1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"sqlReaderQuery": "With GUILD_QUALITY_DATA_1 AS \n(\nSELECT G.SURVEY_ID,J.CUSTOMERID,J.LEADID,J.JOBID, \n\t   J.LP_CUSTOMERID,J.LP_LEADID, \n\t   J.INSTALLERID_1,J.InstallerID_2,J.InstallerID_3,J.InstallerID_4,\n\t   J.LP_INSTALLERID_1,J.LP_InstallerID_2,J.LP_InstallerID_3,J.LP_InstallerID_4 \n\tFROM \n\t\t[ODS].[Test_GUILD_QUALITY_CUSTOMER_SURVEY] G\n\t\tLEFT JOIN EDW.FACT_JOB J ON (CASE \n\t\t\t\t\t\t\tWHEN Brand like'%Mad City Window%'\tTHEN 'MAC'\n\t\t\t\t\t\t\tWHEN Brand like'%Pacific Bath%'\t\t\t\tTHEN 'PBC'\n\t\t\t\t\t\t\tWHEN Brand like'%Statewid%'\t\tTHEN 'SWR'\n\t\t\t\t\t\t\tWHEN Brand like'%FHIA%'\t\t\tTHEN 'FHI'\n\t\t\t\t\t\t\tWHEN Brand like'%Max%'\t\t\t\t\tTHEN 'MXH'\n\t\t\t\t\t\t\tWHEN Brand like'%Rite Window%'\t\tTHEN 'RTW'\n\t\t\t\t\t\t\tWHEN Brand like'%Paradise Home%' THEN 'PHI'\n\t\t\t\t\t\t\tWhen Brand like'%Home Smart%'\t\t\t\tTHEN 'HSI'\n\t\t\t\t\t\t\tWHEN Brand like'%Renuity%'\t\t\t\t\tTHEN 'PHI'\n                            WHEN Brand like'%Closet America%'            THEN 'CTA' \n\t\t\t\t\t\tEND )=J.DIVISION AND G.EXTERNAL_ID=J.CONTRACTID AND Round(G.VALUE,2) =Round(J.GROSSAMOUNT,2)---5555\n\t\tLEFT JOIN EDW.DIM_JOB_STATUS JS ON J.DIVISION=JS.DIVISION AND J.JobStatusId=JS.JobStatusID\n\t\t\n\tWHERE J.JOBID IS NOT NULL  AND JS.LP_JOBSTATUSCATEGORYID not in ('3','5')\n\n),\nGUILD_QUALITY_DATA_2 AS \n(\nSELECT G.SURVEY_ID,G.CUSTOMERID,J.LEADID,J.JOBID, \n\t   J.LP_CUSTOMERID,J.LP_LEADID, \n\t   J.INSTALLERID_1,J.InstallerID_2,J.InstallerID_3,J.InstallerID_4,\n\t   J.LP_INSTALLERID_1,J.LP_InstallerID_2,J.LP_InstallerID_3,J.LP_InstallerID_4 \n\tFROM (\n\t\t\tSELECT DISTINCT\n\t\t\t\tG.SURVEY_ID,G.RESPONSE_DATE,G.EXTERNAL_ID,G.VALUE AS AMOUNT,(CASE \n\t\t\t\t\t\t\tWHEN g.Brand like'%Mad City Window%'\tTHEN 'MAC'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Pacific Bath%'\t\t\t\tTHEN 'PBC'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Statewid%'\t\tTHEN 'SWR'\n\t\t\t\t\t\t\tWHEN g.Brand like'%FHIA%'\t\t\tTHEN 'FHI'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Max%'\t\t\t\t\tTHEN 'MXH'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Rite Window%'\t\tTHEN 'RTW'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Paradise Home%' THEN 'PHI'\n\t\t\t\t\t\t\tWhen g.Brand like'%Home Smart%'\t\t\t\tTHEN 'HSI'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Renuity%'\t\t\t\t\tTHEN 'PHI'\n                            WHEN g.Brand like'%Closet America%'            THEN 'CTA' \n\t\t\t\t\t\tEND) as brand,COALESCE(C1.CUSTOMERID,C.CUSTOMERID--,C2.CUSTOMERID,C3.CUSTOMERID\n\t\t\t\t) AS CUSTOMERID\n\t\t\t\tFROM \n\t\t\t\t[ODS].[Test_GUILD_QUALITY_CUSTOMER_SURVEY] G\n\t\t\t\tLEFT JOIn GUILD_QUALITY_DATA_1 T on G.Survey_Id=T.Survey_ID\t\n\t\t\t\tLEFT JOIN EDW.DIM_CUSTOMER C1 ON  (CASE \n\t\t\t\t\t\t\tWHEN g.Brand like'%Mad City Window%'\tTHEN 'MAC'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Pacific Bath%'\t\t\t\tTHEN 'PBC'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Statewid%'\t\tTHEN 'SWR'\n\t\t\t\t\t\t\tWHEN g.Brand like'%FHIA%'\t\t\tTHEN 'FHI'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Max%'\t\t\t\t\tTHEN 'MXH'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Rite Window%'\t\tTHEN 'RTW'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Paradise Home%' THEN 'PHI'\n\t\t\t\t\t\t\tWhen g.Brand like'%Home Smart%'\t\t\t\tTHEN 'HSI'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Renuity%'\t\t\t\t\tTHEN 'PHI'\n                            WHEN g.Brand like'%Closet America%'            THEN 'CTA' \n\t\t\t\t\t\tEND )=C1.DIVISION\n\t\t\t\t\t\t\t\t\t\t\t\tAND G.CONTACT=CONCAT(C1.FIRSTNAME,' ',C1.LASTNAME) \n\t\t\t\t\t\t\t\t\t\t\t\tAND G.ADDRESS=C1.ADDRESS1 \n\t\t\t\t\t\t\t\t\t\t\t\tAND G.CITY=C1.CITY \n\t\t\t\t\t\t\t\t\t\t\t\tAND G.STATE=C1.STATE\n\t\t\t\t\t\t\t\t\t\t\t\tAND G.ZIP=C1.ZIP\n\t\t\t\t\t\t\t\t\t\t\t\tAND REPLACE(REPLACE(REPLACE(G.PHONE,'(',''),') ',''),'-','')=C1.PHONE\n\t\t\t\tLEFT JOIN EDW.DIM_CUSTOMER C ON (CASE \n\t\t\t\t\t\t\tWHEN g.Brand like'%Mad City Window%'\tTHEN 'MAC'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Pacific Bath%'\t\t\t\tTHEN 'PBC'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Statewid%'\t\tTHEN 'SWR'\n\t\t\t\t\t\t\tWHEN g.Brand like'%FHIA%'\t\t\tTHEN 'FHI'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Max%'\t\t\t\t\tTHEN 'MXH'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Rite Window%'\t\tTHEN 'RTW'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Paradise Home%' THEN 'PHI'\n\t\t\t\t\t\t\tWhen g.Brand like'%Home Smart%'\t\t\t\tTHEN 'HSI'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Renuity%'\t\t\t\t\tTHEN 'PHI'\n                            WHEN g.Brand like'%Closet America%'            THEN 'CTA' \n\t\t\t\t\t\tEND )=C.DIVISION AND G.EMAIL=C.EMAIL\n\t\t\t\tWHERE T.Survey_id is null \n\t\t ) G \n\t\tLEFT JOIN EDW.FACT_JOB J ON G.CUSTOMERID=J.CUSTOMERID AND G.BRAND=J.DIVISION AND Round(G.AMOUNT,2) =Round(J.GROSSAMOUNT,2)---5555\n\t\tLEFT JOIN EDW.DIM_JOB_STATUS JS ON J.DIVISION=JS.DIVISION AND J.JobStatusId=JS.JobStatusID\n\t\t\n\tWHERE J.JOBID IS NOT NULL  AND JS.LP_JOBSTATUSCATEGORYID not in ('3','5')\n\t\n),\n\nGUILD_QUALITY_DATA_3 AS \n(\nSELECT G.SURVEY_ID,G.CUSTOMERID,J.LEADID,J.JOBID, \n\t   J.LP_CUSTOMERID,J.LP_LEADID, \n\t   J.INSTALLERID_1,J.InstallerID_2,J.InstallerID_3,J.InstallerID_4,\n\t   J.LP_INSTALLERID_1,J.LP_InstallerID_2,J.LP_InstallerID_3,J.LP_InstallerID_4 \n\tFROM (\n\t\tSelect (CASE \n\t\t\t\t\t\t\tWHEN g.Brand like'%Mad City Window%'\tTHEN 'MAC'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Pacific Bath%'\t\t\t\tTHEN 'PBC'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Statewid%'\t\tTHEN 'SWR'\n\t\t\t\t\t\t\tWHEN g.Brand like'%FHIA%'\t\t\tTHEN 'FHI'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Max%'\t\t\t\t\tTHEN 'MXH'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Rite Window%'\t\tTHEN 'RTW'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Paradise Home%' THEN 'PHI'\n\t\t\t\t\t\t\tWhen g.Brand like'%Home Smart%'\t\t\t\tTHEN 'HSI'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Renuity%'\t\t\t\t\tTHEN 'PHI'\n                            WHEN g.Brand like'%Closet America%'            THEN 'CTA' \n\t\t\t\t\t\tEND ) as brand,G.Survey_ID,G.EXTERNAL_ID,\n\t\t\t   G.Value as Amount, \n\t\t       Coalesce(C1.CustomerID,C2.CustomerID) as CustomerID\n\t\t\tfrom [ODS].[Test_GUILD_QUALITY_CUSTOMER_SURVEY] G\n\t\t\t\tLEFT JOIn GUILD_QUALITY_DATA_1 T on G.Survey_Id=T.Survey_ID\t \n\t\t\t\tLEFT JOIn GUILD_QUALITY_DATA_2 T1 on G.Survey_Id=T1.Survey_ID\n\t\t\t\tLEFT JOIN EDW.DIM_CUSTOMER C1 ON  (CASE \n\t\t\t\t\t\t\tWHEN g.Brand like'%Mad City Window%'\tTHEN 'MAC'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Pacific Bath%'\t\t\t\tTHEN 'PBC'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Statewid%'\t\tTHEN 'SWR'\n\t\t\t\t\t\t\tWHEN g.Brand like'%FHIA%'\t\t\tTHEN 'FHI'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Max%'\t\t\t\t\tTHEN 'MXH'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Rite Window%'\t\tTHEN 'RTW'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Paradise Home%' THEN 'PHI'\n\t\t\t\t\t\t\tWhen g.Brand like'%Home Smart%'\t\t\t\tTHEN 'HSI'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Renuity%'\t\t\t\t\tTHEN 'PHI'\n                            WHEN g.Brand like'%Closet America%'            THEN 'CTA' \n\t\t\t\t\t\tEND )=C1.DIVISION AND G.ADDRESS=C1.ADDRESS1 AND G.ZIP=C1.ZIP\n\t\t\t\tLEFT JOIN EDW.DIM_CUSTOMER C2 ON  (CASE \n\t\t\t\t\t\t\tWHEN g.Brand like'%Mad City Window%'\tTHEN 'MAC'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Pacific Bath%'\t\t\t\tTHEN 'PBC'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Statewid%'\t\tTHEN 'SWR'\n\t\t\t\t\t\t\tWHEN g.Brand like'%FHIA%'\t\t\tTHEN 'FHI'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Max%'\t\t\t\t\tTHEN 'MXH'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Rite Window%'\t\tTHEN 'RTW'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Paradise Home%' THEN 'PHI'\n\t\t\t\t\t\t\tWhen g.Brand like'%Home Smart%'\t\t\t\tTHEN 'HSI'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Renuity%'\t\t\t\t\tTHEN 'PHI'\n                            WHEN g.Brand like'%Closet America%'            THEN 'CTA' \n\t\t\t\t\t\tEND )=C2.DIVISION AND G.ADDRESS=C2.ADDRESS1 AND  REPLACE(REPLACE(REPLACE(G.PHONE,'(',''),') ',''),'-','')=C2.PHONE\n\t\t\twhere T.Survey_id is null and T1.Survey_id is null\n\n\t\t) G \n\t\tLEFT JOIN EDW.FACT_JOB J ON G.CUSTOMERID=J.CUSTOMERID AND (CASE \n\t\t\t\t\t\t\tWHEN g.Brand like'%Mad City Window%'\tTHEN 'MAC'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Pacific Bath%'\t\t\t\tTHEN 'PBC'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Statewid%'\t\tTHEN 'SWR'\n\t\t\t\t\t\t\tWHEN g.Brand like'%FHIA%'\t\t\tTHEN 'FHI'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Max%'\t\t\t\t\tTHEN 'MXH'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Rite Window%'\t\tTHEN 'RTW'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Paradise Home%' THEN 'PHI'\n\t\t\t\t\t\t\tWhen g.Brand like'%Home Smart%'\t\t\t\tTHEN 'HSI'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Renuity%'\t\t\t\t\tTHEN 'PHI'\n                            WHEN g.Brand like'%Closet America%'            THEN 'CTA' \n\t\t\t\t\t\tEND )=J.DIVISION AND Round(G.AMOUNT,2) =Round(J.GROSSAMOUNT,2)\n\t\tLEFT JOIN EDW.DIM_JOB_STATUS JS ON J.DIVISION=JS.DIVISION AND J.JobStatusId=JS.JobStatusID\n\t\t\n\tWHERE J.JOBID IS NOT NULL  AND JS.LP_JOBSTATUSCATEGORYID not in ('3','5')\n),\n\nGUILD_QUALITY_WITH_LEAD AS \n(\nSelect * \nfrom \n\t(\t\n\t\tSelect * from GUILD_QUALITY_DATA_1\n\t\tUNION ALL\n\t\tSelect * from GUILD_QUALITY_DATA_2\n\t\tUNION ALL\n\t\tSelect * from GUILD_QUALITY_DATA_3\n\t)A \n),\n\nGUILD_QUALITY_DATA_FINAL AS \n(\nSelect \n\tG.Survey_ID,\n\tResponse_date,\n\tG.Program,\n\tCASE  WHEN CHARINDEX(' ', Contact) > 0 THEN SUBSTRING(Contact, 1, LEN(Contact) - CHARINDEX(' ', REVERSE(Contact)))  ELSE Contact  END AS First_Name,\n\tCASE  WHEN CHARINDEX(' ', Contact) > 0 THEN REVERSE(SUBSTRING(REVERSE(Contact), 1, CHARINDEX(' ', REVERSE(Contact)) - 1))  ELSE Contact  END AS Last_Name,\n\tEMAIL as Email_Address,\n\tReplace(Replace(Replace(Phone,'(',''),')',''),'-','') as Phone_number,\n\tGD.LP_LEADID\tas Lead_ID,\n\tNULL\t\t\tas Product_line_InstallationExperience,\n\tNULL\t\t\tas Date_to_survey,\n\t'Usa'\t\t\tas Country,\n\t'English'\t\tas Language, \n\tNULL\t\t\tas Account,\n\tNULL\t\t\tas Unit,\n\tNULL\t\t\tas Sales_REP_ID  ,\n\t(CASE \n\t\t\t\t\t\t\tWHEN g.Brand like'%Mad City Window%'\tTHEN 'MAC'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Pacific Bath%'\t\t\t\tTHEN 'PBC'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Statewid%'\t\tTHEN 'SWR'\n\t\t\t\t\t\t\tWHEN g.Brand like'%FHIA%'\t\t\tTHEN 'FHI'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Max%'\t\t\t\t\tTHEN 'MXH'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Rite Window%'\t\tTHEN 'RTW'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Paradise Home%' THEN 'PHI'\n\t\t\t\t\t\t\tWhen g.Brand like'%Home Smart%'\t\t\t\tTHEN 'HSI'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Renuity%'\t\t\t\t\tTHEN 'PHI'\n                            WHEN g.Brand like'%Closet America%'            THEN 'CTA' \n\t\t\t\t\t\tEND )\t\t\tas Brand_name,\n\tNULL\t\t\tas Sales_REP_ID_2,\n\tNULL\t\t\tas Sales_branch_name, \n\tNULL\t\t\tas Sold,\n\tNULL\t\t\tas Appointment_Date,\n\tDevelopment_Cycle,\n\tNULL \t\t\tas \tSales_Organization,\n\tNULL \t\t\tas \tRecord_Type_Medallia_Conversations,\n\tNULL \t\t\tas \tMain_Metric,\n\tNULL \t\t\tas \tService_Datetime,\n\tNULL \t\t\tas \tService_Technician_ID,\n\tNULL \t\t\tas \tService_Technician_Name   ,\n\tNULL \t\t\tas \tAccount_ID   ,\n\tExternal_ID   \tas \tContract_ID,\n\tChannel,\n\tNULL \t\t\tas Production_branch_name   ,\n\tNULL \t\t\tas Reporting_Market   ,\n\tNULL \t\t\tas Reporting_Market_Type   ,\n\tNULL \t\t\tas Product_Line_InHomeConsultationExperience   ,\n\tNULL \t\t\tas Social_Unit_ID   ,\n\tSalesRepresentative,\n\tNULL \t\t\tas Service_Technician_2   ,\n\tNULL \t\t\tas Service_Technician_3   ,\n\tNULL \t\t\tas Service_Technician_4   ,\n    Surveystatus,\n\tCreationdate as CreationDate,\n\tNULL as ExpiryDate,\n\t(CASE \n\t\t\t\t\t\t\tWHEN g.Brand like'%Mad City Window%'\tTHEN 'MAC'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Pacific Bath%'\t\t\t\tTHEN 'PBC'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Statewid%'\t\tTHEN 'SWR'\n\t\t\t\t\t\t\tWHEN g.Brand like'%FHIA%'\t\t\tTHEN 'FHI'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Max%'\t\t\t\t\tTHEN 'MXH'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Rite Window%'\t\tTHEN 'RTW'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Paradise Home%' THEN 'PHI'\n\t\t\t\t\t\t\tWhen g.Brand like'%Home Smart%'\t\t\t\tTHEN 'HSI'\n\t\t\t\t\t\t\tWHEN g.Brand like'%Renuity%'\t\t\t\t\tTHEN 'PHI'\n                            WHEN g.Brand like'%Closet America%'            THEN 'CTA' \n\t\t\t\t\t\tEND ) as Division,\n\tTemplate,\n\tOld_Survey_Id,\n\tValue,\n\tContactCreationDate,\n\tProjectStartDate,\n\tSecondaryEmail \t\t\t   \t  \t as SecondaryEmail\t\t\t\t\t\t\t,\n\tSecondaryPhone \t\t\t      \t as SecondaryPhone\t\t\t\t\t\t\t,\n\tNeedsAction \t\t\t      \t as Needs_Action  \t\t\t\t\t\t\t,\n\tNotes \t\t\t\t\t      \t as Notes\t\t\t\t\t\t\t\t\t\t,\n\tGoogleReviewBoost\t\t      \t as Google_Review_Boost\t\t\t\t\t\t,\n\t'Guild Quality' as SurveyFlag  ,\n\tGD.JOBID,\n\tGD.CUSTOMERID,\n\tGD.LEADID AS EDW_LeadID,\n\tGD.LP_CUSTOMERID,\n\t--GD.LP_LEADID, \n\tGD.INSTALLERID_1,\n\tGD.InstallerID_2,\n\tGD.InstallerID_3,\n\tGD.InstallerID_4,\n\tGD.LP_INSTALLERID_1,\n\tGD.LP_InstallerID_2,\n\tGD.LP_InstallerID_3,\n\tGD.LP_InstallerID_4,\n\tG.completionMode\n\t\tFROM [ODS].[Test_GUILD_QUALITY_CUSTOMER_SURVEY] G\n\t\t\t\tLEFT JOIN GUILD_QUALITY_WITH_LEAD GD on G.Survey_ID=GD.SURVEY_ID\n\n)\n\n--select * from GUILD_QUALITY_DATA_FINAL\n\n\nSelect B.* from (\nSELECT DIstinct \nM1.Survey_ID,\nM1.Response_Date,\ncast(M1.Program as varchar(256)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t as Program,\nM1.CustomerID,\nM1.LeadID,\ncast(CASE WHEN M1.Sales_Rep_ID IS NOT NULL THEN CONCAT(M1.Division,'-',M1.Sales_Rep_ID) ELSE LD_M.SalesRep1_EmployeeID END as varchar(256)) \t AS SalesRep1_EmployeeID,\ncast(LD_M.SalesRep2_EmployeeID as varchar(256)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t as SalesRep2_EmployeeID,\nLD_M.BranchID,\nLD_M.ApptDate,\nCast(M1.ContractID as varchar(256))\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t as ContractID,\nCast(M1.Division as varchar(32))              \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t     as Division,\nCast(CASE WHEN M1.Service_Technician_ID IS NOT NULL THEN CONCAT(M1.Division,'-',M1.Service_Technician_ID) ELSE M1.InstallerID_1 END as varchar(100)) AS InstallerID_1,\ncast(M1.InstallerID_2 as varchar(100)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t as InstallerID_2,\ncast(M1.InstallerID_3 as varchar(100)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t as InstallerID_3,\ncast(M1.InstallerID_4 as varchar(100)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t as InstallerID_4,\nCast(M1.Product_Line_InstallationExperience as varchar(256)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t as Product_Line_InstallationExperience,\ncast(M1.Date_To_Survey as datetime) as date_to_Survey,\ncast(M1.Country  as varchar(32)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t as Country,\ncast(M1.Language as varchar(32)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t as Language,\nCast(M1.Unit as INT) as Unit,\nM1.Sold,\nCast(M1.DevelopmentCycle  as varchar(256)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t as DevelopmentCycle,\nCast(M1.SalesOrganization as varchar(256)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t as SalesOrganization,  \ncast(M1.Record_Type_Medallia_Conversations as varchar(256)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t as Record_Type_Medallia_Conversations,\ncast(M1.Main_Metric as INT) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t as Main_Metric,\ncast(M1.Service_Datetime as [datetime2](7))  as Service_Datetime,\ncast(M1.Channel as varchar(256)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t as Channel ,\ncast(M1.Product_Line_InHomeConsultationExperience as varchar(256)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t as Product_Line_InHomeConsultationExperience,\nCast(M1.Social_Unit_ID as varchar(256)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t as Social_Unit_ID,\ncast(M1.Template   as varchar(100))                               \t\t\t\t\t\t\t\t\t\t\t\t\t\tas Template,\t\ncast(M1.GuildQuality_Survey_Id    as varchar(100))               \t\t\t\t\t\t\t\t\t\t\t\t\t\tas GuildQuality_Survey_Id,\nCast(ISNULL(M1.Amount,0) as Decimal(16,2)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas Amount                                    ,\ncast(M1.Surveystatus   as varchar(100))                            \t\t\t\t\t\t\t\t\t\t\t\t\tas Survey_status ,\ncast(M1.Customer_Creation_Date   as [datetime2](7)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas Customer_Creation_Date                   ,\ncast(M1.Project_Start_Date       as [datetime2](7)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas Project_Start_Date                       ,\ncast(M1.Creationdate             as [datetime2](7)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas Creationdate                             ,\ncast(M1.ExpiryDate             as [datetime2](7)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas ExpiryDate                             ,\ncast(M1.Needs_Action  \tas varchar(8000)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas Needs_Action\t\t\t\t\t\t,\ncast(M1.Notes\tas varchar(8000))\t\t\t\t\t\t\t                                                            as Notes                           ,\ncast(M1.Google_Review_Boost as varchar(8000))\t\t\t\t                                                            as Google_Review_Boost             ,\ncast(M1.SurveyFlag as varchar(100))\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas SurveyFlag\t ,\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t------------------- ends here\ncast(M1.LP_CustomerID as varchar(256))\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas LP_CustomerID,\ncast(M1.LP_LeadID     as varchar(256))\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas LP_LeadID,\ncast(CASE WHEN M1.Sales_Rep_ID is not null then M1.Sales_Rep_ID ELSE LD_M.LP_SalesRep1_EmployeeID END as varchar(256)) as LP_SalesRepEmployeeID_1,\ncast(LD_M.LP_SalesRep2_EmployeeID as varchar(256))\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas LP_SalesRepEmployeeID_2,\ncast(LD_M.LP_BranchID as varchar(50))\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas LP_BranchID,\nCASE WHEN M1.Service_Technician_ID is not null then M1.Service_Technician_ID ELSE M1.LP_InstallerID_1 END\t\t\t    as LP_InstallerID_1,\ncast(M1.LP_InstallerID_2 as varchar(100)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas LP_InstallerID_2,\ncast(M1.LP_InstallerID_3 as varchar(100)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas LP_InstallerID_3,\ncast(M1.LP_InstallerID_4 as varchar(100)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas LP_InstallerID_4,\nCast(M1.LastUpdatedTs as [datetime2](7)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas LastUpdatedTs,\ncast(M1.ReportingMarketID\t\t   as varchar(100)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas ReportingMarketID\t\t,\ncast(M1.LP_ReportingMarketID\t   as varchar(100)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas LP_ReportingMarketID\t\t,\ncast(M1.LP_ReportingMarketTypeID   as varchar(100)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas LP_ReportingMarketTypeID,\ncast(M1.ReportingMarketTypeID      as varchar(100)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas ReportingMarketTypeID   ,\ncast(LD_M.ProductID\t\t\t\t   as varchar(100)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas ProductID\t\t\t\t,\ncast(LD_M.LP_ProductID\t\t\t   as varchar(100)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas LP_ProductID\t\t\t,\ncast(M1.Account \t\t\t\t   as varchar(100)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas Medallia_AccountID,\ncast(M1.Sales_Rep_ID \t\t\t   as varchar(100)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas Medallia_SalesRepID1,\ncast(M1.Service_Technician_ID \t   as varchar(100)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas Medallia_ServiceTechID1,\ncast(COALESCE(M1.Active,DE.Active) as varchar(10))\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas SalesRepActiveFlag , \t\t--into #T_Fact_medallia,\ncast(M1.completionMode as varchar(256))\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t     as completionMode,\nROW_NUMBER() OVER (PARTITION BY M1.Survey_ID ORDER BY LD_M.EntryDate DESC) as rownum\nFROM \n(\n\n\t\tSELECT \n\t\t\t\tA.Survey_ID,\n\t\t\t\tsubstring(Response_Date,1,10)+' '+substring(Response_Date,12,8) as Response_Date,\n\t\t\t\tA.Program,\n\t\t\t\tA.CustomerID,\n\t\t\t\tA.EDW_LeadID AS LEADID,\n\t\t\t\tA.Contract_ID AS ContractID,\n\t\t\t\tA.Division,\n\t\t\t\tA.InstallerID_1,\n\t\t\t\tA.InstallerID_2,\n\t\t\t\tA.InstallerID_3,\n\t\t\t\tA.InstallerID_4,\n\t\t\t\tA.Product_Line_InstallationExperience,\n\t\t\t\tA.Date_To_Survey,\n\t\t\t\tA.Country,\n\t\t\t\tA.[Language],\n\t\t\t\tA.Unit,\n\t\t\t\tCase when A.sold is NULL \tthen '0'\n\t\t\t\t\t when A.Sold='Not Sold' then '0' \n\t\t\t\t\t Else '1' END as Sold,\n\t\t\t\tA.Development_Cycle  as DevelopmentCycle,\n\t\t\t\tA.Sales_Organization as SalesOrganization,\n\t\t\t\tA.Record_Type_Medallia_Conversations,\n\t\t\t\tA.Main_Metric,\n\t\t\t\tA.Service_Datetime,\n\t\t\t\tA.Channel,\n\t\t\t\tA.Product_Line_InHomeConsultationExperience,\n                A.Sales_Rep_ID,\n                A.Service_Technician_ID,\n\t\t\t\tA.Social_Unit_ID,\n\t\t\t\tA.Template                                  ,\n\t\t\t\tA.Old_Survey_ID as GuildQuality_Survey_Id                    ,\n\t\t\t\tA.Value \t\tas Amount                                    ,\n\t\t\t\tA.Surveystatus                             ,\n\t\t\t\tsubstring(A.ContactCreationDate,1,10)+' '+substring(A.ContactCreationDate,12,8) as Customer_Creation_Date                    ,\n\t\t\t\tA.ProjectStartDate \t\tas Project_Start_Date                        ,\n\t\t\t\tsubstring(A.Creationdate,1,10)+' '+substring(A.Creationdate,12,8) as CreationDate                            ,\n\t\t\t\tA.ExpiryDate\t\t\t\t\t\t\t\t\t\t\t,\n\t\t\t\tA.Needs_Action  \t\t\t\t\t\t\t\t\t ,\n\t\t\t\tA.Notes\t\t\t\t\t\t\t\t             ,\n\t\t\t\tA.Google_Review_Boost\t\t\t\t\t             ,\n\t\t\t\tA.SurveyFlag   \t\t\t\t                 ,\n\t\t\t\tA.LP_CustomerID,\n\t\t\t\tA.Lead_ID AS LP_LEADID,\n\t\t\t\tA.LP_InstallerID_1,\n\t\t\t\tA.LP_InstallerID_2,\n\t\t\t\tA.LP_InstallerID_3,\n\t\t\t\tA.LP_InstallerID_4,\n\t\t\t\tGETDATE() AS LastUpdatedTs,\n\t\t\t\tB.ReportingMarketID,\n\t\t\t\tB.LP_ReportingMarketID,\n\t\t\t\tB.LP_ReportingMarketTypeID,\n\t\t\t\tB.ReportingMarketTypeID,\n                NULL  as Active,\n\t\t\t\tA.completionMode,\n                A.ACCOUNT\n\t\t\t\t\n\t\t\t\t\n\t\t\tFROM  \n\t\t\t\t(\t\n\t\t\t\t\tSELECT * FROM GUILD_QUALITY_DATA_FINAL where surveystatus<>'Completed'\n\t\t\t\t) A\n\t\t\t \n\t\t\tLEFT JOIN EDW.DIM_BRANCH B \n\t\t\tON A.Production_branch_name=B.LongName AND A.Division = B.Division\n\t\t\t--Where A.Survey_ID='303024'\n\n\t\n\t) M1\n\t\n\tLEFT JOIN EDW.FACT_LEAD LD_M ON M1.LeadID = LD_M.LeadID\n    LEFT JOIN EDW.DIM_EMPLOYEE DE ON LD_M.SalesRep1_EmployeeID=DE.EmployeeID) B\n\twhere B.rownum=1\n\n\n\t--select top 10 * from [EDW].[FACT_Medallia_Customer_survey]",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Upsert",
+						"upsertSettings": {
+							"keys": [
+								"Survey_ID"
+							],
+							"interimSchemaName": ""
+						},
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "staging"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Survey_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Survey_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Response_Date",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Response_Date",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "Program",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Program",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CustomerID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CustomerID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "LeadID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SalesRep1_EmployeeID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SalesRep1_EmployeeID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SalesRep2_EmployeeID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SalesRep2_EmployeeID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "BranchID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ApptDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "ApptDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "ContractID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ContractID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ProductID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ProductID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "InstallerID_1",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "InstallerID_1",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "InstallerID_2",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "InstallerID_2",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "InstallerID_3",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "InstallerID_3",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "InstallerID_4",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "InstallerID_4",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Product_Line_InstallationExperience",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Product_Line_InstallationExperience",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "date_to_Survey",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "Date_To_Survey",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "Country",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Country",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Language",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Language",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Unit",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Unit",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Sold",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Sold",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DevelopmentCycle",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "DevelopmentCycle",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SalesOrganization",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SalesOrganization",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Record_Type_Medallia_Conversations",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Record_Type_Medallia_Conversations",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Main_Metric",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Main_Metric",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Service_Datetime",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "Service_Datetime",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "Channel",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Channel",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Product_Line_InHomeConsultationExperience",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ProductLine_InHomeConsultationExperience",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Social_Unit_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Social_Unit_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Survey_status",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Survey_Status",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Creationdate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "Creation_Date",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "ExpiryDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "Expiry_Date",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_CustomerID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LP_CustomerID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_LeadID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LP_LeadID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_SalesRepEmployeeID_1",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LP_SalesRep1_EmployeeID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_SalesRepEmployeeID_2",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LP_SalesRep2_EmployeeID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_BranchID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LP_BranchID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_ProductID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LP_ProductID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_InstallerID_1",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "LP_InstallerID_1",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_InstallerID_2",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LP_InstallerID_2",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_InstallerID_3",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LP_InstallerID_3",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_InstallerID_4",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LP_InstallerID_4",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LastUpdatedTs",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "LastUpdateTS",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "ReportingMarketID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ReportingMarket_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_ReportingMarketID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LP_ReportingMarket_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_ReportingMarketTypeID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LP_ReportingMarketTypeID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ReportingMarketTypeID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ReportingMarketTypeID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Medallia_AccountID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Medallia_AccountID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Medallia_SalesRepID1",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Medallia_SalesRepID1",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Medallia_ServiceTechID1",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Medallia_ServiceTechID1",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SalesRepActiveFlag",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SalesRepActiveFlag",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "completionMode",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "completionMode",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ODS_MEDALLIA_CUSTOMER_INVITATION_SURVEY",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "test_EDW_Fact_Medalia_Customer_Servery_invitation",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Copy data Load Medallia EDW",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Copy data Load Medallia EDW Invitations",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"sqlReaderQuery": "With GUILD_QUALITY_DATA_1 AS \n(\nSELECT G.SURVEY_ID,J.CUSTOMERID,J.LEADID,J.JOBID, \n\t   J.LP_CUSTOMERID,J.LP_LEADID, \n\t   J.INSTALLERID_1,J.InstallerID_2,J.InstallerID_3,J.InstallerID_4,\n\t   J.LP_INSTALLERID_1,J.LP_InstallerID_2,J.LP_InstallerID_3,J.LP_InstallerID_4 \n\tFROM \n\t\tODS.test_GUILD_QUALITY_customer_survey G\n\t\tLEFT JOIN EDW.FACT_JOB J ON (CASE \n\t\t\t\t\t\t\tWHEN Brand like'%Mad City Window%'\tTHEN 'MAC'\n\t\t\t\t\t\t\tWHEN Brand like'%Pacific Bath%'\t\t\t\tTHEN 'PBC'\n\t\t\t\t\t\t\tWHEN Brand like'%Statewid%'\t\tTHEN 'SWR'\n\t\t\t\t\t\t\tWHEN Brand like'%FHIA%'\t\t\tTHEN 'FHI'\n\t\t\t\t\t\t\tWHEN Brand like'%Max%'\t\t\t\t\tTHEN 'MXH'\n\t\t\t\t\t\t\tWHEN Brand like'%Rite Window%'\t\tTHEN 'RTW'\n\t\t\t\t\t\t\tWHEN Brand like'%Paradise Home%' THEN 'PHI'\n\t\t\t\t\t\t\tWhen Brand like'%Home Smart%'\t\t\t\tTHEN 'HSI'\n\t\t\t\t\t\t\tWHEN Brand like'%Renuity%'\t\t\t\t\tTHEN 'PHI'\n                            WHEN Brand like'%Closet America%'            THEN 'CTA' \n\t\t\t\t\t\tEND )=J.DIVISION AND G.EXTERNAL_ID=J.CONTRACTID AND Round(G.VALUE,2) =Round(J.GROSSAMOUNT,2)---5555\n\t\tLEFT JOIN EDW.DIM_JOB_STATUS JS ON J.DIVISION=JS.DIVISION AND J.JobStatusId=JS.JobStatusID\n\t\t\n\tWHERE J.JOBID IS NOT NULL  AND JS.LP_JOBSTATUSCATEGORYID not in ('3','5')\n\n),\nGUILD_QUALITY_DATA_2 AS \n(\nSELECT G.SURVEY_ID,G.CUSTOMERID,J.LEADID,J.JOBID, \n\t   J.LP_CUSTOMERID,J.LP_LEADID, \n\t   J.INSTALLERID_1,J.InstallerID_2,J.InstallerID_3,J.InstallerID_4,\n\t   J.LP_INSTALLERID_1,J.LP_InstallerID_2,J.LP_InstallerID_3,J.LP_InstallerID_4 \n\tFROM (\n\t\t\tSELECT DISTINCT\n\t\t\t\tG.SURVEY_ID,G.RESPONSE_DATE,G.EXTERNAL_ID,G.VALUE AS AMOUNT,(CASE \n\t\t\t\t\t\t\tWHEN Brand like'%Mad City Window%'\tTHEN 'MAC'\n\t\t\t\t\t\t\tWHEN Brand like'%Pacific Bath%'\t\t\t\tTHEN 'PBC'\n\t\t\t\t\t\t\tWHEN Brand like'%Statewid%'\t\tTHEN 'SWR'\n\t\t\t\t\t\t\tWHEN Brand like'%FHIA%'\t\t\tTHEN 'FHI'\n\t\t\t\t\t\t\tWHEN Brand like'%Max%'\t\t\t\t\tTHEN 'MXH'\n\t\t\t\t\t\t\tWHEN Brand like'%Rite Window%'\t\tTHEN 'RTW'\n\t\t\t\t\t\t\tWHEN Brand like'%Paradise Home%' THEN 'PHI'\n\t\t\t\t\t\t\tWhen Brand like'%Home Smart%'\t\t\t\tTHEN 'HSI'\n\t\t\t\t\t\t\tWHEN Brand like'%Renuity%'\t\t\t\t\tTHEN 'PHI'\n                            WHEN Brand like'%Closet America%'            THEN 'CTA' \n\t\t\t\t\t\tEND )as Brand,COALESCE(C1.CUSTOMERID,C.CUSTOMERID--,C2.CUSTOMERID,C3.CUSTOMERID\n\t\t\t\t) AS CUSTOMERID\n\t\t\t\tFROM \n\t\t\t\tODS.test_GUILD_QUALITY_customer_survey G\n\t\t\t\tLEFT JOIn GUILD_QUALITY_DATA_1 T on G.Survey_Id=T.Survey_ID\t\n\t\t\t\tLEFT JOIN EDW.DIM_CUSTOMER C1 ON  (CASE \n\t\t\t\t\t\t\tWHEN Brand like'%Mad City Window%'\tTHEN 'MAC'\n\t\t\t\t\t\t\tWHEN Brand like'%Pacific Bath%'\t\t\t\tTHEN 'PBC'\n\t\t\t\t\t\t\tWHEN Brand like'%Statewid%'\t\tTHEN 'SWR'\n\t\t\t\t\t\t\tWHEN Brand like'%FHIA%'\t\t\tTHEN 'FHI'\n\t\t\t\t\t\t\tWHEN Brand like'%Max%'\t\t\t\t\tTHEN 'MXH'\n\t\t\t\t\t\t\tWHEN Brand like'%Rite Window%'\t\tTHEN 'RTW'\n\t\t\t\t\t\t\tWHEN Brand like'%Paradise Home%' THEN 'PHI'\n\t\t\t\t\t\t\tWhen Brand like'%Home Smart%'\t\t\t\tTHEN 'HSI'\n\t\t\t\t\t\t\tWHEN Brand like'%Renuity%'\t\t\t\t\tTHEN 'PHI'\n                            WHEN Brand like'%Closet America%'            THEN 'CTA' \n\t\t\t\t\t\tEND )=C1.DIVISION\n\t\t\t\t\t\t\t\t\t\t\t\tAND G.CONTACT=CONCAT(C1.FIRSTNAME,' ',C1.LASTNAME) \n\t\t\t\t\t\t\t\t\t\t\t\tAND G.ADDRESS=C1.ADDRESS1 \n\t\t\t\t\t\t\t\t\t\t\t\tAND G.CITY=C1.CITY \n\t\t\t\t\t\t\t\t\t\t\t\tAND G.STATE=C1.STATE\n\t\t\t\t\t\t\t\t\t\t\t\tAND G.ZIP=C1.ZIP\n\t\t\t\t\t\t\t\t\t\t\t\tAND REPLACE(REPLACE(REPLACE(G.PHONE,'(',''),') ',''),'-','')=C1.PHONE\n\t\t\t\tLEFT JOIN EDW.DIM_CUSTOMER C ON (CASE \n\t\t\t\t\t\t\tWHEN Brand like'%Mad City Window%'\tTHEN 'MAC'\n\t\t\t\t\t\t\tWHEN Brand like'%Pacific Bath%'\t\t\t\tTHEN 'PBC'\n\t\t\t\t\t\t\tWHEN Brand like'%Statewid%'\t\tTHEN 'SWR'\n\t\t\t\t\t\t\tWHEN Brand like'%FHIA%'\t\t\tTHEN 'FHI'\n\t\t\t\t\t\t\tWHEN Brand like'%Max%'\t\t\t\t\tTHEN 'MXH'\n\t\t\t\t\t\t\tWHEN Brand like'%Rite Window%'\t\tTHEN 'RTW'\n\t\t\t\t\t\t\tWHEN Brand like'%Paradise Home%' THEN 'PHI'\n\t\t\t\t\t\t\tWhen Brand like'%Home Smart%'\t\t\t\tTHEN 'HSI'\n\t\t\t\t\t\t\tWHEN Brand like'%Renuity%'\t\t\t\t\tTHEN 'PHI'\n                            WHEN Brand like'%Closet America%'            THEN 'CTA' \n\t\t\t\t\t\tEND )=C.DIVISION AND G.EMAIL=C.EMAIL\n\t\t\t\tWHERE T.Survey_id is null \n\t\t ) G \n\t\tLEFT JOIN EDW.FACT_JOB J ON G.CUSTOMERID=J.CUSTOMERID AND (CASE \n\t\t\t\t\t\t\tWHEN Brand like'%Mad City Window%'\tTHEN 'MAC'\n\t\t\t\t\t\t\tWHEN Brand like'%Pacific Bath%'\t\t\t\tTHEN 'PBC'\n\t\t\t\t\t\t\tWHEN Brand like'%Statewid%'\t\tTHEN 'SWR'\n\t\t\t\t\t\t\tWHEN Brand like'%FHIA%'\t\t\tTHEN 'FHI'\n\t\t\t\t\t\t\tWHEN Brand like'%Max%'\t\t\t\t\tTHEN 'MXH'\n\t\t\t\t\t\t\tWHEN Brand like'%Rite Window%'\t\tTHEN 'RTW'\n\t\t\t\t\t\t\tWHEN Brand like'%Paradise Home%' THEN 'PHI'\n\t\t\t\t\t\t\tWhen Brand like'%Home Smart%'\t\t\t\tTHEN 'HSI'\n\t\t\t\t\t\t\tWHEN Brand like'%Renuity%'\t\t\t\t\tTHEN 'PHI'\n                            WHEN Brand like'%Closet America%'            THEN 'CTA' \n\t\t\t\t\t\tEND )=J.DIVISION AND Round(G.AMOUNT,2) =Round(J.GROSSAMOUNT,2)---5555\n\t\tLEFT JOIN EDW.DIM_JOB_STATUS JS ON J.DIVISION=JS.DIVISION AND J.JobStatusId=JS.JobStatusID\n\t\t\n\tWHERE J.JOBID IS NOT NULL  AND JS.LP_JOBSTATUSCATEGORYID not in ('3','5')\n\t\n),\n\nGUILD_QUALITY_DATA_3 AS \n(\nSELECT G.SURVEY_ID,G.CUSTOMERID,J.LEADID,J.JOBID, \n\t   J.LP_CUSTOMERID,J.LP_LEADID, \n\t   J.INSTALLERID_1,J.InstallerID_2,J.InstallerID_3,J.InstallerID_4,\n\t   J.LP_INSTALLERID_1,J.LP_InstallerID_2,J.LP_InstallerID_3,J.LP_InstallerID_4 \n\tFROM (\n\t\tSelect (CASE \n\t\t\t\t\t\t\tWHEN Brand like'%Mad City Window%'\tTHEN 'MAC'\n\t\t\t\t\t\t\tWHEN Brand like'%Pacific Bath%'\t\t\t\tTHEN 'PBC'\n\t\t\t\t\t\t\tWHEN Brand like'%Statewid%'\t\tTHEN 'SWR'\n\t\t\t\t\t\t\tWHEN Brand like'%FHIA%'\t\t\tTHEN 'FHI'\n\t\t\t\t\t\t\tWHEN Brand like'%Max%'\t\t\t\t\tTHEN 'MXH'\n\t\t\t\t\t\t\tWHEN Brand like'%Rite Window%'\t\tTHEN 'RTW'\n\t\t\t\t\t\t\tWHEN Brand like'%Paradise Home%' THEN 'PHI'\n\t\t\t\t\t\t\tWhen Brand like'%Home Smart%'\t\t\t\tTHEN 'HSI'\n\t\t\t\t\t\t\tWHEN Brand like'%Renuity%'\t\t\t\t\tTHEN 'PHI'\n                            WHEN Brand like'%Closet America%'            THEN 'CTA' \n\t\t\t\t\t\tEND ) as Brand,G.Survey_ID,G.EXTERNAL_ID,\n\t\t\t   G.Value as Amount, \n\t\t       Coalesce(C1.CustomerID,C2.CustomerID) as CustomerID\n\t\t\tfrom ODS.test_GUILD_QUALITY_customer_survey G\n\t\t\t\tLEFT JOIn GUILD_QUALITY_DATA_1 T on G.Survey_Id=T.Survey_ID\t \n\t\t\t\tLEFT JOIn GUILD_QUALITY_DATA_2 T1 on G.Survey_Id=T1.Survey_ID\n\t\t\t\tLEFT JOIN EDW.DIM_CUSTOMER C1 ON  (CASE \n\t\t\t\t\t\t\tWHEN Brand like'%Mad City Window%'\tTHEN 'MAC'\n\t\t\t\t\t\t\tWHEN Brand like'%Pacific Bath%'\t\t\t\tTHEN 'PBC'\n\t\t\t\t\t\t\tWHEN Brand like'%Statewid%'\t\tTHEN 'SWR'\n\t\t\t\t\t\t\tWHEN Brand like'%FHIA%'\t\t\tTHEN 'FHI'\n\t\t\t\t\t\t\tWHEN Brand like'%Max%'\t\t\t\t\tTHEN 'MXH'\n\t\t\t\t\t\t\tWHEN Brand like'%Rite Window%'\t\tTHEN 'RTW'\n\t\t\t\t\t\t\tWHEN Brand like'%Paradise Home%' THEN 'PHI'\n\t\t\t\t\t\t\tWhen Brand like'%Home Smart%'\t\t\t\tTHEN 'HSI'\n\t\t\t\t\t\t\tWHEN Brand like'%Renuity%'\t\t\t\t\tTHEN 'PHI'\n                            WHEN Brand like'%Closet America%'            THEN 'CTA' \n\t\t\t\t\t\tEND )=C1.DIVISION AND G.ADDRESS=C1.ADDRESS1 AND G.ZIP=C1.ZIP\n\t\t\t\tLEFT JOIN EDW.DIM_CUSTOMER C2 ON  (CASE \n\t\t\t\t\t\t\tWHEN Brand like'%Mad City Window%'\tTHEN 'MAC'\n\t\t\t\t\t\t\tWHEN Brand like'%Pacific Bath%'\t\t\t\tTHEN 'PBC'\n\t\t\t\t\t\t\tWHEN Brand like'%Statewid%'\t\tTHEN 'SWR'\n\t\t\t\t\t\t\tWHEN Brand like'%FHIA%'\t\t\tTHEN 'FHI'\n\t\t\t\t\t\t\tWHEN Brand like'%Max%'\t\t\t\t\tTHEN 'MXH'\n\t\t\t\t\t\t\tWHEN Brand like'%Rite Window%'\t\tTHEN 'RTW'\n\t\t\t\t\t\t\tWHEN Brand like'%Paradise Home%' THEN 'PHI'\n\t\t\t\t\t\t\tWhen Brand like'%Home Smart%'\t\t\t\tTHEN 'HSI'\n\t\t\t\t\t\t\tWHEN Brand like'%Renuity%'\t\t\t\t\tTHEN 'PHI'\n                            WHEN Brand like'%Closet America%'            THEN 'CTA' \n\t\t\t\t\t\tEND )=C2.DIVISION AND G.ADDRESS=C2.ADDRESS1 AND  REPLACE(REPLACE(REPLACE(G.PHONE,'(',''),') ',''),'-','')=C2.PHONE\n\t\t\twhere T.Survey_id is null and T1.Survey_id is null\n\n\t\t) G \n\t\tLEFT JOIN EDW.FACT_JOB J ON G.CUSTOMERID=J.CUSTOMERID AND (CASE \n\t\t\t\t\t\t\tWHEN Brand like'%Mad City Window%'\tTHEN 'MAC'\n\t\t\t\t\t\t\tWHEN Brand like'%Pacific Bath%'\t\t\t\tTHEN 'PBC'\n\t\t\t\t\t\t\tWHEN Brand like'%Statewid%'\t\tTHEN 'SWR'\n\t\t\t\t\t\t\tWHEN Brand like'%FHIA%'\t\t\tTHEN 'FHI'\n\t\t\t\t\t\t\tWHEN Brand like'%Max%'\t\t\t\t\tTHEN 'MXH'\n\t\t\t\t\t\t\tWHEN Brand like'%Rite Window%'\t\tTHEN 'RTW'\n\t\t\t\t\t\t\tWHEN Brand like'%Paradise Home%' THEN 'PHI'\n\t\t\t\t\t\t\tWhen Brand like'%Home Smart%'\t\t\t\tTHEN 'HSI'\n\t\t\t\t\t\t\tWHEN Brand like'%Renuity%'\t\t\t\t\tTHEN 'PHI'\n                            WHEN Brand like'%Closet America%'            THEN 'CTA' \n\t\t\t\t\t\tEND )=J.DIVISION AND Round(G.AMOUNT,2) =Round(J.GROSSAMOUNT,2)\n\t\tLEFT JOIN EDW.DIM_JOB_STATUS JS ON J.DIVISION=JS.DIVISION AND J.JobStatusId=JS.JobStatusID\n\t\t\n\tWHERE J.JOBID IS NOT NULL  AND JS.LP_JOBSTATUSCATEGORYID not in ('3','5')\n),\n\nGUILD_QUALITY_WITH_LEAD AS \n(\nSelect * \nfrom \n\t(\t\n\t\tSelect * from GUILD_QUALITY_DATA_1\n\t\tUNION ALL\n\t\tSelect * from GUILD_QUALITY_DATA_2\n\t\tUNION ALL\n\t\tSelect * from GUILD_QUALITY_DATA_3\n\t)A \n),\t\n\nGUILD_QUALITY_DATA_FINAL AS \n(\nSelect \n\tG.Survey_ID,\n\tResponse_date,\n\tG.Program,\n\tCASE  WHEN CHARINDEX(' ', Contact) > 0 THEN SUBSTRING(Contact, 1, LEN(Contact) - CHARINDEX(' ', REVERSE(Contact)))  ELSE Contact  END AS First_Name,\n\tCASE  WHEN CHARINDEX(' ', Contact) > 0 THEN REVERSE(SUBSTRING(REVERSE(Contact), 1, CHARINDEX(' ', REVERSE(Contact)) - 1))  ELSE Contact  END AS Last_Name,\n\tEMAIL as Email_Address,\n\tReplace(Replace(Replace(Phone,'(',''),')',''),'-','') as Phone_number,\n\tGD.LP_LEADID\tas Lead_ID,\n\tNULL\t\t\tas Product_line_InstallationExperience,\n\tNULL\t\t\tas Date_to_survey,\n\t'Usa'\t\t\tas Country,\n\t'English'\t\tas Language, \n\tNULL\t\t\tas AccountId,\n\tNULL\t\t\tas Unit,\n\tNULL\t\t\tas Sales_REP_ID_1  ,\n\t(CASE \n\t\t\t\t\t\t\tWHEN Brand like'%Mad City Window%'\tTHEN 'MAC'\n\t\t\t\t\t\t\tWHEN Brand like'%Pacific Bath%'\t\t\t\tTHEN 'PBC'\n\t\t\t\t\t\t\tWHEN Brand like'%Statewid%'\t\tTHEN 'SWR'\n\t\t\t\t\t\t\tWHEN Brand like'%FHIA%'\t\t\tTHEN 'FHI'\n\t\t\t\t\t\t\tWHEN Brand like'%Max%'\t\t\t\t\tTHEN 'MXH'\n\t\t\t\t\t\t\tWHEN Brand like'%Rite Window%'\t\tTHEN 'RTW'\n\t\t\t\t\t\t\tWHEN Brand like'%Paradise Home%' THEN 'PHI'\n\t\t\t\t\t\t\tWhen Brand like'%Home Smart%'\t\t\t\tTHEN 'HSI'\n\t\t\t\t\t\t\tWHEN Brand like'%Renuity%'\t\t\t\t\tTHEN 'PHI'\n                            WHEN Brand like'%Closet America%'            THEN 'CTA' \n\t\t\t\t\t\tEND )\t\t\tas Brand_name,\n\tNULL\t\t\tas Sales_REP_ID_2,\n\tNULL\t\t\tas Sales_Branch_name, \n\tNULL\t\t\tas Sold,\n\tNULL\t\t\tas Appointment_date,\n\tDevelopment_Cycle,\n\tNULL \t\t\tas \tSales_Organization,\n\tNULL \t\t\tas \tRecord_Type_Medallia_Conversations,\n\tNULL \t\t\tas \tMain_Metric,\n\tNULL \t\t\tas \tService_Datetime,\n\tNULL \t\t\tas \tService_Technician_ID,\n\tNULL \t\t\tas \tService_Technician_Name   ,\n\tNULL \t\t\tas \tClient_Account_ID   ,\n\tExternal_ID   \tas \tContract_ID,\n\tChannel,\n\tNULL \t\t\tas Production_branch_name   ,\n\tNULL \t\t\tas Reporting_Market   ,\n\tNULL \t\t\tas Reporting_Market_Type   ,\n\tNULL \t\t\tas Product_Line_InHomeConsultationExperience   ,\n\tNULL \t\t\tas Social_Unit_ID   ,\n\tSalesRepresentative,\n\tNULL \t\t\tas Service_Technician_2   ,\n\tNULL \t\t\tas Service_Technician_3   ,\n\tNULL \t\t\tas Service_Technician_4   ,\n\tNULL \t\t\tas On_Site_Quote_Satisfaction_Team_Score   ,\n\tNULL \t\t\tas Reason_for_Score   ,\n\tNULL \t\t\tas Sales_Understanding   ,\n\tNULL \t\t\tas Sales_Communication   ,\n\tNULL \t\t\tas Sales_Punctuality   ,\n\tNULL \t\t\tas Sales_Professionalism   ,\n\tNULL \t\t\tas Sales_Product_Knowledge   ,\n\tNULL \t\t\tas Completeness_of_Information   ,\n\tNULL \t\t\tas Received_Quote   ,\n\tNULL \t\t\tas Satisfaction_with_Quote   ,\n\tNULL \t\t\tas Quote_Project_Start_Date   ,\n\tNULL \t\t\tas Product_Demo   ,\n\tNULL \t\t\tas Product_Demo_Benefits   ,\n\tNULL \t\t\tas Reason_for_not_moving_forward   ,\n\tNULL \t\t\tas Decided_Against_Other   ,\n\tNULL \t\t\tas Final_Comment   ,\n\tService_NPS   ,\n\tNULL \t\t\tas Reasons_for_your_score   ,\n\tNULL \t\t\tas Give_more_Feedback   ,\n\tIn_Home_Sales_Rating   ,\n\tInstall_Team_Rating   ,\n\tInstallation_Rating  ,\n\tProduct_Walkthrough   ,\n\tExperience_Rating   ,\n\tSatisfaction_Rating   ,\n\tArea_for_Improvement   ,\n\tArea_of_Satisfaction   ,\n\tTestimonial   ,\n\tAdditional_Comments ,\n\tCreationdate as Creation_Date,\n\tNULL as Expiry_Date,\n\tBrand as Division,\n\tIn_Home_Sales_Comments   ,\n\tInstall_Team_Comments   ,\n\tInstallation_Comments   ,\n\tDemonstration   ,\n\tExperience_Comments   ,\n\tLikely_To_Recommend   ,\n\tSatisfaction_Comments   ,\n\tTestimonial_Comments   ,\n\tAreas_For_Improvement_Rating   ,\n\tAreas_For_Improvement_Comment   ,\n\tAreas_Of_Satisfaction_Rating   ,\n\tAreas_Of_Satisfaction_Comment   ,\n\tTemplate,\n\tOld_Survey_Id,\n\tValue,\n\tSurveystatus,\n\tContactCreationDate,\n\tProjectStartDate,\n\tSatisfactionScore ,\n\tSecondaryEmail \t\t\t   \t  \t as SecondaryEmail\t\t\t\t\t\t\t,\n\tSecondaryPhone \t\t\t      \t as SecondaryPhone\t\t\t\t\t\t\t,\n\tNeedsAction \t\t\t      \t as Needs_Action  \t\t\t\t\t\t\t,\n\tNotes \t\t\t\t\t      \t as Notes\t\t\t\t\t\t\t\t\t\t,\n\tGoogleReviewBoost\t\t      \t as Google_Review_Boost\t\t\t\t\t\t,\n\tVIPProgramAwarenessChoice     \t as VIP_Program_Awareness_Choice\t\t\t\t,\n\tVIPProgramAwarenessComment    \t as VIP_Program_Awareness_Comment\t\t\t\t,\n\tTestimonial_Choice\t\t      \t as Testimonial_Choice\t\t\t\t\t\t,\n\tTestimonial_Comment \t      \t as Testimonial_Comment\t\t\t\t\t\t,\n\tReferralProgramAwareness_Choice\t as Referral_Program_Awareness_Choice\t,\n\tReferralProgramAwareness_Comment as Referral_Program_Awareness_Comment   ,\n\t'Guild Quality' as SurveyFlag  ,\n\tGD.JOBID,\n\tGD.CUSTOMERID,\n\tGD.LEADID AS EDW_LeadID,\n\tGD.LP_CUSTOMERID,\n\t--GD.LP_LEADID, \n\tGD.INSTALLERID_1,\n\tGD.InstallerID_2,\n\tGD.InstallerID_3,\n\tGD.InstallerID_4,\n\tGD.LP_INSTALLERID_1,\n\tGD.LP_InstallerID_2,\n\tGD.LP_InstallerID_3,\n\tGD.LP_InstallerID_4,\n\tG.completionMode\n\t\tFROM ODS.test_GUILD_QUALITY_customer_survey G\n\t\t\t\tLEFT JOIN GUILD_QUALITY_WITH_LEAD GD on G.Survey_ID=GD.SURVEY_ID\n\n)\n--select * from GUILD_QUALITY_DATA_FINAL\n\nSelect B.* from (\nSELECT DIstinct \nM1.Survey_ID,\nM1.Response_Date,\ncast(M1.Program as varchar(256)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t as Program,\nM1.CustomerID,\nM1.LeadID,\ncast(CASE WHEN M1.Sales_Rep_ID_1 IS NOT NULL THEN CONCAT(M1.Division,'-',M1.Sales_Rep_ID_1) ELSE LD_M.SalesRep1_EmployeeID END as varchar(256)) \t AS SalesRep1_EmployeeID,\ncast(LD_M.SalesRep2_EmployeeID as varchar(256)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t as SalesRep2_EmployeeID,\nLD_M.BranchID,\nLD_M.ApptDate,\nCast(M1.ContractID as varchar(256))\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t as ContractID,\nCast(M1.Division as varchar(32))              \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t     as Division,\nCast(CASE WHEN M1.Service_Technician_ID IS NOT NULL THEN CONCAT(M1.Division,'-',M1.Service_Technician_ID) ELSE M1.InstallerID_1 END as varchar(100)) AS InstallerID_1,\ncast(M1.InstallerID_2 as varchar(100)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t as InstallerID_2,\ncast(M1.InstallerID_3 as varchar(100)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t as InstallerID_3,\ncast(M1.InstallerID_4 as varchar(100)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t as InstallerID_4,\nCast(M1.Product_Line_InstallationExperience as varchar(256)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t as Product_Line_InstallationExperience,\ncast(M1.Date_To_Survey as datetime) as Date_To_Survey,\ncast(M1.Country  as varchar(32)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t as Country,\ncast(M1.Language as varchar(32)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t as Language,\nCast(M1.Unit as INT) as Unit,\nM1.Sold,\nCast(M1.DevelopmentCycle  as varchar(256)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t as DevelopmentCycle,\nCast(M1.SalesOrganization as varchar(256)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t as SalesOrganization,  \ncast(M1.Record_Type_Medallia_Conversations as varchar(256)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t as Record_Type_Medallia_Conversations,\ncast(M1.Main_Metric as INT) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t as Main_Metric,\ncast(M1.Service_Datetime as [datetime2](7)) as Service_Datetime\t,\ncast(M1.Channel as varchar(256)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t as Channel ,\ncast(M1.Product_Line_InHomeConsultationExperience as varchar(256)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t as Product_Line_InHomeConsultationExperience,\nCast(M1.Social_Unit_ID as varchar(256)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t as Social_Unit_ID,\nCASE WHEN M1.On_Site_Quote_Satisfaction_Team_Score in ('NA','N/A') THEN '' ELSE CAST(M1.On_Site_Quote_Satisfaction_Team_Score as INT) END \t\t\t as On_Site_Quote_Satisfaction_Team_Score,\nCast(M1.Reason_for_Score as varchar(8000)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas Reason_for_Score,\nCASE WHEN M1.Sales_Understanding in ('NA','N/A') THEN '' ELSE CAST(M1.Sales_Understanding as INT) END \t\t\t\t\tas Sales_Understanding,\nCASE WHEN M1.Sales_Communication in ('NA','N/A') THEN '' ELSE CAST(M1.Sales_Communication as INT) END \t\t\t\t\tas Sales_Communication,\nCASE WHEN M1.Sales_Punctuality in ('NA','N/A') THEN '' ELSE CAST(M1.Sales_Punctuality as INT) END \t\t\t\t\t\tAS Sales_Punctuality,\nCASE WHEN M1.Sales_Professionalism in ('NA','N/A') THEN '' ELSE CAST(M1.Sales_Professionalism as INT) END \t\t\t\tAS Sales_Professionalism,\nCASE WHEN M1.Sales_Product_Knowledge in ('NA','N/A') THEN '' ELSE CAST(M1.Sales_Product_Knowledge as INT) END \t\t\tAS Sales_Product_Knowledge,\nCASE WHEN M1.Completeness_Of_Information in ('NA','N/A') THEN '' ELSE CAST(M1.Completeness_Of_Information AS INT) END   AS Completeness_Of_Information,\nCast(M1.Received_Quote as varchar(256)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas Received_Quote,\nCASE WHEN M1.Satisfaction_With_Quote in ('NA','N/A') THEN '' ELSE CAST(M1.Satisfaction_With_Quote as INT) END \t\t\tAS Satisfaction_With_Quote,\nCast(M1.Quote_Project_Start_Date as varchar(256)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas Quote_Project_Start_Date,\nCast(M1.Product_Demo as varchar(256)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas Product_Demo,\nCASE WHEN M1.Product_Demo_Benefits in ('NA','N/A') THEN '' ELSE CAST(M1.Product_Demo_Benefits as INT) END \t\t\t\tAS Product_Demo_Benefits,\ncast(M1.Reason_For_Not_Moving_Forward as varchar(8000)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas Reason_For_Not_Moving_Forward,\ncast(M1.Decided_Against_Other as varchar(8000)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas Decided_Against_Other ,\ncast(M1.Final_Comment as varchar(8000)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas Final_Comment,\nCASE WHEN M1.Service_NPS in ('NA','N/A') THEN '' ELSE CAST(M1.Service_NPS as INT) END \t\t\t\t\t\t\t\t\tAS Service_NPS,\ncast(M1.Reasons_For_Your_Score as varchar(8000)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas Reasons_For_Your_Score,\ncast(M1.Give_More_Feedback     as varchar(256))  \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas  Give_More_Feedback,\nCASE WHEN M1.In_Home_Sales in ('NA','N/A') THEN '' ELSE CAST(M1.In_Home_Sales as INT) END \t\t\t\t\t\t\t\tas In_Home_Sales,\nCASE WHEN M1.Install_Team in ('NA','N/A') THEN '' ELSE CAST(M1.Install_Team as INT) END \t\t\t\t\t\t\t\tas Install_Team,\nCASE WHEN M1.Installation in ('NA','N/A') THEN '' ELSE Cast(M1.Installation as INT) END \t\t\t\t\t\t\t\tAS Installation,\nCASE WHEN M1.Product_Walkthrough in ('NA','N/A') THEN '' ELSE CAST(M1.Product_Walkthrough as INT) END \t\t\t\t\tas Product_Walkthrough,\nCASE WHEN M1.Experience in ('NA','N/A') THEN '' ELSE  CAST(M1.Experience as INT) END \t\t\t\t\t\t\t\t\tas Experience,\nCASE WHEN M1.Satisfaction in ('NA','N/A') THEN '' ELSE CAST(M1.Satisfaction as INT) END \t\t\t\t\t\t\t\tas Satisfaction,\ncast(M1.Area_For_Improvement as varchar(8000)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas Area_For_Improvement,\ncast(M1.Area_Of_Satisfaction as varchar(8000)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas Area_Of_Satisfaction,\ncast(M1.Testimonial\t\t\t\t\t\t\t  \t as varchar(256))    \t\t\t\t\t\t\t\t\t\t\t\t\tas Testimonial\t\t\t\t\t\t\t  \t\t,\ncast(M1.Additional_Comments\t\t\t\t\t\t as varchar(8000))    \t\t\t\t\t\t\t\t\t\t\t\t\tas Additional_Comments\t\t\t\t\t\t\t\t\t,\ncast(M1.Testimonial_Additional_Comments\t\t\t as varchar(8000))   \t\t\t\t\t\t\t\t\t\t\t\t\tas Testimonial_Additional_Comments\t\t\t\t,  ----------New columns for GUILD Quality survey data starts here\ncast(M1.Demonstration_Additional_Comments   \t as varchar(8000))   \t\t\t\t\t\t\t\t\t\t\t\t\tas Demonstration_Additional_Comments   \t\t ,\ncast(M1.Experience_Additional_Comments      \t as varchar(8000))   \t\t\t\t\t\t\t\t\t\t\t\t\tas Experience_Additional_Comments      \t\t  ,\ncast(M1.Likely_To_Recommend_Additional_Comments  as varchar(8000))   \t\t\t\t\t\t\t\t\t\t\t\t\tas Likely_To_Recommend_Additional_Comments ,\ncast(M1.Satisfaction_Additional_Comments         as varchar(8000))   \t\t\t\t\t\t\t\t\t\t\t\t\tas Satisfaction_Additional_Comments        ,\ncast(M1.In_Home_Sales_Additional_Comments        as varchar(8000))   \t\t\t\t\t\t\t\t\t\t\t\t\tas In_Home_Sales_Additional_Comments       ,\ncast(M1.Install_Team_Additional_Comments         as varchar(8000))   \t\t\t\t\t\t\t\t\t\t\t\t\tas Install_Team_Additional_Comments        ,\ncast(M1.Installation_Additional_Comments         as varchar(8000))   \t\t\t\t\t\t\t\t\t\t\t\t\tas Installation_Additional_Comments        ,\ncast(M1.Area_For_Improvement_Additional_Comments as varchar(8000))   \t\t\t\t\t\t\t\t\t\t\t\t\tas Area_For_Improvement_Additional_Comments  ,\ncast(M1.Area_Of_Satisfaction_Additional_Comments as varchar(8000))   \t\t\t\t\t\t\t\t\t\t\t\t\tas Area_Of_Satisfaction_Additional_Comments  ,\nCASE WHEN M1.Area_For_Improvement_Rating in ('NA','N/A') THEN '' ELSE CAST(M1.Area_For_Improvement_Rating as INT) END \tas Area_For_Improvement_Rating,\nCASE WHEN M1.Area_Of_Satisfaction_Rating in ('NA','N/A') THEN '' ELSE CAST(M1.Area_Of_Satisfaction_Rating as INT) END \tas Area_Of_Satisfaction_Rating,\ncast(M1.Template   as varchar(100))                               \t\t\t\t\t\t\t\t\t\t\t\t\t\tas Template,\t\ncast(M1.GuildQuality_Survey_Id    as varchar(100))               \t\t\t\t\t\t\t\t\t\t\t\t\t\tas GuildQuality_Survey_Id,\nCast(ISNULL(M1.Amount,0) as Decimal(16,2)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas Amount                                    ,\ncast(M1.Survey_status   as varchar(100))                            \t\t\t\t\t\t\t\t\t\t\t\t\tas Survey_status ,\ncast(M1.Customer_Creation_Date   as [datetime2](7)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas Customer_Creation_Date                   ,\ncast(M1.Project_Start_Date       as [datetime2](7)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas Project_Start_Date                       ,\ncast(M1.Creationdate             as [datetime2](7)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas Creationdate                             ,\ncast(Replace(M1.Satisfaction_Score_in_Percentage,'%','') \tas INT)\t\t\t\t\t\t\t\t\t\t\t\t\t\tas Satisfaction_Score_in_Percentage      ,\ncast(M1.Needs_Action  \tas [varchar](8000)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas Needs_Action\t\t\t\t\t\t,\ncast(M1.Notes\tas [varchar](8000))\t\t\t\t\t\t\t                                                            as Notes                           ,\ncast(M1.Google_Review_Boost as [varchar](8000))\t\t\t\t                                                            as Google_Review_Boost             ,\ncast(M1.VIP_Program_Awareness_Choice as varchar(32)\t)\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas VIP_Program_Awareness_Choice    ,\ncast(M1.VIP_Program_Awareness_Comment\tas [varchar](8000))\t                                                            as VIP_Program_Awareness_Comment   ,\ncast(M1.Testimonial_Choice\tas varchar(32))\t \t                \t\t\t\t\t\t\t\t\t\t\t\t\t\tas Testimonial_Choice              ,\ncast(M1.Testimonial_Comment as [varchar](8000))\t\t\t\t                                                            as Testimonial_Comment             ,\ncast(M1.Referral_Program_Awareness_Choice as varchar(32))\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas Referral_Program_Awareness_Choice ,\ncast(M1.Referral_Program_Awareness_Comment as [varchar](8000))\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas Referral_Program_Awareness_Comment,\ncast(M1.SurveyFlag as varchar(100))\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas SurveyFlag\t ,\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t------------------- ends here\ncast(M1.LP_CustomerID as varchar(256))\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas LP_CustomerID,\ncast(M1.LP_LeadID     as varchar(256))\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas LP_LeadID,\ncast(CASE WHEN M1.Sales_Rep_ID_1 is not null then M1.Sales_Rep_ID_1 ELSE LD_M.LP_SalesRep1_EmployeeID END as varchar(256)) as LP_SalesRepEmployeeID_1,\ncast(LD_M.LP_SalesRep2_EmployeeID as varchar(256))\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas LP_SalesRepEmployeeID_2,\ncast(LD_M.LP_BranchID as varchar(50))\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas LP_BranchID,\nCASE WHEN M1.Service_Technician_ID is not null then M1.Service_Technician_ID ELSE M1.LP_InstallerID_1 END\t\t\t    as LP_InstallerID_1,\ncast(M1.LP_InstallerID_2 as varchar(100)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas LP_InstallerID_2,\ncast(M1.LP_InstallerID_3 as varchar(100)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas LP_InstallerID_3,\ncast(M1.LP_InstallerID_4 as varchar(100)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas LP_InstallerID_4,\nCast(M1.LastUpdatedTs as [datetime2](7)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas LastUpdatedTs,\ncast(M1.ReportingMarketID\t\t   as varchar(100)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas ReportingMarketID\t\t,\ncast(M1.LP_ReportingMarketID\t   as varchar(100)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas LP_ReportingMarketID\t\t,\ncast(M1.LP_ReportingMarketTypeID   as varchar(100)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas LP_ReportingMarketTypeID,\ncast(M1.ReportingMarketTypeID      as varchar(100)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas ReportingMarketTypeID   ,\ncast(LD_M.ProductID\t\t\t\t   as varchar(100)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas ProductID\t\t\t\t,\ncast(LD_M.LP_ProductID\t\t\t   as varchar(100)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas LP_ProductID\t\t\t,\ncast(M1.Account_ID \t\t\t\t   as varchar(100)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas Medallia_AccountID,\ncast(M1.Sales_Rep_ID_1 \t\t\t   as varchar(100)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas Medallia_SalesRepID1,\ncast(M1.Service_Technician_ID \t   as varchar(100)) \t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas Medallia_ServiceTechID1,\ncast(COALESCE(M1.Active,DE.Active) as varchar(10))\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tas SalesRepActiveFlag , \t\t--into #T_Fact_medallia,\ncast(M1.completionMode as varchar(256))\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t     as completionMode,\nROW_NUMBER() OVER (PARTITION BY M1.Survey_ID ORDER BY LD_M.EntryDate DESC) as rownum\nFROM \n(\n\n\t\tSELECT \n\t\t\t\tA.Survey_ID,\n\t\t\t\tsubstring(Response_Date,1,10)+' '+substring(Response_Date,12,8)as Response_Date,\n\t\t\t\tA.Program,\n\t\t\t\tA.CustomerID,\n\t\t\t\tA.EDW_LeadID AS LEADID,\n\t\t\t\tA.Contract_ID AS ContractID,\n\t\t\t\t(CASE \n\t\t\t\t\t\t\tWHEN A.Division like'%Mad City Window%'\tTHEN 'MAC'\n\t\t\t\t\t\t\tWHEN A.Division like'%Pacific Bath%'\t\t\t\tTHEN 'PBC'\n\t\t\t\t\t\t\tWHEN A.Division like'%Statewid%'\t\tTHEN 'SWR'\n\t\t\t\t\t\t\tWHEN A.Division like'%FHIA%'\t\t\tTHEN 'FHI'\n\t\t\t\t\t\t\tWHEN A.Division like'%Max%'\t\t\t\t\tTHEN 'MXH'\n\t\t\t\t\t\t\tWHEN A.Division like'%Rite Window%'\t\tTHEN 'RTW'\n\t\t\t\t\t\t\tWHEN A.Division like'%Paradise Home%' THEN 'PHI'\n\t\t\t\t\t\t\tWhen A.Division like'%Home Smart%'\t\t\t\tTHEN 'HSI'\n\t\t\t\t\t\t\tWHEN A.Division like'%Renuity%'\t\t\t\t\tTHEN 'PHI'\n                            WHEN A.Division like'%Closet America%'            THEN 'CTA' \n\t\t\t\t\t\tEND ) as Division,\n\t\t\t\tA.InstallerID_1,\n\t\t\t\tA.InstallerID_2,\n\t\t\t\tA.InstallerID_3,\n\t\t\t\tA.InstallerID_4,\n\t\t\t\tA.Product_Line_InstallationExperience,\n\t\t\t\tcast(A.Date_To_Survey as datetime) as Date_To_Survey,\n\t\t\t\tA.Country,\n\t\t\t\tA.[Language],\n\t\t\t\tA.Unit,\n\t\t\t\tCase when A.sold is NULL \tthen '0'\n\t\t\t\t\t when A.Sold='Not Sold' then '0' \n\t\t\t\t\t Else '1' END as Sold,\n\t\t\t\tA.Development_Cycle  as DevelopmentCycle,\n\t\t\t\tA.Sales_Organization as SalesOrganization,\n\t\t\t\tA.Record_Type_Medallia_Conversations,\n\t\t\t\tA.Main_Metric,\n\t\t\t\tA.Service_Datetime,\n\t\t\t\tA.Channel,\n\t\t\t\tA.Product_Line_InHomeConsultationExperience,\n                A.Sales_Rep_ID_1,\n                A.Service_Technician_ID,\n\t\t\t\tA.Social_Unit_ID,\n\t\t\t\tA.On_Site_Quote_Satisfaction_Team_Score,\n\t\t\t\tA.Reason_for_Score,\n\t\t\t\tA.Sales_Understanding,\n\t\t\t\ta.Sales_Communication,\n\t\t\t\tA.Sales_Punctuality,\n\t\t\t\tA.Sales_Professionalism,\n\t\t\t\tA.Sales_Product_Knowledge,\n\t\t\t\tA.Completeness_Of_Information,\n\t\t\t\tA.Received_Quote,\n\t\t\t\tA.Satisfaction_With_Quote,\n\t\t\t\tA.Quote_Project_Start_Date,\n\t\t\t\tA.Product_Demo,\n\t\t\t\tA.Product_Demo_Benefits,\n\t\t\t\tA.Reason_For_Not_Moving_Forward,\n\t\t\t\tA.Decided_Against_Other,\n\t\t\t\tA.Final_Comment,\n\t\t\t\tA.Service_NPS,\n\t\t\t\tA.Reasons_For_Your_Score,\n\t\t\t\tA.Give_More_Feedback,\n\t\t\t\tA.In_Home_Sales_Rating as In_Home_Sales,\n\t\t\t\tA.Install_Team_Rating as Install_Team,\n\t\t\t\tA.Installation_Rating as Installation,\n\t\t\t\ta.Product_Walkthrough,\n\t\t\t\tA.Experience_Rating as Experience,\n\t\t\t\tA.Satisfaction_Rating as Satisfaction,\n\t\t\t\tA.Area_For_Improvement,\n\t\t\t\tA.Area_Of_Satisfaction,\n\t\t\t\tA.Testimonial,\n\t\t\t\tA.Additional_Comments,\n\t\t\t\tA.Testimonial_Comments\t\t\tas Testimonial_Additional_Comments\t\t,\n\t\t\t\tA.Demonstration   \t\t\t\tas Demonstration_Additional_Comments    ,\n\t\t\t\tA.Experience_Comments   \t\tas Experience_Additional_Comments        ,\n\t\t\t\tA.Likely_To_Recommend   \t\tas Likely_To_Recommend_Additional_Comments ,\n\t\t\t\tA.Satisfaction_Comments \t\tas Satisfaction_Additional_Comments        ,\n\t\t\t\tA.In_Home_Sales_Comments\t\tas In_Home_Sales_Additional_Comments       ,\n\t\t\t\tA.Install_Team_Comments \t\tas Install_Team_Additional_Comments        ,\n\t\t\t\tA.Installation_Comments \t\tas Installation_Additional_Comments        ,\n\t\t\t\tA.Areas_For_Improvement_Comment as Area_For_Improvement_Additional_Comments  ,\n\t\t\t\tA.Areas_Of_Satisfaction_Comment as Area_Of_Satisfaction_Additional_Comments  ,\n\t\t\t\tA.Areas_For_Improvement_Rating  as Area_For_Improvement_Rating,\n\t\t\t\tA.Areas_Of_Satisfaction_Rating  as Area_Of_Satisfaction_Rating,\n\t\t\t\tA.Template                                  ,\n\t\t\t\tA.Old_Survey_ID as GuildQuality_Survey_Id                    ,\n\t\t\t\tA.Value \t\tas Amount                                    ,\n\t\t\t\tA.Surveystatus       as Survey_Status                      ,\n\t\t\t\tsubstring(A.ContactCreationDate,1,10)+' '+substring(A.ContactCreationDate,12,8)  as Customer_Creation_Date                    ,\n\t\t\t\tA.ProjectStartDate \t\tas Project_Start_Date                        ,\n\t\t\t\tsubstring(A.Creation_date,1,10)+' '+substring(A.Creation_date,12,8)  as CreationDate                            ,\n\t\t\t\tA.SatisfactionScore \tas Satisfaction_Score_in_Percentage          ,\n\t\t\t\tA.Needs_Action  \t\t\t\t\t\t\t\t\t ,\n\t\t\t\tA.Notes\t\t\t\t\t\t\t\t             ,\n\t\t\t\tA.Google_Review_Boost\t\t\t\t\t             ,\n\t\t\t\tA.VIP_Program_Awareness_Choice\t\t             ,\n\t\t\t\tA.VIP_Program_Awareness_Comment\t\t             ,\n\t\t\t\tA.Testimonial_Choice\t\t\t\t\t             ,\n\t\t\t\tA.Testimonial_Comment\t\t\t\t\t             ,\n\t\t\t\tA.Referral_Program_Awareness_Choice\t             ,\n\t\t\t\tA.Referral_Program_Awareness_Comment\t\t\t,\n\t\t\t\tA.SurveyFlag   \t\t\t\t                 ,\n\t\t\t\tA.LP_CustomerID,\n\t\t\t\tA.Lead_ID AS LP_LEADID,\n\t\t\t\tA.LP_InstallerID_1,\n\t\t\t\tA.LP_InstallerID_2,\n\t\t\t\tA.LP_InstallerID_3,\n\t\t\t\tA.LP_InstallerID_4,\n\t\t\t\tGETDATE() AS LastUpdatedTs,\n\t\t\t\tB.ReportingMarketID,\n\t\t\t\tB.LP_ReportingMarketID,\n\t\t\t\tB.LP_ReportingMarketTypeID,\n\t\t\t\tB.ReportingMarketTypeID,\n                NULL  as Active, \n\t\t\t\tA.completionMode,\n                null as ACCOUNT_ID\n\t\t\t\t\n\t\t\t\t\n\t\t\tFROM  \n\t\t\t\t(\t\n\t\t\t\t\tSELECT * FROM GUILD_QUALITY_DATA_FINAL\n\t\t\t\t) A\n\t\t\t \n\t\t\tLEFT JOIN EDW.DIM_BRANCH B \n\t\t\tON A.Production_branch_name=B.LongName AND A.Division = B.Division\n\t\t\t--Where A.Survey_ID='303024'\n\t\t\t\n\t\n\t) M1\n\t\n\tLEFT JOIN EDW.FACT_LEAD LD_M ON M1.LeadID = LD_M.LeadID\n    LEFT JOIN EDW.DIM_EMPLOYEE DE ON LD_M.SalesRep1_EmployeeID=DE.EmployeeID) B\n\twhere B.rownum=1 and survey_Status='Completed'",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Upsert",
+						"upsertSettings": {
+							"keys": [
+								"Survey_ID"
+							],
+							"interimSchemaName": ""
+						},
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "staging"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Survey_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Survey_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Response_Date",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Response_Date",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "Program",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Program",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CustomerID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CustomerID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "LeadID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SalesRep1_EmployeeID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SalesRep1_EmployeeID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SalesRep2_EmployeeID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SalesRep2_EmployeeID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "BranchID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ApptDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "ApptDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "ContractID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ContractID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ProductID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ProductID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "InstallerID_1",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "InstallerID_1",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "InstallerID_2",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "InstallerID_2",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "InstallerID_3",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "InstallerID_3",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "InstallerID_4",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "InstallerID_4",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Product_Line_InstallationExperience",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Product_Line_InstallationExperience",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Date_To_Survey",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "Date_To_Survey",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "Country",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Country",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Language",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Language",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Unit",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Unit",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Sold",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Sold",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DevelopmentCycle",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "DevelopmentCycle",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SalesOrganization",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SalesOrganization",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Record_Type_Medallia_Conversations",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Record_Type_Medallia_Conversations",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Main_Metric",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Main_Metric",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Service_Datetime",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "Service_Datetime",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "Channel",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Channel",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Product_Line_InHomeConsultationExperience",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ProductLine_InHomeConsultationExperience",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Social_Unit_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Social_Unit_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "On_Site_Quote_Satisfaction_Team_Score",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "On_Site_Quote_Satisfaction_Team_Score",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Reason_for_Score",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Reason_for_Score",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Sales_Understanding",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Sales_Understanding",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Sales_Communication",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Sales_Communication",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Sales_Punctuality",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Sales_Punctuality",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Sales_Professionalism",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Sales_Professionalism",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Sales_Product_Knowledge",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Sales_Product_Knowledge",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Completeness_Of_Information",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Completeness_Of_Information",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Received_Quote",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Received_Quote",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Satisfaction_With_Quote",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Satisfaction_With_Quote",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Quote_Project_Start_Date",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Quote_Project_Start_Date",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Product_Demo",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Product_Demo",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Product_Demo_Benefits",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Product_Demo_Benefits",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Reason_For_Not_Moving_Forward",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Reason_For_Not_Moving_Forward",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Decided_Against_Other",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Decided_Against_Other",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Final_Comment",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Final_Comment",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Service_NPS",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Service_NPS",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Reasons_For_Your_Score",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Reasons_For_Your_Score",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Give_More_Feedback",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Give_More_Feedback",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "In_Home_Sales",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "In_Home_Sales",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Install_Team",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Install_Team",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Installation",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Installation",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Product_Walkthrough",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Product_Walkthrough",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Experience",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Experience",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Satisfaction",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Satisfaction",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Area_For_Improvement",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Areas_For_Improvement",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Area_Of_Satisfaction",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Areas_Of_Satisfaction",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Testimonial",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Testimonial",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Additional_Comments",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Additional_Comments",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_CustomerID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LP_CustomerID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_LeadID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LP_LeadID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_SalesRepEmployeeID_1",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LP_SalesRep1_EmployeeID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_SalesRepEmployeeID_2",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LP_SalesRep2_EmployeeID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_BranchID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LP_BranchID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_ProductID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LP_ProductID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_InstallerID_1",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "LP_InstallerID_1",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_InstallerID_2",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LP_InstallerID_2",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_InstallerID_3",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LP_InstallerID_3",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_InstallerID_4",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LP_InstallerID_4",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LastUpdatedTs",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "LastUpdateTS",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "ReportingMarketID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ReportingMarket_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_ReportingMarketID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LP_ReportingMarket_ID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_ReportingMarketTypeID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LP_ReportingMarketTypeID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ReportingMarketTypeID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ReportingMarketTypeID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Medallia_AccountID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Medallia_AccountID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Medallia_SalesRepID1",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Medallia_SalesRepID1",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Medallia_ServiceTechID1",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Medallia_ServiceTechID1",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SalesRepActiveFlag",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SalesRepActiveFlag",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Testimonial_Additional_Comments",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Testimonial_Additional_Comments",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Demonstration_Additional_Comments",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Demonstration_Additional_Comments",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Experience_Additional_Comments",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Experience_Additional_Comments",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Likely_To_Recommend_Additional_Comments",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Likely_To_Recommend_Additional_Comments",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Satisfaction_Additional_Comments",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Satisfaction_Additional_Comments",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "In_Home_Sales_Additional_Comments",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "In_Home_Sales_Additional_Comments",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Install_Team_Additional_Comments",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Install_Team_Additional_Comments",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Installation_Additional_Comments",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Installation_Additional_Comments",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Area_For_Improvement_Additional_Comments",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Area_For_Improvement_Additional_Comments",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Area_Of_Satisfaction_Additional_Comments",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Area_Of_Satisfaction_Additional_Comments",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Area_For_Improvement_Rating",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Area_For_Improvement_Rating",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Area_Of_Satisfaction_Rating",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Area_Of_Satisfaction_Rating",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Template",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Template",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "GuildQuality_Survey_Id",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "GuildQuality_Survey_Id",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Amount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 16
+								},
+								"sink": {
+									"name": "Amount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 4,
+									"precision": 19
+								}
+							},
+							{
+								"source": {
+									"name": "Survey_status",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Survey_status",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Customer_Creation_Date",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "Customer_Creation_Date",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "Project_Start_Date",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "Project_Start_Date",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "Creationdate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "Creationdate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "Satisfaction_Score_in_Percentage",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Satisfaction_Score_in_Percentage",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Needs_Action",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Needs_Action",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Notes",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Notes",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Google_Review_Boost",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Google_Review_Boost",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "VIP_Program_Awareness_Choice",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "VIP_Program_Awareness_Choice",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "VIP_Program_Awareness_Comment",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "VIP_Program_Awareness_Comment",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Testimonial_Choice",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Testimonial_Choice",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Testimonial_Comment",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Testimonial_Comment",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Referral_Program_Awareness_Choice",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Referral_Program_Awareness_Choice",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Referral_Program_Awareness_Comment",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Referral_Program_Awareness_Comment",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SurveyFlag",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SurveyFlag",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "completionMode",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "completionMode",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ODS_MEDALLIA_CUSTOMER_SURVEY",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "Test_FACT_Medallia_Customer_survey",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Copy GQ Surveys to BS_By_lastActivityAt",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "DF_Flatten_Json_And_Sink_TO_ODS",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:01:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "GET",
+						"additionalHeaders": {
+							"Authorization": "Bearer Ale3uCQ4M77NgvhF"
+						},
+						"paginationRules": {
+							"supportRFC5988": "true"
+						}
+					},
+					"sink": {
+						"type": "JsonSink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings"
+						},
+						"formatSettings": {
+							"type": "JsonWriteSettings"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "GQ_All_Surveys_by_lastActivityAt",
+						"type": "DatasetReference",
+						"parameters": {
+							"Date": {
+								"value": "@pipeline().parameters.Date",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "GQ_survey_By_LastActivityAt",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "DF_Flatten_Json_And_Sink_TO_ODS_copy1",
+				"type": "ExecuteDataFlow",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Copy GQ Surveys to BS_By_lastActivityAt",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "DF_Flatten_GQ_Json_by_LastActivityAt",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "AzureBlobStorage1",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "sameen"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			}
+		],
+		"parameters": {
+			"Date": {
+				"type": "string",
+				"defaultValue": "2024-08-28"
+			}
+		},
+		"folder": {
+			"name": "Temp/Sameen"
+		},
+		"annotations": [],
+		"lastPublishTime": "2024-08-31T17:45:07Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

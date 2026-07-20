@@ -1,0 +1,28 @@
+{
+	"name": "Prod_GQ_All_Surveys_by_EndedAt",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "GQ_All_Surveys",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"Date": {
+				"type": "String"
+			},
+			"UpsertDateFilter": {
+				"type": "string",
+				"defaultValue": "endedAt"
+			}
+		},
+		"annotations": [],
+		"type": "RestResource",
+		"typeProperties": {
+			"relativeUrl": {
+				"value": "@concat('https://www.guildquality.com/company-api/v3/surveys/?questions=1&limit=1000&dateFilter=',dataset().UpsertDateFilter,'&since=',  formatDateTime(addDays(formatDateTime(dataset().Date, 'yyyy-MM-dd'), -1), 'yyyy-MM-dd'),\n    '&until=',\n    formatDateTime(dataset().Date, 'yyyy-MM-dd'),'&completionModes!=imported')",
+				"type": "Expression"
+			}
+		},
+		"schema": []
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}

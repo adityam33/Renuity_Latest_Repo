@@ -1,0 +1,116 @@
+{
+	"name": "df_load_OUT_PM_NEAREST_NEIGHBOUR",
+	"properties": {
+		"folder": {
+			"name": "RDC_to_PerfMarketing"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "EDW_DIM_CUSTOMER",
+						"type": "DatasetReference"
+					},
+					"name": "SelectRecentSoldProspects"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "OUT_PM_NEAREST_NEIGHBOUR",
+						"type": "DatasetReference"
+					},
+					"name": "OutPMNearestNeighbour"
+				}
+			],
+			"transformations": [
+				{
+					"name": "createPlus1Address1"
+				},
+				{
+					"name": "split1"
+				},
+				{
+					"name": "createPlus2Address1"
+				},
+				{
+					"name": "createMinus1Address1"
+				},
+				{
+					"name": "createMinus2Address1"
+				},
+				{
+					"name": "unionAddAddresses"
+				},
+				{
+					"name": "addLastUpdateTS"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          OperatingCompany as string,",
+				"          StreetNumber as string,",
+				"          StreetName as string,",
+				"          Address1 as string,",
+				"          City as string,",
+				"          State as string,",
+				"          Zip as string,",
+				"          Market as string,",
+				"          Overall_Remodeling_Composite_Ranking_Index as decimal(10,2),",
+				"          Baths_Composite_Ranking_Index as decimal(10,2),",
+				"          Windows_Composite_Ranking_Index as decimal(10,2),",
+				"          SoldToNeighbour_CustomerID as string,",
+				"          SoldToNeighbour_EntryDate as timestamp,",
+				"          SoldToNeighbour_GSA as decimal(19,4)",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT\\ncst.OperatingCompany\\n,trim(SUBSTRING(cst.[Address1],0,CHARINDEX(\\' \\',cst.[Address1]))) as StreetNumber\\n,trim(SUBSTRING(cst.[Address1],CHARINDEX(\\' \\',cst.[Address1]),1000)) as StreetName\\n,cst.[Address1]\\n,cst.[City]\\n,cst.[State]\\n,cst.[Zip]\\n,brn.LongName as [Market]\\n,CAST(zonda.[Overall_Remodeling_Composite_Ranking_Index] as DECIMAL(10,2)) as [Overall_Remodeling_Composite_Ranking_Index]\\n,CAST(zonda.[Baths_Composite_Ranking_Index] as DECIMAL(10,2)) as [Baths_Composite_Ranking_Index]\\n,CAST(zonda.[Windows_Composite_Ranking_Index] as DECIMAL(10,2)) as [Windows_Composite_Ranking_Index]\\n,cst.[CustomerID] as SoldToNeighbour_CustomerID\\n,lds.EntryDate as SoldToNeighbour_EntryDate\\n,lds.GrossSalesAmount as SoldToNeighbour_GSA\\n FROM \\n [EDW].[DIM_CUSTOMER] cst\\n ,[EDW].[DIM_BRANCH] brn\\n ,[EDW].[FACT_LEAD] lds\\n ,[ODS].[MKTDATA_ZONDA_ZIP_CODE_INDEX] zonda\\n where \\n cst.CustomerID = lds.CustomerID\\n and cst.[Zip] = zonda.[ZipCode]\\n and lds.BranchID = brn.BranchID\\n and lds.Sold = \\'True\\'\\n and cst.OperatingCompany = \\'MAC\\'\\n and lds.EntryDate > \\'2022-01-01\\'',",
+				"     format: 'query',",
+				"     staged: true) ~> SelectRecentSoldProspects",
+				"split1@Plus1 derive(Address1 = toString(toInteger(StreetNumber) + 1) + ' ' + StreetName) ~> createPlus1Address1",
+				"SelectRecentSoldProspects split(true(),",
+				"     true(),",
+				"     true(),",
+				"     disjoint: true) ~> split1@(Plus1, Plus2, Minus1, Minus2)",
+				"split1@Plus2 derive(Address1 = toString(toInteger(StreetNumber) + 2) + ' ' + StreetName) ~> createPlus2Address1",
+				"split1@Minus1 derive(Address1 = toString(toInteger(StreetNumber) - 1) + ' ' + StreetName) ~> createMinus1Address1",
+				"split1@Minus2 derive(Address1 = toString(toInteger(StreetNumber) - 2) + ' ' + StreetName) ~> createMinus2Address1",
+				"createPlus1Address1, createPlus2Address1, createMinus1Address1, createMinus2Address1 union(byName: true)~> unionAddAddresses",
+				"unionAddAddresses derive(LastUpdateTS = currentDate()) ~> addLastUpdateTS",
+				"addLastUpdateTS sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     recreate:true,",
+				"     format: 'table',",
+				"     staged: true,",
+				"     allowCopyCommand: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          OperatingCompany,",
+				"          StreetNumber,",
+				"          StreetName,",
+				"          Address1,",
+				"          City,",
+				"          State,",
+				"          Zip,",
+				"          Market,",
+				"          Overall_Remodeling_Composite_Ranking_Index,",
+				"          Baths_Composite_Ranking_Index,",
+				"          Windows_Composite_Ranking_Index,",
+				"          SoldToNeighbour_CustomerID,",
+				"          SoldToNeighbour_EntryDate,",
+				"          SoldToNeighbour_GSA,",
+				"          LastUpdateTS",
+				"     )) ~> OutPMNearestNeighbour"
+			]
+		}
+	}
+}

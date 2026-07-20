@@ -1,0 +1,446 @@
+{
+	"name": "cpy_VWO_Final_Load",
+	"properties": {
+		"activities": [
+			{
+				"name": "Get Metadata_FileNames",
+				"type": "GetMetadata",
+				"dependsOn": [
+					{
+						"activity": "Script_Truncate",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "VWO_JSon_Folder",
+						"type": "DatasetReference"
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobStorageReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "JsonReadSettings"
+					}
+				}
+			},
+			{
+				"name": "ForEach_FileName",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Get Metadata_FileNames",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Get Metadata_FileNames').output.childItems",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "df_CampaignJSON_to_Csv",
+							"type": "ExecuteDataFlow",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataflow": {
+									"referenceName": "df_VWO_CampaignJSON_Read",
+									"type": "DataFlowReference",
+									"parameters": {
+										"p_FileName": {
+											"value": "'@{item().name}'",
+											"type": "Expression"
+										}
+									},
+									"datasetParameters": {
+										"source1": {
+											"FileName": {
+												"value": "@item().name",
+												"type": "Expression"
+											}
+										}
+									}
+								},
+								"integrationRuntime": {
+									"referenceName": "RDC-AutoIR-GP-Small-1",
+									"type": "IntegrationRuntimeReference"
+								},
+								"traceLevel": "None",
+								"cacheSinks": {
+									"firstRowOnly": true
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Script_Truncate",
+				"type": "Script",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "TRUNCATE TABLE  [ODS].[VWO_CAMPAIGN_VARIATION];"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "cpy_VWO_EDW_Load",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "ForEach_FileName",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT \n\nCASE \n\t\tWHEN CampaignName\tLIKE '%Mad City%'\t\n\t\tOR CampaignName\t\tLIKE 'MC %'  \n\t\tOR CampaignName\t\tLIKE '% MC %'\t\n\t\tOR CampaignName\t\tLIKE '%MCW%'\t\t\t\tTHEN 'MAC' \n\n\t\tWHEN CampaignName\tLIKE '%Max Home%'\t\t\n\t\tOR CampaignName\t\tLIKE '%MaxHome%'\t\t\n\t\tOR CampaignName\t\tLIKE '%FHI%' \n\t\tOR CampaignName\t\tLIKE '% MH %'\t \n\t\tOR CampaignName\t\tLIKE '%MXH%'\t\n\t\tOR CampaignName\t\tLIKE '%Renuity East%'\t\tTHEN 'FHI' \n\n\t\tWHEN CampaignName\tLIKE '%Pacific Bath%'\t\n\t\tOR CampaignName\t\tLIKE '%PBC%' \n\t\tOR CampaignName\t\tLIKE '% PB %'\t  \n\t\tOR CampaignName\t\tLIKE '% West %'\t\t\t\tTHEN 'PBC'\n\t\t\n\t\tWHEN CampaignName\tLIKE '%Native - CA %' \n\t\tOR CampaignName\t\tLIKE '%Closet America%' \n\t\tOR CampaignName\t\tLIKE '% CA %' \n\t\tOR CampaignName\t\tLIKE '% CLA %'\t\t\t\tTHEN 'CTA'\n\t\t\n\t\tWHEN CampaignName\tLIKE '%RTW%'\t\t\t\n\t\tOR CampaignName\t\tLIKE '%RiteWindow%' \n\t\tOR CampaignName\t\tLIKE 'RW %' \n\t\tOR CampaignName\t\tLIKE '% RW %'\t\t\t\tTHEN 'RTW' \n\t\t\n\t\tWHEN CampaignName\tLIKE '% SW %'\t\n\t\tOR CampaignName\t\tLIKE '%StateWide%' \n\t\tOR CampaignName\t\tLIKE '% SW %' \n\t\tOR CampaignName\t\tLIKE 'SW %'\n\t\tOR CampaignName\t\tLIKE '%SWR%'\t\t\t\tTHEN 'SWR' \n\t\tEND AS Division,\n\nCampaignID\t,\nCampaignName\t,\nCampaignType\t,\nCampaignStatus\t,\nCampaignCreatedBy\t,\nCampaignPrimaryURL\t,\nCampaignCreatedOn\t,\nVariations_ID\t,\nVariations_Name\t,\nVariations_isControl\t,\nVariations_isDisabled\t,\nVariations_percentSplit\t,\nGoals_Name\t,\nGoals_Type\t,\nTotalconversionCount\t,\nTotalconversionRate\t,\nTotalvisitorCount\t,\nVariations_URL\t,\nisWinner\t,\npossibleWinner\t,\nVariation_ConversionCount\t,\nVariation_visitorCount\t,\nVariation_isGoalDurationComplete\t,\nLastUpdatedTS\t\n\nFROM [ODS].[VWO_CAMPAIGN_VARIATION]",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE EDW.FACT_VWO_CAMPAIGN_VARIATION",
+						"allowCopyCommand": true,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "AzureBlobStorage1",
+							"type": "LinkedServiceReference"
+						},
+						"path": "staging"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Division",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CampaignID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "CampaignID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "CampaignName",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CampaignName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CampaignType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CampaignType",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CampaignStatus",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CampaignStatus",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CampaignCreatedBy",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CampaignCreatedBy",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CampaignPrimaryURL",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CampaignPrimaryURL",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CampaignCreatedOn",
+									"type": "Date"
+								},
+								"sink": {
+									"name": "CampaignCreatedOn",
+									"type": "Date"
+								}
+							},
+							{
+								"source": {
+									"name": "Variations_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Variations_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Variations_Name",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Variations_Name",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Variations_isControl",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Variations_isControl",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Variations_isDisabled",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Variations_isDisabled",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Variations_percentSplit",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "Variations_percentSplit",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "Goals_Name",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Goals_Name",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Goals_Type",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Goals_Type",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "TotalconversionCount",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "TotalconversionCount",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "TotalconversionRate",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "TotalconversionRate",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "TotalvisitorCount",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "TotalvisitorCount",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Variations_URL",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Variations_URL",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "isWinner",
+									"type": "String"
+								},
+								"sink": {
+									"name": "isWinner",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "possibleWinner",
+									"type": "String"
+								},
+								"sink": {
+									"name": "possibleWinner",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Variation_ConversionCount",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Variation_ConversionCount",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Variation_visitorCount",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Variation_visitorCount",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Variation_isGoalDurationComplete",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Variation_isGoalDurationComplete",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ODS_VWO_CAMPAIGN_VARIATION_copy1",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_FACT_VWO_CAMPAIGN_VARIATION",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/FACTS/VWO"
+		},
+		"annotations": []
+	}
+}

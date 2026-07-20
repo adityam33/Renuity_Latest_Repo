@@ -1,0 +1,68 @@
+{
+	"name": "batch_load_Summary_FactsOnly_ZML",
+	"properties": {
+		"activities": [
+			{
+				"name": "cpy_load_SUMM_FACT_CONTACT_CENTER_PERFORMANCE",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_load_SUMM_FACT_CONTACT_CENTER_PERFORMANCE_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_load_SUMM_FACT_PROMOTER_PERFORMANCE",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "cpy_load_SUMM_FACT_CONTACT_CENTER_PERFORMANCE",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_load_SUMM_FACT_PROMOTER_PERFORMANCE_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_load_SUMM_FACT_SALESREP_PERFORMANCE",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_load_SUMM_FACT_SALESREP_PERFORMANCE_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"folder": {
+			"name": "Temp/Anuj/ZML/SUMM_FACTS"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-12-22T08:31:24Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

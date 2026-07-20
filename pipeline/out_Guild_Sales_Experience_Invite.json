@@ -1,0 +1,3254 @@
+{
+	"name": "out_Guild_Sales_Experience_Invite",
+	"properties": {
+		"activities": [
+			{
+				"name": "Truncate Sales Exp Invite Staging table",
+				"type": "Script",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "IF OBJECT_ID('OUT.GUILD_SALES_EXP_INVITE')  IS NOT NULL TRUNCATE TABLE OUT.GUILD_SALES_EXP_INVITE;"
+						}
+					]
+				}
+			},
+			{
+				"name": "Copy Sales Experience Invites to File",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "SWR",
+						"dependencyConditions": [
+							"Completed"
+						]
+					},
+					{
+						"activity": "CTA",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "SftpWriteSettings",
+							"operationTimeout": "01:00:00",
+							"useTempFileRename": true
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "OUT_GUILD_SALES_EXP_INVITE",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "OUT_FILE_GUILD_SALES_EXP_INVITE",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "FHI",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "PHI",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT distinct\ncst.FirstName as FIRST_NAME\n,cst.LastName as LAST_NAME\n,cst.Email as EMAIL_ADDRESS\n,cst.Phone as PHONE_NUMBER\n,CONCAT(cst.Address1,' ',cst.Address2) as [ADDRESS]\n,cst.City as [CITY]\n,cst.[State] as [STATE]\n,cst.Zip as ZIP\n,lds.id as LEAD_ID\n,prd.LongDescr as PRODUCT_LINE\n,getdate() as DATE_TO_SURVEY\n,'US' as COUNTRY\n,'English' as LANGUAGE\n,lds.cst_id as ACCOUNT_ID\n,ISNULL(CAST(lds.[slr_id] AS VARCHAR),'0') as SALES_REP_ID_1\n,CASE WHEN COALESCE(CAST(lds.[slr_id] AS VARCHAR),'0')= '0' THEN 'NONE' ELSE CONCAT(emp1.FirstName,' ',emp1.LastName) END AS SALES_REP_1_NAME\n--,CASE WHEN CAST([slr_id2] AS VARCHAR) IS NULL THEN ISNULL(CAST([slr_id] AS VARCHAR),'') \n--ELSE CONCAT(CAST([slr_id] AS VARCHAR),';',CAST([slr_id2] AS VARCHAR)) END as SALES_REP_ID\n--,CASE WHEN CONCAT(emp2.FirstName,emp2.LastName) IS NULL THEN CONCAT(emp1.FirstName,' ',emp1.LastName) \n--ELSE CONCAT(CONCAT(emp1.FirstName,' ',emp1.LastName),';',CONCAT(emp2.FirstName,' ',emp2.LastName)) END AS SALES_REP_NAME\n,'FHI' as BRAND_NAME\n,ISNULL(CAST(lds.[slr_id2] AS VARCHAR),'0') as SALES_REP_ID_2\n,CASE WHEN COALESCE(CAST(lds.[slr_id2] AS VARCHAR),'0')='0' THEN 'NONE' ELSE CONCAT(emp2.FirstName,' ',emp2.LastName) END AS SALES_REP_2_NAME\n,brn.LongName as SALES_BRANCH_NAME\n,CONCAT('FHI-',brn.id) as BranchID\n,COALESCE(org.Descr,'NONE') as SALES_ORGANIZATION\n,app.Sold as SOLD\n,app.[ApptDate] as APPOINTMENT_DATE\n,srs.SourceCode as LEADSOURCE\n FROM\n [ODS].[LP_FHI_app_Appointments] app\n inner join [ODS].[LP_FHI_Lds_Leads] lds\non app.id = lds.app_id\n inner join [ODS].[LP_FHI_cst_Customers] cst\non lds.cst_id = cst.id\n inner join [ODS].[LP_FHI_prd_Products] prd\non lds.[productid] = prd.ProductID\n inner join [ODS].[LP_FHI_brn_Branches] brn\n on lds.brn_id = brn.id\n left join [ODS].[LP_FHI_ous_OrgUnits] ous\n on brn.id = ous.brn_id\n left join [ODS].[LP_FHI_org_Organization] org\n on ous.org_id = org.id \n left join [ODS].[LP_FHI_emp_Employees] emp1 on lds.slr_id=emp1.id\n left join [ODS].[LP_FHI_emp_Employees] emp2 on lds.slr_id2=emp2.id\n left join [ODS].[LP_FHI_srs_SourceSubs] srs on srs.id=lds.srs_id\n WHERE\n app.Sat = 1 and app.Sold = 0\n and app.ApptDate is not null\nand datediff(DAY, app.ApptDate, dbo.fnConvertUTCtoPST (getdate())) = 1\nand CAST(app.ApptDate as DATE)>='2024-08-30'",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "FIRST_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "FIRST_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LAST_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LAST_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "EMAIL_ADDRESS",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "EMAIL_ADDRESS",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PHONE_NUMBER",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PHONE_NUMBER",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LEAD_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "LEAD_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "PRODUCT_LINE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PRODUCT_LINE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DATE_TO_SURVEY",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "DATE_TO_SURVEY",
+									"type": "Date",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "COUNTRY",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "COUNTRY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LANGUAGE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LANGUAGE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ACCOUNT_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "ACCOUNT_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "BRAND_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "BRAND_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_BRANCH_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_BRANCH_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_ORGANIZATION",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_ORGANIZATION",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SOLD",
+									"type": "Boolean",
+									"physicalType": "bit"
+								},
+								"sink": {
+									"name": "SOLD",
+									"type": "Boolean",
+									"physicalType": "bit"
+								}
+							},
+							{
+								"source": {
+									"name": "APPOINTMENT_DATE",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "APPOINTMENT_DATE",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "BRANCHID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_ID_1",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_ID_1",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_ID_2",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_ID_2",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_1_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_1_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_2_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_2_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ADDRESS",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ADDRESS",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CITY",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "CITY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "STATE",
+									"type": "String",
+									"physicalType": "char"
+								},
+								"sink": {
+									"name": "STATE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ZIP",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ZIP",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LEADSOURCE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LEADSOURCE",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_ODS_LP_FHI_app_Appointments",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "OUT_GUILD_SALES_EXP_INVITE",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "PHI",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Truncate Sales Exp Invite Staging table",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT distinct\ncst.FirstName as FIRST_NAME\n,cst.LastName as LAST_NAME\n,cst.Email as EMAIL_ADDRESS\n,cst.Phone as PHONE_NUMBER\n,lds.id as LEAD_ID\n,prd.LongDescr as PRODUCT_LINE\n,getdate() as DATE_TO_SURVEY\n,'US' as COUNTRY\n,'English' as LANGUAGE\n,lds.cst_id as ACCOUNT_ID\n,[slr_id] as SALES_REP_ID_1\n-- ,'PHI' as BRAND_NAME\n,case when lds.ProductId = 'Coat' then 'REN' else 'PHI' end as [BRAND_NAME]\n,[slr_id2] as SALES_REP_ID_2\n,brn.LongName as SALES_BRANCH_NAME\n,org.Descr as SALES_ORGANIZATION\n,app.Sold as SOLD\n,app.[ApptDate] as APPOINTMENT_DATE\n FROM\n [ODS].[LP_PHI_app_Appointments] app\n inner join [ODS].[LP_PHI_Lds_Leads] lds\non app.id = lds.app_id\n inner join [ODS].[LP_PHI_cst_Customers] cst\non lds.cst_id = cst.id\n inner join [ODS].[LP_PHI_prd_Products] prd\non lds.[productid] = prd.ProductID\n inner join [ODS].[LP_PHI_brn_Branches] brn\n on lds.brn_id = brn.id\n left join [ODS].[LP_PHI_ous_OrgUnits] ous\n on brn.id = ous.brn_id\n left join [ODS].[LP_PHI_org_Organization] org\n on ous.org_id = org.id \n WHERE\n app.Sat = 1 \n and app.ApptDate is not null\nand datediff(DAY, app.ApptDate, dbo.fnConvertUTCtoPST (getdate()))  between 0 and 1\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "FIRST_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "FIRST_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LAST_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LAST_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "EMAIL_ADDRESS",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "EMAIL_ADDRESS",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PHONE_NUMBER",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PHONE_NUMBER",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LEAD_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "LEAD_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "PRODUCT_LINE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PRODUCT_LINE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DATE_TO_SURVEY",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "DATE_TO_SURVEY",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "COUNTRY",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "COUNTRY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LANGUAGE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LANGUAGE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ACCOUNT_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "ACCOUNT_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_ID_1",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "SALES_REP_ID_1",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "BRAND_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "BRAND_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_ID_2",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "SALES_REP_ID_2",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_BRANCH_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_BRANCH_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_ORGANIZATION",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_ORGANIZATION",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SOLD",
+									"type": "Boolean",
+									"physicalType": "bit"
+								},
+								"sink": {
+									"name": "SOLD",
+									"type": "Boolean",
+									"physicalType": "bit"
+								}
+							},
+							{
+								"source": {
+									"name": "APPOINTMENT_DATE",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "APPOINTMENT_DATE",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_ODS_LP_PHI_app_Appointments",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "OUT_MEDALLIA_SALES_EXP_INVITE",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "PBC",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "FHI",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT distinct\ncst.FirstName as FIRST_NAME\n,cst.LastName as LAST_NAME\n,cst.Email as EMAIL_ADDRESS\n,cst.Phone as PHONE_NUMBER\n,CONCAT(cst.Address1,' ',cst.Address2) as [ADDRESS]\n,cst.City as [CITY]\n,cst.[State] as [STATE]\n,cst.Zip as ZIP\n,lds.id as LEAD_ID\n,prd.LongDescr as PRODUCT_LINE\n,getdate() as DATE_TO_SURVEY\n,'US' as COUNTRY\n,'English' as LANGUAGE\n,lds.cst_id as ACCOUNT_ID\n,ISNULL(CAST(lds.[slr_id] AS VARCHAR),'0') as SALES_REP_ID_1\n,CASE WHEN COALESCE(CAST(lds.[slr_id] AS VARCHAR),'0')= '0' THEN 'NONE' ELSE CONCAT(emp1.FirstName,' ',emp1.LastName) END AS SALES_REP_1_NAME\n--,CASE WHEN CAST([slr_id2] AS VARCHAR) IS NULL THEN ISNULL(CAST([slr_id] AS VARCHAR),'') \n--ELSE CONCAT(CAST([slr_id] AS VARCHAR),';',CAST([slr_id2] AS VARCHAR)) END as SALES_REP_ID\n--,CASE WHEN CONCAT(emp2.FirstName,emp2.LastName) IS NULL THEN CONCAT(emp1.FirstName,' ',emp1.LastName) \n--ELSE CONCAT(CONCAT(emp1.FirstName,' ',emp1.LastName),';',CONCAT(emp2.FirstName,' ',emp2.LastName)) END AS SALES_REP_NAME\n--,[slr_id] as SALES_REP_ID_1\n,'PBC' as BRAND_NAME\n,ISNULL(CAST(lds.[slr_id2] AS VARCHAR),'0') as SALES_REP_ID_2\n,CASE WHEN COALESCE(CAST(lds.[slr_id2] AS VARCHAR),'0')='0' THEN 'NONE' ELSE CONCAT(emp2.FirstName,' ',emp2.LastName) END AS SALES_REP_2_NAME\n,brn.LongName as SALES_BRANCH_NAME\n,CONCAT('PBC-',brn.id) as BranchID\n,COALESCE(org.Descr,'NONE') as SALES_ORGANIZATION\n,app.Sold as SOLD\n,app.[ApptDate] as APPOINTMENT_DATE\n,srs.SourceCode as LEADSOURCE\n FROM\n [ODS].[LP_PBC_app_Appointments] app\n inner join [ODS].[LP_PBC_Lds_Leads] lds\non app.id = lds.app_id\n inner join [ODS].[LP_PBC_cst_Customers] cst\non lds.cst_id = cst.id\n inner join [ODS].[LP_PBC_prd_Products] prd\non lds.[productid] = prd.ProductID\n inner join [ODS].[LP_PBC_brn_Branches] brn\n on lds.brn_id = brn.id\n left join [ODS].[LP_PBC_ous_OrgUnits] ous\n on brn.id = ous.brn_id\n left join [ODS].[LP_PBC_org_Organization] org\n on ous.org_id = org.id \n  left join [ODS].[LP_PBC_emp_Employees] emp1 on lds.slr_id=emp1.id\n left join [ODS].[LP_PBC_emp_Employees] emp2 on lds.slr_id2=emp2.id\n left join [ODS].[LP_PBC_srs_SourceSubs] srs on srs.id=lds.srs_id\n WHERE\n app.Sat = 1 and app.Sold = 0\n and app.ApptDate is not null\nand datediff(DAY, app.ApptDate, dbo.fnConvertUTCtoPST (getdate())) = 1\nand CAST(app.ApptDate as DATE)>='2024-08-30'",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "FIRST_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "FIRST_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LAST_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LAST_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "EMAIL_ADDRESS",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "EMAIL_ADDRESS",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PHONE_NUMBER",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PHONE_NUMBER",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LEAD_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "LEAD_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "PRODUCT_LINE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PRODUCT_LINE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DATE_TO_SURVEY",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "DATE_TO_SURVEY",
+									"type": "Date",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "COUNTRY",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "COUNTRY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LANGUAGE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LANGUAGE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ACCOUNT_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "ACCOUNT_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "BRAND_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "BRAND_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_BRANCH_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_BRANCH_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_ORGANIZATION",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_ORGANIZATION",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SOLD",
+									"type": "Boolean",
+									"physicalType": "bit"
+								},
+								"sink": {
+									"name": "SOLD",
+									"type": "Boolean",
+									"physicalType": "bit"
+								}
+							},
+							{
+								"source": {
+									"name": "APPOINTMENT_DATE",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "APPOINTMENT_DATE",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "BRANCHID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_ID_1",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_ID_1",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_ID_2",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_ID_2",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_1_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_1_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_2_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_2_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ADDRESS",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ADDRESS",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CITY",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "CITY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "STATE",
+									"type": "String",
+									"physicalType": "char"
+								},
+								"sink": {
+									"name": "STATE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ZIP",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ZIP",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LEADSOURCE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LEADSOURCE",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_ODS_LP_PBC_app_Appointments",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "OUT_GUILD_SALES_EXP_INVITE",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "SWR",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "HSI",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT distinct\ncst.FirstName as FIRST_NAME\n,cst.LastName as LAST_NAME\n,cst.Email as EMAIL_ADDRESS\n,cst.Phone as PHONE_NUMBER\n,CONCAT(cst.Address1,' ',cst.Address2) as [ADDRESS]\n,cst.City as [CITY]\n,cst.[State] as [STATE]\n,cst.Zip as ZIP\n,lds.id as LEAD_ID\n,prd.LongDescr as PRODUCT_LINE\n,getdate() as DATE_TO_SURVEY\n,'US' as COUNTRY\n,'English' as LANGUAGE\n,lds.cst_id as ACCOUNT_ID\n,ISNULL(CAST(lds.[slr_id] AS VARCHAR),'0') as SALES_REP_ID_1\n,CASE WHEN COALESCE(CAST(lds.[slr_id] AS VARCHAR),'0')= '0' THEN 'NONE' ELSE CONCAT(emp1.FirstName,' ',emp1.LastName) END AS SALES_REP_1_NAME\n--,CASE WHEN CAST([slr_id2] AS VARCHAR) IS NULL THEN ISNULL(CAST([slr_id] AS VARCHAR),'') \n--ELSE CONCAT(CAST([slr_id] AS VARCHAR),';',CAST([slr_id2] AS VARCHAR)) END as SALES_REP_ID\n--,CASE WHEN CONCAT(emp2.FirstName,emp2.LastName) IS NULL THEN CONCAT(emp1.FirstName,' ',emp1.LastName) \n--ELSE CONCAT(CONCAT(emp1.FirstName,' ',emp1.LastName),';',CONCAT(emp2.FirstName,' ',emp2.LastName)) END AS SALES_REP_NAME\n--,[slr_id] as SALES_REP_ID_1\n,'SWR' as BRAND_NAME\n,ISNULL(CAST(lds.[slr_id2] AS VARCHAR),'0') as SALES_REP_ID_2\n,CASE WHEN COALESCE(CAST(lds.[slr_id2] AS VARCHAR),'0')='0' THEN 'NONE' ELSE CONCAT(emp2.FirstName,' ',emp2.LastName) END AS SALES_REP_2_NAME\n,brn.LongName as SALES_BRANCH_NAME\n,CONCAT('SWR-',brn.id) as BranchID\n,COALESCE(org.Descr,'NONE') as SALES_ORGANIZATION\n,app.Sold as SOLD\n,app.[ApptDate] as APPOINTMENT_DATE\n,srs.SourceCode as LEADSOURCE\n FROM\n [ODS].[LP_SWR_app_Appointments] app\n INNER JOIN [ODS].[LP_SWR_Lds_Leads] lds on app.id = lds.app_id\n INNER JOIN [ODS].[LP_SWR_cst_Customers] cst on lds.cst_id = cst.id\n INNER JOIN [ODS].[LP_SWR_prd_Products] prd on lds.[productid] = prd.ProductID\n INNER JOIN [ODS].[LP_SWR_brn_Branches] brn on lds.brn_id = brn.id\n LEFT JOIN [ODS].[LP_SWR_ous_OrgUnits] ous on brn.id = ous.brn_id\n LEFT JOIN [ODS].[LP_SWR_org_Organization] org on ous.org_id = org.id\n left join [ODS].[LP_SWR_emp_Employees] emp1 on lds.slr_id=emp1.id\n left join [ODS].[LP_SWR_emp_Employees] emp2 on lds.slr_id2=emp2.id\n left join [ODS].[LP_SWR_srs_SourceSubs] srs on srs.id=lds.srs_id\n WHERE\napp.Sat = 1 and app.Sold = 0\nand app.ApptDate is not null\nand datediff(DAY, app.ApptDate, dbo.fnConvertUTCtoPST (getdate())) = 1\n--and org.Descr in ('GULF REGION', 'SOUTHWEST REGION')\nand LEFT(lds.src_id, 2) <> 'HD'\nand CAST(app.ApptDate as DATE)>='2024-08-30'",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "FIRST_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "FIRST_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LAST_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LAST_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "EMAIL_ADDRESS",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "EMAIL_ADDRESS",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PHONE_NUMBER",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PHONE_NUMBER",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LEAD_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "LEAD_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "PRODUCT_LINE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PRODUCT_LINE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DATE_TO_SURVEY",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "DATE_TO_SURVEY",
+									"type": "Date",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "COUNTRY",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "COUNTRY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LANGUAGE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LANGUAGE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ACCOUNT_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "ACCOUNT_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "BRAND_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "BRAND_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_BRANCH_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_BRANCH_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_ORGANIZATION",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_ORGANIZATION",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SOLD",
+									"type": "Boolean",
+									"physicalType": "bit"
+								},
+								"sink": {
+									"name": "SOLD",
+									"type": "Boolean",
+									"physicalType": "bit"
+								}
+							},
+							{
+								"source": {
+									"name": "APPOINTMENT_DATE",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "APPOINTMENT_DATE",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "BRANCHID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_ID_1",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_ID_1",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_ID_2",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_ID_2",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_1_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_1_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_2_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_2_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ADDRESS",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ADDRESS",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CITY",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "CITY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "STATE",
+									"type": "String",
+									"physicalType": "char"
+								},
+								"sink": {
+									"name": "STATE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ZIP",
+									"type": "String",
+									"physicalType": "char"
+								},
+								"sink": {
+									"name": "ZIP",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LEADSOURCE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LEADSOURCE",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_ODS_LP_FHI_app_Appointments",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "OUT_GUILD_SALES_EXP_INVITE",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "RTW",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "PHI",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT distinct\ncst.FirstName as FIRST_NAME\n,cst.LastName as LAST_NAME\n,cst.Email as EMAIL_ADDRESS\n,cst.Phone as PHONE_NUMBER\n,CONCAT(cst.Address1,' ',cst.Address2) as [ADDRESS]\n,cst.City as [CITY]\n,cst.[State] as [STATE]\n,cst.Zip as ZIP\n,lds.id as LEAD_ID\n,prd.LongDescr as PRODUCT_LINE\n,getdate() as DATE_TO_SURVEY\n,'US' as COUNTRY\n,'English' as LANGUAGE\n,lds.cst_id as ACCOUNT_ID\n,ISNULL(CAST(lds.[slr_id] AS VARCHAR),'0') as SALES_REP_ID_1\n,CASE WHEN COALESCE(CAST(lds.[slr_id] AS VARCHAR),'0')= '0' THEN 'NONE' ELSE CONCAT(emp1.FirstName,' ',emp1.LastName) END AS SALES_REP_1_NAME\n--,CASE WHEN CAST([slr_id2] AS VARCHAR) IS NULL THEN ISNULL(CAST([slr_id] AS VARCHAR),'') \n--ELSE CONCAT(CAST([slr_id] AS VARCHAR),';',CAST([slr_id2] AS VARCHAR)) END as SALES_REP_ID\n--,CASE WHEN CONCAT(emp2.FirstName,emp2.LastName) IS NULL THEN CONCAT(emp1.FirstName,' ',emp1.LastName) \n--ELSE CONCAT(CONCAT(emp1.FirstName,' ',emp1.LastName),';',CONCAT(emp2.FirstName,' ',emp2.LastName)) END AS SALES_REP_NAME\n--,[slr_id] as SALES_REP_ID_1\n,case when SR.emp_id is not null then 'HSI' else 'RTW' end as BRAND_NAME\n,ISNULL(CAST(lds.[slr_id2] AS VARCHAR),'0') as SALES_REP_ID_2\n,CASE WHEN COALESCE(CAST(lds.[slr_id2] AS VARCHAR),'0')='0' THEN 'NONE' ELSE CONCAT(emp2.FirstName,' ',emp2.LastName) END AS SALES_REP_2_NAME\n,brn.LongName as SALES_BRANCH_NAME\n,case when SR.emp_id is not null then CONCAT('HSI-',brn.id) else CONCAT('RTW-',brn.id) end as BranchID\n,COALESCE(org.Descr,'NONE') as SALES_ORGANIZATION\n,app.Sold as SOLD\n,app.[ApptDate] as APPOINTMENT_DATE\n,srs.SourceCode as LEADSOURCE\n FROM\n [ODS].[LP_RTW_app_Appointments] app\n inner join [ODS].[LP_RTW_Lds_Leads] lds\non app.id = lds.app_id\n inner join [ODS].[LP_RTW_cst_Customers] cst\non lds.cst_id = cst.id\n inner join [ODS].[LP_RTW_prd_Products] prd\non lds.[productid] = prd.ProductID\n inner join [ODS].[LP_RTW_brn_Branches] brn\n on lds.brn_id = brn.id\n left join [ODS].[LP_RTW_ous_OrgUnits] ous\n on brn.id = ous.brn_id\n left join [ODS].[LP_RTW_org_Organization] org\n on ous.org_id = org.id \n left join [ODS].[LP_RTW_emp_Employees] emp1 on lds.slr_id=emp1.id\n left join [ODS].[LP_RTW_emp_Employees] emp2 on lds.slr_id2=emp2.id\n left join ODS.SALES_REP_LIST SR on SR.emp_id= lds.slr_id\n left join [ODS].[LP_RTW_srs_SourceSubs] srs on srs.id=lds.srs_id\n WHERE\n app.Sat = 1 and app.Sold = 0\n and app.ApptDate is not null\nand datediff(DAY, app.ApptDate, dbo.fnConvertUTCtoPST (getdate())) = 1\nand CAST(app.ApptDate as DATE)>='2024-08-30'",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "FIRST_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "FIRST_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LAST_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LAST_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "EMAIL_ADDRESS",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "EMAIL_ADDRESS",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PHONE_NUMBER",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PHONE_NUMBER",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LEAD_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "LEAD_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "PRODUCT_LINE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PRODUCT_LINE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DATE_TO_SURVEY",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "DATE_TO_SURVEY",
+									"type": "Date",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "COUNTRY",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "COUNTRY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LANGUAGE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LANGUAGE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ACCOUNT_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "ACCOUNT_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "BRAND_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "BRAND_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_BRANCH_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_BRANCH_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_ORGANIZATION",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_ORGANIZATION",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SOLD",
+									"type": "Boolean",
+									"physicalType": "bit"
+								},
+								"sink": {
+									"name": "SOLD",
+									"type": "Boolean",
+									"physicalType": "bit"
+								}
+							},
+							{
+								"source": {
+									"name": "APPOINTMENT_DATE",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "APPOINTMENT_DATE",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "BRANCHID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_ID_1",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_ID_1",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_ID_2",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_ID_2",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_1_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_1_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_2_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_2_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ADDRESS",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ADDRESS",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CITY",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "CITY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "STATE",
+									"type": "String",
+									"physicalType": "char"
+								},
+								"sink": {
+									"name": "STATE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ZIP",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ZIP",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LEADSOURCE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LEADSOURCE",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_ODS_LP_FHI_app_Appointments",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "OUT_GUILD_SALES_EXP_INVITE",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "MAC",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "RTW",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT distinct\ncst.FirstName as FIRST_NAME\n,cst.LastName as LAST_NAME\n,cst.Email as EMAIL_ADDRESS\n,cst.Phone as PHONE_NUMBER\n,CONCAT(cst.Address1,' ',cst.Address2) as [ADDRESS]\n,cst.City as [CITY]\n,cst.[State] as [STATE]\n,cst.Zip as ZIP\n,lds.id as LEAD_ID\n,prd.LongDescr as PRODUCT_LINE\n,getdate() as DATE_TO_SURVEY\n,'US' as COUNTRY\n,'English' as LANGUAGE\n,lds.cst_id as ACCOUNT_ID\n,ISNULL(CAST(lds.[slr_id] AS VARCHAR),'0') as SALES_REP_ID_1\n,CASE WHEN COALESCE(CAST(lds.[slr_id] AS VARCHAR),'0')= '0' THEN 'NONE' ELSE CONCAT(emp1.FirstName,' ',emp1.LastName) END AS SALES_REP_1_NAME\n--,CASE WHEN CAST([slr_id2] AS VARCHAR) IS NULL THEN ISNULL(CAST([slr_id] AS VARCHAR),'') \n--ELSE CONCAT(CAST([slr_id] AS VARCHAR),';',CAST([slr_id2] AS VARCHAR)) END as SALES_REP_ID\n--,CASE WHEN CONCAT(emp2.FirstName,emp2.LastName) IS NULL THEN CONCAT(emp1.FirstName,' ',emp1.LastName) \n--ELSE CONCAT(CONCAT(emp1.FirstName,' ',emp1.LastName),';',CONCAT(emp2.FirstName,' ',emp2.LastName)) END AS SALES_REP_NAME\n--,[slr_id] as SALES_REP_ID_1\n,case when lds.ProductId = 'Coat' then 'REN' else 'MAC' end as [BRAND_NAME]\n,ISNULL(CAST(lds.[slr_id2] AS VARCHAR),'0') as SALES_REP_ID_2\n,CASE WHEN COALESCE(CAST(lds.[slr_id2] AS VARCHAR),'0')='0' THEN 'NONE' ELSE CONCAT(emp2.FirstName,' ',emp2.LastName) END AS SALES_REP_2_NAME\n,brn.LongName as SALES_BRANCH_NAME\n,CONCAT(case when lds.ProductId = 'Coat' then 'REN-' else 'MAC-' end,brn.id) as BranchID\n,COALESCE(org.Descr,'NONE') as SALES_ORGANIZATION\n,app.Sold as SOLD\n,app.[ApptDate] as APPOINTMENT_DATE\n,srs.SourceCode as LEADSOURCE\n FROM\n [ODS].[LP_MAC_app_Appointments] app\n inner join [ODS].[LP_MAC_Lds_Leads] lds\non app.id = lds.app_id\n inner join [ODS].[LP_MAC_cst_Customers] cst\non lds.cst_id = cst.id\n inner join [ODS].[LP_MAC_prd_Products] prd\non lds.[productid] = prd.ProductID\n inner join [ODS].[LP_MAC_brn_Branches] brn\n on lds.brn_id = brn.id\n left join [ODS].[LP_MAC_ous_OrgUnits] ous\n on brn.id = ous.brn_id\n left join [ODS].[LP_MAC_org_Organization] org\n on ous.org_id = org.id \n left join [ODS].[LP_MAC_emp_Employees] emp1 on lds.slr_id=emp1.id\n left join [ODS].[LP_MAC_emp_Employees] emp2 on lds.slr_id2=emp2.id\n left join [ODS].[LP_MAC_srs_SourceSubs] srs on srs.id=lds.srs_id\n WHERE\n app.Sat = 1 and app.Sold = 0\n and app.ApptDate is not null\nand datediff(DAY, app.ApptDate, dbo.fnConvertUTCtoPST (getdate())) = 1\nand CAST(app.ApptDate as DATE)>='2024-08-30'",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "FIRST_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "FIRST_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LAST_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LAST_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "EMAIL_ADDRESS",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "EMAIL_ADDRESS",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PHONE_NUMBER",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PHONE_NUMBER",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LEAD_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "LEAD_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "PRODUCT_LINE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PRODUCT_LINE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DATE_TO_SURVEY",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "DATE_TO_SURVEY",
+									"type": "Date",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "COUNTRY",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "COUNTRY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LANGUAGE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LANGUAGE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ACCOUNT_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "ACCOUNT_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "BRAND_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "BRAND_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_BRANCH_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_BRANCH_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_ORGANIZATION",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_ORGANIZATION",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SOLD",
+									"type": "Boolean",
+									"physicalType": "bit"
+								},
+								"sink": {
+									"name": "SOLD",
+									"type": "Boolean",
+									"physicalType": "bit"
+								}
+							},
+							{
+								"source": {
+									"name": "APPOINTMENT_DATE",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "APPOINTMENT_DATE",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "BRANCHID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_ID_1",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_ID_1",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_ID_2",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_ID_2",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_1_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_1_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_2_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_2_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ADDRESS",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ADDRESS",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CITY",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "CITY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "STATE",
+									"type": "String",
+									"physicalType": "char"
+								},
+								"sink": {
+									"name": "STATE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ZIP",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ZIP",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LEADSOURCE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LEADSOURCE",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_ODS_LP_FHI_app_Appointments",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "OUT_GUILD_SALES_EXP_INVITE",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "HSI",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "PBC",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT distinct\ncst.FirstName as FIRST_NAME\n,cst.LastName as LAST_NAME\n,cst.Email as EMAIL_ADDRESS\n,cst.Phone as PHONE_NUMBER\n,CONCAT(cst.Address1,' ',cst.Address2) as [ADDRESS]\n,cst.City as [CITY]\n,cst.[State] as [STATE]\n,cst.Zip as ZIP\n,lds.id as LEAD_ID\n,prd.LongDescr as PRODUCT_LINE\n,getdate() as DATE_TO_SURVEY\n,'US' as COUNTRY\n,'English' as LANGUAGE\n,lds.cst_id as ACCOUNT_ID\n,ISNULL(CAST(lds.[slr_id] AS VARCHAR),'0') as SALES_REP_ID_1\n,CASE WHEN COALESCE(CAST(lds.[slr_id] AS VARCHAR),'0')= '0' THEN 'NONE' ELSE CONCAT(emp1.FirstName,' ',emp1.LastName) END AS SALES_REP_1_NAME\n--,CASE WHEN CAST([slr_id2] AS VARCHAR) IS NULL THEN ISNULL(CAST([slr_id] AS VARCHAR),'') \n--ELSE CONCAT(CAST([slr_id] AS VARCHAR),';',CAST([slr_id2] AS VARCHAR)) END as SALES_REP_ID\n--,CASE WHEN CONCAT(emp2.FirstName,emp2.LastName) IS NULL THEN CONCAT(emp1.FirstName,' ',emp1.LastName) \n--ELSE CONCAT(CONCAT(emp1.FirstName,' ',emp1.LastName),';',CONCAT(emp2.FirstName,' ',emp2.LastName)) END AS SALES_REP_NAME\n--,[slr_id] as SALES_REP_ID_1\n,'HSI' as BRAND_NAME\n,ISNULL(CAST(lds.[slr_id2] AS VARCHAR),'0') as SALES_REP_ID_2\n,CASE WHEN COALESCE(CAST(lds.[slr_id2] AS VARCHAR),'0')='0' THEN 'NONE' ELSE CONCAT(emp2.FirstName,' ',emp2.LastName) END AS SALES_REP_2_NAME\n,brn.LongName as SALES_BRANCH_NAME\n,CONCAT('HSI-',brn.id) as BranchID\n,COALESCE(org.Descr,'NONE') as SALES_ORGANIZATION\n,app.Sold as SOLD\n,app.[ApptDate] as APPOINTMENT_DATE\n FROM\n [ODS].[LP_HSI_app_Appointments] app\n inner join [ODS].[LP_HSI_Lds_Leads] lds\non app.id = lds.app_id\n inner join [ODS].[LP_HSI_cst_Customers] cst\non lds.cst_id = cst.id\n inner join [ODS].[LP_HSI_prd_Products] prd\non lds.[productid] = prd.ProductID\n inner join [ODS].[LP_HSI_brn_Branches] brn\n on lds.brn_id = brn.id\n left join [ODS].[LP_HSI_ous_OrgUnits] ous\n on brn.id = ous.brn_id\n left join [ODS].[LP_HSI_org_Organization] org\n on ous.org_id = org.id \n left join [ODS].[LP_HSI_emp_Employees] emp1 on lds.slr_id=emp1.id\n left join [ODS].[LP_HSI_emp_Employees] emp2 on lds.slr_id2=emp2.id\n WHERE\n app.Sat = 1 and app.Sold = 0\n and app.ApptDate is not null\nand datediff(DAY, app.ApptDate, dbo.fnConvertUTCtoPST (getdate())) between 0 and 2\nand CAST(app.ApptDate as DATE)>='2024-08-30'",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "FIRST_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "FIRST_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LAST_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LAST_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "EMAIL_ADDRESS",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "EMAIL_ADDRESS",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PHONE_NUMBER",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PHONE_NUMBER",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LEAD_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "LEAD_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "PRODUCT_LINE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PRODUCT_LINE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DATE_TO_SURVEY",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "DATE_TO_SURVEY",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "COUNTRY",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "COUNTRY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LANGUAGE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LANGUAGE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ACCOUNT_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "ACCOUNT_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "BRAND_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "BRAND_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_BRANCH_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_BRANCH_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_ORGANIZATION",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_ORGANIZATION",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SOLD",
+									"type": "Boolean",
+									"physicalType": "bit"
+								},
+								"sink": {
+									"name": "SOLD",
+									"type": "Boolean",
+									"physicalType": "bit"
+								}
+							},
+							{
+								"source": {
+									"name": "APPOINTMENT_DATE",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "APPOINTMENT_DATE",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "BRANCHID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_ID_1",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_ID_1",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_ID_2",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_ID_2",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_1_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_1_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_2_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_2_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ADDRESS",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ADDRESS",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CITY",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "CITY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "STATE",
+									"type": "String",
+									"physicalType": "char"
+								},
+								"sink": {
+									"name": "STATE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ZIP",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ZIP",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_ODS_LP_FHI_app_Appointments",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "OUT_GUILD_SALES_EXP_INVITE",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "MXH",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "MAC",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT distinct\ncst.FirstName as FIRST_NAME\n,cst.LastName as LAST_NAME\n,cst.Email as EMAIL_ADDRESS\n,cst.Phone as PHONE_NUMBER\n,CONCAT(cst.Address1,' ',cst.Address2) as [ADDRESS]\n,cst.City as [CITY]\n,cst.[State] as [STATE]\n,cst.Zip as ZIP\n,lds.id as LEAD_ID\n,prd.LongDescr as PRODUCT_LINE\n,getdate() as DATE_TO_SURVEY\n,'US' as COUNTRY\n,'English' as LANGUAGE\n,lds.cst_id as ACCOUNT_ID\n,ISNULL(CAST(lds.[slr_id] AS VARCHAR),'0') as SALES_REP_ID_1\n,CASE WHEN COALESCE(CAST(lds.[slr_id] AS VARCHAR),'0')= '0' THEN 'NONE' ELSE CONCAT(emp1.FirstName,' ',emp1.LastName) END AS SALES_REP_1_NAME\n--,CASE WHEN CAST([slr_id2] AS VARCHAR) IS NULL THEN ISNULL(CAST([slr_id] AS VARCHAR),'') \n--ELSE CONCAT(CAST([slr_id] AS VARCHAR),';',CAST([slr_id2] AS VARCHAR)) END as SALES_REP_ID\n--,CASE WHEN CONCAT(emp2.FirstName,emp2.LastName) IS NULL THEN CONCAT(emp1.FirstName,' ',emp1.LastName) \n--ELSE CONCAT(CONCAT(emp1.FirstName,' ',emp1.LastName),';',CONCAT(emp2.FirstName,' ',emp2.LastName)) END AS SALES_REP_NAME\n--,[slr_id] as SALES_REP_ID_1\n,'MXH' as BRAND_NAME\n,ISNULL(CAST(lds.[slr_id2] AS VARCHAR),'0') as SALES_REP_ID_2\n,CASE WHEN COALESCE(CAST(lds.[slr_id2] AS VARCHAR),'0')='0' THEN 'NONE' ELSE CONCAT(emp2.FirstName,' ',emp2.LastName) END AS SALES_REP_2_NAME\n,brn.LongName as SALES_BRANCH_NAME\n,CONCAT('MXH-',brn.id) as BranchID\n,COALESCE(org.Descr,'NONE') as SALES_ORGANIZATION\n,app.Sold as SOLD\n,app.[ApptDate] as APPOINTMENT_DATE\n FROM\n [ODS].[LP_MXH_app_Appointments] app\n inner join [ODS].[LP_MXH_Lds_Leads] lds\non app.id = lds.app_id\n inner join [ODS].[LP_MXH_cst_Customers] cst\non lds.cst_id = cst.id\n inner join [ODS].[LP_MXH_prd_Products] prd\non lds.[productid] = prd.ProductID\n inner join [ODS].[LP_MXH_brn_Branches] brn\n on lds.brn_id = brn.id\n left join [ODS].[LP_MXH_ous_OrgUnits] ous\n on brn.id = ous.brn_id\n left join [ODS].[LP_MXH_org_Organization] org\n on ous.org_id = org.id \n left join [ODS].[LP_MXH_emp_Employees] emp1 on lds.slr_id=emp1.id\n left join [ODS].[LP_MXH_emp_Employees] emp2 on lds.slr_id2=emp2.id\n WHERE\n app.Sat = 1 and app.Sold = 0\n and app.ApptDate is not null\nand datediff(DAY, app.ApptDate, dbo.fnConvertUTCtoPST (getdate())) = 1\nand CAST(app.ApptDate as DATE)>='2024-08-30'",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "FIRST_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "FIRST_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LAST_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LAST_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "EMAIL_ADDRESS",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "EMAIL_ADDRESS",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PHONE_NUMBER",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PHONE_NUMBER",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LEAD_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "LEAD_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "PRODUCT_LINE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PRODUCT_LINE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DATE_TO_SURVEY",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "DATE_TO_SURVEY",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "COUNTRY",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "COUNTRY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LANGUAGE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LANGUAGE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ACCOUNT_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "ACCOUNT_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "BRAND_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "BRAND_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_BRANCH_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_BRANCH_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_ORGANIZATION",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_ORGANIZATION",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SOLD",
+									"type": "Boolean",
+									"physicalType": "bit"
+								},
+								"sink": {
+									"name": "SOLD",
+									"type": "Boolean",
+									"physicalType": "bit"
+								}
+							},
+							{
+								"source": {
+									"name": "APPOINTMENT_DATE",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "APPOINTMENT_DATE",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "BRANCHID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_ID_1",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_ID_1",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_ID_2",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_ID_2",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_1_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_1_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_2_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_2_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ADDRESS",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ADDRESS",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CITY",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "CITY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "STATE",
+									"type": "String",
+									"physicalType": "char"
+								},
+								"sink": {
+									"name": "STATE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ZIP",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ZIP",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_ODS_LP_FHI_app_Appointments",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "OUT_GUILD_SALES_EXP_INVITE",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Cpy_Guild_Files_Sales_Exp_Invite",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Copy Sales Experience Invites to File",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "OUT_GUILD_SALES_EXP_INVITE",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "Medallia_Src_File_Sales_Exp_Invite_Archive_Guild",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "CTA",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "MXH",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT distinct\ncst.FirstName as FIRST_NAME\n,cst.LastName as LAST_NAME\n,cst.Email as EMAIL_ADDRESS\n,cst.Phone as PHONE_NUMBER\n,CONCAT(cst.Address1,' ',cst.Address2) as [ADDRESS]\n,cst.City as [CITY]\n,cst.[State] as [STATE]\n,cst.Zip as ZIP\n,lds.id as LEAD_ID\n,prd.LongDescr as PRODUCT_LINE\n,getdate() as DATE_TO_SURVEY\n,'US' as COUNTRY\n,'English' as LANGUAGE\n,lds.cst_id as ACCOUNT_ID\n,ISNULL(CAST(lds.[slr_id] AS VARCHAR),'0') as SALES_REP_ID_1\n,CASE WHEN COALESCE(CAST(lds.[slr_id] AS VARCHAR),'0')= '0' THEN 'NONE' ELSE CONCAT(emp1.FirstName,' ',emp1.LastName) END AS SALES_REP_1_NAME\n--,CASE WHEN CAST([slr_id2] AS VARCHAR) IS NULL THEN ISNULL(CAST([slr_id] AS VARCHAR),'') \n--ELSE CONCAT(CAST([slr_id] AS VARCHAR),';',CAST([slr_id2] AS VARCHAR)) END as SALES_REP_ID\n--,CASE WHEN CONCAT(emp2.FirstName,emp2.LastName) IS NULL THEN CONCAT(emp1.FirstName,' ',emp1.LastName) \n--ELSE CONCAT(CONCAT(emp1.FirstName,' ',emp1.LastName),';',CONCAT(emp2.FirstName,' ',emp2.LastName)) END AS SALES_REP_NAME\n--,[slr_id] as SALES_REP_ID_1\n,case when prd.productid in  ('Garg','Garage CV') then 'REN' else 'CTA' end as [BRAND_NAME]\n,ISNULL(CAST(lds.[slr_id2] AS VARCHAR),'0') as SALES_REP_ID_2\n,CASE WHEN COALESCE(CAST(lds.[slr_id2] AS VARCHAR),'0')='0' THEN 'NONE' ELSE CONCAT(emp2.FirstName,' ',emp2.LastName) END AS SALES_REP_2_NAME\n,brn.LongName as SALES_BRANCH_NAME\n,CONCAT(case when prd.productid in  ('Garg','Garage CV') then 'REN-' else 'CTA-' end,brn.id) as BranchID\n,COALESCE(org.Descr,'NONE') as SALES_ORGANIZATION\n,app.Sold as SOLD\n,app.[ApptDate] as APPOINTMENT_DATE\n,srs.SourceCode as LEADSOURCE\n FROM\n [ODS].[LP_CTA_app_Appointments] app\n inner join [ODS].[LP_CTA_Lds_Leads] lds\non app.id = lds.app_id\n inner join [ODS].[LP_CTA_cst_Customers] cst\non lds.cst_id = cst.id\n inner join [ODS].[LP_CTA_prd_Products] prd\non lds.[productid] = prd.ProductID\n inner join [ODS].[LP_CTA_brn_Branches] brn\n on lds.brn_id = brn.id\n left join [ODS].[LP_CTA_ous_OrgUnits] ous\n on brn.id = ous.brn_id\n left join [ODS].[LP_CTA_org_Organization] org\n on ous.org_id = org.id \n left join [ODS].[LP_CTA_emp_Employees] emp1 on lds.slr_id=emp1.id\n left join [ODS].[LP_CTA_emp_Employees] emp2 on lds.slr_id2=emp2.id\n left join [ODS].[LP_CTA_srs_SourceSubs] srs on srs.id=lds.srs_id\n WHERE\n app.Sat = 1 and app.Sold = 0\n and app.ApptDate is not null\nand datediff(DAY, app.ApptDate, dbo.fnConvertUTCtoPST (getdate())) = 1\nand CAST(app.ApptDate as DATE)>='2024-08-30'",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "FIRST_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "FIRST_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LAST_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LAST_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "EMAIL_ADDRESS",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "EMAIL_ADDRESS",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PHONE_NUMBER",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PHONE_NUMBER",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LEAD_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "LEAD_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "PRODUCT_LINE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PRODUCT_LINE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DATE_TO_SURVEY",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "DATE_TO_SURVEY",
+									"type": "Date",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "COUNTRY",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "COUNTRY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LANGUAGE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LANGUAGE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ACCOUNT_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "ACCOUNT_ID",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "BRAND_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "BRAND_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_BRANCH_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_BRANCH_NAME",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_ORGANIZATION",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_ORGANIZATION",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SOLD",
+									"type": "Boolean",
+									"physicalType": "bit"
+								},
+								"sink": {
+									"name": "SOLD",
+									"type": "Boolean",
+									"physicalType": "bit"
+								}
+							},
+							{
+								"source": {
+									"name": "APPOINTMENT_DATE",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "APPOINTMENT_DATE",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "BRANCHID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_ID_1",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_ID_1",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_ID_2",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_ID_2",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_1_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_1_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALES_REP_2_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "SALES_REP_2_NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ADDRESS",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ADDRESS",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CITY",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "CITY",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "STATE",
+									"type": "String",
+									"physicalType": "char"
+								},
+								"sink": {
+									"name": "STATE",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ZIP",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "ZIP",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LEADSOURCE",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "LEADSOURCE",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_ODS_LP_CTA_app_Appointments",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "OUT_GUILD_SALES_EXP_INVITE",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "RDC_to_GuildQuality/SALES_EXP_SURVEY"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-03-18T01:03:47Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

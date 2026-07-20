@@ -1,0 +1,550 @@
+{
+	"name": "batch_load_PG_Active_prospect_leadScores",
+	"properties": {
+		"activities": [
+			{
+				"name": "Lead_score ODS",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "PostgreSqlV2Source",
+						"query": "Select * from public.lead_scores"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "Truncate Table ODS.AP_Lead_Scores",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "lead_id",
+									"type": "String",
+									"physicalType": "character varying"
+								},
+								"sink": {
+									"name": "lead_id",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "score",
+									"type": "Decimal",
+									"physicalType": "numeric"
+								},
+								"sink": {
+									"name": "score",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 0,
+									"precision": 38
+								}
+							},
+							{
+								"source": {
+									"name": "decile",
+									"type": "Int32",
+									"physicalType": "integer"
+								},
+								"sink": {
+									"name": "decile",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "variant",
+									"type": "String",
+									"physicalType": "character varying"
+								},
+								"sink": {
+									"name": "variant",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "reason_code",
+									"type": "String",
+									"physicalType": "character varying"
+								},
+								"sink": {
+									"name": "reason_code",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "btd_raw_score",
+									"type": "String",
+									"physicalType": "character varying"
+								},
+								"sink": {
+									"name": "btd_raw_score",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "created_at",
+									"type": "DateTime",
+									"physicalType": "timestamp without time zone"
+								},
+								"sink": {
+									"name": "created_at",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "updated_at",
+									"type": "DateTime",
+									"physicalType": "timestamp without time zone"
+								},
+								"sink": {
+									"name": "updated_at",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "phone",
+									"type": "String",
+									"physicalType": "character varying"
+								},
+								"sink": {
+									"name": "phone",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "email",
+									"type": "String",
+									"physicalType": "character varying"
+								},
+								"sink": {
+									"name": "email",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "customer_id",
+									"type": "String",
+									"physicalType": "character varying"
+								},
+								"sink": {
+									"name": "customer_id",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "test_group",
+									"type": "String",
+									"physicalType": "character varying"
+								},
+								"sink": {
+									"name": "Test_Group",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "set_raw_score",
+									"type": "String",
+									"physicalType": "character varying"
+								},
+								"sink": {
+									"name": "Set_Raw_Score",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "Postgres_Division_mappings",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_CTA_TEST_DYN_DIM_CUSTOMER",
+						"type": "DatasetReference",
+						"parameters": {
+							"SchemaName": "ODS",
+							"TableName": "AP_Lead_Scores"
+						}
+					}
+				]
+			},
+			{
+				"name": "Lead_score EDW",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Lead_score ODS",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"additionalColumns": [
+							{
+								"name": "InsertedTS",
+								"value": {
+									"value": "@utcNow()",
+									"type": "Expression"
+								}
+							}
+						],
+						"sqlReaderQuery": "With \nCustomers as (Select CustomerId, Division, Phone, Email from EDW.DIM_Customer  where Division='MAC'),\n\nLeads as (Select Division, LeadId, CustomerId, DateEntered, Entrydate, AP_ID from EDW.FACT_Lead where Division='MAC'),\n\nAppointments as (Select Division, AppointmentId, CustomerId, LeadId, SetDate from EDW.FACT_Appointment where Division='MAC'),\n\nAP_Leads_with_Customerid as \n(\nSelect  \n\tL.* , \n\tL.Created_At AT TIME ZONE 'UTC' AT TIME ZONE 'Central Standard Time' as CreatedAt_CST,\n\tCase when L.Created_At AT TIME ZONE 'UTC' AT TIME ZONE 'Central Standard Time'  >'2025-12-09 16:03:00' then 'BTD&Set' else 'BTD' end  as Model ,\n\t Coalesce(C.CustomerId,C1.CustomerId,C2.CustomerId) as LP_customerId\n\tfrom ODS.AP_Lead_Scores L \n\tLeft join Customers C on  C.Division='MAC' and Coalesce(L.Phone,'NA')=Coalesce(C.Phone,'NA') and Coalesce(L.Email,'NA')=Coalesce(C.Email,'NA')\n\tleft join Customers C1  on  C1.Division='MAC' and Coalesce(L.Phone,'NA')=Coalesce(C1.Phone,'NA') \n\tleft join Customers C2 on   C2.Division='MAC' and Coalesce(L.Email,'NA')=Coalesce(C2.Email,'NA')\n),\n\nAP_leads_withLeadId as\n(\nSelect T1.*, \n\t\n\tCase when  Model='BTD' then  T1.LP_CustomerId else T4.CustomerId end  as F_CustomerId, \n\tCase when  Model='BTD' then  T2.LeadId else T4.LeadId end  as LP_leadId, \n\n\tCase when  Model='BTD' then \n\t\tCase when cast(T2.EntryDate as date) >= cast(T1.CreatedAt_CST as date) and  Dateadd(hour,1,T2.DateEntered)<='2025-12-09 16:03:00' then T2.EntryDate \n\t\t\twhen Cast(T2.Entrydate as date) < Cast(T1.CreatedAt_CST as date) and Cast(T3.Setdate as date)>= Cast(T1.CreatedAt_CST  as date) and Dateadd(hour,1,T3.Setdate)<='2025-12-09 16:03:00' then Coalesce(T3.SetDate,'1970-01-01') \n\t\t\telse '1970-01-01'  end\n\t\t else T4.Entrydate end as Entrydate \n\n\t,T3.LeadId as App_LeadId,  Coalesce(T3.SetDate,'1970-01-01') as SetDate ,-- only for BTDs\n\n\t Case when  Model='BTD' then \n\t\tCase when Cast(T2.EntryDate as date)>= Cast(T1.CreatedAt_CST  as date) and  Dateadd(hour,1,T2.DateEntered)<='2025-12-09 16:03:00' then 1\n\t\t     when Cast(T2.Entrydate as date)< Cast(T1.CreatedAt_CST  as date) and Cast(T3.Setdate as date)>= Cast(T1.CreatedAt_CST as date) and Dateadd(hour,1,T3.Setdate)<='2025-12-09 16:03:00'  then 1 \n\t\t\telse 0 end \n\t\t else 1 end as Key1\n\n\tfrom AP_Leads_with_Customerid T1 \n\tLeft join Leads T2 on T1.LP_customerId=T2.CustomerId \n\tLeft join Appointments T3 on T2.LeadId= T3.LeadId\n\tLeft join Leads T4 on T1.CreatedAt_CST >'2025-12-09 16:03:00' and T1.Lead_id=T4.AP_ID\n\t\n\n),\n\nT_Final As \n(\nselect Lead_id, Score, Decile, Variant, Reason_code, BTD_Raw_Score, Created_At, Updated_At, Phone, Email, Customer_Id,Test_group, Set_Raw_Score,\n Model,\n\n Case when ( Variant='B' and Decile in (1,2)) or Key1=0 then Null else  F_CustomerId end as F_CustomerId, \n Case when ( Variant='B' and Decile in (1,2)) or Key1=0 then Null else  LP_leadId end as LP_LeadID, Entrydate\n ,App_LeadId, SetDate \n \n From ( Select *, Row_number() over(partition by Lead_Id order by EntryDate desc) as Rn  From AP_leads_withLeadId  ) a\n Where Rn=1\n  \n)\n\nSelect \n'MAC' as Division, Lead_Id as AP_LeadID, Score, Decile, Variant, Reason_Code, BTD_Raw_Score, Created_At, Updated_at, Phone, Email, Customer_id as MarketingCustomerId, \nTest_group, Set_Raw_Score,\nF_CustomerId as CustomerId, LP_LeadID as LeadId, Model\n--,Entrydate\nfrom T_Final \n",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "Truncate Table EDW.FACT_Lead_Score",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AP_LeadID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "AP_LeadID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Score",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 0,
+									"precision": 38
+								},
+								"sink": {
+									"name": "Score",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Decile",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Decile",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Variant",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Variant",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Reason_Code",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Reason_Code",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "BTD_Raw_Score",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "BTD_Raw_Score",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 6,
+									"precision": 10
+								}
+							},
+							{
+								"source": {
+									"name": "Created_At",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "Created_At",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "Updated_at",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "Updated_At",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "Phone",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Phone",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Email",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Email",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "MarketingCustomerId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "MarketingCustomerId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Test_group",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Test_Group",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Set_Raw_Score",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Set_Raw_Score",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 6,
+									"precision": 10
+								}
+							},
+							{
+								"source": {
+									"name": "CustomerId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Customerid",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "LeadId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "InsertedTS",
+									"type": "String"
+								},
+								"sink": {
+									"name": "InsertedTS",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "Model",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Model",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ODS_LP_CTA_aph_AlternatePhones",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_CTA_TEST_DYN_DIM_CUSTOMER",
+						"type": "DatasetReference",
+						"parameters": {
+							"SchemaName": "EDW",
+							"TableName": "FACT_Lead_Score"
+						}
+					}
+				]
+			},
+			{
+				"name": "Lead Score EDW v1",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Lead_score ODS",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "-- ============================================================\n-- Step 1: Customers\n-- ============================================================\nIF OBJECT_ID('tempdb..#Customers') IS NOT NULL DROP TABLE #Customers;\n\nCREATE TABLE #Customers\n(\n    CustomerId      NVARCHAR(100),\n    Division        NVARCHAR(50),\n    Phone           NVARCHAR(50),\n    Email           NVARCHAR(100)\n);\n\nINSERT INTO #Customers\nSELECT CustomerId, Division, Phone, Email\nFROM EDW.DIM_Customer\nWHERE Division = 'MAC';\n\n\n-- ============================================================\n-- Step 2: Leads\n-- ============================================================\nIF OBJECT_ID('tempdb..#Leads') IS NOT NULL DROP TABLE #Leads;\n\nCREATE TABLE #Leads\n(\n    Division        NVARCHAR(50),\n    LeadId          NVARCHAR(100),\n    CustomerId      NVARCHAR(100),\n    DateEntered     DATETIME,\n    EntryDate       DATETIME,\n    AP_ID           NVARCHAR(100)\n);\n\nINSERT INTO #Leads\nSELECT Division, LeadId, CustomerId, DateEntered, EntryDate, AP_ID\nFROM EDW.FACT_Lead\nWHERE Division = 'MAC';\n\n\n-- ============================================================\n-- Step 3: Appointments\n-- ============================================================\nIF OBJECT_ID('tempdb..#Appointments') IS NOT NULL DROP TABLE #Appointments;\n\nCREATE TABLE #Appointments\n(\n    Division        NVARCHAR(50),\n    AppointmentId   NVARCHAR(100),\n    CustomerId      NVARCHAR(100),\n    LeadId          NVARCHAR(100),\n    SetDate         DATETIME\n);\n\nINSERT INTO #Appointments\nSELECT Division, AppointmentId, CustomerId, LeadId, SetDate\nFROM EDW.FACT_Appointment\nWHERE Division = 'MAC';\n\n\n-- ============================================================\n-- Step 4: AP_Leads_with_Customerid\n-- ============================================================\nIF OBJECT_ID('tempdb..#AP_Leads_with_Customerid') IS NOT NULL DROP TABLE #AP_Leads_with_Customerid;\n\nCREATE TABLE #AP_Leads_with_Customerid\n(\n    Lead_id         NVARCHAR(100),\n    Score           DECIMAL(18,6),\n    Decile          INT,\n    Variant         NVARCHAR(50),\n    Reason_code     NVARCHAR(255),\n    BTD_Raw_Score   DECIMAL(18,6),\n    Created_At      DATETIMEOFFSET,\n    Updated_At      DATETIMEOFFSET,\n    Phone           NVARCHAR(50),\n    Email           NVARCHAR(100),\n    Customer_Id     NVARCHAR(100),\n    Test_group      NVARCHAR(50),\n    Set_Raw_Score   DECIMAL(18,6),\n    CreatedAt_CST   DATETIME,\n    Model           NVARCHAR(50),\n    LP_CustomerId   NVARCHAR(100)\n);\n\nINSERT INTO #AP_Leads_with_Customerid\nSELECT  \n    L.*,\n    L.Created_At AT TIME ZONE 'UTC' AT TIME ZONE 'Central Standard Time'   AS CreatedAt_CST,\n    CASE \n        WHEN L.Created_At AT TIME ZONE 'UTC' AT TIME ZONE 'Central Standard Time' > '2025-12-09 16:03:00' \n        THEN 'BTD&Set' \n        ELSE 'BTD' \n    END                                                                     AS Model,\n    COALESCE(C.CustomerId, C1.CustomerId, C2.CustomerId)                    AS LP_CustomerId\nFROM ODS.AP_Lead_Scores L\nLEFT JOIN #Customers C  ON COALESCE(L.Phone,'NA') = COALESCE(C.Phone,'NA')  AND COALESCE(L.Email,'NA') = COALESCE(C.Email,'NA')\nLEFT JOIN #Customers C1 ON COALESCE(L.Phone,'NA') = COALESCE(C1.Phone,'NA')\nLEFT JOIN #Customers C2 ON COALESCE(L.Email,'NA') = COALESCE(C2.Email,'NA');\n\n\n-- ============================================================\n-- Step 5: AP_Leads_withLeadId\n-- ============================================================\nIF OBJECT_ID('tempdb..#AP_Leads_withLeadId') IS NOT NULL DROP TABLE #AP_Leads_withLeadId;\n\nCREATE TABLE #AP_Leads_withLeadId\n(\n    Lead_id         NVARCHAR(100),\n    Score           DECIMAL(18,6),\n    Decile          INT,\n    Variant         NVARCHAR(50),\n    Reason_code     NVARCHAR(255),\n    BTD_Raw_Score   DECIMAL(18,6),\n    Created_At      DATETIMEOFFSET,\n    Updated_At      DATETIMEOFFSET,\n    Phone           NVARCHAR(50),\n    Email           NVARCHAR(100),\n    Customer_Id     NVARCHAR(100),\n    Test_group      NVARCHAR(50),\n    Set_Raw_Score   DECIMAL(18,6),\n    CreatedAt_CST   DATETIME,\n    Model           NVARCHAR(50),\n    LP_CustomerId   NVARCHAR(100),\n    F_CustomerId    NVARCHAR(100),\n    LP_LeadId       NVARCHAR(100),\n    EntryDate       DATETIME,\n    App_LeadId      NVARCHAR(100),\n    SetDate         DATETIME,\n    Key1            INT\n);\n\nINSERT INTO #AP_Leads_withLeadId\nSELECT \n    T1.*,\n    CASE WHEN T1.Model = 'BTD' THEN T1.LP_CustomerId  ELSE T4.CustomerId  END  AS F_CustomerId,\n    CASE WHEN T1.Model = 'BTD' THEN T2.LeadId          ELSE T4.LeadId      END  AS LP_LeadId,\n    CASE \n        WHEN T1.Model = 'BTD' THEN\n            CASE \n                WHEN CAST(T2.EntryDate AS DATE) >= CAST(T1.CreatedAt_CST AS DATE)\n                     AND DATEADD(HOUR,1,T2.DateEntered) <= '2025-12-09 16:03:00'\n                THEN T2.EntryDate\n                WHEN CAST(T2.EntryDate AS DATE) < CAST(T1.CreatedAt_CST AS DATE)\n                     AND CAST(T3.SetDate AS DATE) >= CAST(T1.CreatedAt_CST AS DATE)\n                     AND DATEADD(HOUR,1,T3.SetDate) <= '2025-12-09 16:03:00'\n                THEN COALESCE(T3.SetDate, '1970-01-01')\n                ELSE '1970-01-01'\n            END\n        ELSE T4.EntryDate\n    END                                                                         AS EntryDate,\n    T3.LeadId                                                                   AS App_LeadId,\n    COALESCE(T3.SetDate,'1970-01-01')                                           AS SetDate,\n    CASE \n        WHEN T1.Model = 'BTD' THEN\n            CASE \n                WHEN CAST(T2.EntryDate AS DATE) >= CAST(T1.CreatedAt_CST AS DATE)\n                     AND DATEADD(HOUR,1,T2.DateEntered) <= '2025-12-09 16:03:00'                   THEN 1\n                WHEN CAST(T2.EntryDate AS DATE) < CAST(T1.CreatedAt_CST AS DATE)\n                     AND CAST(T3.SetDate AS DATE) >= CAST(T1.CreatedAt_CST AS DATE)\n                     AND DATEADD(HOUR,1,T3.SetDate) <= '2025-12-09 16:03:00'                       THEN 1\n                ELSE 0\n            END\n        ELSE 1\n    END                                                                         AS Key1\nFROM #AP_Leads_with_Customerid T1\nLEFT JOIN #Leads        T2 ON T1.LP_CustomerId = T2.CustomerId\nLEFT JOIN #Appointments T3 ON T2.LeadId        = T3.LeadId\nLEFT JOIN #Leads        T4 ON T1.CreatedAt_CST > '2025-12-09 16:03:00' AND T1.Lead_id = T4.AP_ID;\n\n\n-- ============================================================\n-- Step 6: T_Final (deduped by Lead_Id)\n-- ============================================================\nIF OBJECT_ID('tempdb..#T_Final') IS NOT NULL DROP TABLE #T_Final;\n\nCREATE TABLE #T_Final\n(\n    Lead_id         NVARCHAR(100),\n    Score           DECIMAL(18,6),\n    Decile          INT,\n    Variant         NVARCHAR(50),\n    Reason_code     NVARCHAR(255),\n    BTD_Raw_Score   DECIMAL(18,6),\n    Created_At      DATETIMEOFFSET,\n    Updated_At      DATETIMEOFFSET,\n    Phone           NVARCHAR(50),\n    Email           NVARCHAR(100),\n    Customer_Id     NVARCHAR(100),\n    Test_group      NVARCHAR(50),\n    Set_Raw_Score   DECIMAL(18,6),\n    Model           NVARCHAR(50),\n    F_CustomerId    NVARCHAR(100),\n    LP_LeadId       NVARCHAR(100),\n    EntryDate       DATETIME,\n    App_LeadId      NVARCHAR(100),\n    SetDate         DATETIME\n);\n\nINSERT INTO #T_Final\nSELECT \n    Lead_id, Score, Decile, Variant, Reason_code, BTD_Raw_Score,\n    Created_At, Updated_At, Phone, Email, Customer_Id, Test_group, Set_Raw_Score,\n    Model,\n    CASE WHEN (Variant='B' AND Decile IN (1,2)) OR Key1=0 THEN NULL ELSE F_CustomerId END  AS F_CustomerId,\n    CASE WHEN (Variant='B' AND Decile IN (1,2)) OR Key1=0 THEN NULL ELSE LP_LeadId   END  AS LP_LeadId,\n    EntryDate,\n    App_LeadId,\n    SetDate\nFROM \n(\n    SELECT *, ROW_NUMBER() OVER (PARTITION BY Lead_Id ORDER BY EntryDate DESC) AS Rn\n    FROM #AP_Leads_withLeadId\n) A\nWHERE Rn = 1;\n\n\n-- ============================================================\n-- Final SELECT\n-- ============================================================\n\nTRUNCATE TABLE  EDW.FACT_LEAD_SCORE;\n\nINSERT INTO EDW.FACT_LEAD_SCORE\n(\nDivision\t,\nAP_LeadID\t,\nScore\t,\nDecile\t,\nVariant\t,\nReason_Code\t,\nBTD_Raw_Score\t,\nCreated_At\t,\nUpdated_At\t,\nPhone\t,\nEmail\t,\nMarketingCustomerId\t,\nTest_Group\t,\nSet_Raw_Score\t,\nCustomerid\t,\nLeadId\t,\nInsertedTS\t,\nModel\t\n)\n\n\nSELECT \n    'MAC'           AS Division,\n    Lead_Id         AS AP_LeadID,\n    Score,\n    Decile,\n    Variant,\n    Reason_code,\n    BTD_Raw_Score,\n    Created_At,\n    Updated_At,\n    Phone,\n    Email,\n    Customer_Id     AS MarketingCustomerId,\n    Test_group,\n    Set_Raw_Score,\n    F_CustomerId    AS CustomerId,\n    LP_LeadId       AS LeadId,\n\tGETDATE() \t\tAS InsertedTS, \n    Model\n--  ,EntryDate\n\nFROM #T_Final;"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/FACTS/AP"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-04-08T18:24:32Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

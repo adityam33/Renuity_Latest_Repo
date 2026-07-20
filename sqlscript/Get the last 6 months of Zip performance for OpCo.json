@@ -1,0 +1,17 @@
+{
+	"name": "Get the last 6 months of Zip performance for OpCo",
+	"properties": {
+		"content": {
+			"query": "SELECT\n[ZipCode]\n,SUM([LeadCount]) as LeadCount\n,SUM([NetSold]) as NetSold\n,SUM([NetSalesAmount]) as NetSalesAmount\n,SUM([GrossSalesAmount]) as GrossSalesAmount\n,SUM([JobCount]) as JobCount\n,CBSA_NAME\n FROM [EDW].[SUMM_FACT_ZIP_CODE_PERFORMANCE]\n where\n[Division] = 'FHI'\nand [EntryMonth] >= '2022-04-01'\ngroup by \n[ZipCode]\n,CBSA_NAME\norder by NetSalesAmount desc\n\n\nselect * from ",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

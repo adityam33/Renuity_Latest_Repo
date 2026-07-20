@@ -1,0 +1,772 @@
+{
+	"name": "batch_load_Fact_AR_Aged_Period",
+	"properties": {
+		"activities": [
+			{
+				"name": "Current FP load",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "select FinPeriod,customer as customerid, branch as branchcode, companyid,\ncase when type in ('Credit Memo','Invoice','Credit WO','Debit Memo') then Invoice_projectID else Payment_projectid end as ProjectID,\ntype as DocumentType,Referencenbr as ReferenceNumber,Date as Documentdate, Duedate,status, DocumentBalance,\ncase when datediff(d,date,getdate()) =0 then DocumentBalance else 0 end as 'current',\ncase when datediff(d,date,getdate()) between 1 and 30 then DocumentBalance else 0 end as '1to30Days',\ncase when datediff(d,date,getdate()) between 31 and 60 then DocumentBalance else 0 end as '31to60Days',\ncase when datediff(d,date,getdate()) between 61 and 90  then DocumentBalance else 0 end as '61to90Days',\ncase when datediff(d,date,getdate()) >= 91   then DocumentBalance else 0 end as 'Over90Days'\nfrom (\nselect  format(getdate(), 'MM-yyyy') as FinPeriod,r.customer,r.branch,b.companyid,\ni.projectid as Invoice_ProjectID,p.project as Payment_projectID,\nr.type,r.referencenbr,r.date,r.duedate,r.status,\ncase when r.type in('Credit Memo','Payment','Prepayment') then (-1 *ARRegister_docBal) else ARRegister_docBal end DocumentBalance\nfrom ods.erp_Ar_register r \nleft join ods.erp_ar_invoice i on r.referencenbr=i.referencenbr and r.type=i.type\nleft join ods.erp_ar_payment p on r.referencenbr=p.referencenbr and r.type=p.type\nleft join ods.erp_branch_master b on r.branch=b.branchcode\nwhere r.status in ('Open','Reserved')) a",
+						"queryTimeout": "00:15:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "DELETE FROM EDW.FACT_AR_AGED_PERIOD WHERE FINPERIOD=FORMAT(GETDATE(), 'MM-yyyy')",
+						"writeBehavior": "Insert"
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "FinPeriod",
+									"type": "String"
+								},
+								"sink": {
+									"name": "FinPeriod",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "companyid",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CompanyID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "branchcode",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BranchCode",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "customerid",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CustomerID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ProjectID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ProjectID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DocumentType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "DocumentType",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ReferenceNumber",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ReferenceNumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Documentdate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "DocumentDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "Duedate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "DueDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "status",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Status",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DocumentBalance",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "Documentbalance",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "current",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "CurrentPeriod",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "1to30Days",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "1-30 DaysPeriod",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "31to60Days",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "31-60 DaysPeriod",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "61to90Days",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "61-90 DaysPeriod",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "Over90Days",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "Over 90 DaysPeriod",
+									"type": "Decimal"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ODS_ERP_AR_REGISTER",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_FACT_AR_AGED_PERIOED",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Insert Open late entries",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Current FP load",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "select t1.* from \n (select FinPeriod,customer as customerid, branch as branchcode, companyid,\ncase when type in ('Credit Memo','Invoice','Credit WO','Debit Memo') then Invoice_projectID else Payment_projectid end as ProjectID,\ntype as DocumentType,Referencenbr as ReferenceNumber,Date as Documentdate, Duedate,status, DocumentBalance,\ncase when datediff(d,date,getdate()) =0 then DocumentBalance else 0 end as 'current',\ncase when datediff(d,date,getdate()) between 1 and 30 then DocumentBalance else 0 end as '1to30Days',\ncase when datediff(d,date,getdate()) between 31 and 60 then DocumentBalance else 0 end as '31to60Days',\ncase when datediff(d,date,getdate()) between 61 and 90  then DocumentBalance else 0 end as '61to90Days',\ncase when datediff(d,date,getdate()) >= 91   then DocumentBalance else 0 end as 'Over90Days'\nfrom (\nselect  format(r.date, 'MM-yyyy') as FinPeriod,r.customer,r.branch,b.companyid,\ni.projectid as Invoice_ProjectID,p.project as Payment_projectID,\nr.type,r.referencenbr,r.date,r.duedate,r.status,\ncase when r.type in('Credit Memo','Payment','Prepayment') then (-1 *ARRegister_docBal) else ARRegister_docBal end DocumentBalance, r.closeddate\nfrom ods.erp_Ar_register r \nleft join ods.erp_ar_invoice i on r.referencenbr=i.referencenbr and r.type=i.type\nleft join ods.erp_ar_payment p on r.referencenbr=p.referencenbr and r.type=p.type\nleft join ods.erp_branch_master b on r.branch=b.branchcode\nwhere r.date>='2023-01-01' and \n((Eomonth(i.createdon) >= Eomonth(dateadd(m,-2,getdate()))  or  Eomonth(i.Lastmodifiedon) >= Eomonth(dateadd(m,-2,getdate())) ) \n or (Eomonth(p.createdon) >= Eomonth(dateadd(m,-2,getdate())) or   Eomonth(p.Lastmodifiedon) >= Eomonth(dateadd(m,-2,getdate()))  ) \n ) and  r.status in ('Open','Reserved','Closed','Voided') \n and format(r.date, 'MM-yyyy') not in ('01-8023','05-2032','06-2222','08-3022','11-7021')\n) a )t1 \nLeft join edw.fact_ar_aged_period ar on \nt1.finperiod=ar.finperiod and \nt1.documentdate=ar.documentdate and \nt1.documenttype=ar.documenttype and \nt1.referencenumber=ar.referencenumber\nwhere ar.documentdate is null and ar.documenttype is null and ar.referencenumber is null ",
+						"queryTimeout": "00:15:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"writeBehavior": "Insert"
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "FinPeriod",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "FinPeriod",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "companyid",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CompanyID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "branchcode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "BranchCode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "customerid",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CustomerID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ProjectID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ProjectID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DocumentType",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "DocumentType",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ReferenceNumber",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ReferenceNumber",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Documentdate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "DocumentDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "Duedate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "DueDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "status",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Status",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DocumentBalance",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 16,
+									"precision": 38
+								},
+								"sink": {
+									"name": "Documentbalance",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								}
+							},
+							{
+								"source": {
+									"name": "current",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 16,
+									"precision": 38
+								},
+								"sink": {
+									"name": "CurrentPeriod",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								}
+							},
+							{
+								"source": {
+									"name": "1to30Days",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 16,
+									"precision": 38
+								},
+								"sink": {
+									"name": "1-30 DaysPeriod",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								}
+							},
+							{
+								"source": {
+									"name": "31to60Days",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 16,
+									"precision": 38
+								},
+								"sink": {
+									"name": "31-60 DaysPeriod",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								}
+							},
+							{
+								"source": {
+									"name": "61to90Days",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 16,
+									"precision": 38
+								},
+								"sink": {
+									"name": "61-90 DaysPeriod",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								}
+							},
+							{
+								"source": {
+									"name": "Over90Days",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 16,
+									"precision": 38
+								},
+								"sink": {
+									"name": "Over 90 DaysPeriod",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ODS_ERP_AR_REGISTER",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_FACT_AR_AGED_PERIOED",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Update to closed late entries",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Insert Open late entries",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "select FinPeriod,customer as customerid, branch as branchcode, companyid,\ncase when type in ('Credit Memo','Invoice','Credit WO','Debit Memo') then Invoice_projectID else Payment_projectid end as ProjectID,\ntype as DocumentType,Referencenbr as ReferenceNumber,Date as Documentdate, Duedate,status, DocumentBalance,\ncase when datediff(d,date,getdate()) =0 then DocumentBalance else 0 end as 'current',\ncase when datediff(d,date,getdate()) between 1 and 30 then DocumentBalance else 0 end as '1to30Days',\ncase when datediff(d,date,getdate()) between 31 and 60 then DocumentBalance else 0 end as '31to60Days',\ncase when datediff(d,date,getdate()) between 61 and 90  then DocumentBalance else 0 end as '61to90Days',\ncase when datediff(d,date,getdate()) >= 91   then DocumentBalance else 0 end as 'Over90Days'\nfrom (\nselect  format(r.closeddate, 'MM-yyyy') as FinPeriod,r.customer,r.branch,b.companyid,\ni.projectid as Invoice_ProjectID,p.project as Payment_projectID,\nr.type,r.referencenbr,r.date,r.duedate,r.status,\ncase when r.type in('Credit Memo','Payment','Prepayment') then (-1 *ARRegister_docBal) else ARRegister_docBal end DocumentBalance\nfrom ods.erp_Ar_register r \nleft join ods.erp_ar_invoice i on r.referencenbr=i.referencenbr and r.type=i.type\nleft join ods.erp_ar_payment p on r.referencenbr=p.referencenbr and r.type=p.type\nleft join ods.erp_branch_master b on r.branch=b.branchcode\nwhere r.status ='Closed' and cast(r.closeddate as date)>=dateadd(m,-2,getdate()) \n and format(r.closeddate, 'MM-yyyy') not in ('01-8023','05-2032','06-2222','08-3022','11-7021')\n) a ",
+						"queryTimeout": "00:15:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"writeBehavior": "Upsert",
+						"upsertSettings": {
+							"keys": [
+								"FinPeriod",
+								"DocumentType",
+								"ReferenceNumber"
+							],
+							"interimSchemaName": ""
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "FinPeriod",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "FinPeriod",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "companyid",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CompanyID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "branchcode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "BranchCode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "customerid",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CustomerID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ProjectID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ProjectID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DocumentType",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "DocumentType",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ReferenceNumber",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ReferenceNumber",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Documentdate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "DocumentDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "Duedate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "DueDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "status",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Status",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DocumentBalance",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 16,
+									"precision": 38
+								},
+								"sink": {
+									"name": "Documentbalance",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								}
+							},
+							{
+								"source": {
+									"name": "current",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 16,
+									"precision": 38
+								},
+								"sink": {
+									"name": "CurrentPeriod",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								}
+							},
+							{
+								"source": {
+									"name": "1to30Days",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 16,
+									"precision": 38
+								},
+								"sink": {
+									"name": "1-30 DaysPeriod",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								}
+							},
+							{
+								"source": {
+									"name": "31to60Days",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 16,
+									"precision": 38
+								},
+								"sink": {
+									"name": "31-60 DaysPeriod",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								}
+							},
+							{
+								"source": {
+									"name": "61to90Days",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 16,
+									"precision": 38
+								},
+								"sink": {
+									"name": "61-90 DaysPeriod",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								}
+							},
+							{
+								"source": {
+									"name": "Over90Days",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 16,
+									"precision": 38
+								},
+								"sink": {
+									"name": "Over 90 DaysPeriod",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ODS_ERP_AR_REGISTER",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_FACT_AR_AGED_PERIOED",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/FACTS/ERP"
+		},
+		"annotations": [],
+		"lastPublishTime": "2023-08-09T14:35:57Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

@@ -1,0 +1,234 @@
+{
+	"name": "batch_post_zipcodes_to_API",
+	"properties": {
+		"activities": [
+			{
+				"name": "Pass Zipcodes as Variables",
+				"description": "This task passes the pipe separated zipcodes to variable in subsequent task",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.1:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_AP_Zipcodes_toPass",
+						"type": "DataFlowReference",
+						"parameters": {
+							"Division": {
+								"value": "'@{pipeline().parameters.Division}'",
+								"type": "Expression"
+							}
+						}
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "None"
+				}
+			},
+			{
+				"name": "Set variable Zipcode",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Pass Zipcodes as Variables",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "P_Zipcode",
+					"value": {
+						"value": "@activity('Pass Zipcodes as Variables').output.runStatus.output.sink1.value[0].ZIPCODE",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "If Condition1",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Set variable Zipcode",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@if(equals(pipeline().parameters.Division,'CTA'),greater(length(variables('P_Zipcode')),3000),greater(length(variables('P_Zipcode')),5000) )\n\n",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "Fail1",
+							"type": "Fail",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"message": "No of Zipcodes to be posted to Active Prospect API is less",
+								"errorCode": "000"
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "Post Zipcode to API",
+							"type": "WebActivity",
+							"dependsOn": [
+								{
+									"activity": "Create a List in API",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.1:00:00",
+								"retry": 1,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"method": "POST",
+								"headers": {
+									"Content-Type": "application/json"
+								},
+								"url": {
+									"value": "@concat('https://app.suppressionlist.com/lists/',pipeline().parameters.ListURLName,'/items')",
+									"type": "Expression"
+								},
+								"connectVia": {
+									"referenceName": "RDC-SelfHostedIntegrationRunTime",
+									"type": "IntegrationRuntimeReference"
+								},
+								"body": {
+									"value": "@variables('P_Zipcode')",
+									"type": "Expression"
+								},
+								"authentication": {
+									"type": "Basic",
+									"username": "API",
+									"password": {
+										"type": "AzureKeyVaultSecret",
+										"store": {
+											"referenceName": "AzureKeyVaultDataCore",
+											"type": "LinkedServiceReference"
+										},
+										"secretName": "api"
+									}
+								}
+							}
+						},
+						{
+							"name": "Delete list in API",
+							"description": "To delete the existing suppression list in Active prospect API",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "batch_delete_API_list",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"ListURLName": {
+										"value": "@pipeline().parameters.ListURLName",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "Create a List in API",
+							"description": "Create Zipcode suppression list in API",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "Delete list in API",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "batch_ToCreate_API_List",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"Listname": {
+										"value": "@pipeline().parameters.ListName",
+										"type": "Expression"
+									},
+									"ListURLName": {
+										"value": "@pipeline().parameters.ListURLName",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"ListURLName": {
+				"type": "string",
+				"defaultValue": "anandan_test"
+			},
+			"Division": {
+				"type": "string",
+				"defaultValue": "HSI"
+			},
+			"ListName": {
+				"type": "string",
+				"defaultValue": "anandan_test"
+			}
+		},
+		"variables": {
+			"P_Zipcode": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "RDC_to_ActiveProspect"
+		},
+		"annotations": [],
+		"lastPublishTime": "2024-08-16T08:17:55Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

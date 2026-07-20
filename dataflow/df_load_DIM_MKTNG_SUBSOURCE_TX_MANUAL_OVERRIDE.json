@@ -1,0 +1,254 @@
+{
+	"name": "df_load_DIM_MKTNG_SUBSOURCE_TX_MANUAL_OVERRIDE",
+	"properties": {
+		"folder": {
+			"name": "ODS_to_EDW/DIMENSIONS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "SRC_MANUALOVERRIDEFILE_SUBSOURCE",
+						"type": "DatasetReference"
+					},
+					"name": "SrcManualOverrideSubsource"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_MANUALOVERRIDEFILE_PRODUCT",
+						"type": "DatasetReference"
+					},
+					"name": "SrcManualOverrideProduct"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_MANUALOVERRIDEFILE_VENDOR",
+						"type": "DatasetReference"
+					},
+					"name": "SrcManualOverrideVendor"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_DIM_MKTNG_SUB_SOURCE_MAPPING",
+						"type": "DatasetReference"
+					},
+					"name": "TgtDimMktngSubSourceMapping"
+				},
+				{
+					"dataset": {
+						"referenceName": "EDW_DIM_MKTNG_PRODUCT_MAPPING",
+						"type": "DatasetReference"
+					},
+					"name": "TgtDimMktngProductMapping"
+				},
+				{
+					"dataset": {
+						"referenceName": "EDW_DIM_MKTNG_VENDOR_COSTTYPE",
+						"type": "DatasetReference"
+					},
+					"name": "TgtDimMktngVendorCosttype"
+				}
+			],
+			"transformations": [
+				{
+					"name": "CreateLastUpdatedTSInd1"
+				},
+				{
+					"name": "alterRow1"
+				},
+				{
+					"name": "CreateLastUpdatedTSInd"
+				},
+				{
+					"name": "CreateLastUpdatedTSInd2"
+				},
+				{
+					"name": "alterRow2"
+				},
+				{
+					"name": "alterRow3"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          Division as string,",
+				"          LeadSubSourceID as string,",
+				"          SourceGroup as string,",
+				"          SourceCode as string,",
+				"          LeadSubSource as string,",
+				"          TX_Channel as string,",
+				"          TX_SourceGroup as string,",
+				"          TX_SourceCode as string,",
+				"          ACU_AccountCode as string,",
+				"          ACU_MarketingAccountID as string,",
+				"          ACU_MarketingAccount as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> SrcManualOverrideSubsource",
+				"source(output(",
+				"          Division as string,",
+				"          ProductID as string,",
+				"          ProductDescription as string,",
+				"          TX_ProductGroup as string,",
+				"          TX_Product_reporting as string,",
+				"          ACU_ProductID as string,",
+				"          ACU_product as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> SrcManualOverrideProduct",
+				"source(output(",
+				"          Division as string,",
+				"          LeadSubSourceID as string,",
+				"          SourceGroup as string,",
+				"          SourceCode as string,",
+				"          LeadSubSource as string,",
+				"          HomeBaseManaged as string,",
+				"          CostType as string,",
+				"          {CPL$} as string,",
+				"          RevShareAmount as string,",
+				"          VendorName as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> SrcManualOverrideVendor",
+				"SrcManualOverrideSubsource derive(LastUpdatedTS = currentUTC(),",
+				"          MappingInd = 'FILE_OVERRIDE') ~> CreateLastUpdatedTSInd1",
+				"CreateLastUpdatedTSInd1 alterRow(updateIf(true())) ~> alterRow1",
+				"SrcManualOverrideProduct derive(LastUpdatedTS = currentUTC(),",
+				"          MappingInd = 'FILE_OVERRIDE') ~> CreateLastUpdatedTSInd",
+				"SrcManualOverrideVendor derive(LastUpdatedTS = currentUTC(),",
+				"          RecordInd = 'FILE_OVERRIDE') ~> CreateLastUpdatedTSInd2",
+				"CreateLastUpdatedTSInd alterRow(updateIf(true())) ~> alterRow2",
+				"CreateLastUpdatedTSInd2 alterRow(updateIf(true())) ~> alterRow3",
+				"alterRow1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          Division as string,",
+				"          LeadSourceGroupID as string,",
+				"          LeadSourceID as string,",
+				"          LeadSubSourceID as string,",
+				"          SourceGroup as string,",
+				"          SourceCode as string,",
+				"          LeadSubSource as string,",
+				"          Active as boolean,",
+				"          EntryDate as date,",
+				"          TX_Channel as string,",
+				"          TX_SourceGroup as string,",
+				"          TX_SourceCode as string,",
+				"          MappingInd as string,",
+				"          CreatedTS as timestamp,",
+				"          LastUpdatedTS as timestamp,",
+				"          ACU_AccountCode as string,",
+				"          ACU_MarketingAccountID as string,",
+				"          ACU_MarketingAccount as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:true,",
+				"     upsertable:false,",
+				"     keys:['Division','LeadSubSourceID'],",
+				"     format: 'table',",
+				"     staged: true,",
+				"     allowCopyCommand: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          Division,",
+				"          LeadSubSourceID,",
+				"          TX_Channel,",
+				"          TX_SourceGroup,",
+				"          TX_SourceCode,",
+				"          MappingInd,",
+				"          LastUpdatedTS,",
+				"          ACU_AccountCode,",
+				"          ACU_MarketingAccountID,",
+				"          ACU_MarketingAccount",
+				"     )) ~> TgtDimMktngSubSourceMapping",
+				"alterRow2 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          Division as string,",
+				"          ProductID as string,",
+				"          ProductName as string,",
+				"          ProductDescription as string,",
+				"          ProductGroupID as string,",
+				"          ProductGroup as string,",
+				"          Active as boolean,",
+				"          TX_ProductGroup as string,",
+				"          TX_Product_Reporting as string,",
+				"          ACU_ProductID as string,",
+				"          ACU_Product as string,",
+				"          MappingInd as string,",
+				"          CreatedTS as timestamp,",
+				"          LastupdatedTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:true,",
+				"     upsertable:false,",
+				"     keys:['Division','ProductID'],",
+				"     format: 'table',",
+				"     staged: true,",
+				"     allowCopyCommand: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          Division,",
+				"          ProductID,",
+				"          TX_ProductGroup,",
+				"          TX_Product_Reporting = TX_Product_reporting,",
+				"          MappingInd,",
+				"          LastupdatedTS = LastUpdatedTS,",
+				"          ACU_ProductID,",
+				"          ACU_Product = ACU_product",
+				"     )) ~> TgtDimMktngProductMapping",
+				"alterRow3 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          Division as string,",
+				"          LeadSubSourceID as string,",
+				"          SourceGroup as string,",
+				"          SourceCode as string,",
+				"          LeadSubSource as string,",
+				"          HomeBaseManaged as string,",
+				"          CostType as string,",
+				"          {CPL$} as decimal(16,4),",
+				"          RevShareAmount as decimal(16,4),",
+				"          VendorName as string,",
+				"          RecordInd as string,",
+				"          CreatedTS as timestamp,",
+				"          LastUpdatedTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:true,",
+				"     upsertable:false,",
+				"     keys:['Division','LeadSubSourceID'],",
+				"     format: 'table',",
+				"     staged: true,",
+				"     allowCopyCommand: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          Division,",
+				"          LeadSubSourceID,",
+				"          HomeBaseManaged,",
+				"          CostType,",
+				"          {CPL$},",
+				"          RevShareAmount,",
+				"          VendorName,",
+				"          RecordInd,",
+				"          LastUpdatedTS",
+				"     )) ~> TgtDimMktngVendorCosttype"
+			]
+		}
+	}
+}

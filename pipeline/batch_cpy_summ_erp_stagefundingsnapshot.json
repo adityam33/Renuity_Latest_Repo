@@ -1,0 +1,226 @@
+{
+	"name": "batch_cpy_summ_erp_stagefundingsnapshot",
+	"properties": {
+		"activities": [
+			{
+				"name": "cp_summ_erp_stagefundingsnapshot",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "WITH StageFundings AS (\nSELECT \nProject,\nPaymentAmount,\nPaymentDate AS FundedDate,\nROW_NUMBER() OVER (PARTITION BY Project, PaymentAmount ORDER BY PaymentDate) AS rn\nFROM ODS.ERP_AR_PAYMENT\nWHERE Type LIKE 'Prepayment%' AND Description_2 = 'Stage Funding' --AND Project = 'BR1096835'\n),\nRankedRefunds AS (\nSELECT \nProject,\nCASE WHEN PaymentAmount<0 THEN -1 * PaymentAmount ELSE PaymentAmount END AS RefundAmount,\nPaymentDate AS RefundDate,\nROW_NUMBER() OVER (PARTITION BY Project, PaymentAmount ORDER BY PaymentDate) AS rn\nFROM ODS.ERP_AR_PAYMENT\nWHERE (Type LIKE 'Voided%' OR Type LIKE '%Refund%') --AND (Description_2 LIKE '%Voided%' OR Description_2 LIKE '%Refund%') --\n--AND Project = 'BR1096835'\n),\nFinalStageFunding AS (\nSELECT \nLTRIM(RTRIM(sf.Project)) as Project,\nSUM(sf.PaymentAmount) - SUM(COALESCE(vr.RefundAmount, 0)) AS FinalStageFundedAmount,\nMIN(sf.FundedDate) AS FundedDate\nFROM StageFundings sf\nLEFT JOIN RankedRefunds vr \nON LTRIM(RTRIM(sf.Project)) = LTRIM(RTRIM(vr.Project)) AND sf.PaymentAmount = vr.RefundAmount AND vr.RefundDate > sf.FundedDate AND sf.rn = vr.rn\n--where sf.Project='MC74805FG'\nGROUP BY sf.Project\n)\n--Select * from FinalStageFunding\nSELECT \nB.Division_MKTG AS Division,\nJ.ContractID,\nCAST(J.ContractDate AS DATE) AS ContractDate,\nF.UNI_FinanceCompany AS FinanceCompany,\nF.FinanceCompany AS FinanceCompany_Src,\nISNULL(CASE WHEN J.[JobNetAmt] > 0 AND J.Division NOT IN ('MXH','CTA') THEN J.[JobNetAmt] ELSE J.[GrossAmount] END, 0)\n- ISNULL(CASE WHEN JS.UNI_JobStatusCategory IN ('Bank Turn Down','Cancelled') THEN (CASE WHEN J.[JobNetAmt] > 0 AND J.Division NOT IN ('MXH','CTA') THEN J.[JobNetAmt] ELSE J.[GrossAmount] END) END, 0) AS NetSales,\nP.Project AS ProjectID,\nP.FinalStageFundedAmount AS StageFundedAmount,\nJS.UNI_JobStatus AS JobStatus,\nP.FundedDate AS StageFundingDate,\nB.UNI_Market as LP_Market,\nB.BranchID as LP_BranchID,\nCAST(EOMONTH(DATEADD(m,-1,GETDATE())) as DATE) as SnapshotDate\nFROM EDW.FACT_JOB J\nLEFT JOIN EDW_DUN.DIM_BRANCH_EXTN B ON B.BranchID = J.ProductionBranchID\nLEFT JOIN EDW.DIM_JOB_STATUS JS ON J.JobStatusID = JS.JobStatusID\nLEFT JOIN EDW.DIM_FINANCE_COMPANY F ON J.FinanceCompanyID = F.FinanceCompanyID\nLEFT JOIN FinalStageFunding P \n    ON CASE \n           WHEN RIGHT(LTRIM(RTRIM(P.Project)), 2) = '.R' \n                THEN LEFT(LTRIM(RTRIM(P.Project)), LEN(LTRIM(RTRIM(P.Project))) - 2)  -- strip \".R\"\n           ELSE LTRIM(RTRIM(P.Project))\n       END = J.ContractID\nWHERE YEAR(J.ContractDate) >= 2025 --and J.ContractID='PB35194'\nand CAST(J.ContractDate AS DATE)<=CAST(EOMONTH(DATEADD(m,-1,GETDATE())) as DATE)",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ContractID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ContractID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ContractDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "ContractDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "FinanceCompany",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "FinanceCompany",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "FinanceCompany_Src",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "FinanceCompany_Src",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "NetSales",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 4,
+									"precision": 20
+								},
+								"sink": {
+									"name": "NetSales",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 18
+								}
+							},
+							{
+								"source": {
+									"name": "ProjectID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ProjectID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "StageFundedAmount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 16,
+									"precision": 38
+								},
+								"sink": {
+									"name": "StageFundedAmount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 18
+								}
+							},
+							{
+								"source": {
+									"name": "JobStatus",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "JobStatus",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "StageFundingDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "StageFundingDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "SnapshotDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "SnapshotDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_Market",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "LP_Market",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_BranchID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "LP_BranchID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ODS_ERP_AR_PAYMENT",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_SUMM_ERP_STAGEFUNDINGSNAPSHOT",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/SUMM_FACTS/ERP"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-10-06T21:30:41Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

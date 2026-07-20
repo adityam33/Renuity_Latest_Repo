@@ -1,0 +1,284 @@
+{
+	"name": "cpy_ERP_PM_TASK",
+	"properties": {
+		"activities": [
+			{
+				"name": "cpy_ERP_PM_TASK_SRC_TO_ODS",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ODataSource",
+						"httpRequestTimeout": "00:05:00"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Upsert",
+						"upsertSettings": {
+							"keys": [
+								"TaskID",
+								"ProjectCD",
+								"TaskCD"
+							],
+							"interimSchemaName": ""
+						},
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "PMTask_taskID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "TaskID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "ProjectID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ProjectCD",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "TaskID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "TaskCD",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Type",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Type",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Description",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Description",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "RateTable",
+									"type": "String"
+								},
+								"sink": {
+									"name": "RateTableID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Description_2",
+									"type": "String"
+								},
+								"sink": {
+									"name": "RateTable_Description",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "AllocationRule",
+									"type": "String"
+								},
+								"sink": {
+									"name": "AllocationID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Description_3",
+									"type": "String"
+								},
+								"sink": {
+									"name": "AllocationID_Description",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "BillingRule",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BillingID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Status",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Status",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Completed",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "Completed",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "StartDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "StartDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "EndDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "EndDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "BillingOption",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BillingOption",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ProgressBillingBase",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ProgressBillingBase",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "TaxCategory",
+									"type": "String"
+								},
+								"sink": {
+									"name": "TaxCategoryID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Description_4",
+									"type": "String"
+								},
+								"sink": {
+									"name": "TaxCategoryID_Description",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CreatedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "CreatedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "CreatedBy",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CreatedBy",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LastModifiedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastModifiedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "LastModifiedBy",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LastModifiedBy",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_ERP_PM_Task",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_ERP_PM_TASK",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "SRC_to_ODS/ERP/Acumatica/MASTER DATA"
+		},
+		"annotations": [],
+		"lastPublishTime": "2023-07-20T06:13:52Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

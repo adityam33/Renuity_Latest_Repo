@@ -1,0 +1,1570 @@
+{
+	"name": "cpy_LP_jco_JobChangeOrders",
+	"properties": {
+		"activities": [
+			{
+				"name": "FHI",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT \nID\t,\nJob_ID\t,\nAmount\t,\ncot_ID\t,\nEnteredOn\t,\nEnteredBy\t,\nUpdatedOn\t,\nUpdatedBy\t,\nBatchFlag\t,\nBatchNo\t,\nBatchDate\t,\nComments\t\n\n\nFROM dbo.jco_JobChangeOrders WITH (NOLOCK)",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.LP_FHI_jco_JobChangeOrders')  IS NOT NULL TRUNCATE TABLE ODS.LP_FHI_jco_JobChangeOrders",
+						"writeBehavior": "Insert",
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Job_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Job_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Amount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "Amount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "cot_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "cot_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "UpdatedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "UpdatedBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchFlag",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "BatchFlag",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchNo",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "BatchNo",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "BatchDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "Comments",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Comments",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_FHI_jco_JobChangeOrders",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_LP_FHI_jco_JobChangeOrders",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "HSI",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.LP_HSI_jco_JobChangeOrders')  IS NOT NULL TRUNCATE TABLE ODS.LP_HSI_jco_JobChangeOrders",
+						"writeBehavior": "Insert",
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Job_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Job_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Amount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "Amount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "cot_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "cot_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "UpdatedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "UpdatedBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchFlag",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "BatchFlag",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchNo",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "BatchNo",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "BatchDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "Comments",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Comments",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_HSI_jco_JobChangeOrders",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_LP_HSI_jco_JobChangeOrders",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "PHI",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.LP_PHI_jco_JobChangeOrders')  IS NOT NULL TRUNCATE TABLE ODS.LP_PHI_jco_JobChangeOrders",
+						"writeBehavior": "Insert",
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Job_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Job_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Amount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "Amount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "cot_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "cot_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "UpdatedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "UpdatedBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchFlag",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "BatchFlag",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchNo",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "BatchNo",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "BatchDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "Comments",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Comments",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_PHI_jco_JobChangeOrders",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_LP_PHI_jco_JobChangeOrders",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "SWR",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT \nID\t,\nJob_ID\t,\nAmount\t,\ncot_ID\t,\nEnteredOn\t,\nEnteredBy\t,\nUpdatedOn\t,\nUpdatedBy\t,\nBatchFlag\t,\nBatchNo\t,\nBatchDate\t,\nComments\t\n\n\nFROM dbo.jco_JobChangeOrders WITH (NOLOCK)",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.LP_SWR_jco_JobChangeOrders')  IS NOT NULL TRUNCATE TABLE ODS.LP_SWR_jco_JobChangeOrders",
+						"writeBehavior": "Insert",
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Job_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Job_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Amount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "Amount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "cot_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "cot_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "UpdatedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "UpdatedBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchFlag",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "BatchFlag",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchNo",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "BatchNo",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "BatchDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "Comments",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Comments",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_SWR_jco_JobChangeOrders",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_LP_SWR_jco_JobChangeOrders",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "MAC",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT \nID\t,\nJob_ID\t,\nAmount\t,\ncot_ID\t,\nEnteredOn\t,\nEnteredBy\t,\nUpdatedOn\t,\nUpdatedBy\t,\nBatchFlag\t,\nBatchNo\t,\nBatchDate\t,\nComments\t\n\n\nFROM dbo.jco_JobChangeOrders WITH (NOLOCK)",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.LP_MAC_jco_JobChangeOrders')  IS NOT NULL TRUNCATE TABLE ODS.LP_MAC_jco_JobChangeOrders",
+						"writeBehavior": "Insert",
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Job_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Job_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Amount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "Amount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "cot_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "cot_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "UpdatedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "UpdatedBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchFlag",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "BatchFlag",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchNo",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "BatchNo",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "BatchDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "Comments",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Comments",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_MAC_jco_JobChangeOrders",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_LP_MAC_jco_JobChangeOrders",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "PBC",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT \nID\t,\nJob_ID\t,\nAmount\t,\ncot_ID\t,\nEnteredOn\t,\nEnteredBy\t,\nUpdatedOn\t,\nUpdatedBy\t,\nBatchFlag\t,\nBatchNo\t,\nBatchDate\t,\nComments\t\n\n\nFROM dbo.jco_JobChangeOrders WITH (NOLOCK)",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.LP_PBC_jco_JobChangeOrders')  IS NOT NULL TRUNCATE TABLE ODS.LP_PBC_jco_JobChangeOrders",
+						"writeBehavior": "Insert",
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Job_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Job_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Amount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "Amount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "cot_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "cot_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "UpdatedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "UpdatedBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchFlag",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "BatchFlag",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchNo",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "BatchNo",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "BatchDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "Comments",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Comments",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_PBC_jco_JobChangeOrders",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_LP_PBC_jco_JobChangeOrders",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "RTW",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT \nID\t,\nJob_ID\t,\nAmount\t,\ncot_ID\t,\nEnteredOn\t,\nEnteredBy\t,\nUpdatedOn\t,\nUpdatedBy\t,\nBatchFlag\t,\nBatchNo\t,\nBatchDate\t,\nComments\t\n\n\nFROM dbo.jco_JobChangeOrders WITH (NOLOCK)",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.LP_RTW_jco_JobChangeOrders')  IS NOT NULL TRUNCATE TABLE ODS.LP_RTW_jco_JobChangeOrders",
+						"writeBehavior": "Insert",
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Job_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Job_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Amount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "Amount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "cot_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "cot_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "UpdatedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "UpdatedBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchFlag",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "BatchFlag",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchNo",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "BatchNo",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "BatchDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "Comments",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Comments",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_RTW_jco_JobChangeOrders",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_LP_RTW_jco_JobChangeOrders",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "MXH",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT \nID\t,\nJob_ID\t,\nAmount\t,\ncot_ID\t,\nEnteredOn\t,\nEnteredBy\t,\nUpdatedOn\t,\nUpdatedBy\t,\nBatchFlag\t,\nBatchNo\t,\nBatchDate\t,\nComments\t\n\n\nFROM dbo.jco_JobChangeOrders WITH (NOLOCK)",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.LP_MXH_jco_JobChangeOrders')  IS NOT NULL TRUNCATE TABLE ODS.LP_MXH_jco_JobChangeOrders",
+						"writeBehavior": "Insert",
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Job_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Job_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Amount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "Amount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "cot_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "cot_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "UpdatedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "UpdatedBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchFlag",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "BatchFlag",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchNo",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "BatchNo",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "BatchDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "Comments",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Comments",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_MXH_jco_JobChangeOrders",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_LP_MXH_jco_JobChangeOrders",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "CTA",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT \nID\t,\nJob_ID\t,\nAmount\t,\ncot_ID\t,\nEnteredOn\t,\nEnteredBy\t,\nUpdatedOn\t,\nUpdatedBy\t,\nBatchFlag\t,\nBatchNo\t,\nBatchDate\t,\nComments\t\n\n\nFROM dbo.jco_JobChangeOrders WITH (NOLOCK)",
+						"queryTimeout": "00:30:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.LP_CTA_jco_JobChangeOrders')  IS NOT NULL TRUNCATE TABLE ODS.LP_CTA_jco_JobChangeOrders",
+						"writeBehavior": "Insert",
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Job_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Job_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Amount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "Amount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "cot_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "cot_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "UpdatedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "UpdatedBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchFlag",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "BatchFlag",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchNo",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "BatchNo",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "BatchDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "Comments",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Comments",
+									"type": "String"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_CTA_jco_JobChangeOrders",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_LP_CTA_jco_JobChangeOrders",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "SRC_to_ODS/CRM/LP"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-01-12T11:46:12Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

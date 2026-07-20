@@ -1,0 +1,385 @@
+{
+	"name": "batch_load_Guild_Quality_APIresponse_toODS_ByupdateDate_Page_Test",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy GQ Surveys by UpdatedAt",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Set variable1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.01:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:01:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "GET",
+						"additionalHeaders": {
+							"Authorization": "Bearer Ale3uCQ4M77NgvhF"
+						},
+						"paginationRules": {
+							"AbsoluteUrl": "$.links.next",
+							"EndCondition:$.links.next": "Empty"
+						}
+					},
+					"sink": {
+						"type": "JsonSink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings"
+						},
+						"formatSettings": {
+							"type": "JsonWriteSettings"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "$['data']"
+								},
+								"sink": {
+									"path": "$['data']"
+								}
+							}
+						],
+						"collectionReference": ""
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "Prod_GQ_All_Surveys_Test_Pagination_updatedAt",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "Prod_GQ_Survey_Json_Test_Pagination",
+						"type": "DatasetReference",
+						"parameters": {
+							"Date": "2024-12-09"
+						}
+					}
+				]
+			},
+			{
+				"name": "Installation Surveys",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "Copy GQ Surveys by UpdatedAt",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Copy GQ Surveys  By_lastActivityAt",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.1:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_guild_quality_API_response_to_ODS_Page_Test_Installation",
+						"type": "DataFlowReference",
+						"datasetParameters": {
+							"sourceJSON": {
+								"Date": {
+									"value": "2024-12-09",
+									"type": "Expression"
+								}
+							}
+						}
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdctestanuj/AnandanTest/staging"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "Copy GQ Surveys  By_lastActivityAt",
+				"type": "Copy",
+				"state": "Active",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Set variable1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.01:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:01:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "GET",
+						"additionalHeaders": {
+							"Authorization": "Bearer Ale3uCQ4M77NgvhF"
+						},
+						"paginationRules": {
+							"AbsoluteUrl": "$.links.next",
+							"EndCondition:$.links.next": "Empty"
+						}
+					},
+					"sink": {
+						"type": "JsonSink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings"
+						},
+						"formatSettings": {
+							"type": "JsonWriteSettings"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "$['data']"
+								},
+								"sink": {
+									"path": "$['data']"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "Prod_GQ_All_Surveys_Test_Pagination_lastActivityAt",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "Prod_GQ_Survey_Json_Test_Pagination_endedAt",
+						"type": "DatasetReference",
+						"parameters": {
+							"Date": "2024-12-09"
+						}
+					}
+				]
+			},
+			{
+				"name": "Set variable1",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "v_Date",
+					"value": {
+						"value": "@formatDateTime(convertTimeZone(utcnow(),'UTC','Eastern Standard Time'),'yyyy-MM-dd')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Inhouse consultation surveys",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "Installation Surveys",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.1:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_guild_quality_API_response_to_ODS_Page_Test_InHouse",
+						"type": "DataFlowReference",
+						"datasetParameters": {
+							"sourceJSON": {
+								"Date": {
+									"value": "2024-12-09",
+									"type": "Expression"
+								}
+							}
+						}
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdctestanuj/AnandanTest/staging"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "Installation Surveys by LastActivityAt",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "Inhouse consultation surveys",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.1:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_guild_quality_API_response_to_ODS_Page_Test_Installation_endedAt",
+						"type": "DataFlowReference",
+						"datasetParameters": {
+							"sourceJSON": {
+								"Date": {
+									"value": "2024-12-09",
+									"type": "Expression"
+								}
+							}
+						}
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdctestanuj/AnandanTest/staging"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "Inhouse consultation by LastActivityAt",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "Installation Surveys by LastActivityAt",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.1:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_guild_quality_API_response_to_ODS_Page_Test_InHouse_endedAt",
+						"type": "DataFlowReference",
+						"datasetParameters": {
+							"sourceJSON": {
+								"Date": {
+									"value": "2024-12-09",
+									"type": "Expression"
+								}
+							}
+						}
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdctestanuj/AnandanTest/staging"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			}
+		],
+		"parameters": {
+			"InsertDatefilter": {
+				"type": "string",
+				"defaultValue": "updatedAt"
+			},
+			"UpsertDatefilter": {
+				"type": "string",
+				"defaultValue": "lastActivityAt"
+			}
+		},
+		"variables": {
+			"v_Date": {
+				"type": "String",
+				"defaultValue": "2024-12-09"
+			}
+		},
+		"folder": {
+			"name": "Temp/Akshay"
+		},
+		"annotations": [],
+		"lastPublishTime": "2024-12-09T14:41:23Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

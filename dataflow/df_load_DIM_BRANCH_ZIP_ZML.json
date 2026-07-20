@@ -1,0 +1,116 @@
+{
+	"name": "df_load_DIM_BRANCH_ZIP_ZML",
+	"properties": {
+		"folder": {
+			"name": "ZML_ODS_to_EDW/DIMENSIONS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ZML_ODS_FHI_brz_BranchZips",
+						"type": "DatasetReference"
+					},
+					"name": "FHI"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_DIM_BRANCH_ZIP_ZML",
+						"type": "DatasetReference"
+					},
+					"name": "targetDim",
+					"description": "Export data to EDW_DIM_BRANCH_ZIP",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "addOpCoNameFHI"
+				},
+				{
+					"name": "unionAllOpCos"
+				},
+				{
+					"name": "derivedColumns"
+				},
+				{
+					"name": "selectRenameColumns"
+				},
+				{
+					"name": "AlterRow"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          brn_id as string,",
+				"          prg_id as string,",
+				"          zip as string,",
+				"          id as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> FHI",
+				"FHI derive(Division = 'FHI') ~> addOpCoNameFHI",
+				"addOpCoNameFHI union(byName: true)~> unionAllOpCos",
+				"selectRenameColumns derive(LastUpdateTS = currentTimestamp(),",
+				"          BranchID = concat(Division,'-',toString(LP_BranchID)),",
+				"          ProductGroupID = concat(Division,'-',toString(LP_ProductGroupID)),",
+				"          BranchZipID = concat(Division,'-',toString(LP_BranchZipID))) ~> derivedColumns",
+				"unionAllOpCos select(mapColumn(",
+				"          LP_BranchID = brn_id,",
+				"          LP_ProductGroupID = prg_id,",
+				"          ZipCode = zip,",
+				"          LP_BranchZipID = id,",
+				"          Division",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectRenameColumns",
+				"derivedColumns alterRow(upsertIf(true())) ~> AlterRow",
+				"AlterRow sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          BranchZipID as string,",
+				"          BranchID as string,",
+				"          ProductGroupID as string,",
+				"          ZipCode as string,",
+				"          LP_BranchZipID as integer,",
+				"          LP_BranchID as string,",
+				"          LP_ProductGroupID as string,",
+				"          Division as string,",
+				"          LastUpdateTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['BranchZipID'],",
+				"     format: 'table',",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          LP_BranchID,",
+				"          LP_ProductGroupID,",
+				"          ZipCode,",
+				"          LP_BranchZipID,",
+				"          Division,",
+				"          LastUpdateTS,",
+				"          BranchID,",
+				"          ProductGroupID,",
+				"          BranchZipID",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> targetDim"
+			]
+		}
+	}
+}

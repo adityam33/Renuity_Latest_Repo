@@ -1,0 +1,68 @@
+{
+	"name": "IF Branch file",
+	"properties": {
+		"activities": [
+			{
+				"name": "Branch",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"sqlReaderQuery": "Select  Z.Division, BranchZipID, \r\nZ.ProductGroupId, PG.ProductGroup,P.ProductId,P.LongDescription as ProductName\r\n,Z.BranchId,  ZipCode,B.LongName as BranchName, \r\nM.MarketDescription  from \r\nEDW.DIM_BRANCH_ZIP Z \r\nLeft join EDW.DIM_BRanch B on Z.BranchID=B.BranchId\r\nLeft join EDW.DIM_REPorting_Market M on M.ReportingMarketId=B.ReportingMarketID\r\nLeft join EDW.DIM_Product_Group PG on Z.ProductGroupId=PG.ProductGroupId\r\nLeft join EDW.DIM_Product P on PG.ProductGroupId=P.ProductGroupId",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ODS_LP_FHI_src_SourceCodes",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "TGT_InsightFactory_Leadscost",
+						"type": "DatasetReference",
+						"parameters": {
+							"FileName": "ZipToMarket_5"
+						}
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "Temp/Anandan"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-04-14T14:39:34Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

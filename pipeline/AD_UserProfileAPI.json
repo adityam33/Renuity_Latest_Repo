@@ -1,0 +1,143 @@
+{
+	"name": "AD_UserProfileAPI",
+	"properties": {
+		"activities": [
+			{
+				"name": "Get User Profile Data",
+				"description": "To retrieve all existing API lists ",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.01:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:01:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "GET",
+						"additionalHeaders": {
+							"Content-Type": "application/json",
+							"Accept-Encoding": "gzip"
+						},
+						"paginationRules": {
+							"supportRFC5988": "true",
+							"AbsoluteUrl": "$['@odata.nextLink']"
+						}
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "truncate table ODS.AD_Userdetails",
+						"allowCopyCommand": true,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "EDW_STG_FACT_Lead_POC",
+							"type": "LinkedServiceReference"
+						}
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "['displayName']"
+								},
+								"sink": {
+									"name": "FullName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['accountEnabled']"
+								},
+								"sink": {
+									"name": "accountStatus",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"path": "['jobTitle']"
+								},
+								"sink": {
+									"name": "jobTitle",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['mail']"
+								},
+								"sink": {
+									"name": "mail",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['employeeId']"
+								},
+								"sink": {
+									"name": "adp_associate_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['extension_6ace52f286da43548a8d625ac14e89cc_ADP_Division']"
+								},
+								"sink": {
+									"name": "division",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['extension_6ace52f286da43548a8d625ac14e89cc_MobileNumber']"
+								},
+								"sink": {
+									"name": "mobilePhone",
+									"type": "String"
+								}
+							}
+						],
+						"collectionReference": "$['value']",
+						"mapComplexValuesToString": true
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "AD_API_linkedservice",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "AD_UserProfileTbl",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"variables": {
+			"RecCount": {
+				"type": "Integer"
+			}
+		},
+		"folder": {
+			"name": "Active_Directory_API"
+		},
+		"annotations": [],
+		"lastPublishTime": "2024-11-15T06:21:05Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

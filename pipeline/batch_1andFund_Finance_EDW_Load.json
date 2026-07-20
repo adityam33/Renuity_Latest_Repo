@@ -1,0 +1,990 @@
+{
+	"name": "batch_1andFund_Finance_EDW_Load",
+	"properties": {
+		"activities": [
+			{
+				"name": "DIM Applications",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.2:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "Select \nApplicationId,\nApplicationFriendlyId,\nSourcePlatformId,\nProjectNumbers,\nProspectId,\nTransUnionCreditRange,\nExperianCreditRange,\nAppetiteEngineStatus,\nPostalCode,\nNullif([Applicant_Annual_Income] ,\t\t\t\t'')  as [Applicant_Annual_Income] ,\t\t\t\t\nNullif([Applicant_Additional_Annual_Income] ,\t'')  as [Applicant_Additional_Annual_Income] ,\t\nNullif([CoApplicant_Annual_Income] ,\t\t\t'')  as [CoApplicant_Annual_Income] ,\t\t\t\nNullif([CoApplicant_Additional_Annual_Income] ,\t'')  as [CoApplicant_Additional_Annual_Income] ,\t\nNullif([Applicant_Housing_Cost] ,\t\t\t\t'')  as [Applicant_Housing_Cost] ,\t\t\t\t\nNullif([Applicant_Transunion_Monthly] ,\t\t\t'')  as [Applicant_Transunion_Monthly] ,\t\t\t\nNullif([Applicant_Experian_Monthly] ,\t\t\t'')  as [Applicant_Experian_Monthly] ,\t\t\t\nNullif([CoApplicant_Transunion_Monthly] ,\t\t'')  as [CoApplicant_Transunion_Monthly] ,\t\t\nNullif([CoApplicant_Rxperian_Monthly] ,\t\t\t'')  as [CoApplicant_Rxperian_Monthly] ,\t\t\t\nHasCoApplicant,\nCoApplicantTransUnionCreditRange,\nCoApplicantExperianCreditRange,\nSalesRepresentativeEmail,\nProjectAmount,\nDeclinedLenders,\nEligibleLenders,\nLender,\nLenderStatus,\nNullIf(CreditLimit,'') as CreditLimit,\nPlanSelected,\nNullIf(TermLength,'') as TermLength,\nNullIf(InterestRate,'') as InterestRate,\nNullIf(APR,'') as APR,\nNullIf(MonthlyPayment,'') as MonthlyPayment,\nPaymentFactor,\nNullIf(FinancedAmount,'') as FinancedAmount,\nNullIf(DownPayment,'') as DownPayment,\nCONVERT(datetime2(3), ExpiresAt) ExpiresAt, \nCONVERT(datetime2(3), SubmittedAt) SubmittedAt,\nCONVERT(datetime2(3), LenderLastUpdatedAt) LenderLastUpdatedAt,\nNullIf(Tombstoned_At,'') as Tombstoned_At, \nNullIf(Tombstone_Type,'') as Tombstone_Type,\nNullIf(Tombstone_Source,'') as Tombstone_Source, \nNullIf(Tombstone_Reason,'') as Tombstone_Reason,\nGetdate() as InsertedTS,\ncast(0 as bit) as IsDuplicate\nfrom ODS.FINANCE_APPLICATIONS\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Upsert",
+						"upsertSettings": {
+							"keys": [
+								"ApplicationId"
+							],
+							"interimSchemaName": ""
+						},
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"enableSkipIncompatibleRow": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "ApplicationId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ApplicationId",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ApplicationFriendlyId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ApplicationFriendlyId",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SourcePlatformId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "SourcePlatformId",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ProjectNumbers",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ProjectNumbers",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ProspectId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ProspectId",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "TransUnionCreditRange",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "TransUnionCreditRange",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ExperianCreditRange",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ExperianCreditRange",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AppetiteEngineStatus",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "AppetiteEngineStatus",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Applicant_Annual_Income",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Applicant_Annual_Income",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 5,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "Applicant_Additional_Annual_Income",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Applicant_Additional_Annual_Income",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 5,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "CoApplicant_Annual_Income",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CoApplicant_Annual_Income",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 5,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "CoApplicant_Additional_Annual_Income",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CoApplicant_Additional_Annual_Income",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 5,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "Applicant_Housing_Cost",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Applicant_Housing_Cost",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 5,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "Applicant_Transunion_Monthly",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Applicant_Transunion_Monthly",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 5,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "Applicant_Experian_Monthly",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Applicant_Experian_Monthly",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 5,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "CoApplicant_Transunion_Monthly",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CoApplicant_Transunion_Monthly",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 5,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "CoApplicant_Rxperian_Monthly",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CoApplicant_Rxperian_Monthly",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 5,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "PostalCode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "PostalCode",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "HasCoApplicant",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "HasCoApplicant",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CoApplicantTransUnionCreditRange",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CoApplicantTransUnionCreditRange",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CoApplicantExperianCreditRange",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CoApplicantExperianCreditRange",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SalesRepresentativeEmail",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "SalesRepresentativeEmail",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ProjectAmount",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ProjectAmount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 5,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "DeclinedLenders",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "DeclinedLenders",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "EligibleLenders",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "EligibleLenders",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Lender",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Lender",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LenderStatus",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "LenderStatus",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CreditLimit",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CreditLimit",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PlanSelected",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "PlanSelected",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "TermLength",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "TermLength",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 5,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "InterestRate",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "InterestRate",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 5,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "APR",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "APR",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 5,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "MonthlyPayment",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "MonthlyPayment",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 5,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "PaymentFactor",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "PaymentFactor",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "FinancedAmount",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "FinancedAmount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 5,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "DownPayment",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "DownPayment",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 5,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "ExpiresAt",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "ExpiresAt",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "SubmittedAt",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "SubmittedAt",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "LenderLastUpdatedAt",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "LenderLastUpdatedAt",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "InsertedTS",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "InsertedTS",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "Tombstoned_At",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Tombstoned_At",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "Tombstone_Type",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Tombstone_Type",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Tombstone_Source",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Tombstone_Source",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Tombstone_Reason",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Tombstone_Reason",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "IsDuplicate",
+									"type": "Boolean",
+									"physicalType": "bit"
+								},
+								"sink": {
+									"name": "IsDuplicate",
+									"type": "Boolean",
+									"physicalType": "bit"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_AD_PERFORMANCE_METRICS_DETAIL",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_CTA_TEST_DYN_DIM_CUSTOMER",
+						"type": "DatasetReference",
+						"parameters": {
+							"SchemaName": "EDW",
+							"TableName": "DIM_FINANCE_APPLICATIONS"
+						}
+					}
+				]
+			},
+			{
+				"name": "FACT Transactions",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "DIM Applications",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.2:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "Select \nTransactionId,\nApplicationId,\nApplicationFriendlyId,\nSourcePlatformId,\nProjectNumber,\nNullIf(ProjectAmount,'') as ProjectAmount,\nIntegrationName,\nAccountInfo,\nDisbursementNumber,\nInternalStatus,\nNullif(RequestedAmount,'') RequestedAmount,\nNullif(LenderFee,'') LenderFee,\nNullif(NetAmount,'')  NetAmount,\nCONVERT(datetime2(3),TransactionDate) TransactionDate,\nCONVERT(datetime2(3),LenderUpdatedDate) LenderUpdatedDate,\nGetdate() as InsertedTS,\nStage\nfrom ODS.FINANCE_TRANSACTIONS\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Upsert",
+						"upsertSettings": {
+							"keys": [
+								"TransactionId"
+							],
+							"interimSchemaName": ""
+						},
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "TransactionId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "TransactionId",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ApplicationId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ApplicationId",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ApplicationFriendlyId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ApplicationFriendlyId",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SourcePlatformId",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "SourcePlatformId",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ProjectNumber",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ProjectNumber",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ProjectAmount",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ProjectAmount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 5,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "IntegrationName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "IntegrationName",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AccountInfo",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "AccountInfo",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DisbursementNumber",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "DisbursementNumber",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "InternalStatus",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "InternalStatus",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "RequestedAmount",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "RequestedAmount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 5,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "LenderFee",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "LenderFee",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 5,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "NetAmount",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "NetAmount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 5,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "TransactionDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "TransactionDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "LenderUpdatedDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "LenderUpdatedDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "InsertedTS",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "InsertedTS",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "Stage",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Stage",
+									"physicalType": "varchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_ADP_Employee_TimeCard",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_CTA_TEST_DYN_DIM_CUSTOMER",
+						"type": "DatasetReference",
+						"parameters": {
+							"SchemaName": "EDW",
+							"TableName": "FACT_FINANCE_TRANSACTIONS"
+						}
+					}
+				]
+			},
+			{
+				"name": "Applications with LP ids",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "FACT Transactions",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "Truncate table EDW.FACT_FINANCE_APPLICATION;\r\n\r\nWith Applications_Mulitples as \r\n(\r\n\r\nSelect  ProspectId as  ProspectId_Derived, s1.Value as  ProjectNumber_Derived,  A.* from [EDW].[DIM_FINANCE_APPLICATIONS] A \r\nCROSS APPLY STRING_SPLIT(A.ProjectNumbers, '/', 1) s1\r\nWHERE A.ProjectNumbers like '%/%' and  A.ProspectId not like '%/%' \r\n\r\nUnion All \r\n\r\nSelect  s.Value as ProspectId_Derived, ProjectNumbers as  ProjectNumber_Derived,  A.* from [EDW].[DIM_FINANCE_APPLICATIONS] A \r\nCROSS APPLY STRING_SPLIT(A.ProspectId, '/', 1)  s\r\nWHERE A.ProspectId like '%/%' and A.ProjectNumbers not like '%/%'\r\n\r\nUnion All\r\n\r\nSelect  s.Value as ProspectId_Derived, s1.Value as  ProjectNumber_Derived, A.* from [EDW].[DIM_FINANCE_APPLICATIONS] A \r\nCROSS APPLY STRING_SPLIT(A.ProspectId, '/', 1)  s\r\nCROSS APPLY STRING_SPLIT(A.ProjectNumbers, '/', 1) s1\r\nWHERE A.ProjectNumbers like '%/%' and A.ProspectId like '%/%' and s.ordinal = s1.ordinal\r\n\r\n),\r\n\r\nApplications as  (\r\n--Select * from (\r\nSelect * from Applications_Mulitples \r\nUnion All \r\nSelect ProspectId as ProspectId_Derived, ProjectNumbers as  ProjectNumber_Derived, *\r\nfrom [EDW].[DIM_FINANCE_APPLICATIONS] A \r\nwhere applicationId not in ( Select Distinct ApplicationId from Applications_Mulitples ) \r\n--) a where applicationId in ( Select ApplicationId from EDW.FACT_FInance_Application Group by ApplicationId having count(*)>1)\r\n),\r\n\r\nApplications_withLP as (\r\nSelect  \r\nA.ApplicationId, A.ProjectNumbers, A.ProspectId, \r\nA.ProjectAmount, A.Lender, A.LenderStatus, A.SubmittedAt, A.LenderlastupdatedAt,\r\nL.LeadId, L.CustomerId, L.Entrydate, L.ProductId, L.BranchId, L.LeadsubsourceId, L.SalesRep1_EmployeeId,\r\nL.EverSet, L.EverNetIssued, L.EverSat,\r\nJ.JobId, J.ContractId, J.ContractDate, J.GrossAmount, J.productId as J_productId, J.ProductionBranchId, J.SalesRep1_EmployeeId as J_SalesRep1_EmployeeId,\r\nJ.FinanceSourceId, J.FinanceCompanyId,\r\nJ.FundedAmount, J.FinanceAmount, J.FinanceFee,\r\nJ.JobStatusId, JS.JobStatusCategoryId, JS.JobStatus, UNI_jobStatus, Uni_jobstatuscategory, Uni_JobstatusSubCategory,\r\ncase when \r\n\t ( Case when A.ProjectNumber_Derived='' then 'NA' else A.ProjectNumber_Derived end = J.ContractID\t\r\n   --Or  Cast(A.SubmittedAt as date) between cast(J.contractDate as date) and cast(dateadd(Day, 1,J.contractDate) as date)  \r\n   --Or  Cast(A.SubmittedAt as date) between cast(L.Entrydate as date) and cast(dateadd(Month, 1,L.Entrydate) as date)  \r\n\t)\r\n\t then 1 else 0 end as flag\r\n,ProjectNumber_Derived as ContractID_1look, ProspectId_Derived as LPCustomerID_1look\r\n\r\nfrom Applications A \r\nleft join EDW.FACT_lead L on L.division='MAC' and Coalesce(Nullif(A.ProspectId_Derived,''),'NA')=cast(L.LP_CustomerId as varchar(32))\r\nLeft join EDW.FACT_Job J on L.LeadId=J.LeadId\r\nLeft join EDW.DIM_Job_Status JS on J.JobStatusId=JS.JobStatusId\r\nwhere  ( A.ProspectId  like '%/%'  or TRY_CAST(A.ProspectId AS FLOAT) IS not NULL )\r\n)\r\n\r\nInsert into EDW.FACT_FINANCE_APPLICATION\r\nselect *\r\nfrom (\r\nSelect *  from Applications_withLP where Flag=1\r\nUnion \r\nSelect * from Applications_withLP where  Flag=0 and ApplicationId not in (Select distinct ApplicationId from Applications_withLP where Flag=1) \r\n)a ;\r\n\r\n\r\n "
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Update Isduplicate Flag",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Applications with LP ids",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "with A As (\nselect  Row_number() over(partition by ProspectId Order by submittedAt desc) as RN, *  from EDW.DIM_FINANCE_Applications where\nProspectId<>'' and \nprospectId in (Select ProspectId  from EDW.DIM_FINANCE_Applications group by prospectId having count(*)>1)\n)\n--Select T1.*, Rn\nUpdate T1 set IsDuplicate =1 \nfrom EDW.DIM_FINANCE_Applications T1 join A on T1.ApplicationId=A.ApplicationId and A.RN>1\n"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			}
+		],
+		"folder": {
+			"name": "1andFund to EDW"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-03-17T06:37:20Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

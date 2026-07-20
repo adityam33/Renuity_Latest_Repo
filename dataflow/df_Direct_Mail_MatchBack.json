@@ -1,0 +1,279 @@
+{
+	"name": "df_Direct_Mail_MatchBack",
+	"properties": {
+		"folder": {
+			"name": "Test-Dataflows"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ODS_DIRECT_MAIL_EXCLUSION",
+						"type": "DatasetReference"
+					},
+					"name": "DirectMailExclusion"
+				},
+				{
+					"dataset": {
+						"referenceName": "EDW_DIM_CUSTOMER",
+						"type": "DatasetReference"
+					},
+					"name": "DimCustomer"
+				},
+				{
+					"dataset": {
+						"referenceName": "EDW_FACT_LEAD",
+						"type": "DatasetReference"
+					},
+					"name": "sourcefactlead"
+				},
+				{
+					"dataset": {
+						"referenceName": "EDW_FACT_JOB",
+						"type": "DatasetReference"
+					},
+					"name": "sourcefactjob"
+				},
+				{
+					"dataset": {
+						"referenceName": "EDW_DIM_DISPOSITION",
+						"type": "DatasetReference"
+					},
+					"name": "sourcedimdisposition"
+				},
+				{
+					"dataset": {
+						"referenceName": "EDW_DIM_PRODUCT",
+						"type": "DatasetReference"
+					},
+					"name": "sourcedimproduct"
+				},
+				{
+					"dataset": {
+						"referenceName": "EDW_DIM_LEAD_SUB_SOURCE",
+						"type": "DatasetReference"
+					},
+					"name": "LeadSubSource"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "OUT_DIRECT_MAIL_EXCLUSION_TGT",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "join1"
+				},
+				{
+					"name": "join2"
+				},
+				{
+					"name": "join3"
+				},
+				{
+					"name": "join4"
+				},
+				{
+					"name": "join5"
+				},
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "join6"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          endorse as string,",
+				"          CalculatedText as string,",
+				"          DropDate1 as date,",
+				"          DropDate as date,",
+				"          DeliveryAddress as string,",
+				"          city as string,",
+				"          state as string,",
+				"          Zip as string,",
+				"          Division as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'select\\nendorse,\\nCalculatedText,\\nTRY_CONVERT(Date,DropDate,104) as DropDate1,\\nCAST(DropDate as Date) as DropDate,\\nDeliveryAddress,\\ncity,\\n[state],\\nLEFT(zip,5) as Zip,\\nDivision\\nfrom ODS.DIRECT_MAIL_EXCLUSION_DETAILS ',",
+				"     format: 'query',",
+				"     staged: true) ~> DirectMailExclusion",
+				"source(output(",
+				"          CustomerID as string,",
+				"          LeadID as string,",
+				"          FirstName as string,",
+				"          LastName as string,",
+				"          Address1 as string,",
+				"          City as string,",
+				"          Zip as string,",
+				"          State as string,",
+				"          Division as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'Select\\nCustomerID,\\nLeadID,\\nFirstName,\\nLastName,\\nAddress1,\\nCity,\\nZip,\\nState,\\nDivision\\nfrom\\nEDW.DIM_CUSTOMER\\n',",
+				"     format: 'query',",
+				"     staged: true) ~> DimCustomer",
+				"source(output(",
+				"          LeadID as string,",
+				"          CustomerID as string,",
+				"          DispositionID as string,",
+				"          LeadSourceID as string,",
+				"          LeadSubSourceID as string,",
+				"          EntryDate as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'Select\\nLeadID,\\nCustomerID,\\nDispositionID,\\nLeadSourceID,\\nLeadSubSourceID,\\nEntryDate\\nfrom EDW.FACT_LEAD\\nwhere Division=\\'PBC\\'',",
+				"     format: 'query',",
+				"     staged: true) ~> sourcefactlead",
+				"source(output(",
+				"          LeadID as string,",
+				"          JobID as string,",
+				"          ContractDate as timestamp,",
+				"          ProductID as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'Select\\nLeadID,\\nJobID,\\nContractDate,\\nProductID\\nfrom EDW.FACT_JOB\\n',",
+				"     format: 'query',",
+				"     staged: true) ~> sourcefactjob",
+				"source(output(",
+				"          DispositionID as string,",
+				"          Comments as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'Select\\nDispositionID,\\nComments\\nfrom EDW.DIM_DISPOSITION\\n',",
+				"     format: 'query',",
+				"     staged: true) ~> sourcedimdisposition",
+				"source(output(",
+				"          ProductID as string,",
+				"          ProductName as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'Select\\nProductID,\\nProductName\\nfrom EDW.DIM_PRODUCT\\n',",
+				"     format: 'query',",
+				"     staged: true) ~> sourcedimproduct",
+				"source(output(",
+				"          LeadSourceID as string,",
+				"          LeadSubSourceID as string,",
+				"          SourceCode as string,",
+				"          LeadSubSource as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'Select\\nLeadSourceID,\\nLeadSubSourceID,\\nSourceCode,\\nLeadSubSource\\nfrom EDW.DIM_LEAD_SUB_SOURCE\\n',",
+				"     format: 'query',",
+				"     staged: true) ~> LeadSubSource",
+				"DirectMailExclusion, DimCustomer join(fuzzyCompare(DeliveryAddress, Address1, 60.00),",
+				"     fuzzyCompare(DirectMailExclusion@state, DimCustomer@State, 100.00),",
+				"     fuzzyCompare(DirectMailExclusion@city, DimCustomer@City, 100.00),",
+				"     fuzzyCompare(left(DirectMailExclusion@Zip, 5), DimCustomer@Zip, 100.00),",
+				"     fuzzyCompare(DirectMailExclusion@Division, DimCustomer@Division, 100.00),",
+				"     joinType:'left',",
+				"     matchType:'fuzzy',",
+				"     ignoreSpaces: true,",
+				"     scoreColumn:'Match_Criteria',",
+				"     broadcast: 'off')~> join1",
+				"join1, sourcefactlead join(DimCustomer@CustomerID == sourcefactlead@CustomerID,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join2",
+				"join2, sourcefactjob join(sourcefactlead@LeadID == sourcefactjob@LeadID,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join3",
+				"join3, sourcedimdisposition join(sourcefactlead@DispositionID == sourcedimdisposition@DispositionID,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join4",
+				"join4, sourcedimproduct join(sourcefactjob@ProductID == sourcedimproduct@ProductID,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join5",
+				"join6 derive(ExclusionFlag = iif(isNull(JobID),'N',iif(greater(DropDate, toDate(ContractDate)),'N','Y'))) ~> derivedColumn1",
+				"join5, LeadSubSource join(sourcefactlead@LeadSourceID == LeadSubSource@LeadSourceID",
+				"     && sourcefactlead@LeadSubSourceID == LeadSubSource@LeadSubSourceID,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join6",
+				"derivedColumn1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          CustomerID as string,",
+				"          FirstName as string,",
+				"          LastName as string,",
+				"          endorse as string,",
+				"          CalculatedText as string,",
+				"          ProductID as string,",
+				"          address as string,",
+				"          city as string,",
+				"          state as string,",
+				"          zip as string,",
+				"          Division as string,",
+				"          JobID as string,",
+				"          DropDate as date,",
+				"          JobDate as timestamp,",
+				"          DispositionReason as string,",
+				"          ExclusionFlag as string,",
+				"          SourceCode as string,",
+				"          LeadSubSource as string,",
+				"          LeadEntryDate as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     staged: true,",
+				"     allowCopyCommand: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          CustomerID,",
+				"          FirstName,",
+				"          LastName,",
+				"          endorse,",
+				"          ProductID = ProductName,",
+				"          address = DeliveryAddress,",
+				"          city = DirectMailExclusion@city,",
+				"          state = DirectMailExclusion@state,",
+				"          zip = DirectMailExclusion@Zip,",
+				"          Division,",
+				"          JobID,",
+				"          DropDate,",
+				"          JobDate = ContractDate,",
+				"          DispositionReason = Comments,",
+				"          ExclusionFlag,",
+				"          CalculatedText,",
+				"          SourceCode,",
+				"          LeadSubSource,",
+				"          LeadEntryDate = EntryDate",
+				"     )) ~> sink1"
+			]
+		}
+	}
+}

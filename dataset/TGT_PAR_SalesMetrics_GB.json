@@ -1,0 +1,29 @@
+{
+	"name": "TGT_PAR_SalesMetrics_GB",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "Green_briar_SA",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"Para": {
+				"type": "string",
+				"defaultValue": "SLS"
+			}
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@concat('renuity_',dataset().Para,'_',formatDateTime(utcNow(),'yyyyMMdd'),'.parquet')",
+					"type": "Expression"
+				},
+				"fileSystem": "renuity-inbound"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	}
+}

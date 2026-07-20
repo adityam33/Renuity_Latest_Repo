@@ -1,0 +1,98 @@
+{
+	"name": "Dataflow8",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "VWO_JSon_SRC_All_Campaigns",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "VWO_All_Campaign_List",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "select1"
+				},
+				{
+					"name": "flatten1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          {_data} as (partialCollection as (id as integer, name as string, type as string, platform as string, status as string, subStatus as string, createdOn as integer, isDeleted as boolean, labels as string[], createdBy as (id as integer, name as string, imageUrl as string), pageGroupConfig as (editorUrl as string[], include as (queryElementType as string, id as string, operator as integer, rOperandValue as string, configurations as (ignoreOnlyQueryParams as boolean, ignoreOnlyHashFrag as boolean, caseInsensitive as boolean))[], exclude as string[]), goals as (partialCollection as (id as integer, isPrimary as boolean, name as string, type as string, averageData as string[])[], offset as integer, totalCount as integer), primaryGoal as integer, variations as (partialCollection as string[], totalCount as integer), associatedCampaign as string[], stats as (expectedConversionRate as string, expectedImprovementRate as string, thresholdOfCaring as string, expectedDailyVisitors as integer, expectedRevenuePerVisitor as string, reportingVersion as integer, reportingView as integer, peekingCorrection as boolean, multipleCorrection as boolean, typeMCorrection as boolean, sidakCorrection as boolean, delayDecision as boolean, testingApproach as string, statisticalModel as string, pauseCampaignAfterFinalDay as boolean, observatoryMinVisitors as integer, observatoryMinConversions as integer, observatoryMinRuntime as integer), isBayesian as boolean, startedOn as string, campaignGroup as string[], isApprovalPending as boolean, variationCount as integer)[], totalCount as integer, offset as integer)",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     documentForm: 'arrayOfDocuments',",
+				"     wildcardPaths:['All_Campaign/Paginated_API_Response/VWO_All_Campaigns*.json']) ~> source1",
+				"flatten1 select(mapColumn(",
+				"          CampaignID,",
+				"          CampaignName,",
+				"          CampaignStatus,",
+				"          CampaignType",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"source1 foldDown(unroll({_data}.partialCollection),",
+				"     mapColumn(",
+				"          CampaignID = {_data}.partialCollection.id,",
+				"          CampaignName = {_data}.partialCollection.name,",
+				"          CampaignStatus = {_data}.partialCollection.status,",
+				"          CampaignType = {_data}.partialCollection.type",
+				"     ),",
+				"     skipDuplicateMapInputs: false,",
+				"     skipDuplicateMapOutputs: false) ~> flatten1",
+				"select1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          Variations_ID as string,",
+				"          Variations_Name as string,",
+				"          Variations_isControl as string,",
+				"          Variations_isDisabled as string,",
+				"          Variations_percentSplit as string,",
+				"          CampaignID as string,",
+				"          CampaignName as string,",
+				"          CampaignType as string,",
+				"          CampaignStatus as string,",
+				"          CampaignCreatedBy as string,",
+				"          CampaignPrimaryURL as string,",
+				"          Goals_Description as string,",
+				"          Goals_ID as string,",
+				"          Goals_Name as string,",
+				"          Goals_Type as string,",
+				"          TotalconversionCount as string,",
+				"          TotalconversionRate as string,",
+				"          TotalvisitorCount as string,",
+				"          Variations_URL as string,",
+				"          Goal_ID as string,",
+				"          isWinner as string,",
+				"          possibleWinner as string,",
+				"          Variation_ID as string,",
+				"          Variation_ConversionCount as string,",
+				"          Variation_visitorCount as string,",
+				"          Variation_isGoalDurationComplete as string",
+				"     ),",
+				"     partitionFileNames:['VWO_All_Campaigns.csv'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> sink1"
+			]
+		}
+	}
+}

@@ -1,0 +1,354 @@
+{
+	"name": "df_load_FACT_MILESTONE_CHANGE",
+	"properties": {
+		"folder": {
+			"name": "ODS_to_EDW/FACTS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_FHI_log_mld",
+						"type": "DatasetReference"
+					},
+					"name": "FHI"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_PBC_log_mld",
+						"type": "DatasetReference"
+					},
+					"name": "PBC"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_RTW_log_mld",
+						"type": "DatasetReference"
+					},
+					"name": "RTW"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_MAC_log_mld",
+						"type": "DatasetReference"
+					},
+					"name": "MAC"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_SWR_log_mld",
+						"type": "DatasetReference"
+					},
+					"name": "SWR"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_HSI_log_mld",
+						"type": "DatasetReference"
+					},
+					"name": "HSI"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_MXH_log_mld",
+						"type": "DatasetReference"
+					},
+					"name": "MXH"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_CTA_log_mld",
+						"type": "DatasetReference"
+					},
+					"name": "CTA"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_FACT_MILESTONE_CHANGE",
+						"type": "DatasetReference"
+					},
+					"name": "targetFact",
+					"description": "Export data to EDW_FACT_MILESTONE_CHANGE_New",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "addOpCoNameFHI"
+				},
+				{
+					"name": "addOpCoNamePBC"
+				},
+				{
+					"name": "addOpCoNameRTW"
+				},
+				{
+					"name": "addOpCoNameMAC"
+				},
+				{
+					"name": "addOpCoNameSWR"
+				},
+				{
+					"name": "addOpCoNameHSI"
+				},
+				{
+					"name": "unionAllOpCos"
+				},
+				{
+					"name": "selectRenameColumns"
+				},
+				{
+					"name": "derivedColumns"
+				},
+				{
+					"name": "addOpCoNameMXH"
+				},
+				{
+					"name": "addOpCoNameCTA"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          id as integer,",
+				"          emp_id as integer,",
+				"          datechanged as timestamp,",
+				"          job_id as integer,",
+				"          jpo_id as integer,",
+				"          mdt_id as string,",
+				"          estdate as timestamp,",
+				"          actdate as timestamp,",
+				"          acttime as string,",
+				"          oldestdate as timestamp,",
+				"          oldactdate as timestamp,",
+				"          oldacttime as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> FHI",
+				"source(output(",
+				"          id as integer,",
+				"          emp_id as integer,",
+				"          datechanged as timestamp,",
+				"          job_id as integer,",
+				"          jpo_id as integer,",
+				"          mdt_id as string,",
+				"          estdate as timestamp,",
+				"          actdate as timestamp,",
+				"          acttime as string,",
+				"          oldestdate as timestamp,",
+				"          oldactdate as timestamp,",
+				"          oldacttime as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> PBC",
+				"source(output(",
+				"          id as integer,",
+				"          emp_id as integer,",
+				"          datechanged as timestamp,",
+				"          job_id as integer,",
+				"          jpo_id as integer,",
+				"          mdt_id as string,",
+				"          estdate as timestamp,",
+				"          actdate as timestamp,",
+				"          acttime as string,",
+				"          oldestdate as timestamp,",
+				"          oldactdate as timestamp,",
+				"          oldacttime as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> RTW",
+				"source(output(",
+				"          id as integer,",
+				"          emp_id as integer,",
+				"          datechanged as timestamp,",
+				"          job_id as integer,",
+				"          jpo_id as integer,",
+				"          mdt_id as string,",
+				"          estdate as timestamp,",
+				"          actdate as timestamp,",
+				"          acttime as string,",
+				"          oldestdate as timestamp,",
+				"          oldactdate as timestamp,",
+				"          oldacttime as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> MAC",
+				"source(output(",
+				"          id as integer,",
+				"          emp_id as integer,",
+				"          datechanged as timestamp,",
+				"          job_id as integer,",
+				"          jpo_id as integer,",
+				"          mdt_id as string,",
+				"          estdate as timestamp,",
+				"          actdate as timestamp,",
+				"          acttime as string,",
+				"          oldestdate as timestamp,",
+				"          oldactdate as timestamp,",
+				"          oldacttime as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> SWR",
+				"source(output(",
+				"          id as integer,",
+				"          emp_id as integer,",
+				"          datechanged as timestamp,",
+				"          job_id as integer,",
+				"          jpo_id as integer,",
+				"          mdt_id as string,",
+				"          estdate as timestamp,",
+				"          actdate as timestamp,",
+				"          acttime as string,",
+				"          oldestdate as timestamp,",
+				"          oldactdate as timestamp,",
+				"          oldacttime as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> HSI",
+				"source(output(",
+				"          id as integer,",
+				"          emp_id as integer,",
+				"          datechanged as timestamp,",
+				"          job_id as integer,",
+				"          jpo_id as integer,",
+				"          mdt_id as string,",
+				"          estdate as timestamp,",
+				"          actdate as timestamp,",
+				"          acttime as string,",
+				"          oldestdate as timestamp,",
+				"          oldactdate as timestamp,",
+				"          oldacttime as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> MXH",
+				"source(output(",
+				"          id as integer,",
+				"          emp_id as integer,",
+				"          datechanged as timestamp,",
+				"          job_id as integer,",
+				"          jpo_id as integer,",
+				"          mdt_id as string,",
+				"          estdate as timestamp,",
+				"          actdate as timestamp,",
+				"          acttime as string,",
+				"          oldestdate as timestamp,",
+				"          oldactdate as timestamp,",
+				"          oldacttime as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> CTA",
+				"FHI derive(Division = 'FHI') ~> addOpCoNameFHI",
+				"PBC derive(Division = 'PBC') ~> addOpCoNamePBC",
+				"RTW derive(Division = 'RTW') ~> addOpCoNameRTW",
+				"MAC derive(Division = 'MAC') ~> addOpCoNameMAC",
+				"SWR derive(Division = 'SWR') ~> addOpCoNameSWR",
+				"HSI derive(Division = 'HSI') ~> addOpCoNameHSI",
+				"addOpCoNameFHI, addOpCoNamePBC, addOpCoNameRTW, addOpCoNameMAC, addOpCoNameSWR, addOpCoNameHSI, addOpCoNameMXH, addOpCoNameCTA union(byName: true)~> unionAllOpCos",
+				"unionAllOpCos select(mapColumn(",
+				"          LP_MilestoneChangeID = id,",
+				"          LP_EmployeeID = emp_id,",
+				"          DateChanged = datechanged,",
+				"          LP_JobID = job_id,",
+				"          LP_MilestoneDateTypeID = mdt_id,",
+				"          EstimatedDate = estdate,",
+				"          ActualDate = actdate,",
+				"          ActualTime = acttime,",
+				"          OldestDate = oldestdate,",
+				"          OldActualDate = oldactdate,",
+				"          OldActualTime = oldacttime,",
+				"          Division",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectRenameColumns",
+				"selectRenameColumns derive(LastUpdateTS = currentTimestamp(),",
+				"          MilestoneChangeID = concat(Division,'-',toString(LP_MilestoneChangeID)),",
+				"          EmployeeID = concat(Division,'-',toString(LP_EmployeeID)),",
+				"          JobID = concat(Division,'-',toString(LP_JobID)),",
+				"          MilestoneDateTypeID = concat(Division,'-',toString(LP_MilestoneDateTypeID))) ~> derivedColumns",
+				"MXH derive(Division = 'MXH') ~> addOpCoNameMXH",
+				"CTA derive(Division = 'CTA') ~> addOpCoNameCTA",
+				"derivedColumns sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          MilestoneChangeID as string,",
+				"          MilestoneDateTypeID as string,",
+				"          JobID as string,",
+				"          EmployeeID as string,",
+				"          EstimatedDate as timestamp,",
+				"          ActualDate as timestamp,",
+				"          ActualTime as string,",
+				"          OldActualDate as timestamp,",
+				"          OldActualTime as string,",
+				"          OldestDate as timestamp,",
+				"          DateChanged as timestamp,",
+				"          LP_MilestoneChangeID as integer,",
+				"          LP_MilestoneDateTypeID as string,",
+				"          LP_JobID as integer,",
+				"          LP_EmployeeID as integer,",
+				"          Division as string,",
+				"          LastUpdateTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     truncate:true,",
+				"     format: 'table',",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          LP_MilestoneChangeID,",
+				"          LP_EmployeeID,",
+				"          DateChanged,",
+				"          LP_JobID,",
+				"          LP_MilestoneDateTypeID,",
+				"          EstimatedDate,",
+				"          ActualDate,",
+				"          ActualTime,",
+				"          OldestDate,",
+				"          OldActualDate,",
+				"          OldActualTime,",
+				"          Division,",
+				"          LastUpdateTS,",
+				"          MilestoneChangeID,",
+				"          EmployeeID,",
+				"          JobID,",
+				"          MilestoneDateTypeID",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> targetFact"
+			]
+		}
+	}
+}

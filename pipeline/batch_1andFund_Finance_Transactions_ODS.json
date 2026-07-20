@@ -1,0 +1,369 @@
+{
+	"name": "batch_1andFund_Finance_Transactions_ODS",
+	"properties": {
+		"activities": [
+			{
+				"name": "ODS",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Get the JobResults to Blob",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.03:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "JsonSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"wildcardFolderPath": "transactions",
+							"wildcardFileName": {
+								"value": "@concat('TransactionExport_',formatDateTime(convertTimeZone(utcNow(), 'UTC', 'Eastern Standard Time'),'yyyy-MM-dd'),'.json')",
+								"type": "Expression"
+							},
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "JsonReadSettings"
+						}
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "Truncate table ODS.FINANCE_TRANSACTIONS",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "$['transaction_id']"
+								},
+								"sink": {
+									"name": "TransactionId",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['application_id']"
+								},
+								"sink": {
+									"name": "ApplicationId",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['application_friendly_id']"
+								},
+								"sink": {
+									"name": "ApplicationFriendlyId",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['source_platform_id']"
+								},
+								"sink": {
+									"name": "SourcePlatformId",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['project_number']"
+								},
+								"sink": {
+									"name": "ProjectNumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['project_amount']"
+								},
+								"sink": {
+									"name": "ProjectAmount",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['integration_name']"
+								},
+								"sink": {
+									"name": "IntegrationName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['account_info']"
+								},
+								"sink": {
+									"name": "AccountInfo",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['disbursement_number']"
+								},
+								"sink": {
+									"name": "DisbursementNumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['stage']"
+								},
+								"sink": {
+									"name": "Stage",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['internal_status']"
+								},
+								"sink": {
+									"name": "InternalStatus",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['requested_amount']"
+								},
+								"sink": {
+									"name": "RequestedAmount",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['lender_fee']"
+								},
+								"sink": {
+									"name": "LenderFee",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['net_amount']"
+								},
+								"sink": {
+									"name": "NetAmount",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['transaction_date']"
+								},
+								"sink": {
+									"name": "TransactionDate",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['lender_updated_date']"
+								},
+								"sink": {
+									"name": "LenderUpdatedDate",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ONEANDFUND_API_RESPONSE_TRANSACTIONS",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_CTA_TEST_DYN_DIM_CUSTOMER",
+						"type": "DatasetReference",
+						"parameters": {
+							"SchemaName": "ODS",
+							"TableName": "FINANCE_TRANSACTIONS"
+						}
+					}
+				]
+			},
+			{
+				"name": "Get JobId",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "GetBearerToken",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "Select JobId from ODS.FINANCE_API_RESPONSE_RAW where Id = (Select Max(Id) from ODS.FINANCE_API_RESPONSE_RAW Where ExportType='transactions')"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "GetBearerToken",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"url": "https://auth.1andfund.com/oauth/token",
+					"connectVia": {
+						"referenceName": "AutoResolveIntegrationRuntime",
+						"type": "IntegrationRuntimeReference"
+					},
+					"body": {
+						"value": "@concat('{\n    \"client_id\":\"',pipeline().parameters.client_id,'\",\n    \"client_secret\":\"',pipeline().parameters.client_secret,'\",\n    \"audience\":\"',pipeline().parameters.audience,'\",\n    \"grant_type\":\"client_credentials\"\n}')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Get the JobResults to Blob",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Get JobId",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.03:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "JsonSource",
+						"storeSettings": {
+							"type": "HttpReadSettings",
+							"requestMethod": "GET",
+							"additionalHeaders": {
+								"value": "@concat('Authorization: Bearer ',\n        activity('GetBearerToken').output.access_token,\n    '\n    X-1LOOK-SALES-REPRESENTATIVE: ',pipeline().parameters.Email)",
+								"type": "Expression"
+							},
+							"requestTimeout": ""
+						},
+						"formatSettings": {
+							"type": "JsonReadSettings"
+						}
+					},
+					"sink": {
+						"type": "JsonSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "JsonWriteSettings"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "ONEANDFUND_API_CALL_JSON",
+						"type": "DatasetReference",
+						"parameters": {
+							"JOBID": {
+								"value": "@activity('Get JobId').output.resultSets[0].rows[0].JobId",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ONEANDFUND_API_RESPONSE_TRANSACTIONS",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"parameters": {
+			"client_id": {
+				"type": "string",
+				"defaultValue": "drb9gdBg7uEAMsUoISNppaHfZ5QMt5F7"
+			},
+			"client_secret": {
+				"type": "string",
+				"defaultValue": "tmKl9I-LRYVAmV11O5lEYWTTUqdFND76mIEiTr49HdlUmzfhkj-iM2CrkTcInld1"
+			},
+			"audience": {
+				"type": "string",
+				"defaultValue": "https://staging.1andfund.com/"
+			},
+			"BaseURL": {
+				"type": "string",
+				"defaultValue": "https://staging.1andfund.com/api"
+			},
+			"Email": {
+				"type": "string",
+				"defaultValue": "amohammed@renuityhome.com"
+			}
+		},
+		"folder": {
+			"name": "1andFund to EDW"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-02-03T11:03:05Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

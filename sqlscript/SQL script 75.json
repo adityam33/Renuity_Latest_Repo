@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 75",
+	"properties": {
+		"content": {
+			"query": "-- Main ODS Table (without raw_payload)\nCREATE TABLE ODS.ODS_ASANA_GOALS (\n    goal_gid NVARCHAR(50) NOT NULL,\n    goal_name NVARCHAR(255),\n    owner_gid NVARCHAR(50),\n    owner_name NVARCHAR(255),\n    resource_type NVARCHAR(50),\n    is_deleted BIT DEFAULT 0,\n    load_timestamp DATETIME2\n)\nWITH (\n    DISTRIBUTION = HASH(goal_gid),  \n    CLUSTERED COLUMNSTORE INDEX  -- Optimized for analytics\n);\n\n-- Separate Table for Storing raw JSON\nCREATE TABLE ODS.ODS_ASANA_GOALS_RAW (\n    goal_gid NVARCHAR(50) NOT NULL,  \n    raw_payload NVARCHAR(MAX),\n    CONSTRAINT PK_ASANA_GOALS_RAW PRIMARY KEY NONCLUSTERED (goal_gid) NOT ENFORCED  -- Add NOT ENFORCED\n)\nWITH (\n    DISTRIBUTION = HASH(goal_gid),  \n    HEAP  -- HEAP storage is required for NVARCHAR(MAX)\n);\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

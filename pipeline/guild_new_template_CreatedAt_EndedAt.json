@@ -1,0 +1,390 @@
+{
+	"name": "guild_new_template_CreatedAt_EndedAt",
+	"properties": {
+		"activities": [
+			{
+				"name": "SetDatVariable",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "FileTimeStamp",
+					"value": {
+						"value": "@formatDateTime(convertTimeZone(utcnow(),'UTC','Eastern Standard Time'),'yyyy-MM-dd')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Cp_GQ_Survey_Created_Date",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "SetDatVariable",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:01:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "GET",
+						"additionalHeaders": {
+							"Authorization": "Bearer Ale3uCQ4M77NgvhF"
+						},
+						"paginationRules": {
+							"AbsoluteUrl": "$.links.next",
+							"EndCondition:$.links.next": "Empty",
+							"supportRFC5988": "true"
+						}
+					},
+					"sink": {
+						"type": "JsonSink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings"
+						},
+						"formatSettings": {
+							"type": "JsonWriteSettings"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "Prod_GQ_All_Surveys_CreatedAt_New_Template",
+						"type": "DatasetReference",
+						"parameters": {
+							"Date": {
+								"value": "@variables('FileTimeStamp')",
+								"type": "Expression"
+							},
+							"InsertDateFilter": {
+								"value": "@pipeline().parameters.InsertDatefilter",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "Prod_GQ_Survey_Json_CreatedAt_New_Survey",
+						"type": "DatasetReference",
+						"parameters": {
+							"Date": {
+								"value": "@variables('FileTimeStamp')",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "Cp_GQ_Survey_Ended_Date",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "SetDatVariable",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:01:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "GET",
+						"additionalHeaders": {
+							"Authorization": "Bearer Ale3uCQ4M77NgvhF"
+						},
+						"paginationRules": {
+							"AbsoluteUrl": "$.links.next",
+							"EndCondition:$.links.next": "Empty",
+							"supportRFC5988": "true"
+						}
+					},
+					"sink": {
+						"type": "JsonSink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings"
+						},
+						"formatSettings": {
+							"type": "JsonWriteSettings"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "Prod_GQ_All_Surveys_EndedAt_New_Template",
+						"type": "DatasetReference",
+						"parameters": {
+							"Date": {
+								"value": "@variables('FileTimeStamp')",
+								"type": "Expression"
+							},
+							"UpsertDateFilter": {
+								"value": "@pipeline().parameters.UpsertDatefilter",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "Prod_GQ_Survey_Json_EndedAt_New_Survey",
+						"type": "DatasetReference",
+						"parameters": {
+							"Date": {
+								"value": "@variables('FileTimeStamp')",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "DNS_Surveys",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "Installation_Surveys",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_guild_quality_API_Response_to_ODS_DNS_New_Template",
+						"type": "DataFlowReference",
+						"datasetParameters": {
+							"sourceJson": {
+								"Date": {
+									"value": "@variables('FileTimeStamp')",
+									"type": "Expression"
+								}
+							}
+						}
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdctestanuj/AkshayTest/rejectedrows"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "Installation_Surveys",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "Cp_GQ_Survey_Created_Date",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Cp_GQ_Survey_Ended_Date",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_guild_quality_API_Response_to_ODS_Installation_New_Template",
+						"type": "DataFlowReference",
+						"datasetParameters": {
+							"sourceJson": {
+								"Date": {
+									"value": "@variables('FileTimeStamp')",
+									"type": "Expression"
+								}
+							}
+						}
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdctestanuj/AkshayTest/rejectedrows"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "Installation_Surveys_By_EndedAt",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "DNS_Surveys",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_guild_quality_API_Response_to_ODS_Installation_By_EndedAt_New_Template",
+						"type": "DataFlowReference",
+						"datasetParameters": {
+							"sourceJson": {
+								"Date": {
+									"value": "@variables('FileTimeStamp')",
+									"type": "Expression"
+								}
+							}
+						}
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdctestanuj/AkshayTest/rejectedrows"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "DNS_Surveys_By_EndedAt",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "Installation_Surveys_By_EndedAt",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_guild_quality_API_Response_to_ODS_DNS_EndedAt_New_Template",
+						"type": "DataFlowReference",
+						"datasetParameters": {
+							"sourceJson": {
+								"Date": {
+									"value": "@variables('FileTimeStamp')",
+									"type": "Expression"
+								}
+							}
+						}
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdctestanuj/AkshayTest/rejectedrows"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			}
+		],
+		"parameters": {
+			"InsertDatefilter": {
+				"type": "string",
+				"defaultValue": "createdAt"
+			},
+			"UpsertDatefilter": {
+				"type": "string",
+				"defaultValue": "endedAt"
+			}
+		},
+		"variables": {
+			"NextPageUrl": {
+				"type": "String"
+			},
+			"AllRecordsArray": {
+				"type": "Array"
+			},
+			"FileTimeStamp": {
+				"type": "String",
+				"defaultValue": "2024-09-01"
+			}
+		},
+		"folder": {
+			"name": "ODS_to_EDW/FACTS/GuildQuality/New Template"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-10-22T16:29:40Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

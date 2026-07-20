@@ -1,0 +1,118 @@
+{
+	"name": "df_load_DIM_VENDORLOG_ZML",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ZML_ODS_FHI_vlg_vendorlog",
+						"type": "DatasetReference"
+					},
+					"name": "FHI"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "vlg_vendor_target",
+						"type": "DatasetReference"
+					},
+					"name": "targetDim",
+					"description": "Export data to EDW.DIM_VendorLog",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "unionAllDivisions"
+				},
+				{
+					"name": "AddUpdateTimestamp"
+				},
+				{
+					"name": "alterRow"
+				},
+				{
+					"name": "selectFHI"
+				},
+				{
+					"name": "createDsFHI"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          id as integer,",
+				"          job_id as integer,",
+				"          vnd_id as integer,",
+				"          ETA as timestamp,",
+				"          REC as timestamp,",
+				"          Notes as string,",
+				"          EnteredOn as timestamp,",
+				"          EnteredBy as integer,",
+				"          UpdatedOn as timestamp,",
+				"          UpdatedBy as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> FHI",
+				"createDsFHI union(byName: true)~> unionAllDivisions",
+				"unionAllDivisions derive(LastUpdateTS = currentTimestamp()) ~> AddUpdateTimestamp",
+				"AddUpdateTimestamp alterRow(upsertIf(true())) ~> alterRow",
+				"FHI select(mapColumn(",
+				"          LP_VendorLogID = id,",
+				"          LP_JobID = job_id,",
+				"          LP_VendorID = vnd_id,",
+				"          ETA,",
+				"          REC,",
+				"          Notes,",
+				"          EnteredOn,",
+				"          EnteredBy,",
+				"          UpdatedOn,",
+				"          UpdatedBy",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectFHI",
+				"selectFHI derive(Division = 'FHI',",
+				"          VendorLogID = concat('FHI-',toString(LP_VendorLogID)),",
+				"          JobID = concat('FHI-',toString(LP_JobID)),",
+				"          VendorID = concat('FHI-',toString(LP_VendorID))) ~> createDsFHI",
+				"alterRow sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['VendorLogID'],",
+				"     format: 'table',",
+				"     staged: true,",
+				"     allowCopyCommand: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          LP_VendorLogID,",
+				"          LP_JobID,",
+				"          LP_VendorID,",
+				"          ETA,",
+				"          REC,",
+				"          Notes,",
+				"          EnteredOn,",
+				"          EnteredBy,",
+				"          UpdatedOn,",
+				"          UpdatedBy,",
+				"          Division,",
+				"          VendorLogID,",
+				"          JobID,",
+				"          VendorID,",
+				"          LastUpdateTS",
+				"     )) ~> targetDim"
+			]
+		}
+	}
+}

@@ -1,0 +1,17 @@
+{
+	"name": "Perf Mkt - Pacific - Zip Level Performance",
+	"properties": {
+		"content": {
+			"query": "SELECT\nzipPerf.[ZipCode]\n,zipPerf.[HouseholdsPerZipCode]\n,zipPerf.[AverageHouseValue]\n,zipPerf.[IncomePerHousehold]\n,zipPerf.[PopulationEstimate]\n,zipPerf.[MedianAge]\n,sum(case when EntryMonth between '2023-01-01' and '2023-03-31' then NetSalesAmount else 0 end) as [3MoNetSalesAmount]\n,sum([NetSalesAmount]) as [NetSalesAmount]\n,zonda.[Overall_Remodeling_Composite_Ranking_Index]\n,zonda.[Baths_Composite_Ranking_Index]\n,zonda.[Windows_Composite_Ranking_Index]\n,sum([LeadCount]) as [LeadCount]\n,sum(case when EntryMonth between '2023-01-01' and '2023-03-31' then LeadCount else 0 end) as [3MoLeadCount]\n,sum([ApptSet]) as [ApptSet]\n,sum(case when EntryMonth between '2023-01-01' and '2023-03-31' then ApptSet else 0 end) as [3MoApptSet]\n,sum([NetSold]) as [NetSold]\n,sum(case when EntryMonth between '2023-01-01' and '2023-03-31' then NetSold else 0 end) as [3MoNetSold]\n,zipPerf.[City]\n,zipPerf.[County]\n,zipPerf.[State]\n,zipPerf.[County] + ' (' + zipPerf.[State] + ')' as CountyStateCombo\nFROM \n(\n    SELECT distinct\n    [ZipCode]\n    FROM [EDW].[DIM_BRANCH_ZIP]\n    where\n    Division = 'PBC'\n) divZip\nleft join [EDW].[SUMM_FACT_ZIP_CODE_PERFORMANCE] zipPerf\non divZip.ZipCode = zipPerf.ZipCode\nleft join ODS.MKTDATA_ZONDA_ZIP_CODE_INDEX zonda\non zipPerf.ZipCode = zonda.ZipCode\ngroup by \nzipPerf.[ZipCode]\n,zipPerf.[HouseholdsPerZipCode]\n,zipPerf.[AverageHouseValue]\n,zipPerf.[IncomePerHousehold]\n,zipPerf.[PopulationEstimate]\n,zipPerf.[MedianAge]\n,zonda.[Overall_Remodeling_Composite_Ranking_Index]\n,zonda.[Baths_Composite_Ranking_Index]\n,zonda.[Windows_Composite_Ranking_Index]\n,zipPerf.[City]\n,zipPerf.[County]\n,zipPerf.[State]\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

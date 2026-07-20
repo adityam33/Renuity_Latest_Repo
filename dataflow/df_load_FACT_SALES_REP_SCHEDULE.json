@@ -1,0 +1,310 @@
+{
+	"name": "df_load_FACT_SALES_REP_SCHEDULE",
+	"properties": {
+		"folder": {
+			"name": "ODS_to_EDW/FACTS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_FHI_sls_SalesSchedule",
+						"type": "DatasetReference"
+					},
+					"name": "FHI"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_HSI_sls_SalesSchedule",
+						"type": "DatasetReference"
+					},
+					"name": "HSI"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_MAC_sls_SalesSchedule",
+						"type": "DatasetReference"
+					},
+					"name": "MAC"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_PBC_sls_SalesSchedule",
+						"type": "DatasetReference"
+					},
+					"name": "PBC"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_SWR_sls_SalesSchedule",
+						"type": "DatasetReference"
+					},
+					"name": "SWR"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_RTW_sls_SalesSchedule",
+						"type": "DatasetReference"
+					},
+					"name": "RTW"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_MXH_sls_SalesSchedule",
+						"type": "DatasetReference"
+					},
+					"name": "MXH"
+				},
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_CTA_sls_SalesSchedule",
+						"type": "DatasetReference"
+					},
+					"name": "CTA"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_FACT_SALES_REP_SCHEDULE",
+						"type": "DatasetReference"
+					},
+					"name": "targeFact",
+					"description": "Export data to EDW_FACT_SALES_REP_SCHEDULE",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "RenameColsFHI"
+				},
+				{
+					"name": "CreateDivFHI"
+				},
+				{
+					"name": "unionAllOpCos"
+				},
+				{
+					"name": "createIDs"
+				},
+				{
+					"name": "CreateDivHSI"
+				},
+				{
+					"name": "CreateDivMAC"
+				},
+				{
+					"name": "CreateDivPBC"
+				},
+				{
+					"name": "CreateDivSWR"
+				},
+				{
+					"name": "createDivRTW"
+				},
+				{
+					"name": "CreateDivMXH"
+				},
+				{
+					"name": "CreateDivCTA"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          id as integer,",
+				"          SDate as timestamp,",
+				"          brn_id as string,",
+				"          slr_id as integer,",
+				"          tms_id as integer,",
+				"          DateChanged as timestamp,",
+				"          Status as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> FHI",
+				"source(output(",
+				"          id as integer,",
+				"          SDate as timestamp,",
+				"          brn_id as string,",
+				"          slr_id as integer,",
+				"          tms_id as integer,",
+				"          DateChanged as timestamp,",
+				"          Status as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> HSI",
+				"source(output(",
+				"          id as integer,",
+				"          SDate as timestamp,",
+				"          brn_id as string,",
+				"          slr_id as integer,",
+				"          tms_id as integer,",
+				"          DateChanged as timestamp,",
+				"          Status as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> MAC",
+				"source(output(",
+				"          id as integer,",
+				"          SDate as timestamp,",
+				"          brn_id as string,",
+				"          slr_id as integer,",
+				"          tms_id as integer,",
+				"          DateChanged as timestamp,",
+				"          Status as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> PBC",
+				"source(output(",
+				"          id as integer,",
+				"          SDate as timestamp,",
+				"          brn_id as string,",
+				"          slr_id as integer,",
+				"          tms_id as integer,",
+				"          DateChanged as timestamp,",
+				"          Status as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> SWR",
+				"source(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> RTW",
+				"source(output(",
+				"          id as integer,",
+				"          SDate as timestamp,",
+				"          brn_id as string,",
+				"          slr_id as integer,",
+				"          tms_id as integer,",
+				"          DateChanged as timestamp,",
+				"          Status as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> MXH",
+				"source(output(",
+				"          id as integer,",
+				"          SDate as timestamp,",
+				"          brn_id as string,",
+				"          slr_id as integer,",
+				"          tms_id as integer,",
+				"          DateChanged as timestamp,",
+				"          Status as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> CTA",
+				"unionAllOpCos select(mapColumn(",
+				"          LP_SalesRep_ScheduleID = id,",
+				"          Schedule_Date = SDate,",
+				"          LP_BranchID = brn_id,",
+				"          LP_SalesRepID = slr_id,",
+				"          LP_TimeSlotID = tms_id,",
+				"          DateChanged,",
+				"          Status,",
+				"          Division",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> RenameColsFHI",
+				"FHI derive(Division = 'FHI') ~> CreateDivFHI",
+				"CreateDivFHI, CreateDivHSI, CreateDivMAC, CreateDivPBC, CreateDivSWR, createDivRTW, CreateDivMXH, CreateDivCTA union(byName: true)~> unionAllOpCos",
+				"RenameColsFHI derive(SalesRep_ScheduleID = concat(Division,'-',toString(LP_SalesRep_ScheduleID)),",
+				"          BranchID = concat(Division,'-',toString(LP_BranchID)),",
+				"          SalesRepID = concat(Division,'-',toString(LP_SalesRepID)),",
+				"          TimeSlotID = concat(Division,'-',toString(LP_TimeSlotID)),",
+				"          LastUpdateTS = currentTimestamp()) ~> createIDs",
+				"HSI derive(Division = 'HSI') ~> CreateDivHSI",
+				"MAC derive(Division = 'MAC') ~> CreateDivMAC",
+				"PBC derive(Division = 'PBC') ~> CreateDivPBC",
+				"SWR derive(Division = 'SWR') ~> CreateDivSWR",
+				"RTW derive(Division = 'RTW') ~> createDivRTW",
+				"MXH derive(Division = 'MXH') ~> CreateDivMXH",
+				"CTA derive(Division = 'CTA') ~> CreateDivCTA",
+				"createIDs sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          AppointmentID as string,",
+				"          CustomerID as string,",
+				"          LeadID as string,",
+				"          DispositionID as string,",
+				"          RankID as string,",
+				"          SetBy as string,",
+				"          VerifiedBy as string,",
+				"          ConfirmedBy as string,",
+				"          ApptDate as timestamp,",
+				"          SetDate as timestamp,",
+				"          VerifiedDate as timestamp,",
+				"          ConfirmedDate as timestamp,",
+				"          LastChangedDate as timestamp,",
+				"          ApptSet as boolean,",
+				"          Verified as boolean,",
+				"          Confirmed as boolean,",
+				"          Issued as boolean,",
+				"          NetIssued as boolean,",
+				"          Sat as boolean,",
+				"          Sold as boolean,",
+				"          LP_AppointmentID as integer,",
+				"          LP_CustomerID as integer,",
+				"          LP_LeadID as integer,",
+				"          LP_RankID as integer,",
+				"          LP_DispositionID as string,",
+				"          LP_SetBy as integer,",
+				"          LP_VerifiedBy as integer,",
+				"          LP_ConfirmedBy as integer,",
+				"          Division as string,",
+				"          LastUpdateTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     truncate:true,",
+				"     format: 'table',",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          LP_SalesRep_ScheduleID,",
+				"          Schedule_Date,",
+				"          LP_BranchID,",
+				"          LP_SalesRepID,",
+				"          LP_TimeSlotID,",
+				"          DateChanged,",
+				"          Status,",
+				"          Division,",
+				"          SalesRep_ScheduleID,",
+				"          BranchID,",
+				"          SalesRepID,",
+				"          TimeSlotID,",
+				"          LastUpdateTS",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> targeFact"
+			]
+		}
+	}
+}

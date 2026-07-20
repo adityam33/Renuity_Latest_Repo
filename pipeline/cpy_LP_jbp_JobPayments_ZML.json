@@ -1,0 +1,469 @@
+{
+	"name": "cpy_LP_jbp_JobPayments_ZML",
+	"properties": {
+		"activities": [
+			{
+				"name": "FHI",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:40:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT \nid\t,\njob_id\t,\nPmtAmount\t,\nPmtDate\t,\npmt_id\t,\npmm_id\t,\nARBatchNo\t,\nARBatchDate\t,\nARBatchFlag\t,\nIncBatchNo\t,\nIncBatchDate\t,\nIncBatchFlag\t,\nEnteredOn\t,\nEnteredBy\t,\nLastChangedOn\t,\nLastChangedBy\t,\nPmtNotes\t\n\n\nFROM dbo.jbp_JobPayments WITH (NOLOCK)\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE [ZML].[LP_FHI_jbp_JobPayments]",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "job_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "job_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "PmtAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "PmtAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "PmtDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "PmtDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "pmt_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "pmt_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "pmm_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "pmm_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ARBatchNo",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "ARBatchNo",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "ARBatchDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "ARBatchDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "ARBatchFlag",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "ARBatchFlag",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "IncBatchNo",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "IncBatchNo",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "IncBatchDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "IncBatchDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "IncBatchFlag",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "IncBatchFlag",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "LastChangedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastChangedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "LastChangedBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "LastChangedBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "PmtNotes",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PmtNotes",
+									"type": "String"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_ZML_FHI_aph_AlternatePhones",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ZML_ODS_FHI_jbp_JobPayments",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "MXH",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:40:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT \nid\t,\njob_id\t,\nPmtAmount\t,\nPmtDate\t,\npmt_id\t,\npmm_id\t,\nARBatchNo\t,\nARBatchDate\t,\nARBatchFlag\t,\nIncBatchNo\t,\nIncBatchDate\t,\nIncBatchFlag\t,\nEnteredOn\t,\nEnteredBy\t,\nLastChangedOn\t,\nLastChangedBy\t,\nPmtNotes\t\n\n\nFROM dbo.jbp_JobPayments WITH (NOLOCK)\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE [ZML].[LP_MXH_jbp_JobPayments]",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "job_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "job_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "PmtAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "PmtAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "PmtDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "PmtDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "pmt_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "pmt_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "pmm_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "pmm_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ARBatchNo",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "ARBatchNo",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "ARBatchDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "ARBatchDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "ARBatchFlag",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "ARBatchFlag",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "IncBatchNo",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "IncBatchNo",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "IncBatchDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "IncBatchDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "IncBatchFlag",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "IncBatchFlag",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "LastChangedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastChangedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "LastChangedBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "LastChangedBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "PmtNotes",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PmtNotes",
+									"type": "String"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_ZML_MXH_aph_AlternatePhones",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ZML_ODS_MXH_jbp_JobPayments",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "Temp/Anuj/ZML/LP_to_ODS_ZML"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-11-05T14:55:21Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

@@ -1,0 +1,429 @@
+{
+	"name": "cpy_LP_Com_Commissions_ZML",
+	"properties": {
+		"activities": [
+			{
+				"name": "FHI",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT \nID\t,\nJob_ID\t,\nPmtAmount\t,\ncpt_ID\t,\nslr_id\t,\nEnteredOn\t,\nEnteredBy\t,\nUpdatedOn\t,\nUpdatedBy\t,\nBatchFlag\t,\nBatchNo\t,\nBatchDate\t,\nCoCode\t,\nFileNo\t,\nComments\t\n\nFROM dbo.Com_Commissions WITH (NOLOCK)",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE [ZML].[LP_FHI_Com_Commissions]",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Job_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Job_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "PmtAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "PmtAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "cpt_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "cpt_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "slr_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "slr_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "UpdatedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "UpdatedBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchFlag",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "BatchFlag",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchNo",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "BatchNo",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "BatchDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "CoCode",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CoCode",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "FileNo",
+									"type": "String"
+								},
+								"sink": {
+									"name": "FileNo",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Comments",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Comments",
+									"type": "String"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_ZML_FHI_aph_AlternatePhones",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ZML_ODS_FHI_Com_Commissions",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "MXH",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT \nID\t,\nJob_ID\t,\nPmtAmount\t,\ncpt_ID\t,\nslr_id\t,\nEnteredOn\t,\nEnteredBy\t,\nUpdatedOn\t,\nUpdatedBy\t,\nBatchFlag\t,\nBatchNo\t,\nBatchDate\t,\nCoCode\t,\nFileNo\t,\nComments\t\n\nFROM dbo.Com_Commissions WITH (NOLOCK)",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE [ZML].[LP_MXH_Com_Commissions]",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Job_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Job_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "PmtAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "PmtAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "cpt_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "cpt_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "slr_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "slr_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "EnteredOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EnteredBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedOn",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "UpdatedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "UpdatedBy",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "UpdatedBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchFlag",
+									"type": "Boolean"
+								},
+								"sink": {
+									"name": "BatchFlag",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchNo",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "BatchNo",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "BatchDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "BatchDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "CoCode",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CoCode",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "FileNo",
+									"type": "String"
+								},
+								"sink": {
+									"name": "FileNo",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Comments",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Comments",
+									"type": "String"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_ZML_MXH_aph_AlternatePhones",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ZML_ODS_MXH_Com_Commissions",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "Temp/Anuj/ZML/LP_to_ODS_ZML"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-11-05T10:42:05Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

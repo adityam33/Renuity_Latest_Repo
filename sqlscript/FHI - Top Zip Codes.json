@@ -1,0 +1,20 @@
+{
+	"name": "FHI - Top Zip Codes",
+	"properties": {
+		"folder": {
+			"name": "DMLs/Analysis SQL/Performance Marketing"
+		},
+		"content": {
+			"query": "SELECT\nservZips.ZipCode\n,zonda.[Overall_Remodeling_Composite_Ranking_Index]\n,zonda.[Baths_Composite_Ranking_Index]\n,zonda.[Windows_Composite_Ranking_Index]\n,zonda.[MSA]\n,zonda.[State]\n,zonda.[County]\n,zonda.[City]\n,zonda.[Total_Households]\n,zonda.[Median_Home_Price]\n,zonda.[Median_Year_Built]\n,zipPerf.GrossSalesAmount\n,zipPerf.RawLeadCount\n,zipPerf.SoldLeadCount\nFROM\n(\n    SELECT distinct\n    [ZipCode]\n    FROM \n    [EDW].[DIM_ERP_BRANCH_ZIP]\n    where \n    OperatingCompany = 'FHI'\n) servZips\n,(\n    SELECT\n    [Zip]\n    ,sum(lds.GrossSalesAmount) as GrossSalesAmount\n    ,count(lds.LeadID) as RawLeadCount\n    ,sum(case when lds.Sold = 'True' then 1 else 0 end) as SoldLeadCount\n    FROM \n    [EDW].[DIM_CUSTOMER] cst\n    ,[EDW].[FACT_LEAD] lds\n    WHERE\n    lds.CustomerID = cst.CustomerID\n    and lds.[OperatingCompany] = 'FHI'\n    group BY\n    [Zip]\n) zipPerf\n,[ODS].[MKTDATA_ZONDA_ZIP_CODE_INDEX] zonda\nWHERE\nservZips.ZipCode = zonda.ZipCode\nand servZips.ZipCode = zipPerf.Zip\norder BY\nCAST(Overall_Remodeling_Composite_Ranking_Index AS DECIMAL (5, 2)) desc\n,CAST(zonda.[Total_Households] as INT) desc",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

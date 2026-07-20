@@ -1,0 +1,20 @@
+{
+	"name": "DML_SUMM_FACT_SALESREP_PERFORMANCE",
+	"properties": {
+		"folder": {
+			"name": "DMLs/EDW Load"
+		},
+		"content": {
+			"query": "SELECT \n[Division]\n,[SalesRep1_EmployeeID] as SalesRep_EmployeeID\n,1 as SalesRepPosition\n,COUNT([IssuedLeadID]) AS IssuedLeadCount\n,MIN([ApptDate]) as EarliestAppointmentDate\n,sum(case when [NetIssued] = 'True' then 1 else 0 end) as NetIssuedCount\n,sum(case when [Sat] = 'True' then 1 else 0 end) as SatCount\n,sum(case when [Sold] = 'True' then 1 else 0 end) as SoldCount\n,sum([GrossSalesAmount]) as GrossSalesAmount\n FROM [EDW].[FACT_ISSUED_LEAD]\n group BY\n[Division]\n,[SalesRep1_EmployeeID]\nUNION\nSELECT \n[Division]\n,[SalesRep2_EmployeeID] as SalesRep_EmployeeID\n,2 as SalesRepPosition\n,COUNT([IssuedLeadID]) AS IssuedLeadCount\n,MIN([ApptDate]) as EarliestAppointmentDate\n,sum(case when [NetIssued] = 'True' then 1 else 0 end) as NetIssuedCount\n,sum(case when [Sat] = 'True' then 1 else 0 end) as SatCount\n,sum(case when [Sold] = 'True' then 1 else 0 end) as SoldCount\n,sum([GrossSalesAmount]) as GrossSalesAmount\n FROM [EDW].[FACT_ISSUED_LEAD]\n group BY\n[Division]\n,[SalesRep2_EmployeeID]",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

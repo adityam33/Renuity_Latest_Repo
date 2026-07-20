@@ -1,0 +1,185 @@
+{
+	"name": "cpy_LP_prd_ProductOnOrder",
+	"properties": {
+		"activities": [
+			{
+				"name": "cpy_RTW_prd_ProductOnOrder",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT * FROM dbo.prd_ProductOnOrder WITH (NOLOCK)",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE ODS.LP_RTW_prd_ProductOnOrder",
+						"allowCopyCommand": true,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "staging"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "job_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Job_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "vnd_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Vnd_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "invoicenum",
+									"type": "String"
+								},
+								"sink": {
+									"name": "InvoiceNum",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "numwindows",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "NumWindows",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "numdoors",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "NumDoors",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "numpatiodoors",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "NumpatioDoors",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "enteredon",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "Enteredon",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "enteredby",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Enteredby",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "updatedon",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "UpdatedOn",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "updatedby",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "UpdatedBy",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "DeliveryETA",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "DeliveryETA",
+									"type": "DateTime"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_RTW_prd_ProductOnOrder",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_RTW_prd_ProductOnOrder",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "SRC_to_ODS/CRM/LP"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-02-03T04:26:39Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

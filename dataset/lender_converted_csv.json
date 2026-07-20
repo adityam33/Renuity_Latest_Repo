@@ -1,0 +1,62 @@
+{
+	"name": "lender_converted_csv",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureBlobStorage1",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"LenderName": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": {
+					"value": "@concat(dataset().LenderName, '_raw.csv')",
+					"type": "Expression"
+				},
+				"folderPath": "foundation_raw",
+				"container": "sameen"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "Dealer",
+				"type": "String"
+			},
+			{
+				"name": "Month MMYYYY",
+				"type": "String"
+			},
+			{
+				"name": "FICO Band",
+				"type": "String"
+			},
+			{
+				"name": "App #",
+				"type": "String"
+			},
+			{
+				"name": "App $",
+				"type": "String"
+			},
+			{
+				"name": "Approved #",
+				"type": "String"
+			},
+			{
+				"name": "Approved $",
+				"type": "String"
+			}
+		]
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}

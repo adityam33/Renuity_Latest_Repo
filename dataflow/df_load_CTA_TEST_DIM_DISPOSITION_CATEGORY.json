@@ -1,0 +1,115 @@
+{
+	"name": "df_load_CTA_TEST_DIM_DISPOSITION_CATEGORY",
+	"properties": {
+		"folder": {
+			"name": "Test-Dataflows"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_CTA_TEST_DYN_cst_Customers",
+						"type": "DatasetReference"
+					},
+					"name": "RTW"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_CTA_TEST_DYN_DIM_CUSTOMER",
+						"type": "DatasetReference"
+					},
+					"name": "targetDim",
+					"description": "Export data to EDW_DIM_DISPOSITION_CATEGORY",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "addLastUpdateTimestamp"
+				},
+				{
+					"name": "selectRTW"
+				},
+				{
+					"name": "createIDsRTW"
+				},
+				{
+					"name": "AlterRow"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          ID as integer,",
+				"          Descr as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> RTW",
+				"createIDsRTW derive(LastUpdateTS = currentTimestamp()) ~> addLastUpdateTimestamp",
+				"RTW select(mapColumn(",
+				"          LP_DispositionCategoryID = ID,",
+				"          DispositionCategory = Descr",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectRTW",
+				"selectRTW derive(DispositionCategoryID = concat('RTW-',toString(LP_DispositionCategoryID)),",
+				"          Division = 'RTW') ~> createIDsRTW",
+				"addLastUpdateTimestamp alterRow(upsertIf(true())) ~> AlterRow",
+				"AlterRow sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          CustomerID as string,",
+				"          LeadID as string,",
+				"          FirstName as string,",
+				"          LastName as string,",
+				"          Address1 as string,",
+				"          Address2 as string,",
+				"          City as string,",
+				"          State as string,",
+				"          Zip as string,",
+				"          Zip4 as string,",
+				"          Phone as string,",
+				"          Email as string,",
+				"          CallMorning as boolean,",
+				"          CallAfternoon as boolean,",
+				"          CallEvening as boolean,",
+				"          CallWeekend as boolean,",
+				"          CreditRating as string,",
+				"          LP_DateAdded as timestamp,",
+				"          LP_LastChanged as timestamp,",
+				"          LP_CustomerID as integer,",
+				"          LP_LeadID as string,",
+				"          Division as string,",
+				"          LastUpdateTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['DispositionCategoryID'],",
+				"     format: 'table',",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          LP_DispositionCategoryID,",
+				"          DispositionCategory,",
+				"          DispositionCategoryID,",
+				"          Division,",
+				"          LastUpdateTS",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> targetDim"
+			]
+		}
+	}
+}

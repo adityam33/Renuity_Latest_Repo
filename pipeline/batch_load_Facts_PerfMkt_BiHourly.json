@@ -1,0 +1,45 @@
+{
+	"name": "batch_load_Facts_PerfMkt_BiHourly",
+	"properties": {
+		"activities": [
+			{
+				"name": "Ad Performance metrics-Campaign Metro",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_FACT_AD_PERFORMANCE_METRICS",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Ad Performance Metrics Detail",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "df_load_Fact_Ad_Performance_Metrics_Detail",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/FACTS/PerformanceMarketing"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-03-11T08:24:32Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

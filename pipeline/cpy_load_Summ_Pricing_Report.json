@@ -1,0 +1,1318 @@
+{
+	"name": "cpy_load_Summ_Pricing_Report",
+	"properties": {
+		"activities": [
+			{
+				"name": "SwitchCondition",
+				"type": "Switch",
+				"dependsOn": [
+					{
+						"activity": "SetVar",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"on": {
+						"value": "@variables('Runhour')",
+						"type": "Expression"
+					},
+					"cases": [
+						{
+							"value": "09",
+							"activities": [
+								{
+									"name": "cpy_FHI_Pricing_Report",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "SqlServerSource",
+											"sqlReaderQuery": "SELECT \r\n   'FHI' AS Division,\r\n    COUNT(l.id) AS LeadCount,\r\n\t--l.id,\r\n\t--l.LeadNumber,\r\n    CAST(l.ApptDate AS DATE) AS ApptDate,\r\n\tCONCAT('FHI-',d.id) as DispositionID,\r\n    CONCAT('FHI-',d.descr) as Disposition,\r\n\tCONCAT('FHI-',p.id) as ProductID,\r\n   ---- r.TimeslotID,\r\n    t.LongName AS Timeslot,\r\n    rm.descr as ReportingMarket,\r\n    CONCAT('FHI-',l.brn_id) as BranchID,\r\n    CAST(GETDATE() AS DATE) AS SnapshotDate,\r\n\t1 as Counterval\r\nFROM dbo.lds_leads l WITH (NOLOCK)\r\nLEFT JOIN dbo.app_Appointments a WITH (NOLOCK)\r\n    ON l.app_id = a.id\r\nLEFT JOIN dbo.prd_products p WITH (NOLOCK)\r\n\tON l.Productid=p.Productid\r\nLEFT JOIN dbo.dsp_Dispositions d WITH (NOLOCK)\r\n    ON l.dsp_id = d.descr\r\nOUTER APPLY (\r\n    SELECT TOP 1 *\r\n    FROM dbo.sls_SalesSchedule r WITH (NOLOCK)\r\n    WHERE \r\n        COALESCE(CAST(l.slr_id AS VARCHAR), CAST(l.slr_id2 AS VARCHAR)) = r.slr_id\r\n        AND CAST(r.SDate AS DATE) = CAST(l.ApptDate AS DATE)\r\n    ORDER BY r.tms_id \r\n) r\r\nOUTER APPLY (\r\n    SELECT TOP 1 t.id, t.LongName, t.slottime\r\n    FROM dbo.tms_TimeSlots t WITH (NOLOCK)\r\n    WHERE \r\n        t.Active = 1\r\n        AND t.slottime <= LEFT(CONVERT(VARCHAR, a.ApptDate, 108), 5)\r\n    ORDER BY t.slottime DESC\r\n) t\r\nleft join dbo.brn_Branches b WITH (NOLOCK) on l.brn_id=b.id \r\nleft join dbo.rpm_ReportingMarket rm WITH (NOLOCK) on b.rpm_id=rm.id \r\nWHERE \r\n    CAST(l.ApptDate AS DATE) >= DATEADD(DAY, -1, CAST(GETDATE() AS DATE)) AND \r\n      CAST(l.ApptDate AS DATE) <= DATEADD(DAY, 6, CAST(GETDATE() AS DATE))\r\nGROUP BY \r\n    CAST(l.ApptDate AS DATE),\r\n\td.id,\r\n    d.descr,\r\n\tp.id,\r\n    t.LongName,\r\n    rm.descr,\r\n    l.brn_id\r\nORDER BY \r\n    CAST(l.ApptDate AS DATE),\r\n    t.LongName;",
+											"queryTimeout": "02:00:00",
+											"partitionOption": "None"
+										},
+										"sink": {
+											"type": "SqlDWSink",
+											"writeBehavior": "Insert",
+											"sqlWriterUseTableLock": false
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"mappings": [
+												{
+													"source": {
+														"name": "Division",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "Division",
+														"type": "String",
+														"physicalType": "nvarchar"
+													}
+												},
+												{
+													"source": {
+														"name": "ApptDate",
+														"type": "DateTime",
+														"physicalType": "date"
+													},
+													"sink": {
+														"name": "ApptDate",
+														"type": "DateTime",
+														"physicalType": "date"
+													}
+												},
+												{
+													"source": {
+														"name": "DispositionID",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "DispositionID",
+														"type": "String",
+														"physicalType": "nvarchar"
+													}
+												},
+												{
+													"source": {
+														"name": "Disposition",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "Disposition",
+														"type": "String",
+														"physicalType": "nvarchar"
+													}
+												},
+												{
+													"source": {
+														"name": "Timeslot",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "Timeslot",
+														"type": "String",
+														"physicalType": "nvarchar"
+													}
+												},
+												{
+													"source": {
+														"name": "LeadCount",
+														"type": "Int32",
+														"physicalType": "int"
+													},
+													"sink": {
+														"name": "LeadCount",
+														"type": "Int32",
+														"physicalType": "int"
+													}
+												},
+												{
+													"source": {
+														"name": "SnapshotDate",
+														"type": "DateTime",
+														"physicalType": "date"
+													},
+													"sink": {
+														"name": "SnapshotDate",
+														"type": "DateTime",
+														"physicalType": "date"
+													}
+												},
+												{
+													"source": {
+														"name": "Counterval",
+														"type": "Int32",
+														"physicalType": "int"
+													},
+													"sink": {
+														"name": "CounterVal",
+														"type": "Int32",
+														"physicalType": "int"
+													}
+												},
+												{
+													"source": {
+														"name": "ReportingMarket",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "ReportingMarket",
+														"type": "String",
+														"physicalType": "varchar"
+													}
+												},
+												{
+													"source": {
+														"name": "BranchID",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "BranchID",
+														"type": "String",
+														"physicalType": "varchar"
+													}
+												},
+												{
+													"source": {
+														"name": "ProductID",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "ProductID",
+														"type": "String",
+														"physicalType": "nvarchar"
+													}
+												}
+											],
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "LP_FHI_dsp_Dispositions",
+											"type": "DatasetReference"
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "EDW_SUMM_FACT_PRICING_REPORT",
+											"type": "DatasetReference"
+										}
+									]
+								},
+								{
+									"name": "cpy_RTW_Pricing_Report",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "SqlServerSource",
+											"sqlReaderQuery": "SELECT \r\n   'RTW' AS Division,\r\n    COUNT(l.id) AS LeadCount,\r\n\t--l.id,\r\n\t--l.LeadNumber,\r\n    CAST(l.ApptDate AS DATE) AS ApptDate,\r\n\tCONCAT('RTW-',d.id) as DispositionID,\r\n    CONCAT('RTW-',d.descr) as Disposition,\r\n    CONCAT('RTW-',p.id) as ProductID,\r\n   ---- r.TimeslotID,\r\n    t.LongName AS Timeslot,\r\n    rm.descr as ReportingMarket,\r\n    CONCAT('RTW-',l.brn_id) as BranchID,\r\n    CAST(GETDATE() AS DATE) AS SnapshotDate,\r\n\t1 as Counterval\r\nFROM dbo.lds_leads l WITH (NOLOCK)\r\nLEFT JOIN dbo.app_Appointments a WITH (NOLOCK)\r\n    ON l.app_id = a.id\r\nLEFT JOIN dbo.dsp_Dispositions d WITH (NOLOCK)\r\n    ON l.dsp_id = d.descr\r\nLEFT JOIN dbo.prd_products p WITH (NOLOCK)\r\n\tON l.Productid=p.Productid\r\nOUTER APPLY (\r\n    SELECT TOP 1 *\r\n    FROM dbo.sls_SalesSchedule r WITH (NOLOCK)\r\n    WHERE \r\n        COALESCE(CAST(l.slr_id AS VARCHAR), CAST(l.slr_id2 AS VARCHAR)) = r.slr_id\r\n        AND CAST(r.SDate AS DATE) = CAST(l.ApptDate AS DATE)\r\n    ORDER BY r.tms_id \r\n) r\r\nOUTER APPLY (\r\n    SELECT TOP 1 t.id, t.LongName, t.slottime\r\n    FROM dbo.tms_TimeSlots t WITH (NOLOCK)\r\n    WHERE \r\n        t.Active = 1\r\n        AND t.slottime <= LEFT(CONVERT(VARCHAR, a.ApptDate, 108), 5)\r\n    ORDER BY t.slottime DESC\r\n) t\r\nleft join dbo.brn_Branches b WITH (NOLOCK) on l.brn_id=b.id \r\nleft join dbo.rpm_ReportingMarket rm WITH (NOLOCK) on b.rpm_id=rm.id \r\nWHERE \r\n    CAST(l.ApptDate AS DATE) >= DATEADD(DAY, -1, CAST(GETDATE() AS DATE)) AND \r\n      CAST(l.ApptDate AS DATE) <= DATEADD(DAY, 6, CAST(GETDATE() AS DATE))\r\nGROUP BY \r\n    CAST(l.ApptDate AS DATE),\r\n\td.id,\r\n    d.descr,\r\n    p.id,\r\n    t.LongName,\r\n    rm.descr,\r\n    l.brn_id\r\nORDER BY \r\n    CAST(l.ApptDate AS DATE),\r\n    t.LongName;",
+											"queryTimeout": "02:00:00",
+											"partitionOption": "None"
+										},
+										"sink": {
+											"type": "SqlDWSink",
+											"writeBehavior": "Insert",
+											"sqlWriterUseTableLock": false
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"mappings": [
+												{
+													"source": {
+														"name": "Division",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "Division",
+														"type": "String",
+														"physicalType": "nvarchar"
+													}
+												},
+												{
+													"source": {
+														"name": "ApptDate",
+														"type": "DateTime",
+														"physicalType": "date"
+													},
+													"sink": {
+														"name": "ApptDate",
+														"type": "DateTime",
+														"physicalType": "date"
+													}
+												},
+												{
+													"source": {
+														"name": "DispositionID",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "DispositionID",
+														"type": "String",
+														"physicalType": "nvarchar"
+													}
+												},
+												{
+													"source": {
+														"name": "Disposition",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "Disposition",
+														"type": "String",
+														"physicalType": "nvarchar"
+													}
+												},
+												{
+													"source": {
+														"name": "Timeslot",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "Timeslot",
+														"type": "String",
+														"physicalType": "nvarchar"
+													}
+												},
+												{
+													"source": {
+														"name": "LeadCount",
+														"type": "Int32",
+														"physicalType": "int"
+													},
+													"sink": {
+														"name": "LeadCount",
+														"type": "Int32",
+														"physicalType": "int"
+													}
+												},
+												{
+													"source": {
+														"name": "SnapshotDate",
+														"type": "DateTime",
+														"physicalType": "date"
+													},
+													"sink": {
+														"name": "SnapshotDate",
+														"type": "DateTime",
+														"physicalType": "date"
+													}
+												},
+												{
+													"source": {
+														"name": "Counterval",
+														"type": "Int32",
+														"physicalType": "int"
+													},
+													"sink": {
+														"name": "CounterVal",
+														"type": "Int32",
+														"physicalType": "int"
+													}
+												},
+												{
+													"source": {
+														"name": "ReportingMarket",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "ReportingMarket",
+														"type": "String",
+														"physicalType": "varchar"
+													}
+												},
+												{
+													"source": {
+														"name": "BranchID",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "BranchID",
+														"type": "String",
+														"physicalType": "varchar"
+													}
+												},
+												{
+													"source": {
+														"name": "ProductID",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "ProductID",
+														"type": "String",
+														"physicalType": "nvarchar"
+													}
+												}
+											],
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "LP_RTW_dsp_Dispositions",
+											"type": "DatasetReference"
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "EDW_SUMM_FACT_PRICING_REPORT",
+											"type": "DatasetReference"
+										}
+									]
+								},
+								{
+									"name": "cpy_CTA_Pricing_Report",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "SqlServerSource",
+											"sqlReaderQuery": "SELECT \r\n   'CTA' AS Division,\r\n    COUNT(l.id) AS LeadCount,\r\n\t--l.id,\r\n\t--l.LeadNumber,\r\n    CAST(l.ApptDate AS DATE) AS ApptDate,\r\n\tCONCAT('CTA-',d.id) as DispositionID,\r\n    CONCAT('CTA-',d.descr) as Disposition,\r\n    CONCAT('CTA-',p.id) as ProductID,\r\n   ---- r.TimeslotID,\r\n    t.LongName AS Timeslot,\r\n    rm.descr as ReportingMarket,\r\n    CONCAT('CTA-',l.brn_id) as BranchID,\r\n    CAST(GETDATE() AS DATE) AS SnapshotDate,\r\n\t1 as Counterval\r\nFROM dbo.lds_leads l WITH (NOLOCK)\r\nLEFT JOIN dbo.app_Appointments a WITH (NOLOCK)\r\n    ON l.app_id = a.id\r\nLEFT JOIN dbo.dsp_Dispositions d WITH (NOLOCK)\r\n    ON l.dsp_id = d.descr\r\nLEFT JOIN dbo.prd_products p WITH (NOLOCK)\r\n\tON l.Productid=p.Productid\r\nOUTER APPLY (\r\n    SELECT TOP 1 *\r\n    FROM dbo.sls_SalesSchedule r WITH (NOLOCK)\r\n    WHERE \r\n        COALESCE(CAST(l.slr_id AS VARCHAR), CAST(l.slr_id2 AS VARCHAR)) = r.slr_id\r\n        AND CAST(r.SDate AS DATE) = CAST(l.ApptDate AS DATE)\r\n    ORDER BY r.tms_id\r\n) r\r\nOUTER APPLY (\r\n    SELECT TOP 1 t.id, t.LongName, t.slottime\r\n    FROM dbo.tms_TimeSlots t WITH (NOLOCK)\r\n    WHERE \r\n        t.Active = 1\r\n        AND t.slottime <= LEFT(CONVERT(VARCHAR, a.ApptDate, 108), 5)\r\n    ORDER BY t.slottime DESC\r\n) t\r\nleft join dbo.brn_Branches b WITH (NOLOCK) on l.brn_id=b.id \r\nleft join dbo.rpm_ReportingMarket rm WITH (NOLOCK) on b.rpm_id=rm.id \r\nWHERE \r\n    CAST(l.ApptDate AS DATE) >= DATEADD(DAY, -1, CAST(GETDATE() AS DATE)) AND \r\n      CAST(l.ApptDate AS DATE) <= DATEADD(DAY, 6, CAST(GETDATE() AS DATE))\r\nGROUP BY \r\n    CAST(l.ApptDate AS DATE),\r\n\td.id,\r\n    d.descr,\r\n    p.id,\r\n    t.LongName,\r\n    rm.descr,\r\n    l.brn_id\r\nORDER BY \r\n    CAST(l.ApptDate AS DATE),\r\n    t.LongName;",
+											"queryTimeout": "02:00:00",
+											"partitionOption": "None"
+										},
+										"sink": {
+											"type": "SqlDWSink",
+											"writeBehavior": "Insert",
+											"sqlWriterUseTableLock": false
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"mappings": [
+												{
+													"source": {
+														"name": "Division",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "Division",
+														"type": "String",
+														"physicalType": "nvarchar"
+													}
+												},
+												{
+													"source": {
+														"name": "ApptDate",
+														"type": "DateTime",
+														"physicalType": "date"
+													},
+													"sink": {
+														"name": "ApptDate",
+														"type": "DateTime",
+														"physicalType": "date"
+													}
+												},
+												{
+													"source": {
+														"name": "DispositionID",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "DispositionID",
+														"type": "String",
+														"physicalType": "nvarchar"
+													}
+												},
+												{
+													"source": {
+														"name": "Disposition",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "Disposition",
+														"type": "String",
+														"physicalType": "nvarchar"
+													}
+												},
+												{
+													"source": {
+														"name": "Timeslot",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "Timeslot",
+														"type": "String",
+														"physicalType": "nvarchar"
+													}
+												},
+												{
+													"source": {
+														"name": "LeadCount",
+														"type": "Int32",
+														"physicalType": "int"
+													},
+													"sink": {
+														"name": "LeadCount",
+														"type": "Int32",
+														"physicalType": "int"
+													}
+												},
+												{
+													"source": {
+														"name": "SnapshotDate",
+														"type": "DateTime",
+														"physicalType": "date"
+													},
+													"sink": {
+														"name": "SnapshotDate",
+														"type": "DateTime",
+														"physicalType": "date"
+													}
+												},
+												{
+													"source": {
+														"name": "Counterval",
+														"type": "Int32",
+														"physicalType": "int"
+													},
+													"sink": {
+														"name": "CounterVal",
+														"type": "Int32",
+														"physicalType": "int"
+													}
+												},
+												{
+													"source": {
+														"name": "ReportingMarket",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "ReportingMarket",
+														"type": "String",
+														"physicalType": "varchar"
+													}
+												},
+												{
+													"source": {
+														"name": "BranchID",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "BranchID",
+														"type": "String",
+														"physicalType": "varchar"
+													}
+												},
+												{
+													"source": {
+														"name": "ProductID",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "ProductID",
+														"type": "String",
+														"physicalType": "nvarchar"
+													}
+												}
+											],
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "LP_CTA_dsp_Dispositions",
+											"type": "DatasetReference"
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "EDW_SUMM_FACT_PRICING_REPORT",
+											"type": "DatasetReference"
+										}
+									]
+								}
+							]
+						},
+						{
+							"value": "12",
+							"activities": [
+								{
+									"name": "cpy_PBC_Pricing_Report",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "SqlServerSource",
+											"sqlReaderQuery": "SELECT \r\n   'PBC' AS Division,\r\n    COUNT(l.id) AS LeadCount,\r\n\t--l.id,\r\n\t--l.LeadNumber,\r\n    CAST(l.ApptDate AS DATE) AS ApptDate,\r\n\tCONCAT('PBC-',d.id) as DispositionID,\r\n    CONCAT('PBC-',d.descr) as Disposition,\r\n    CONCAT('PBC-',p.id) as ProductID,\r\n   ---- r.TimeslotID,\r\n    t.LongName AS Timeslot,\r\n    rm.descr as ReportingMarket,\r\n    CONCAT('PBC-',l.brn_id) as BranchID,\r\n    CAST(GETDATE() AS DATE) AS SnapshotDate,\r\n\t3 as Counterval\r\nFROM dbo.lds_leads l WITH (NOLOCK)\r\nLEFT JOIN dbo.app_Appointments a WITH (NOLOCK)\r\n    ON l.app_id = a.id\r\nLEFT JOIN dbo.prd_products p WITH (NOLOCK)\r\n\tON l.Productid=p.Productid\r\nLEFT JOIN dbo.dsp_Dispositions d WITH (NOLOCK)\r\n    ON l.dsp_id = d.descr\r\nOUTER APPLY (\r\n    SELECT TOP 1 *\r\n    FROM dbo.sls_SalesSchedule r WITH (NOLOCK)\r\n    WHERE \r\n        COALESCE(CAST(l.slr_id AS VARCHAR), CAST(l.slr_id2 AS VARCHAR)) = r.slr_id\r\n        AND CAST(r.SDate AS DATE) = CAST(l.ApptDate AS DATE)\r\n    ORDER BY r.tms_id\r\n) r\r\nOUTER APPLY (\r\n    SELECT TOP 1 t.id, t.LongName, t.slottime\r\n    FROM dbo.tms_TimeSlots t WITH (NOLOCK)\r\n    WHERE \r\n        t.Active = 1\r\n        AND t.slottime <= LEFT(CONVERT(VARCHAR, a.ApptDate, 108), 5)\r\n    ORDER BY t.slottime DESC\r\n) t\r\nleft join dbo.brn_Branches b WITH (NOLOCK) on l.brn_id=b.id \r\nleft join dbo.rpm_ReportingMarket rm WITH (NOLOCK) on b.rpm_id=rm.id \r\nWHERE \r\n    CAST(l.ApptDate AS DATE) >= DATEADD(DAY, -1, CAST(GETDATE() AS DATE)) AND \r\n      CAST(l.ApptDate AS DATE) <= DATEADD(DAY, 6, CAST(GETDATE() AS DATE))\r\nGROUP BY \r\n    CAST(l.ApptDate AS DATE),\r\n\td.id,\r\n    d.descr,\r\n    p.id,\r\n    t.LongName,\r\n    rm.descr,\r\n    l.brn_id\r\nORDER BY \r\n    CAST(l.ApptDate AS DATE),\r\n    t.LongName;",
+											"queryTimeout": "02:00:00",
+											"partitionOption": "None"
+										},
+										"sink": {
+											"type": "SqlDWSink",
+											"writeBehavior": "Insert",
+											"sqlWriterUseTableLock": false
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"mappings": [
+												{
+													"source": {
+														"name": "Division",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "Division",
+														"type": "String",
+														"physicalType": "nvarchar"
+													}
+												},
+												{
+													"source": {
+														"name": "ApptDate",
+														"type": "DateTime",
+														"physicalType": "date"
+													},
+													"sink": {
+														"name": "ApptDate",
+														"type": "DateTime",
+														"physicalType": "date"
+													}
+												},
+												{
+													"source": {
+														"name": "DispositionID",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "DispositionID",
+														"type": "String",
+														"physicalType": "nvarchar"
+													}
+												},
+												{
+													"source": {
+														"name": "Disposition",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "Disposition",
+														"type": "String",
+														"physicalType": "nvarchar"
+													}
+												},
+												{
+													"source": {
+														"name": "Timeslot",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "Timeslot",
+														"type": "String",
+														"physicalType": "nvarchar"
+													}
+												},
+												{
+													"source": {
+														"name": "LeadCount",
+														"type": "Int32",
+														"physicalType": "int"
+													},
+													"sink": {
+														"name": "LeadCount",
+														"type": "Int32",
+														"physicalType": "int"
+													}
+												},
+												{
+													"source": {
+														"name": "SnapshotDate",
+														"type": "DateTime",
+														"physicalType": "date"
+													},
+													"sink": {
+														"name": "SnapshotDate",
+														"type": "DateTime",
+														"physicalType": "date"
+													}
+												},
+												{
+													"source": {
+														"name": "Counterval",
+														"type": "Int32",
+														"physicalType": "int"
+													},
+													"sink": {
+														"name": "CounterVal",
+														"type": "Int32",
+														"physicalType": "int"
+													}
+												},
+												{
+													"source": {
+														"name": "ReportingMarket",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "ReportingMarket",
+														"type": "String",
+														"physicalType": "varchar"
+													}
+												},
+												{
+													"source": {
+														"name": "BranchID",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "BranchID",
+														"type": "String",
+														"physicalType": "varchar"
+													}
+												},
+												{
+													"source": {
+														"name": "ProductID",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "ProductID",
+														"type": "String",
+														"physicalType": "nvarchar"
+													}
+												}
+											],
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "LP_PBC_dsp_Dispositions",
+											"type": "DatasetReference"
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "EDW_SUMM_FACT_PRICING_REPORT",
+											"type": "DatasetReference"
+										}
+									]
+								}
+							]
+						},
+						{
+							"value": "10",
+							"activities": [
+								{
+									"name": "cpy_MAC_Pricing_Report",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "SqlServerSource",
+											"sqlReaderQuery": "SELECT \r\n   'MAC' AS Division,\r\n    COUNT(l.id) AS LeadCount,\r\n\t--l.id,\r\n\t--l.LeadNumber,\r\n    CAST(l.ApptDate AS DATE) AS ApptDate,\r\n\tCONCAT('MAC-',d.id) as DispositionID,\r\n    CONCAT('MAC-',d.descr) as Disposition,\r\n    CONCAT('MAC-',p.id) as ProductID,\r\n   ---- r.TimeslotID,\r\n    t.LongName AS Timeslot,\r\n    rm.descr as ReportingMarket,\r\n    CONCAT('MAC-',l.brn_id) as BranchID,\r\n    CAST(GETDATE() AS DATE) AS SnapshotDate,\r\n\t2 as Counterval\r\nFROM dbo.lds_leads l WITH (NOLOCK)\r\nLEFT JOIN dbo.app_Appointments a WITH (NOLOCK)\r\n    ON l.app_id = a.id\r\nLEFT JOIN dbo.dsp_Dispositions d WITH (NOLOCK)\r\n    ON l.dsp_id = d.descr\r\nLEFT JOIN dbo.prd_products p WITH (NOLOCK)\r\n\tON l.Productid=p.Productid\r\nOUTER APPLY (\r\n    SELECT TOP 1 *\r\n    FROM dbo.sls_SalesSchedule r WITH (NOLOCK)\r\n    WHERE \r\n        COALESCE(CAST(l.slr_id AS VARCHAR), CAST(l.slr_id2 AS VARCHAR)) = r.slr_id\r\n        AND CAST(r.SDate AS DATE) = CAST(l.ApptDate AS DATE)\r\n    ORDER BY r.tms_id\r\n) r\r\nOUTER APPLY (\r\n    SELECT TOP 1 t.id, t.LongName, t.slottime\r\n    FROM dbo.tms_TimeSlots t WITH (NOLOCK)\r\n    WHERE \r\n        t.Active = 1\r\n        AND t.slottime <= LEFT(CONVERT(VARCHAR, a.ApptDate, 108), 5)\r\n    ORDER BY t.slottime DESC\r\n) t\r\nleft join dbo.brn_Branches b WITH (NOLOCK) on l.brn_id=b.id \r\nleft join dbo.rpm_ReportingMarket rm WITH (NOLOCK) on b.rpm_id=rm.id \r\nWHERE \r\n    CAST(l.ApptDate AS DATE) >= DATEADD(DAY, -1, CAST(GETDATE() AS DATE)) AND \r\n      CAST(l.ApptDate AS DATE) <= DATEADD(DAY, 6, CAST(GETDATE() AS DATE))\r\nGROUP BY \r\n    CAST(l.ApptDate AS DATE),\r\n\td.id,\r\n    d.descr,\r\n    p.id,\r\n    t.LongName,\r\n    rm.descr,\r\n    l.brn_id\r\nORDER BY \r\n    CAST(l.ApptDate AS DATE),\r\n    t.LongName;",
+											"queryTimeout": "02:00:00",
+											"partitionOption": "None"
+										},
+										"sink": {
+											"type": "SqlDWSink",
+											"writeBehavior": "Insert",
+											"sqlWriterUseTableLock": false
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"mappings": [
+												{
+													"source": {
+														"name": "Division",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "Division",
+														"type": "String",
+														"physicalType": "nvarchar"
+													}
+												},
+												{
+													"source": {
+														"name": "ApptDate",
+														"type": "DateTime",
+														"physicalType": "date"
+													},
+													"sink": {
+														"name": "ApptDate",
+														"type": "DateTime",
+														"physicalType": "date"
+													}
+												},
+												{
+													"source": {
+														"name": "DispositionID",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "DispositionID",
+														"type": "String",
+														"physicalType": "nvarchar"
+													}
+												},
+												{
+													"source": {
+														"name": "Disposition",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "Disposition",
+														"type": "String",
+														"physicalType": "nvarchar"
+													}
+												},
+												{
+													"source": {
+														"name": "Timeslot",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "Timeslot",
+														"type": "String",
+														"physicalType": "nvarchar"
+													}
+												},
+												{
+													"source": {
+														"name": "LeadCount",
+														"type": "Int32",
+														"physicalType": "int"
+													},
+													"sink": {
+														"name": "LeadCount",
+														"type": "Int32",
+														"physicalType": "int"
+													}
+												},
+												{
+													"source": {
+														"name": "SnapshotDate",
+														"type": "DateTime",
+														"physicalType": "date"
+													},
+													"sink": {
+														"name": "SnapshotDate",
+														"type": "DateTime",
+														"physicalType": "date"
+													}
+												},
+												{
+													"source": {
+														"name": "Counterval",
+														"type": "Int32",
+														"physicalType": "int"
+													},
+													"sink": {
+														"name": "CounterVal",
+														"type": "Int32",
+														"physicalType": "int"
+													}
+												},
+												{
+													"source": {
+														"name": "ReportingMarket",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "ReportingMarket",
+														"type": "String",
+														"physicalType": "varchar"
+													}
+												},
+												{
+													"source": {
+														"name": "BranchID",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "BranchID",
+														"type": "String",
+														"physicalType": "varchar"
+													}
+												},
+												{
+													"source": {
+														"name": "ProductID",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "ProductID",
+														"type": "String",
+														"physicalType": "nvarchar"
+													}
+												}
+											],
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "LP_MAC_dsp_Dispositions",
+											"type": "DatasetReference"
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "EDW_SUMM_FACT_PRICING_REPORT",
+											"type": "DatasetReference"
+										}
+									]
+								},
+								{
+									"name": "cpy_MXH_Pricing_Report",
+									"type": "Copy",
+									"state": "Inactive",
+									"onInactiveMarkAs": "Succeeded",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "SqlServerSource",
+											"sqlReaderQuery": "SELECT \r\n   'MXH' AS Division,\r\n    COUNT(l.id) AS LeadCount,\r\n\t--l.id,\r\n\t--l.LeadNumber,\r\n    CAST(l.ApptDate AS DATE) AS ApptDate,\r\n\tCONCAT('MXH-',d.id) as DispositionID,\r\n    CONCAT('MXH-',d.descr) as Disposition,\r\n    CONCAT('MXH-',p.id) as ProductID,\r\n   ---- r.TimeslotID,\r\n    t.LongName AS Timeslot,\r\n    rm.descr as ReportingMarket,\r\n    CONCAT('MXH-',l.brn_id) as BranchID,\r\n    CAST(GETDATE() AS DATE) AS SnapshotDate,\r\n\t2 as Counterval\r\nFROM dbo.lds_leads l WITH (NOLOCK)\r\nLEFT JOIN dbo.app_Appointments a WITH (NOLOCK)\r\n    ON l.app_id = a.id\r\nLEFT JOIN dbo.prd_products p WITH (NOLOCK)\r\n\tON l.Productid=p.Productid\r\nLEFT JOIN dbo.dsp_Dispositions d WITH (NOLOCK)\r\n    ON l.dsp_id = d.descr\r\nOUTER APPLY (\r\n    SELECT TOP 1 *\r\n    FROM dbo.sls_SalesSchedule r WITH (NOLOCK)\r\n    WHERE \r\n        COALESCE(CAST(l.slr_id AS VARCHAR), CAST(l.slr_id2 AS VARCHAR)) = r.slr_id\r\n        AND CAST(r.SDate AS DATE) = CAST(l.ApptDate AS DATE)\r\n    ORDER BY r.tms_id\r\n) r\r\nOUTER APPLY (\r\n    SELECT TOP 1 t.id, t.LongName, t.slottime\r\n    FROM dbo.tms_TimeSlots t WITH (NOLOCK)\r\n    WHERE \r\n        t.Active = 1\r\n        AND t.slottime <= LEFT(CONVERT(VARCHAR, a.ApptDate, 108), 5)\r\n    ORDER BY t.slottime DESC\r\n) t\r\nleft join dbo.brn_Branches b WITH (NOLOCK) on l.brn_id=b.id \r\nleft join dbo.rpm_ReportingMarket rm WITH (NOLOCK) on b.rpm_id=rm.id \r\nWHERE \r\n    CAST(l.ApptDate AS DATE) >= DATEADD(DAY, -1, CAST(GETDATE() AS DATE)) AND \r\n      CAST(l.ApptDate AS DATE) <= DATEADD(DAY, 6, CAST(GETDATE() AS DATE))\r\nGROUP BY \r\n    CAST(l.ApptDate AS DATE),\r\n\td.id,\r\n    d.descr,\r\n    p.id,\r\n    t.LongName,\r\n    rm.descr,\r\n    l.brn_id\r\nORDER BY \r\n    CAST(l.ApptDate AS DATE),\r\n    t.LongName;",
+											"queryTimeout": "02:00:00",
+											"partitionOption": "None"
+										},
+										"sink": {
+											"type": "SqlDWSink",
+											"writeBehavior": "Insert",
+											"sqlWriterUseTableLock": false
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"mappings": [
+												{
+													"source": {
+														"name": "Division",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "Division",
+														"type": "String",
+														"physicalType": "nvarchar"
+													}
+												},
+												{
+													"source": {
+														"name": "ApptDate",
+														"type": "DateTime",
+														"physicalType": "date"
+													},
+													"sink": {
+														"name": "ApptDate",
+														"type": "DateTime",
+														"physicalType": "date"
+													}
+												},
+												{
+													"source": {
+														"name": "DispositionID",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "DispositionID",
+														"type": "String",
+														"physicalType": "nvarchar"
+													}
+												},
+												{
+													"source": {
+														"name": "Disposition",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "Disposition",
+														"type": "String",
+														"physicalType": "nvarchar"
+													}
+												},
+												{
+													"source": {
+														"name": "Timeslot",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "Timeslot",
+														"type": "String",
+														"physicalType": "nvarchar"
+													}
+												},
+												{
+													"source": {
+														"name": "LeadCount",
+														"type": "Int32",
+														"physicalType": "int"
+													},
+													"sink": {
+														"name": "LeadCount",
+														"type": "Int32",
+														"physicalType": "int"
+													}
+												},
+												{
+													"source": {
+														"name": "SnapshotDate",
+														"type": "DateTime",
+														"physicalType": "date"
+													},
+													"sink": {
+														"name": "SnapshotDate",
+														"type": "DateTime",
+														"physicalType": "date"
+													}
+												},
+												{
+													"source": {
+														"name": "Counterval",
+														"type": "Int32",
+														"physicalType": "int"
+													},
+													"sink": {
+														"name": "CounterVal",
+														"type": "Int32",
+														"physicalType": "int"
+													}
+												},
+												{
+													"source": {
+														"name": "ReportingMarket",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "ReportingMarket",
+														"type": "String",
+														"physicalType": "varchar"
+													}
+												},
+												{
+													"source": {
+														"name": "BranchID",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "BranchID",
+														"type": "String",
+														"physicalType": "varchar"
+													}
+												},
+												{
+													"source": {
+														"name": "ProductID",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "ProductID",
+														"type": "String",
+														"physicalType": "nvarchar"
+													}
+												}
+											],
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "LP_MXH_dsp_Dispositions",
+											"type": "DatasetReference"
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "EDW_SUMM_FACT_PRICING_REPORT",
+											"type": "DatasetReference"
+										}
+									]
+								},
+								{
+									"name": "cpy_SWR_Pricing_Report",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "SqlServerSource",
+											"sqlReaderQuery": "SELECT \r\n   'SWR' AS Division,\r\n    COUNT(l.id) AS LeadCount,\r\n\t--l.id,\r\n\t--l.LeadNumber,\r\n    CAST(l.ApptDate AS DATE) AS ApptDate,\r\n\tCONCAT('SWR-',d.id) as DispositionID,\r\n    CONCAT('SWR-',d.descr) as Disposition,\r\n    CONCAT('SWR-',p.id) as ProductID,\r\n   ---- r.TimeslotID,\r\n    t.LongName AS Timeslot,\r\n    rm.descr as ReportingMarket,\r\n    CONCAT('SWR-',l.brn_id) as BranchID,\r\n    CAST(GETDATE() AS DATE) AS SnapshotDate,\r\n\t2 as Counterval\r\nFROM dbo.lds_leads l WITH (NOLOCK)\r\nLEFT JOIN dbo.app_Appointments a WITH (NOLOCK)\r\n    ON l.app_id = a.id\r\nLEFT JOIN dbo.prd_products p WITH (NOLOCK)\r\n\tON l.Productid=p.Productid\r\nLEFT JOIN dbo.dsp_Dispositions d WITH (NOLOCK)\r\n    ON l.dsp_id = d.descr\r\nOUTER APPLY (\r\n    SELECT TOP 1 *\r\n    FROM dbo.sls_SalesSchedule r WITH (NOLOCK)\r\n    WHERE \r\n        COALESCE(CAST(l.slr_id AS VARCHAR), CAST(l.slr_id2 AS VARCHAR)) = r.slr_id\r\n        AND CAST(r.SDate AS DATE) = CAST(l.ApptDate AS DATE)\r\n    ORDER BY r.tms_id\r\n) r\r\nOUTER APPLY (\r\n    SELECT TOP 1 t.id, t.LongName, t.slottime\r\n    FROM dbo.tms_TimeSlots t WITH (NOLOCK)\r\n    WHERE \r\n        t.Active = 1\r\n        AND t.slottime <= LEFT(CONVERT(VARCHAR, a.ApptDate, 108), 5)\r\n    ORDER BY t.slottime DESC\r\n) t\r\nleft join dbo.brn_Branches b WITH (NOLOCK) on l.brn_id=b.id \r\nleft join dbo.rpm_ReportingMarket rm WITH (NOLOCK) on b.rpm_id=rm.id \r\nWHERE \r\n    CAST(l.ApptDate AS DATE) >= DATEADD(DAY, -1, CAST(GETDATE() AS DATE)) AND \r\n      CAST(l.ApptDate AS DATE) <= DATEADD(DAY, 6, CAST(GETDATE() AS DATE))\r\nGROUP BY \r\n    CAST(l.ApptDate AS DATE),\r\n\td.id,\r\n    d.descr,\r\n    p.id,\r\n    t.LongName,\r\n    rm.descr,\r\n    l.brn_id\r\nORDER BY \r\n    CAST(l.ApptDate AS DATE),\r\n    t.LongName;",
+											"queryTimeout": "02:00:00",
+											"partitionOption": "None"
+										},
+										"sink": {
+											"type": "SqlDWSink",
+											"writeBehavior": "Insert",
+											"sqlWriterUseTableLock": false
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"mappings": [
+												{
+													"source": {
+														"name": "Division",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "Division"
+													}
+												},
+												{
+													"source": {
+														"name": "ApptDate",
+														"type": "DateTime",
+														"physicalType": "date"
+													},
+													"sink": {
+														"name": "ApptDate"
+													}
+												},
+												{
+													"source": {
+														"name": "DispositionID",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "DispositionID"
+													}
+												},
+												{
+													"source": {
+														"name": "Disposition",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "Disposition"
+													}
+												},
+												{
+													"source": {
+														"name": "Timeslot",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "Timeslot"
+													}
+												},
+												{
+													"source": {
+														"name": "LeadCount",
+														"type": "Int32",
+														"physicalType": "int"
+													},
+													"sink": {
+														"name": "LeadCount"
+													}
+												},
+												{
+													"source": {
+														"name": "SnapshotDate",
+														"type": "DateTime",
+														"physicalType": "date"
+													},
+													"sink": {
+														"name": "SnapshotDate"
+													}
+												},
+												{
+													"source": {
+														"name": "Counterval",
+														"type": "Int32",
+														"physicalType": "int"
+													},
+													"sink": {
+														"name": "CounterVal"
+													}
+												},
+												{
+													"source": {
+														"name": "ReportingMarket",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "ReportingMarket"
+													}
+												},
+												{
+													"source": {
+														"name": "BranchID",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "BranchID"
+													}
+												},
+												{
+													"source": {
+														"name": "ProductID",
+														"type": "String",
+														"physicalType": "varchar"
+													},
+													"sink": {
+														"name": "ProductID"
+													}
+												}
+											],
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "LP_SWR_dsp_Dispositions",
+											"type": "DatasetReference"
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "EDW_SUMM_FACT_PRICING_REPORT",
+											"type": "DatasetReference"
+										}
+									]
+								}
+							]
+						}
+					]
+				}
+			},
+			{
+				"name": "SetVar",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "Runhour",
+					"value": {
+						"value": "@formatDateTime(convertTimeZone(utcNow(), 'UTC', 'Eastern Standard Time'), 'HH')",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"variables": {
+			"Runhour": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "ODS_to_EDW/SUMM_FACTS/LP"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-01-14T16:04:33Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

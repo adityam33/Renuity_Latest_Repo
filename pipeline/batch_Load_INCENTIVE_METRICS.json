@@ -1,0 +1,143 @@
+{
+	"name": "batch_Load_INCENTIVE_METRICS",
+	"properties": {
+		"activities": [
+			{
+				"name": "BONUS_ODS_LOAD_YEARLY",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "ODS_INCENTIVE_MANUAL_FILES_YEARLY",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "BONUS_ODS_LOAD_MONTHLY",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "ODS_INCENTIVE_MANUAL_FILES_MONTHLY",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "BONUS_DIM_LOAD",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "BONUS_ODS_LOAD_MONTHLY",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "BONUS_ODS_LOAD_YEARLY",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "EDW_DIM_INCENTIVE_LOAD",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "BONUS_FACT_INCENTIVE_EARNED_MONTHLY",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "BONUS_FACT_INCENTIVE_METRIC_RESULT",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "EDW_FACT_INCENTIVE_EARNED_MONTHLY",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "BONUS_SUMM_FACT_INCENTIVE_EARNED",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "BONUS_FACT_INCENTIVE_EARNED_MONTHLY",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "EDW_FACT_SUMM_BONUS_EARNED_MONTHLY",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "BONUS_FACT_INCENTIVE_METRIC_RESULT",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "BONUS_DIM_LOAD",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "EDW_FACT_INCENTIVE_METRICS_RESULT",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/INCENTIVE_METRICS"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-04-27T12:24:44Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

@@ -1,0 +1,313 @@
+{
+	"name": "Cpy_Mcpaystructure_InitialLoad",
+	"properties": {
+		"activities": [
+			{
+				"name": "Taxonomy onetime load",
+				"description": "loads updated taxonomy file to DIM MKTNG table",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ExcelSource",
+						"additionalColumns": [
+							{
+								"name": "LastupdatedTS",
+								"value": {
+									"value": "@utcnow()",
+									"type": "Expression"
+								}
+							},
+							{
+								"name": "LeadSourceGroupID",
+								"value": "$$FILEPATH"
+							},
+							{
+								"name": "LeadSourceID",
+								"value": "$$FILEPATH"
+							},
+							{
+								"name": "Active",
+								"value": "TRUE"
+							},
+							{
+								"name": "MappingInd",
+								"value": "HIST"
+							},
+							{
+								"name": "CreatedTS",
+								"value": {
+									"value": "@utcnow()",
+									"type": "Expression"
+								}
+							},
+							{
+								"name": "EntryDate",
+								"value": {
+									"value": "@utcnow()",
+									"type": "Expression"
+								}
+							}
+						],
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						}
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE EDW.DIM_MKTNG_SUB_SOURCE_MAPPING",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadSourceGroupID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LeadSourceGroupID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadSourceID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LeadSourceID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SubsourceID",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "LeadSubSourceID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Sourcegroup",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "SourceGroup",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SourceCode",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "SourceCode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Subsource",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "LeadSubSource",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Active",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Active",
+									"type": "Boolean",
+									"physicalType": "bit"
+								}
+							},
+							{
+								"source": {
+									"name": "EntryDate",
+									"type": "String"
+								},
+								"sink": {
+									"name": "EntryDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "Channel",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "TX_Channel",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Sourcegroup_final",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "TX_SourceGroup",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Subsource_Final",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "TX_SourceCode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "MappingInd",
+									"type": "String"
+								},
+								"sink": {
+									"name": "MappingInd",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CreatedTS",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CreatedTS",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "LastupdatedTS",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_MCPAYSTRUCTURE",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_DIM_MKTNG_SUB_SOURCE_MAPPING",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Update Leadsourcegroupsourceid",
+				"description": "Updates Leadsourceid, sourcegroupid,active fields from LP",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Taxonomy onetime load",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "Update [EDW].[DIM_MKTNG_SUB_SOURCE_MAPPING]  set \nLeadSourceGroupID=a.LeadSourceGroupID\n, LeadSourceID=a.LeadSourceID\n, Active=a.active\n,EntryDate=A.EntryDate\nFrom [EDW].[DIM_MKTNG_SUB_SOURCE_MAPPING] t left join (\nselect \nss.Division,\nsg.LeadSourceGroupID,\ns.LeadSourceID,\nss.leadsubsourceid,\nsg.sourcegroup,\nss.sourcecode,\nss.leadsubsource,\nss.active,\nMax(F.EntryDate) As EntryDate\nfrom edw.dim_lead_sub_source ss\nJoin EDW.Fact_Lead F on SS.LeadSubSourceId=F.LeadSubSourceID\nleft join edw.dim_lead_source s on s.leadsourceid=ss.leadsourceid\nleft join edw.dim_lead_source_group sg on s.sourcegroupid=sg.leadsourcegroupid\nGroup By ss.Division,\nsg.LeadSourceGroupID,\ns.LeadSourceID,\nss.leadsubsourceid,\nsg.sourcegroup,\nss.sourcecode,\nss.leadsubsource,\nss.active\n)a\non  t.Division=a.Division and t.leadsubsourceid=a.leadsubsourceid \n"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/DIMENSIONS/TAXONOMY/InitialLoad"
+		},
+		"annotations": [],
+		"lastPublishTime": "2023-12-08T08:20:23Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

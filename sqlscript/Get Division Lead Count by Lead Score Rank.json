@@ -1,0 +1,17 @@
+{
+	"name": "Get Division Lead Count by Lead Score Rank",
+	"properties": {
+		"content": {
+			"query": "SELECT \n[anr_ev_rank]\n,[dsp_id]\n,Productid\n,[src_id] as LeadSource\n,[srs_id]\n,srs.Descr as LeadSubSource\n,count(lds.id) as LeadCount\n,sum(GSA) as GSA\n FROM \n [ODS].[LP_FHI_Lds_Leads] lds\n ,[ODS].[LP_FHI_srs_SourceSubs] srs\n where \n lds.[EntryDate] > '2022-10-01'\n and lds.srs_id = srs.id\n group by\n [anr_ev_rank]\n,[dsp_id]\n,Productid\n,[src_id]\n,[srs_id]\n,srs.Descr\norder by GSA DESC\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

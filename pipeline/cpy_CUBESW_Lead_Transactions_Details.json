@@ -1,0 +1,485 @@
+{
+	"name": "cpy_CUBESW_Lead_Transactions_Details",
+	"properties": {
+		"activities": [
+			{
+				"name": "cpy_leads_info",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "select \r\nCAST(L.EntryDate as DATE) as EntryDate\r\n,CAST((CASE WHEN J.ContractDate IS NULL THEN L.ApptDate ELSE J.ContractDate END) as Date) as ApptDateFinal\r\n,CASE WHEN L.LeadID IS NULL THEN'0' ELSE '1' END as RawLead_Num\r\n,CASE WHEN L.EverSet='TRUE' THEN '1' ELSE '0' END as Set_Num\r\n,CASE WHEN (CASE WHEN RIGHT(L.SalesRep1_EmployeeID,2)='-0' OR RIGHT(L.SalesRep1_EmployeeID,1)='-' THEN NULL ELSE L.SalesRep1_EmployeeID END) IS NULL THEN '0' ELSE CASE WHEN L.EverSat=1 THEN '1' ELSE '0' END END as Demo_Flag\r\n,CASE WHEN (CASE WHEN RIGHT(L.SalesRep1_EmployeeID,2)='-0' OR RIGHT(L.SalesRep1_EmployeeID,1)='-' THEN NULL ELSE L.SalesRep1_EmployeeID END) IS NULL THEN '0' ELSE CASE WHEN L.EverNetIssued=1 THEN '1' ELSE '0' END END as NetIssue_Flag\r\n,CONCAT(E.FirstName,' ',E.LastName) as PromoterName\r\n,CONCAT(E1.FirstName,' ',E1.LastName) as SalesRep\r\n,L.BranchID\r\n,L.ProductID\r\n,L.LeadSubSourceID\r\n,L.LeadID\r\n,CASE WHEN (CASE WHEN J.JobNetAmt>0 THEN J.JobNetAmt ELSE J.GrossAmount END)>0 THEN '1' ELSE '0' END as Sold_Flag\r\n,CASE WHEN J.JobNetAmt>0 THEN J.JobNetAmt ELSE J.GrossAmount END as GrossSalesAmt \r\n,CASE WHEN RIGHT(ISNULL(JS.JobStatusCategoryID,1),1)='1' THEN '1' ELSE '0' END as Backlog_Flag\r\n,CASE WHEN RIGHT(ISNULL(JS.JobStatusCategoryID,1),1)='5' AND (CASE WHEN J.[JobNetAmt]>0 THEN J.[JobNetAmt] ELSE J.[GrossAmount] END)>0 THEN '1' ELSE '0' END as BTD_Flag\r\n,CASE WHEN RIGHT(ISNULL(JS.JobStatusCategoryID,1),1)='5' THEN (CASE WHEN J.[JobNetAmt]>0 THEN J.[JobNetAmt] ELSE J.[GrossAmount] END) ELSE '0' END as BTD_Amt\r\n,CASE WHEN RIGHT(ISNULL(JS.JobStatusCategoryID,1),1)='3' AND (CASE WHEN J.[JobNetAmt]>0 THEN J.[JobNetAmt] ELSE J.[GrossAmount] END)>0 THEN '1' ELSE '0' END as Cancel_Flag\r\n,CASE WHEN RIGHT(ISNULL(JS.JobStatusCategoryID,1),1)='3' THEN (CASE WHEN J.[JobNetAmt]>0 THEN J.[JobNetAmt] ELSE J.[GrossAmount] END) ELSE '0' END as Cancel_Amt\r\n,J.ContractDate\r\n,J.ContractID\r\n,ML.MSRDate\r\n,ML.ORDDate\r\n,ML.RCVDate\r\n,ML.STRDate,\r\nML.RevenueDate\r\n,ML.Aging\r\n,J.FinanceAmount\r\n,J.ProductionBranchID\r\n,I.Name as Installer_Name\r\n,JS.JobStatus\r\n,M.Market_OpCo_Reporting as Market_OpCo_Reporting_lds\r\n,M.BranchName as BranchName_lds\r\n,P.TX_Product_Reporting as Product_OpCo_Reporting_lds\r\n,P.ProductName as ProductName_lds\r\n,SM.LeadSubSource as SubSource_lds\r\n,SM.SourceGroup as SourceGroup_lds\r\n,SM.SourceCode as Source3_lds\r\n,MG.Market_OpCo_Reporting as Market_OpCo_Reporting_job\r\n,MG.BranchName as BranchName_job\r\n,MP.TX_Product_Reporting as Product_OpCo_Reporting_job\r\n,MP.ProductName as ProductName_job\r\nfrom EDW.FACT_LEAD L left join EDW.FACT_JOB J on L.LeadID=J.LeadID\r\nleft join EDW.DIM_EMPLOYEE E on L.PromoterID=E.EmployeeID\r\nleft join EDW.DIM_EMPLOYEE E1 on L.SalesRep1_EmployeeID=E1.EmployeeID\r\nleft join EDW.DIM_JOB_STATUS JS on JS.JobStatusID=J.JobStatusID\r\nleft join RDM.REF_MKTNG_MARKET_GROUP M on M.BranchID=L.BranchID\r\nleft join EDW.DIM_MKTNG_PRODUCT_MAPPING P on P.ProductID=L.ProductID\r\nleft join EDW.DIM_MKTNG_SUB_SOURCE_MAPPING SM on SM.LeadSubSourceID=L.LeadSubSourceID\r\nleft join RDM.REF_MKTNG_MARKET_GROUP MG on MG.BranchID=J.ProductionBranchID\r\nleft join EDW.DIM_MKTNG_PRODUCT_MAPPING MP on MP.ProductID=J.ProductID\r\nleft join EDW.DIM_INSTALLER I on I.InstallerID=J.InstallerID_1\r\nleft JOIN (Select JobID\r\n,CASE WHEN MilestoneDateTypeID IN ('SWR-5','HSI-M','PBC-F','RTW-M','FHI-T','MAC-M','MXH-M','PHI-T') THEN CAST(ActualDate AS DATE) END AS MSRDate\r\n,CASE WHEN MilestoneDateTypeID IN ('SWR-O','HSI-O','PBC-O','RTW-O','RTW-G','FHI-O','MAC-O','MXH-O','PHI-O') THEN MAX(CAST(ActualDate AS DATE)) OVER (PARTITION BY JobID) END AS ORDDate\r\n,CASE WHEN MilestoneDateTypeID IN ('SWR-8','HSI-F','PBC-V','RTW-2','RTW-K','FHI-V','FHI-Z','MAC-V','MXH-V','PHI-V') THEN MAX(CAST(ActualDate AS DATE)) OVER (PARTITION BY JobID) END RCVDate\r\n,CASE WHEN MilestoneDateTypeID IN ('SWR-S','HSI-S','PBC-S','RTW-S','FHI-S','MAC-S','MAC-K','MXH-S','PHI-S') THEN MAX(CAST(ActualDate AS DATE)) OVER (PARTITION BY JobID) END STRDate\r\n,CASE WHEN MilestoneDateTypeID IN ('SWR-C','HSI-C','PBC-C','RTW-C','FHI-C','MAC-S','MXH-C','PHI-C') THEN CAST(ActualDate AS DATE) END AS RevenueDate\r\n,CASE WHEN (CASE WHEN MilestoneDateTypeID IN ('SWR-C','HSI-C','PBC-C','RTW-C','FHI-C','MAC-S','MXH-C','PHI-C') THEN CAST(ActualDate AS DATE) END) IS NULL THEN ''\r\nWHEN DATEDIFF(day,CAST(GETDATE() AS DATE),(CASE WHEN MilestoneDateTypeID IN ('SWR-C','HSI-C','PBC-C','RTW-C','FHI-C','MAC-S','MXH-C','PHI-C') THEN CAST(ActualDate AS DATE) END)) BETWEEN 0 and 30 THEN '0-30 Days'\r\nWHEN DATEDIFF(day,CAST(GETDATE() AS DATE),(CASE WHEN MilestoneDateTypeID IN ('SWR-C','HSI-C','PBC-C','RTW-C','FHI-C','MAC-S','MXH-C','PHI-C') THEN CAST(ActualDate AS DATE) END)) BETWEEN 31 and 60 THEN '31-60 Days'\r\nWHEN DATEDIFF(day,CAST(GETDATE() AS DATE),(CASE WHEN MilestoneDateTypeID IN ('SWR-C','HSI-C','PBC-C','RTW-C','FHI-C','MAC-S','MXH-C','PHI-C') THEN CAST(ActualDate AS DATE) END)) BETWEEN 61 and 90 THEN '61-90 Days'\r\nWHEN DATEDIFF(day,CAST(GETDATE() AS DATE),(CASE WHEN MilestoneDateTypeID IN ('SWR-C','HSI-C','PBC-C','RTW-C','FHI-C','MAC-S','MXH-C','PHI-C') THEN CAST(ActualDate AS DATE) END)) BETWEEN 91 and 180 THEN '91-180 Days'\r\nWHEN DATEDIFF(day,CAST(GETDATE() AS DATE),(CASE WHEN MilestoneDateTypeID IN ('SWR-C','HSI-C','PBC-C','RTW-C','FHI-C','MAC-S','MXH-C','PHI-C') THEN CAST(ActualDate AS DATE) END)) BETWEEN 181 and 360 THEN '181-360 Days'\r\nELSE '361+ Days' END as Aging\r\nFROM\r\nEDW.FACT_MILESTONE_DETAIL) ML ON ML.JOBID=J.JOBID \r\nwhere CAST(L.EntryDate as DATE)>=DATEADD(m,-6,CAST(GETDATE() AS DATE))",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "Truncate table OUT.CUBESW_Lead_Transaction;",
+						"allowCopyCommand": true,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdctestanuj/AkshayTest/rejectedrows"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "EntryDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "EntryDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "ApptDateFinal",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "ApptDateFinal",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "RawLead_Num",
+									"type": "String"
+								},
+								"sink": {
+									"name": "RawLead_Flag",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Set_Num",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Set_Flag",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Demo_Flag",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Demo_Flag",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "NetIssue_Flag",
+									"type": "String"
+								},
+								"sink": {
+									"name": "NetIssue_Flag",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PromoterName",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PromoterName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "SalesRep",
+									"type": "String"
+								},
+								"sink": {
+									"name": "SalesRep",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BranchID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ProductID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ProductID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadSubSourceID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LeadSubSourceID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LeadID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LeadID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Sold_Flag",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Sold_Flag",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "GrossSalesAmt",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "GrossSalesAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "Backlog_Flag",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Backlog_Flag",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "BTD_Flag",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BTD_Flag",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "BTD_Amt",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "BTD_Amt",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "Cancel_Flag",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Cancel_Flag",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Cancel_Amt",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "Cancel_Amt",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "ContractDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "ContractDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "ContractID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ContractID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "MSRDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "MSRDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "ORDDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "ORDDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "RCVDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "RCVDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "STRDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "STRDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "RevenueDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "RevenueDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "Aging",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Aging",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "FinanceAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "FinanceAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "ProductionBranchID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ProductionBranchID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Installer_Name",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Installer_Name",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "JobStatus",
+									"type": "String"
+								},
+								"sink": {
+									"name": "JobStatus",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Market_OpCo_Reporting_lds",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Market_OpCo_Reporting_lds",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchName_lds",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BranchName_lds",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Product_OpCo_Reporting_lds",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Product_OpCo_Reporting_lds",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ProductName_lds",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ProductName_lds",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "SubSource_lds",
+									"type": "String"
+								},
+								"sink": {
+									"name": "SubSource_lds",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "SourceGroup_lds",
+									"type": "String"
+								},
+								"sink": {
+									"name": "SourceGroup_lds",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Source3_lds",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Source3_lds",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Market_OpCo_Reporting_job",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Market_OpCo_Reporting_job",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchName_job",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BranchName_job",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Product_OpCo_Reporting_job",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Product_OpCo_Reporting_job",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ProductName_job",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ProductName_job",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_FACT_LEAD",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "OUT_CUBESW_LEAD_TRANSACTION",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "RDC_to_Cube"
+		},
+		"annotations": [],
+		"lastPublishTime": "2023-09-25T10:52:00Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

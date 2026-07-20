@@ -1,0 +1,20 @@
+{
+	"name": "SQL script 3",
+	"properties": {
+		"folder": {
+			"name": "Temp"
+		},
+		"content": {
+			"query": "SELECT TOP (100) *\n FROM [ODS].[ERP_AR_PAYMENT]\nwhere ReferenceNbr = '051923'\n\nselect TOP (100) *\n FROM\n[ODS].[ERP_AR_INVOICE]\n\n\nSELECT\nSUBSTRING(TransactionDescription,CHARINDEX('-',TransactionDescription)+1,100) as ProjectID\n,CustomerVendor\n,GLTran_tranType\n,RefNumber\n,GLTran_debitAmt\nFROM [ODS].[ERP_GL_TRANSACTIONS]\nwhere \nModule = 'AR'\nand RefNumber = '030159'\nand LineNbr = 1\nand GLTran_tranType = 'INV'\nand Project = 'X'\n\nSELECT\n*\nFROM [ODS].[ERP_GL_TRANSACTIONS]\nwhere \n--Module = 'AR' and \nProject = 'FHIA-2113932'\n\n\nselect\nSUBSTRING(TransactionDescription,CHARINDEX('#',TransactionDescription)+2,100) as ProjectID\n,* \nFROM\n[ODS].[ERP_GL_TRANSACTIONS]\nWHERE\nModule = 'AR'\nand GLTran_tranType = 'PPM'\nand LineNbr = 1\nand Project = 'X'\nand CustomerVendor = '207309'\n\n\nselect\n* \nFROM\n[ODS].[ERP_GL_TRANSACTIONS]\nWHERE\nModule = 'AR'\nand GLTran_tranType = 'PPM'\nand LineNbr = 1\nand Project = 'X'\nand CustomerVendor = '207309'\n\n\n\nselect * from ODS.ERP_BRANCH_MASTER where BranchCode = '2000'\n\nselect * from ODS.ERP_ORGANIZATION_MASTER where OrganizationID = '0002'\n\nselect * from ODS.ERP_PROJECT_MASTER where ProjectID = 'FHIA-2113932'\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

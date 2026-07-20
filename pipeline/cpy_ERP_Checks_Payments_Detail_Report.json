@@ -1,0 +1,751 @@
+{
+	"name": "cpy_ERP_Checks_Payments_Detail_Report",
+	"properties": {
+		"activities": [
+			{
+				"name": "cp_Checks_Payments_Detail",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Cpy_Bills_Payment_Link",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:40:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "Select i.Type as InvoiceType,i.ReferenceNbr as InvoiceRefNbr,i.Status as InvoiceStatus,p.PaymentDate as ApplicationDate,p.FinPeriod as ApplicationPeriod,p.PaymentRef,CONCAT(v.VendorID,'-',v.VendorName) as Vendor,\r\np.PaymentMethod,i.PayTypeID as InvoicePayID,p.CashAccount,p.Description,p.PaymentAmount,i.Branch as InvoiceBranch,p.Branch,CASE WHEN p.Status='Closed' then pl.CurrentAdjustAmt\r\nELSE i.Amount END as PayAmount,p.Status,pl.CashDiscountDate,CONCAT(i.TermsID,'-',i.TermsID_Description) as PaymentTerm,\r\nCASE WHEN p.Status='Closed' and i.DueDate is not null then pl.CurrentAdjustAmt\r\nWHEN p.Status='Closed' and i.DueDate is null then pl.CurrentAdjustAmt*(-1)\r\nWHEN i.Type='Debit Adj.' then i.Amount*(-1)\r\nELSE 0 END as AmountPaid,i.Balance,i.Description as InvoiceDescription,i.PostingPeriod as InvoicePostingPeriod,i.VendorRef as VendorReference,\r\nv.VendorClass,v.VendorClassDescription,v.VendorID as Vendor_ID,v.VendorName,i.DueDate,o.CompanyName,i.CashDiscount,p.ReferenceNbr,p.Type,\r\nCASE WHEN p.Status='Closed' and DATEDIFF(dd,p.PaymentDate,pl.CashDiscountDate)<0 and i.CashDiscount>0 then 'Y'\r\nWHEN p.Status='Closed' and DATEDIFF(dd,p.PaymentDate,pl.CashDiscountDate)>=0 and i.CashDiscount>0 then 'N' \r\nelse 'NA' END as MissedDiscountFlag,i.Date as InvoiceDate,i.createdOn as InvoiceCreatedDate,\r\nCASE WHEN p.Status='Closed' and DATEDIFF(dd,p.PaymentDate,i.DueDate)>0 THEN 'Paid Before Due Date'\r\nWHEN p.Status='Closed' and DATEDIFF(dd,p.PaymentDate,i.DueDate)=0 THEN 'Paid on Due Date'\r\nWHEN p.Status='Closed' and DATEDIFF(dd,p.PaymentDate,i.DueDate)<0  THEN 'Late Payment'\r\nELSE 'NA' END as PaymentOnTimeStatus\r\n from ODS.ERP_AP_INVOICE i left join ODS.ERP_VENDOR_MASTER v on i.Vendor=v.VendorID\r\n left join ODS.ERP_BILLS_PAYMENTS_LINK pl on i.Type=pl.InvoiceDocType and i.ReferenceNbr=pl.InvoiceRefNbr\r\n left join ODS.ERP_AP_PAYMENT p on pl.PaymentDocType=p.Type and pl.PaymentRefNbr=p.ReferenceNbr\r\n left join EDW.DIM_ERP_BRANCH b on i.Branch=b.BranchCode\r\n left join EDW.DIM_ERP_ORGANIZATION o on b.CompanyID=o.CompanyID\r\n Where CAST(RIGHT(i.PostingPeriod,4) as INT)>=2024 and (pl.PaymentDocType Not IN ('Refund','VQC','Voided Payment','Vendor Refund','Voided Check','Voided Refund') or pl.PaymentDocType is NULL)\r\n and i.Type!='QCK'",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "Truncate table EDW.ERP_CHECKS_PAYMENTS_DETAIL",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Type",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "DocumentType",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ReferenceNbr",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ReferenceNumber",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ApplicationDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "ApplicationDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "ApplicationPeriod",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ApplicationPeriod",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PaymentRef",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "PaymentReferenceNumber",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Vendor",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Vendor",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PaymentMethod",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "PaymentMethod",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CashAccount",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CashAccount",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Description",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "PaymentDescription",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PaymentAmount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								},
+								"sink": {
+									"name": "PaymentAmount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "Branch",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Branch",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "InvoiceType",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "InvoiceDocType",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "InvoiceRefNbr",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "InvoiceRefNbr",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AmountPaid",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 16,
+									"precision": 38
+								},
+								"sink": {
+									"name": "AmountPaid",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "Balance",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								},
+								"sink": {
+									"name": "Balance",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "InvoiceDescription",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "InvoiceDescription",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "InvoicePostingPeriod",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "InvoicePostingPeriod",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "VendorReference",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "VendorReference",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "VendorClass",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "VendorClass",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "VendorClassDescription",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "VendorClassDescription",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Vendor_ID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Vendor_ID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "VendorName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "VendorName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DueDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "DueDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "CompanyName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CompanyName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CashDiscount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 16
+								},
+								"sink": {
+									"name": "CashDiscount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "MissedDiscountFlag",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "MissedDiscountFlag",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "InvoiceDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "InvoiceDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "InvoiceCreatedDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "InvoiceCreatedDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "InvoiceStatus",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "InvoiceStatus",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "InvoicePayID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "InvoicePayID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "InvoiceBranch",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "InvoiceBranch",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PaymentOnTimeStatus",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PaymentOnTimeStatus",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PayAmount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								},
+								"sink": {
+									"name": "PayAmount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "Status",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "PaymentStatus",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CashDiscountDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "CashDiscountDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "PaymentTerm",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "PaymentTerms",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_FACT_ERP_GL_TRANSACTION",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_ERP_CHECKS_PAYMENTS_DETAIL",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Cpy_Bills_Payment_Link",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ODataSource",
+						"httpRequestTimeout": "00:05:00"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Upsert",
+						"upsertSettings": {
+							"keys": [
+								"AdjustInvoiceDocType",
+								"AdjustInvoiceRefNbr",
+								"AdjustPaymentDocType",
+								"AdjustPaymentRefNbr",
+								"InvoicePostPeriod",
+								"PaymentPostPeriod"
+							],
+							"interimSchemaName": ""
+						},
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "InvoiceDocType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "InvoiceDocType",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "InvoiceRefNbr",
+									"type": "String"
+								},
+								"sink": {
+									"name": "InvoiceRefNbr",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PaymentDocType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PaymentDocType",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "aymentRefNbr",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PaymentRefNbr",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "djustAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "CurrentAdjustAmt",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "VendorID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "VendorID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DocumentType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "AdjustInvoiceDocType",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ReferenceNbr_2",
+									"type": "String"
+								},
+								"sink": {
+									"name": "AdjustInvoiceRefNbr",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DocType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "AdjustPaymentDocType",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ReferenceNbr",
+									"type": "String"
+								},
+								"sink": {
+									"name": "AdjustPaymentRefNbr",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PostPeriod",
+									"type": "String"
+								},
+								"sink": {
+									"name": "InvoicePostPeriod",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PaymentPeriod",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PaymentPostPeriod",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CashDiscountTaken",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "CashDiscountTaken",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "CashDiscountDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "CashDiscountDate",
+									"type": "DateTime"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_ERP_BILLS_PAYMENTS_LINK",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_ERP_BILLS_PAYMENT_LINK",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "cp_Checks_Payments_Detail_v1",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "cp_Checks_Payments_Detail",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "TRUNCATE TABLE EDW.ERP_CHECKS_PAYMENTS_DETAIL;\n\nINSERT INTO EDW.ERP_CHECKS_PAYMENTS_DETAIL\n(InvoiceDocType\t,\nInvoiceRefNbr\t,\nInvoiceStatus\t,\nApplicationDate\t,\nApplicationPeriod\t,\nPaymentReferenceNumber\t,\nVendor\t,\nPaymentMethod\t,\nInvoicePayID\t,\nCashAccount\t,\nPaymentDescription\t,\nPaymentAmount\t,\nInvoiceBranch\t,\nBranch\t,\nPayAmount\t,\nPaymentStatus\t,\nCashDiscountDate\t,\nPaymentTerms\t,\nAmountPaid\t,\nBalance\t,\nInvoiceDescription\t,\nInvoicePostingPeriod\t,\nVendorReference\t,\nVendorClass\t,\nVendorClassDescription\t,\nVendor_ID\t,\nVendorName\t,\nDueDate\t,\nCompanyName\t,\nCashDiscount\t,\nReferenceNumber\t,\nDocumentType\t,\nMissedDiscountFlag\t,\nInvoiceDate\t,\nInvoiceCreatedDate\t,\nPaymentOnTimeStatus\t\n\n)\n\n\n\nSELECT \nInvoiceType\t,\nInvoiceRefNbr\t,\nInvoiceStatus\t,\nApplicationDate\t,\nApplicationPeriod\t,\nPaymentRef\t,\nVendor\t,\nPaymentMethod\t,\nInvoicePayID\t,\nCashAccount\t,\nDescription\t,\nPaymentAmount\t,\nInvoiceBranch\t,\nBranch\t,\nPayAmount\t,\nStatus\t,\nCashDiscountDate\t,\nPaymentTerm\t,\nAmountPaid\t,\nBalance\t,\nInvoiceDescription\t,\nInvoicePostingPeriod\t,\nVendorReference\t,\nVendorClass\t,\nVendorClassDescription\t,\nVendor_ID\t,\nVendorName\t,\nDueDate\t,\nCompanyName\t,\nCashDiscount\t,\nReferenceNbr\t,\nType\t,\nMissedDiscountFlag\t,\nInvoiceDate\t,\nInvoiceCreatedDate\t,\nPaymentOnTimeStatus\t\nFROM \n(\n\t\tSelect \n\t\ti.Type as InvoiceType,\n\t\ti.ReferenceNbr as InvoiceRefNbr,\n\t\ti.Status as InvoiceStatus,\n\t\tp.PaymentDate as ApplicationDate,\n\t\tp.FinPeriod as ApplicationPeriod,\n\t\tp.PaymentRef,\n\t\tCONCAT(v.VendorID,'-',v.VendorName) as Vendor,\n\t\tp.PaymentMethod,\n\t\ti.PayTypeID as InvoicePayID,\n\t\tp.CashAccount,\n\t\tp.Description,\n\t\tp.PaymentAmount,\n\t\ti.Branch as InvoiceBranch,\n\t\tp.Branch,\n\t\tCASE WHEN p.Status='Closed' then pl.CurrentAdjustAmt\n\t\tELSE i.Amount END as PayAmount,\n\t\tp.Status,\n\t\tpl.CashDiscountDate,\n\t\tCONCAT(i.TermsID,'-',i.TermsID_Description) as PaymentTerm,\n\t\tCASE \n\t\tWHEN p.Status='Closed' and i.DueDate is not null then pl.CurrentAdjustAmt\n\t\tWHEN p.Status='Closed' and i.DueDate is null then pl.CurrentAdjustAmt*(-1)\n\t\tWHEN i.Type='Debit Adj.' then i.Amount*(-1)\n\t\tELSE 0 END as AmountPaid,\n\t\t\n\t\ti.Balance,\n\t\ti.Description as InvoiceDescription,\n\t\ti.PostingPeriod as InvoicePostingPeriod,\n\t\ti.VendorRef as VendorReference,\n\t\tv.VendorClass,\n\t\tv.VendorClassDescription,\n\t\tv.VendorID as Vendor_ID,\n\t\tv.VendorName,\n\t\ti.DueDate,\n\t\to.CompanyName,\n\t\ti.CashDiscount,\n\t\tp.ReferenceNbr,\n\t\tp.Type,\n\t\tCASE \n\t\tWHEN p.Status='Closed' and DATEDIFF(dd,p.PaymentDate,pl.CashDiscountDate)<0 and i.CashDiscount>0 then 'Y'\n\t\tWHEN p.Status='Closed' and DATEDIFF(dd,p.PaymentDate,pl.CashDiscountDate)>=0 and i.CashDiscount>0 then 'N' \n\t\telse 'NA' END as MissedDiscountFlag,\n\t\t\n\t\ti.Date as InvoiceDate,\n\t\ti.createdOn as InvoiceCreatedDate,\n\t\t\n\t\tCASE \n\t\tWHEN p.Status='Closed' and DATEDIFF(dd,p.PaymentDate,i.DueDate)>0 THEN 'Paid Before Due Date'\n\t\tWHEN p.Status='Closed' and DATEDIFF(dd,p.PaymentDate,i.DueDate)=0 THEN 'Paid on Due Date'\n\t\tWHEN p.Status='Closed' and DATEDIFF(dd,p.PaymentDate,i.DueDate)<0  THEN 'Late Payment'\n\t\tELSE 'NA' END as PaymentOnTimeStatus\n\t\t\n\t\tfrom ODS.ERP_AP_INVOICE i left join ODS.ERP_VENDOR_MASTER v on i.Vendor=v.VendorID\n\t\tleft join ODS.ERP_BILLS_PAYMENTS_LINK pl on i.Type=pl.InvoiceDocType and i.ReferenceNbr=pl.InvoiceRefNbr\n\t\tleft join ODS.ERP_AP_PAYMENT p on pl.PaymentDocType=p.Type and pl.PaymentRefNbr=p.ReferenceNbr\n\t\tleft join EDW.DIM_ERP_BRANCH b on i.Branch=b.BranchCode\n\t\tleft join EDW.DIM_ERP_ORGANIZATION o on b.CompanyID=o.CompanyID\n\t\tWhere CAST(RIGHT(i.PostingPeriod,4) as INT)>=2024 and (pl.PaymentDocType Not IN ('Refund','VQC','Voided Payment','Vendor Refund','Voided Check','Voided Refund') or pl.PaymentDocType is NULL)\n\t\tand i.Type!='QCK'\n\t\t\n\t\t) M1"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/FACTS/ERP"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-02-04T06:47:42Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

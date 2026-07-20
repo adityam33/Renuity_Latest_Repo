@@ -1,0 +1,91 @@
+{
+	"name": "batch_cpy_LP_to_ODS_ZML",
+	"properties": {
+		"activities": [
+			{
+				"name": "batch_cpy_LP_to_ODS_large",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "batch_cpy_LP_to_ODS_large_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "batch_cpy_LP_to_ODS_medium",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "batch_cpy_LP_to_ODS_large",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "batch_cpy_LP_to_ODS_medium_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "batch_cpy_LP_to_ODS_small_Part2",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "batch_cpy_LP_to_ODS_small_Part2_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "batch_cpy_LP_to_ODS_small_Part1",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "batch_cpy_LP_to_ODS_small_Part2",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "batch_cpy_LP_to_ODS_small_Part1_ZML",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"folder": {
+			"name": "Temp/Anuj/ZML/LP_to_ODS_ZML"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-11-05T08:30:58Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

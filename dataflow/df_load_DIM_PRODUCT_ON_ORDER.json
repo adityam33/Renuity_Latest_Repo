@@ -1,0 +1,143 @@
+{
+	"name": "df_load_DIM_PRODUCT_ON_ORDER",
+	"properties": {
+		"folder": {
+			"name": "ODS_to_EDW/DIMENSIONS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ODS_RTW_prd_ProductOnOrder",
+						"type": "DatasetReference"
+					},
+					"name": "RTW"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_DIM_PRODUCT_ON_ORDER",
+						"type": "DatasetReference"
+					},
+					"name": "targetDim",
+					"description": "Export data to EDW_DIM_PRODUCT_ON_ORDER",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "selectColsRTW",
+					"description": "Renaming RTW to selectColsRTW with columns 'LP_BranchID'"
+				},
+				{
+					"name": "createIDsRTW"
+				},
+				{
+					"name": "addLastUpdateTimestamp"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          Id as integer,",
+				"          Job_ID as integer,",
+				"          Vnd_ID as integer,",
+				"          InvoiceNum as string,",
+				"          NumWindows as decimal(16,4),",
+				"          NumDoors as decimal(16,4),",
+				"          NumpatioDoors as decimal(16,4),",
+				"          Enteredon as timestamp,",
+				"          Enteredby as integer,",
+				"          UpdatedOn as timestamp,",
+				"          UpdatedBy as integer,",
+				"          DeliveryETA as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> RTW",
+				"RTW select(mapColumn(",
+				"          LP_ProductOrderId = Id,",
+				"          LP_JobID = Job_ID,",
+				"          LP_VendorID = Vnd_ID,",
+				"          InvoiceNum,",
+				"          NumWindows,",
+				"          NumDoors,",
+				"          NumpatioDoors,",
+				"          Enteredon,",
+				"          Enteredby,",
+				"          UpdatedOn,",
+				"          UpdatedBy,",
+				"          DeliveryETA",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColsRTW",
+				"selectColsRTW derive(ProductOrderID = concat('RTW-',toString(LP_ProductOrderId)),",
+				"          Division = 'RTW',",
+				"          JobID = concat('RTW-',toString(LP_JobID)),",
+				"          VendorID = concat('RTW-',toString(LP_VendorID))) ~> createIDsRTW",
+				"createIDsRTW derive(LastUpdateTS = currentTimestamp(),",
+				"          CreatedTS = currentTimestamp()) ~> addLastUpdateTimestamp",
+				"addLastUpdateTimestamp sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          ProductOrderID as string,",
+				"          JobID as string,",
+				"          VendorID as string,",
+				"          InvoiceNum as string,",
+				"          NumWindows as decimal(16,2),",
+				"          NumDoors as decimal(16,2),",
+				"          NumPatioDoors as decimal(16,2),",
+				"          EnteredOn as timestamp,",
+				"          Enteredby as integer,",
+				"          UpdatedOn as timestamp,",
+				"          UpdatedBy as integer,",
+				"          DeliveryETA as timestamp,",
+				"          Division as string,",
+				"          LP_ProductOrderID as integer,",
+				"          LP_JobID as integer,",
+				"          LP_VendorID as integer,",
+				"          CreatedTS as timestamp,",
+				"          LastUpdatedTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     truncate:true,",
+				"     format: 'table',",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          ProductOrderID,",
+				"          JobID,",
+				"          VendorID,",
+				"          InvoiceNum,",
+				"          NumWindows,",
+				"          NumDoors,",
+				"          NumPatioDoors = NumpatioDoors,",
+				"          EnteredOn = Enteredon,",
+				"          Enteredby,",
+				"          UpdatedOn,",
+				"          UpdatedBy,",
+				"          DeliveryETA,",
+				"          Division,",
+				"          LP_ProductOrderID = LP_ProductOrderId,",
+				"          LP_JobID,",
+				"          LP_VendorID,",
+				"          CreatedTS,",
+				"          LastUpdatedTS = LastUpdateTS",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> targetDim"
+			]
+		}
+	}
+}

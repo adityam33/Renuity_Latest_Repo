@@ -1,0 +1,174 @@
+{
+	"name": "DF_Timecard_",
+	"properties": {
+		"folder": {
+			"name": "Test-Dataflows"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DS_EmployeeTimeCard",
+						"type": "DatasetReference"
+					},
+					"name": "DimEmployee"
+				},
+				{
+					"dataset": {
+						"referenceName": "DS_DIM_EMPLOYEE_TIMECARD",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "DS_DIM_EMPLOYEE_TIMECARD",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				},
+				{
+					"dataset": {
+						"referenceName": "DS_fact_EMPLOYEE_TIMECARD",
+						"type": "DatasetReference"
+					},
+					"name": "sink2"
+				}
+			],
+			"transformations": [
+				{
+					"name": "AlterRow1"
+				},
+				{
+					"name": "AlterRow2"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          FirstName as string,",
+				"          lastName as string,",
+				"          AssociateID as string,",
+				"          JobTitleDescription as string,",
+				"          WorkContact_WorkEmail as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'select distinct FirstName,lastName,AssociateID,JobTitleDescription,[WorkContact_WorkEmail]\\nfrom ODS.EmployeeTimecard ',",
+				"     format: 'query',",
+				"     staged: true) ~> DimEmployee",
+				"source(output(",
+				"          PayClass as string,",
+				"          PayClassTimeclockRestrictionGroup as string,",
+				"          Division as string,",
+				"          PayDate as string,",
+				"          TimeIn as string,",
+				"          TimeOut as string,",
+				"          Hours as string,",
+				"          EarningsCode as string,",
+				"          WorkedDepartment as string,",
+				"          TimecardWorkLocation as string,",
+				"          TimecardWorkCarpentersJobNumber as string,",
+				"          TimecardWorkFHIABJsLocations as string,",
+				"          TimecardWorkGoSouthernLocation as string,",
+				"          TimecardWorkMADCITYLOCATION as string,",
+				"          TimecardWorkMAXHOMELOCATION as string,",
+				"          TimecardWorkMAXHOMEPROJECT as string,",
+				"          Approve as string,",
+				"          ApproveSupervisorName as string,",
+				"          inserteddate as timestamp,",
+				"          associateid as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'select  PayClass,PayClassTimeclockRestrictionGroup,Division,PayDate,TimeIn,\\nTimeOut,Hours,EarningsCode,WorkedDepartment,TimecardWorkLocation,TimecardWorkCarpentersJobNumber,\\nTimecardWorkFHIABJsLocations,TimecardWorkGoSouthernLocation,TimecardWorkMADCITYLOCATION,\\nTimecardWorkMAXHOMELOCATION,TimecardWorkMAXHOMEPROJECT,Approve,ApproveSupervisorName,inserteddate,associateid from \\nODS.EmployeeTimecard',",
+				"     format: 'query',",
+				"     staged: true) ~> source1",
+				"DimEmployee alterRow(upsertIf(AssociateID==AssociateID)) ~> AlterRow1",
+				"source1 alterRow(upsertIf(associateid==associateid&&PayClass==PayClass&&PayDate==PayDate)) ~> AlterRow2",
+				"AlterRow1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          EmployeeKey as integer,",
+				"          AssociateID as string,",
+				"          FirstName as string,",
+				"          LastName as string,",
+				"          JobTitleDescription as string,",
+				"          WorkContact_WorkEmail as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['AssociateID'],",
+				"     format: 'table',",
+				"     staged: true,",
+				"     allowCopyCommand: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> sink1",
+				"AlterRow2 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          TimecardKey as integer,",
+				"          EmployeeKey as integer,",
+				"          AssociateID as string,",
+				"          PayClass as string,",
+				"          PayClassTimeclockRestrictionGroup as string,",
+				"          Hours as string,",
+				"          EarningsCode as string,",
+				"          WorkedDepartment as string,",
+				"          Division as string,",
+				"          TimecardWorkLocation as string,",
+				"          TimecardWorkCarpentersJobNumber as string,",
+				"          TimecardWorkFHIABJsLocations as string,",
+				"          TimecardWorkGoSouthernLocation as string,",
+				"          TimecardWorkMADCITYLOCATION as string,",
+				"          TimecardWorkMAXHOMELOCATION as string,",
+				"          TimecardWorkMAXHOMEPROJECT as string,",
+				"          Approve as string,",
+				"          ApproveSupervisorName as string,",
+				"          PayDate as date,",
+				"          TimeIn as string,",
+				"          InsertedDate as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['AssociateID','PayClass','PayDate','TimeIn'],",
+				"     format: 'table',",
+				"     staged: true,",
+				"     allowCopyCommand: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          AssociateID = associateid,",
+				"          PayClass,",
+				"          PayClassTimeclockRestrictionGroup,",
+				"          Hours,",
+				"          EarningsCode,",
+				"          WorkedDepartment,",
+				"          Division,",
+				"          TimecardWorkLocation,",
+				"          TimecardWorkCarpentersJobNumber,",
+				"          TimecardWorkFHIABJsLocations,",
+				"          TimecardWorkGoSouthernLocation,",
+				"          TimecardWorkMADCITYLOCATION,",
+				"          TimecardWorkMAXHOMELOCATION,",
+				"          TimecardWorkMAXHOMEPROJECT,",
+				"          Approve,",
+				"          ApproveSupervisorName,",
+				"          PayDate,",
+				"          TimeIn,",
+				"          InsertedDate = inserteddate",
+				"     )) ~> sink2"
+			]
+		}
+	}
+}

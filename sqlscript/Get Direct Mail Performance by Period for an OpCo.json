@@ -1,0 +1,17 @@
+{
+	"name": "Get Direct Mail Performance by Period for an OpCo",
+	"properties": {
+		"content": {
+			"query": "\nselect \nMONTH(lds.EntryDate) as MonthOfEntryDate\n,Zip\n,count(distinct LeadID) as LeadCount\n,sum(GrossSalesAmount) as GrossSalesAmount\n,count(distinct LeadSubSource) as UniqueSubSourceCount\n,sum(case when DispositionID like '%Sale%' then 1 else 0 end) as SoldLeads\nfrom\n(\nSELECT \nlds.LeadID\n,lds.EntryDate\n,lds.GrossSalesAmount\n,lds.DispositionID\n,lds.[ApptSet]\n,lds.Sold\n,srs.LeadSubSource\n,cst.Zip\n FROM \n [EDW].[FACT_LEAD] lds\n ,[EDW].[DIM_CUSTOMER] cst\n ,[EDW].[DIM_LEAD_SUB_SOURCE] srs\n WHERE\nlds.LeadSubSourceID = srs.LeadSubSourceID\nand lds.CustomerID = cst.CustomerID\nand lds.OperatingCompany = 'FHI'\nand \n(\n    lds.EntryDate between '2022-01-01' and '2022-01-31'\n    or lds.EntryDate between '2022-02-01' and '2022-02-28'\n    or lds.EntryDate between '2022-03-01' and '2022-03-31'\n    or lds.EntryDate between '2022-04-01' and '2022-04-30'\n    or lds.EntryDate between '2022-05-01' and '2022-05-31'\n    or lds.EntryDate between '2022-06-01' and '2022-06-30'\n    or lds.EntryDate between '2022-07-01' and '2022-07-31'\n    or lds.EntryDate between '2022-08-01' and '2022-08-31'\n    or lds.EntryDate between '2022-09-01' and '2022-09-15'\n)\nand srs.LeadSubSource like '%Direct Mail%'\n) lds\ngroup by\nMONTH(lds.EntryDate)\n,Zip\norder by \nMonthOfEntryDate asc\n\n\nselect\nmin(lds.CustomerID)\n,sum(lds.GrossSalesAmount)\nfrom\nEDW.FACT_LEAD lds\n,EDW.FACT_JOB job\n,[EDW].[DIM_LEAD_SUB_SOURCE] srs\n WHERE\nlds.LeadSubSourceID = srs.LeadSubSourceID\nand lds.LeadID = job.LeadID\nand lds.OperatingCompany = 'FHI'\nand lds.EntryDate between '2022-09-01' and '2022-09-15'\nand job.ContractDate between '2022-09-01' and '2022-09-15'\nand lds.DispositionID like '%Sale%'\nand srs.LeadSubSource like '%Direct Mail%'\n\n\nselect \ncst.Zip\n,count(lds.id) as LeadCount\n,sum(lds.gsa) as GSA\nfrom \n[ODS].[LP_FHI_Lds_Leads] lds\n,[ODS].[LP_FHI_cst_Customers] cst\nWHERE\nlds.cst_id = cst.id\nand lds.srs_id in \n(\nSELECT [ID]\n FROM [ODS].[LP_FHI_srs_SourceSubs]\n --where Descr like 'Direct Mail - October -%'\n where Descr like '%Direct Mail%'\n)\nand lds.EntryDate between '2022-10-01' and '2022-10-31'\ngroup BY\ncst.zip\norder by GSA desc\n\n\n\nselect \ncount(lds.id) as LeadCount\n,sum(lds.gsa) as GSA\nfrom \n[ODS].[LP_FHI_Lds_Leads] lds\nWHERE\nlds.srs_id in \n(\nSELECT [ID]\n FROM [ODS].[LP_FHI_srs_SourceSubs]\n --where Descr like 'Direct Mail - October -%'\n where Descr like '%Direct Mail%'\n)\nand lds.EntryDate between '2022-10-01' and '2022-10-31'\n\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

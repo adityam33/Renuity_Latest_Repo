@@ -1,0 +1,269 @@
+{
+	"name": "cpy_LP_sls_SalesSchedule_ZML",
+	"properties": {
+		"activities": [
+			{
+				"name": "FHI",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:40:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT \nid\t,\nSDate\t,\nbrn_id\t,\nslr_id\t,\ntms_id\t,\nDateChanged\t,\nStatus\t\n\n\nFROM dbo.sls_SalesSchedule WITH (NOLOCK)\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE [ZML].[LP_FHI_sls_SalesSchedule]",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "SDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "SDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "brn_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "brn_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "slr_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "slr_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "tms_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "tms_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "DateChanged",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "DateChanged",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "Status",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Status",
+									"type": "String"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_ZML_FHI_aph_AlternatePhones",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ZML_ODS_FHI_sls_SalesSchedule",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "MXH",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:40:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT \nid\t,\nSDate\t,\nbrn_id\t,\nslr_id\t,\ntms_id\t,\nDateChanged\t,\nStatus\t\n\n\nFROM dbo.sls_SalesSchedule WITH (NOLOCK)\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "TRUNCATE TABLE [ZML].[LP_MXH_sls_SalesSchedule]",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "SDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "SDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "brn_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "brn_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "slr_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "slr_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "tms_id",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "tms_id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "DateChanged",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "DateChanged",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "Status",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Status",
+									"type": "String"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_ZML_MXH_aph_AlternatePhones",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ZML_ODS_MXH_sls_SalesSchedule",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "Temp/Anuj/ZML/LP_to_ODS_ZML"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-11-06T06:03:49Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

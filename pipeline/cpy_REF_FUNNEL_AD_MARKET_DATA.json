@@ -1,0 +1,159 @@
+{
+	"name": "cpy_REF_FUNNEL_AD_MARKET_DATA",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy New LP markets",
+				"description": "Copy new LP markets into REF table for Funnel",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.06:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": " \r\n With FunnelMarket as (\r\n Select Distinct\r\n\t\t\t\t  Case\r\n\t\t\t\t  \twhen replace(Account,' ','') like '%FHIA%' then 'FHI'\r\n\t\t\t\t  \twhen replace(Account,' ','') like '%HomeSmart%' then 'HSI'\r\n\t\t\t\t  \twhen replace(Account,' ','') like '%MadCity%' then 'MAC'\r\n\t\t\t\t  \twhen replace(Account,' ','') like '%MaxHome%' then 'FHI'\r\n\t\t\t\t  \twhen replace(Account,' ','') like '%RiteWindow%' then 'RTW'\r\n\t\t\t\t  \twhen replace(Account,' ','') like '%StatewideRemodeling%' then 'SWR'\r\n\t\t\t\t  \twhen replace(Account,' ','') like '%PacificBath%' or replace(Account,' ','') Like '%HomeForeverBaths%' then 'PBC'\r\n\t\t\t\t  \twhen replace(Account,' ','') like '%Paradise%' then 'PHI'\r\n\t\t\t\t\twhen replace(Account,' ','') like '%ClosetAmerica%' then 'CTA'\r\n\t\t\t\t  \twhen replace(Account,' ','') like '%RenuityHome%' then \r\n\t\t\t\t  \t\t\tCase when Campaign like '%FHI%' then 'FHI'\r\n\t\t\t\t  \t\t\t\tWhen Campaign like '%SWR%' then 'SWR'\r\n\t\t\t\t  \t\t\t\tWhen Campaign like '%RTW%' then 'RTW'\r\n\t\t\t\t  \t\t\t\tWhen (Campaign like '%MXH%' or Campaign like '%MAX%') then 'FHI'\r\n\t\t\t\t  \t\t\t\tWhen (Campaign like '%MAC%' or Campaign like '%MCW%') then 'MAC'\r\n\t\t\t\t  \t\t\t\tWhen Campaign like '%PBC%' then 'PBC'\r\n\t\t\t\t  \t\t\t\tWhen Campaign like '%PHI%' then 'PHI'--Renuity Home\r\n\t\t\t\t  \t\t\t\tWhen Campaign like '%HSI%' then 'HSI' \r\n\t\t\t\t  \t\t\t\tWhen Campaign like '%Garage%' then 'CTA-GS' end \r\n\t\t\t\t  \twhen replace(Account,' ','') like '%RenuityCoatings%' then  'CTA-GS' \r\n\t\t\t\t  end as Division ,\r\n\t\t\t\t  Account,\r\n\t\t\t\t  Replace(Replace(Market,',',''),'.','') as Market \r\n\t\t\tfrom ODS.Funnel_Ad_performance_metrics\r\n\t\t\tWhere Traffic_source='Google' and Market is not null\r\n)\r\nSelect Distinct FM.*,RF.LP_Market, NULL as LP_ReportingmarketID, 'Unmapped' As Flag, Getdate() createdTS, Getdate() as LastUpdatedTS\r\n\r\nfrom FunnelMarket FM Left Join RDM.REF_FUNNEL_AD_Market RF on FM.Division=RF.Division and FM.Market=RF.DMARegion\r\nwhere FM.Division is not null and RF.LP_Market is NULL\r\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "DIVISION",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Account",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ACCOUNT",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Market",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "DMAREGION",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_Market",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "LP_MARKET",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "LP_ReportingmarketID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "LP_REPORTINGMARKETID",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Flag",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "FLAG",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "createdTS",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "CREATEDTS",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "LASTUPDATEDTS",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_DIM_REPORTING_MARKET",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "RDM_REF_FUNNEL_AD_MARKET",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "SRC_to_ODS/REF_DATA"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-01-12T22:04:32Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

@@ -1,0 +1,123 @@
+{
+	"name": "df_load_DIM_PHONES_ZML",
+	"properties": {
+		"folder": {
+			"name": "ZML_ODS_to_EDW/DIMENSIONS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "SRC_ODS_LP_FHI_phn_phones_ZML",
+						"type": "DatasetReference"
+					},
+					"name": "FHI",
+					"description": "Source to Fetch data from ODS Phones for FHI"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_DIM_PHONES_ZML",
+						"type": "DatasetReference"
+					},
+					"name": "targetDIM",
+					"description": "Load DIM_PHONES_CTA",
+					"rejectedDataLinkedService": {
+						"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "selectColsFHI"
+				},
+				{
+					"name": "derivedDivisionFHI",
+					"description": "Creating/updating the columns DivisionID"
+				},
+				{
+					"name": "unionAllOpCos",
+					"description": "Combining rows from transformation 'createIDsFHI, createIDsHSI, createIDsMAC, createIDsPBC, createIDsPHI, createIDsSWR, createIDsRTW, createIDsMXH'"
+				},
+				{
+					"name": "addLastUpdatedTimestamp"
+				},
+				{
+					"name": "AlterRow"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          Id as long,",
+				"          Phone as string,",
+				"          Descr as string,",
+				"          Active as integer,",
+				"          SortOrder as integer,",
+				"          srs_id as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> FHI",
+				"FHI select(mapColumn(",
+				"          LP_PhoneId = Id,",
+				"          Phone,",
+				"          PhoneDescription = Descr,",
+				"          Active,",
+				"          SortOrder,",
+				"          LP_SubSourceID = srs_id",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColsFHI",
+				"selectColsFHI derive(Division = 'FHI') ~> derivedDivisionFHI",
+				"derivedDivisionFHI union(byName: true)~> unionAllOpCos",
+				"unionAllOpCos derive(LastUpdatedTS = currentTimestamp(),",
+				"          SubSourceID = concat(Division,'-',toString(LP_SubSourceID)),",
+				"          PhoneID = concat(Division,'-',toString(LP_PhoneId))) ~> addLastUpdatedTimestamp",
+				"addLastUpdatedTimestamp alterRow(upsertIf(true())) ~> AlterRow",
+				"AlterRow sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          PhoneId as string,",
+				"          Phone as string,",
+				"          PhoneDescription as string,",
+				"          Active as integer,",
+				"          SortOrder as integer,",
+				"          SubSourceID as string,",
+				"          LP_SubSourceID as integer,",
+				"          LP_PhoneId as integer,",
+				"          Division as string,",
+				"          LastUpdatedTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['PhoneId'],",
+				"     format: 'table',",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          LP_PhoneId,",
+				"          Phone,",
+				"          PhoneDescription,",
+				"          Active,",
+				"          SortOrder,",
+				"          LP_SubSourceID,",
+				"          Division,",
+				"          LastUpdatedTS,",
+				"          SubSourceID,",
+				"          PhoneId = PhoneID",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> targetDIM"
+			]
+		}
+	}
+}

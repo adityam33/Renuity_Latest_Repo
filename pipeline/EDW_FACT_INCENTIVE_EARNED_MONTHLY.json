@@ -1,0 +1,279 @@
+{
+	"name": "EDW_FACT_INCENTIVE_EARNED_MONTHLY",
+	"properties": {
+		"activities": [
+			{
+				"name": "cpy_FACT_INCENTIVE_EARNED_MONTHLY",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlPoolSource",
+						"sqlReaderQuery": "SELECT \nA.EmployeePK,\nA.IncentivePlanID,\nA.IncentiveMetricID,\nA.Division,\nB.IncentiveScaleID,\nA.PeriodDate,\nA.DistributionType,\nNULL AS Pct_IncentivePoolEarned,\nNULL AS EligibleIncentiveTarget,\nA.TargetValue,\nA.ActualValue,\nCASE \nWHEN A.ActualValue IS NOT NULL AND A.ActualValue!=0.00 \n        THEN \n            (   CASE \n                    WHEN ( A.TargetValue IS NULL OR A.TargetValue =0)  THEN A.ActualValue\n                    ELSE (A.ActualValue * 1.00 / A.TargetValue * 1.00)\n                END\n                )\n\nELSE NULL END AS  PerformanceRatio,\nNULL AS EarnedIncentiveAmount,\n'N' AS SalaryChangeFlag,\nGETDATE() AS LastUpdatedTS\n\nFROM EDW_INC.FACT_INCENTIVE_METRICS_RESULT A\nJOIN EDW_INC.DIM_INCENTIVE_METRIC_ALLOCATION B\nON   A.IncentivePlanID   = B.IncentivePlanID\nAND  A.IncentiveMetricID = B.IncentiveMetricID",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "TRUNCATE TABLE  [EDW_INC].[FACT_INCENTIVE_EARNED_MONTHLY];",
+						"allowCopyCommand": true
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "Azure_blobStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "staging"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "EmployeePK",
+									"type": "String"
+								},
+								"sink": {
+									"name": "EmployeePK",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "IncentivePlanID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "IncentivePlanID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "IncentiveMetricID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "IncentiveMetricID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "IncentiveScaleID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "IncentiveScaleID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Division",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PeriodDate",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "PeriodDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "DistributionType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "DistributionType",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "EligibleIncentiveTarget",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EligibleIncentiveTarget",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "TargetValue",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "TargetValue",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "ActualValue",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "ActualValue",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "PerformanceRatio",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "PerformanceRatio",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "Pct_IncentivePoolEarned",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Pct_IncentivePoolEarned",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "EarnedIncentiveAmount",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "EarnedIncentiveAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "SalaryChangeFlag",
+									"type": "String"
+								},
+								"sink": {
+									"name": "SalaryChangeFlag",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_FACT_INCENTIVE_METRICS_RESULT1",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_FACT_INCENTIVE_EARNED_MONTHLY1",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "UPD_EarnedIncentiveAmount",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "cpy_FACT_INCENTIVE_EARNED_MONTHLY",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "--############# TEMP TABLES ###############\n\n-- BONUS POOLS \n\nIF OBJECT_ID('tempdb..#T_BONUS_POOL_RAW') IS NOT NULL\n    DROP TABLE #T_BONUS_POOL_RAW;\n\t\n\nSELECT DISTINCT\n\tA.PeriodDate,\n\tA.IncentiveMetricID,\n\tA.EmployeePK,\n\tA.Division,\n\tA.DistributionType,\n\tB.BaseSalary,\n\tB.Pct_TargetBonus,\n\tB.EligibleIncentiveTarget,\n\tCASE \n\t\tWHEN A.DistributionType='MONTHLY'\tTHEN ( (C.AllocationPct *  B.EligibleIncentiveTarget ) / 12 ) \n\t\tEND AS MonthlyBonusPool,\n\tCASE \n\t\tWHEN A.DistributionType='QUARTERLY' THEN ( (C.AllocationPct *  B.EligibleIncentiveTarget ) / 4 ) \n\t\tEND AS QuarterlyBonusPool,\n\tCASE\n\t\tWHEN A.DistributionType='YEARLY'\tTHEN ( (C.AllocationPct *  B.EligibleIncentiveTarget )  ) \n\t\tEND AS YearlyBonusPool\n\t\t\n\tINTO #T_BONUS_POOL_RAW\n\t\t\n\tFROM \n\tEDW_INC.FACT_INCENTIVE_METRICS_RESULT A\n\tJOIN [EDW_INC].[DIM_INCENTIVE_ELIGIBLE_EMPLOYEE] B\n\tON A.EmployeePK = B.EmployeePK\n\tAND A.Division  = B.Division\n\tAND A.IncentivePlanID = B.IncentivePlanID\n\t\n\tJOIN EDW_INC.DIM_INCENTIVE_METRIC_ALLOCATION C\n\tON A.IncentivePlanID  =  C.IncentivePlanID\n\tAND A.IncentiveMetricID  = C.IncentiveMetricID\n\tAND A.DistributionType  = C.DistributionType;\n\n\n--****************************************\n\n\nIF OBJECT_ID('tempdb..#T_ELIGIBLE_BONUS_BY_METRIC') IS NOT NULL\n    DROP TABLE #T_ELIGIBLE_BONUS_BY_METRIC;\n\nSELECT \nPeriodDate,\nEmployeePK,\nIncentiveMetricID,\nDivision,\nEligibleIncentiveTarget,\nSUM(COALESCE(MonthlyBonusPool,0.00))\tAS MonthlyBonusPool,\nSUM(COALESCE(QuarterlyBonusPool,0.00))\tAS QuarterlyBonusPool,\nSUM(COALESCE(YearlyBonusPool,0.00))\t\tAS YearlyBonusPool,\nSUM(COALESCE(MonthlyBonusPool,0.00) + COALESCE(QuarterlyBonusPool,0.00) + COALESCE(YearlyBonusPool,0.00)) AS BonusPool\n\nINTO #T_ELIGIBLE_BONUS_BY_METRIC\n\nFROM #T_BONUS_POOL_RAW\nGROUP BY\nPeriodDate,\nEmployeePK,\nIncentiveMetricID,\nDivision,\nEligibleIncentiveTarget;\n\n\n--**************************************\n\nIF OBJECT_ID('tempdb..#T_ELIGIBLE_BONUS_MONTHLY') IS NOT NULL\n   DROP TABLE #T_ELIGIBLE_BONUS_MONTHLY;\n\n\nSELECT \nPeriodDate,\nEmployeePK,\nDivision,\nEligibleIncentiveTarget,\nSUM(COALESCE(MonthlyBonusPool,0.00))\tAS MonthlyBonusPool,\nSUM(COALESCE(QuarterlyBonusPool,0.00))\tAS QuarterlyBonusPool,\nSUM(COALESCE(YearlyBonusPool,0.00))\t\tAS YearlyBonusPool,\nSUM(COALESCE(MonthlyBonusPool,0.00) + COALESCE(QuarterlyBonusPool,0.00) + COALESCE(YearlyBonusPool,0.00)) AS BonusPool\n\nINTO #T_ELIGIBLE_BONUS_MONTHLY\n\nFROM #T_BONUS_POOL_RAW\nGROUP BY\nPeriodDate,\nEmployeePK,\nDivision,\nEligibleIncentiveTarget;\n\n\n\n--############### TEMP TABLES END #############\n\nIF OBJECT_ID('tempdb..#T_UPDATE_TARGET_HIGHER') IS NOT NULL\n   DROP TABLE #T_UPDATE_TARGET_HIGHER;\n\n\nSELECT *,\n(Pct_IncentivePoolEarned * BonusPool ) AS EarnedIncentiveAmount\n\nINTO #T_UPDATE_TARGET_HIGHER\n\nFROM \n(\n\t\tSELECT \n\t\tA.EmployeePK\t,\n\t\tA.IncentivePlanID\t,\n\t\tA.IncentiveMetricID\t,\n\t\tA.Division\t,\n\t\tA.PeriodDate\t,\n\t\tA.DistributionType,\n\t\tA.PerformanceRatio,\n\t\tB.LowerBound,\n\t\tB.UpperBound,\n\t\tM.MetricDirection AS ScaleDirection,\n\t\tB.BandOrder,\n\t\tCASE \n\t\t\tWHEN OVR.Pct_MinPayout IS NOT NULL \n\t\t\tTHEN \n\t\t\t\tCASE \n\t\t\t\t\tWHEN OVR.Pct_MinPayout > COALESCE(CAST(B.Pct_IncentivePoolEarned AS DECIMAL(16,4)),0.00) THEN Pct_MinPayout \n\t\t\t\t\tELSE B.Pct_IncentivePoolEarned \n\t\t\t\tEND \n\t\t\tELSE B.Pct_IncentivePoolEarned \n\t\tEND\n\t\t\tAS Pct_IncentivePoolEarned,\n\t\t\t\n\t\tC.BonusPool\n\t\t--( B.Pct_IncentivePoolEarned * C.BonusPool ) AS EarnedIncentiveAmount\n\t\t\n\t\t\n\t\tFROM EDW_INC.FACT_INCENTIVE_EARNED_MONTHLY A \n\t\tJOIN EDW_INC.REF_INCENTIVE_SCALE  B\n\t\tON   A.IncentiveScaleID   = B.ScaleID\n\t\t\n\t\tJOIN [EDW_INC].[DIM_INCENTIVE_ELIGIBLE_EMPLOYEE] EMP \n\t\tON A.EmployeePK = EMP.EmployeePK\n\t\t\n\t\tJOIN [EDW_INC].[DIM_INCENTIVE_METRICS] M \n\t\tON A.IncentiveMetricID = M.IncentiveMetricID\n\t\t\n\t\tJOIN #T_ELIGIBLE_BONUS_BY_METRIC C\n\t\tON \tA.EmployeePK \t\t= C.EmployeePK\n\t\tAND A.IncentiveMetricID = C.IncentiveMetricID\n\t\tAND A.PeriodDate \t\t= C.PeriodDate\n\t\t\n\t\t--**** Override at Metric Level \n\t\t\n\t\tLEFT JOIN ( SELECT * FROM [EDW_INC].[REF_EMPLOYEE_MIN_BONUS_PAYOUT] WHERE MetricLevelOverrideFlag='Y' ) OVR   \n\t\tON EMP.EmployeeID \t\t= OVR.EmployeeID\n\t\tAND A.PeriodDate  \t\t= OVR.PeriodDate\n\t\tAND A.DistributionType \t= OVR.DistributionType\n\t\tAND A.IncentiveMetricID = OVR.MetricName\n\t\t\n\t\tWHERE ( A.PerformanceRatio >=B.LowerBound AND A.PerformanceRatio < B.UpperBound )\n\t\tAND M.MetricDirection = 'HIGHER_BETTER'\n\t\t\n\t\t) M1;\n\n\n\n\n\n\nIF OBJECT_ID('tempdb..#T_UPDATE_TARGET_LOWER') IS NOT NULL\n   DROP TABLE #T_UPDATE_TARGET_LOWER;\n\n\n\nSELECT *,\n(Pct_IncentivePoolEarned * BonusPool ) AS EarnedIncentiveAmount\n\nINTO #T_UPDATE_TARGET_LOWER\n\nFROM \n(\n\t\tSELECT \n\t\tA.EmployeePK\t,\n\t\tA.IncentivePlanID\t,\n\t\tA.IncentiveMetricID\t,\n\t\tA.Division\t,\n\t\tA.PeriodDate\t,\n\t\tA.DistributionType,\n\t\tA.PerformanceRatio,\n\t\tB.LowerBound,\n\t\tB.UpperBound,\n\t\tM.MetricDirection AS ScaleDirection,\n\t\tB.BandOrder,\n\t\tCASE \n\t\t\tWHEN OVR.Pct_MinPayout IS NOT NULL \n\t\t\tTHEN \n\t\t\t\tCASE \n\t\t\t\t\tWHEN OVR.Pct_MinPayout > COALESCE(CAST(B.Pct_IncentivePoolEarned AS DECIMAL(16,4)),0.00) THEN Pct_MinPayout \n\t\t\t\t\tELSE B.Pct_IncentivePoolEarned \n\t\t\t\tEND \n\t\t\tELSE B.Pct_IncentivePoolEarned \n\t\tEND\n\t\t\tAS Pct_IncentivePoolEarned,\n\t\t\t\n\t\tC.BonusPool\n\t\t--( B.Pct_IncentivePoolEarned * C.BonusPool ) AS EarnedIncentiveAmount\n\t\t\n\t\t\n\t\tFROM EDW_INC.FACT_INCENTIVE_EARNED_MONTHLY A \n\t\tJOIN EDW_INC.REF_INCENTIVE_SCALE  B\n\t\tON   A.IncentiveScaleID   = B.ScaleID\n\t\t\n\t\tJOIN [EDW_INC].[DIM_INCENTIVE_ELIGIBLE_EMPLOYEE] EMP \n\t\tON A.EmployeePK = EMP.EmployeePK\n\t\t\n\t\tJOIN [EDW_INC].[DIM_INCENTIVE_METRICS] M \n\t\tON A.IncentiveMetricID = M.IncentiveMetricID\n\t\t\n\t\tJOIN #T_ELIGIBLE_BONUS_BY_METRIC C\n\t\tON \tA.EmployeePK \t\t= C.EmployeePK\n\t\tAND A.IncentiveMetricID = C.IncentiveMetricID\n\t\tAND A.PeriodDate \t\t= C.PeriodDate\n\t\t\n\t\t--**** Override at Metric Level \n\t\t\n\t\tLEFT JOIN ( SELECT * FROM [EDW_INC].[REF_EMPLOYEE_MIN_BONUS_PAYOUT] WHERE MetricLevelOverrideFlag='Y' ) OVR   \n\t\tON EMP.EmployeeID \t\t= OVR.EmployeeID\n\t\tAND A.PeriodDate  \t\t= OVR.PeriodDate\n\t\tAND A.DistributionType \t= OVR.DistributionType\n\t\tAND A.IncentiveMetricID = OVR.MetricName\n\t\t\n\t\tWHERE ( A.PerformanceRatio <= B.LowerBound AND A.PerformanceRatio > B.UpperBound )\n\t\tAND M.MetricDirection = 'LOWER_BETTER'\n\t\t\n\t\t) M1;\n\n\n\n\n/*\n\nSELECT \nA.EmployeePK\t,\nA.IncentivePlanID\t,\nA.IncentiveMetricID\t,\nA.Division\t,\nA.PeriodDate\t,\nA.DistributionType,\nA.PerformanceRatio,\nB.LowerBound,\nB.UpperBound,\nM.MetricDirection AS ScaleDirection,\nB.BandOrder,\nB.Pct_IncentivePoolEarned,\nC.BonusPool,\n( B.Pct_IncentivePoolEarned * C.BonusPool ) AS EarnedIncentiveAmount\n\nINTO #T_UPDATE_TARGET_LOWER\n\nFROM EDW_INC.FACT_INCENTIVE_EARNED_MONTHLY A \nJOIN EDW_INC.REF_INCENTIVE_SCALE  B\nON   A.IncentiveScaleID   = B.ScaleID\n\nJOIN [EDW_INC].[DIM_INCENTIVE_METRICS] M \nON A.IncentiveMetricID = M.IncentiveMetricID\n\nJOIN #T_ELIGIBLE_BONUS_BY_METRIC C\nON \tA.EmployeePK \t\t= C.EmployeePK\nAND A.IncentiveMetricID = C.IncentiveMetricID\nAND A.PeriodDate \t\t= C.PeriodDate\n\nWHERE ( A.PerformanceRatio <= B.LowerBound AND A.PerformanceRatio > B.UpperBound )\nAND M.MetricDirection = 'LOWER_BETTER';\n\n*/\n\n\n\n\nUPDATE M1 \nSET M1.EarnedIncentiveAmount = M2.EarnedIncentiveAmount ,\nM1.Pct_IncentivePoolEarned\t= M2.Pct_IncentivePoolEarned\nFROM EDW_INC.FACT_INCENTIVE_EARNED_MONTHLY M1\nJOIN #T_UPDATE_TARGET_HIGHER M2\nON\n\tM1.EmployeePK\t           = M2.EmployeePK\t\nAND M1.IncentivePlanID\t       = M2.IncentivePlanID\t\nAND M1.IncentiveMetricID       = M2.IncentiveMetricID\nAND M1.Division\t               = M2.Division\t\nAND M1.PeriodDate\t           = M2.PeriodDate\t\nAND M1.DistributionType        = M2.DistributionType;\n\n\n\n\nUPDATE M1 \nSET M1.EarnedIncentiveAmount = M2.EarnedIncentiveAmount ,\nM1.Pct_IncentivePoolEarned\t= M2.Pct_IncentivePoolEarned\nFROM EDW_INC.FACT_INCENTIVE_EARNED_MONTHLY M1\nJOIN #T_UPDATE_TARGET_LOWER M2\nON\n\tM1.EmployeePK\t           = M2.EmployeePK\t\nAND M1.IncentivePlanID\t       = M2.IncentivePlanID\t\nAND M1.IncentiveMetricID       = M2.IncentiveMetricID\nAND M1.Division\t               = M2.Division\t\nAND M1.PeriodDate\t           = M2.PeriodDate\t\nAND M1.DistributionType        = M2.DistributionType;\n\n\n\nUPDATE M1\nSET M1.EligibleIncentiveTarget = M2.BonusPool\nFROM EDW_INC.FACT_INCENTIVE_EARNED_MONTHLY M1\nJOIN #T_ELIGIBLE_BONUS_BY_METRIC M2\nON \tM1.EmployeePK \t\t= M2.EmployeePK\nAND M1.IncentiveMetricID = M2.IncentiveMetricID\nAND M1.PeriodDate \t\t= M2.PeriodDate;\n\n\nUPDATE EDW_INC.FACT_INCENTIVE_EARNED_MONTHLY SET EarnedIncentiveAmount = 0.00 WHERE EarnedIncentiveAmount IS NULL;"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Employee_SalaryChange_Adjustment",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "UPD_EarnedIncentiveAmount",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "--########################################\n--  SalaryChangeFlag   UPDATE\n--########################################\n\n\nSELECT EmployeePK \nINTO #T_EMP\nFROM [EDW_INC].[DIM_INCENTIVE_ELIGIBLE_EMPLOYEE] \n\tWHERE EmployeeID IN \n\t(SELECT EmployeeID FROM \n\t\t(\n\t\tSELECT EmployeeID,COUNT(1) AS CT FROM [EDW_INC].[DIM_INCENTIVE_ELIGIBLE_EMPLOYEE]\n\t\tGROUP BY EmployeeID\n\t\tHAVING COUNT(1)>1\n\t\t\t) A1\n\t\t); \n\n\nUPDATE [EDW_INC].[FACT_INCENTIVE_EARNED_MONTHLY] \nSET SalaryChangeFlag = 'Y'\nWHERE  EmployeePK IN \n(SELECT EmployeePK FROM  #T_EMP\t);\n\t\n\n\n\n--########################################\n--  Adjustment Pro-Rated   UPDATE\n--########################################\n\n\n\nWITH BASE AS \n(\n\n\tSELECT \n\tA.EmployeePK\n\t,A.IncentiveMetricID\n\t,A.PeriodDate\n\t,A.DistributionType\n\t,A.EligibleIncentiveTarget\n\t,A.EarnedIncentiveAmount\n\t,B.EffectiveFrom\n\t,B.EffectiveTo\n\tFROM [EDW_INC].[FACT_INCENTIVE_EARNED_MONTHLY] A\n\tLEFT JOIN [EDW_INC].[DIM_INCENTIVE_ELIGIBLE_EMPLOYEE] B\n\tON A.EmployeePK = B.EmployeePK\n\t--WHERE A.SalaryChangeFlag = 'Y'  Do it for all Employee which might start with Organization in mid-financial year\n\n),\n\nPeriodBounds AS (\n    SELECT\n        EmployeePK,\n        IncentiveMetricID,\n        PeriodDate,\n        DistributionType,\n        EligibleIncentiveTarget,\n        EarnedIncentiveAmount,\n        EffectiveFrom,\n        EffectiveTo,\n\n        -- Derive period start from PeriodDate and DistributionType\n        CASE\n            WHEN DistributionType = 'MONTHLY'\n                THEN DATEADD(DAY, 1, EOMONTH(PeriodDate, -1))   -- 1st of same month\n            WHEN DistributionType = 'QUARTERLY'\n                THEN DATEADD(QUARTER, DATEDIFF(QUARTER, 0, PeriodDate), 0)  -- 1st of quarter\n            WHEN DistributionType = 'YEARLY'\n                THEN DATEFROMPARTS(YEAR(PeriodDate), 1, 1)       -- Jan 1 of year\n        END AS PeriodStartDate,\n\n        PeriodDate AS PeriodEndDate  -- already the last day of the period\n\n    FROM BASE\n),\nProrationCalc AS (\n    SELECT\n        *,\n\n        -- Total calendar days in the period\n        DATEDIFF(DAY, PeriodStartDate, PeriodEndDate) + 1 AS TotalPeriodDays,\n\n        -- Overlap start: later of EffectiveFrom vs PeriodStart\n        CASE\n            WHEN EffectiveFrom > PeriodStartDate THEN EffectiveFrom\n            ELSE PeriodStartDate\n        END AS OverlapStart,\n\n        -- Overlap end: earlier of EffectiveTo vs PeriodEnd\n        CASE\n            WHEN EffectiveTo < PeriodEndDate THEN EffectiveTo\n            ELSE PeriodEndDate\n        END AS OverlapEnd\n\n    FROM PeriodBounds\n),\nFinal AS (\n    SELECT\n        *,\n\n        -- Days of effective coverage within this period (0 if no overlap)\n        CASE\n            WHEN OverlapEnd < OverlapStart THEN 0\n            ELSE DATEDIFF(DAY, OverlapStart, OverlapEnd) + 1\n        END AS EffectiveDaysInPeriod,\n\n        -- Proration factor (0.00 to 1.00)\n        CAST(\n            CASE\n                WHEN OverlapEnd < OverlapStart THEN 0.0\n                ELSE (DATEDIFF(DAY, OverlapStart, OverlapEnd) + 1) * 1.0 / TotalPeriodDays\n            END\n        AS DECIMAL(10, 4)) AS ProratedFactor\n\n    FROM ProrationCalc\n)\n\nSELECT\n    EmployeePK,\n    IncentiveMetricID,\n    PeriodDate,\n    DistributionType,\n    EligibleIncentiveTarget,\n    EarnedIncentiveAmount,\n    EffectiveFrom,\n    EffectiveTo,\n    PeriodStartDate,\n    PeriodEndDate,\n    TotalPeriodDays,\n    EffectiveDaysInPeriod,\n    ProratedFactor,\n\n    -- Adjusted earned incentive\n    ROUND(EarnedIncentiveAmount * ProratedFactor, 4) AS AdjustedEarnedIncentiveAmount,\n\tROUND(EligibleIncentiveTarget * ProratedFactor, 4) AS AdjustedEligibleIncentiveTarget\nINTO #T_FINAL\n\nFROM Final;\n\n\n\n\n--########################################\n--*********** UPDATE TO Table ***********\n--########################################\n\n\n\nUPDATE M1 \nSET \nM1.EligibleIncentiveTarget = M2.AdjustedEligibleIncentiveTarget,\nM1.EarnedIncentiveAmount   = M2.AdjustedEarnedIncentiveAmount\n\nFROM [EDW_INC].[FACT_INCENTIVE_EARNED_MONTHLY] M1 \nJOIN #T_FINAL M2 \nON \n\tM1.EmployeePK\t\t\t\t=\t M2.EmployeePK\t\t\nAND M1.IncentiveMetricID\t\t=    M2.IncentiveMetricID\nAND M1.PeriodDate\t\t\t\t=    M2.PeriodDate\t\t\nAND M1.DistributionType\t\t\t=    M2.DistributionType\t;\n\n--WHERE M1.SalaryChangeFlag = 'Y';\n\n\n\n\nUPDATE M1 \nSET \nM1.TargetValue \t\t\t\t= 0.00,\nM1.ActualValue   \t\t\t= 0.00,\nM1.PerformanceRatio \t\t= 0.00,\nM1.Pct_IncentivePoolEarned \t= 0.00\n\nFROM [EDW_INC].[FACT_INCENTIVE_EARNED_MONTHLY] M1 \nJOIN #T_FINAL M2 \nON \n\tM1.EmployeePK\t\t\t\t=\t M2.EmployeePK\t\t\nAND M1.IncentiveMetricID\t\t=    M2.IncentiveMetricID\nAND M1.PeriodDate\t\t\t\t=    M2.PeriodDate\t\t\nAND M1.DistributionType\t\t\t=    M2.DistributionType\t\n\nWHERE --M1.SalaryChangeFlag = 'Y'\n--AND \nM2.ProratedFactor = 0.00;"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/INCENTIVE_METRICS"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-04-27T12:24:28Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

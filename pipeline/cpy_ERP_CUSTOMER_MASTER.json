@@ -1,0 +1,97 @@
+{
+	"name": "cpy_ERP_CUSTOMER_MASTER",
+	"properties": {
+		"activities": [
+			{
+				"name": "ERP to ODS - Customer Master",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "00:12:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ODataSource",
+						"httpRequestTimeout": "00:08:00"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.ERP_CUSTOMER_MASTER')  IS NOT NULL TRUNCATE TABLE ODS.ERP_CUSTOMER_MASTER;",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"tableOption": "autoCreate",
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "CustomerID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CustomerID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CustomerName",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CustomerName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Description",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CustomerClassDescription"
+								}
+							},
+							{
+								"source": {
+									"name": "CustomerClass",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CustomerClass",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_ERP_CUSTOMER_MASTER",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_ERP_CUSTOMER_MASTER",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "SRC_to_ODS/ERP/Acumatica/MASTER DATA"
+		},
+		"annotations": [],
+		"lastPublishTime": "2024-10-17T08:44:12Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

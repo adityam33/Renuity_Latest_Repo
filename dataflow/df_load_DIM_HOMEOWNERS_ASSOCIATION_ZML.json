@@ -1,0 +1,145 @@
+{
+	"name": "df_load_DIM_HOMEOWNERS_ASSOCIATION_ZML",
+	"properties": {
+		"folder": {
+			"name": "ZML_ODS_to_EDW/DIMENSIONS"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ZML_ODS_FHI_HOA_HomeownersAssociations",
+						"type": "DatasetReference"
+					},
+					"name": "FHI"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "EDW_DIM_HOMEOWNERS_ASSOCIATION_ZML",
+						"type": "DatasetReference"
+					},
+					"name": "targetDim",
+					"description": "Export data to EDW_DIM_HOMEOWNERS_ASSOCIATION"
+				}
+			],
+			"transformations": [
+				{
+					"name": "addOpCoNameFHI"
+				},
+				{
+					"name": "derivedColumns"
+				},
+				{
+					"name": "selectRenameColumns"
+				},
+				{
+					"name": "AlterRow"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          id as integer,",
+				"          job_id as integer,",
+				"          HOA_Status as integer,",
+				"          AssignedTo as integer,",
+				"          SubmittedDate as timestamp,",
+				"          ARCFormSubmitted as boolean,",
+				"          HOAName as string,",
+				"          HOAPhone as string,",
+				"          HOAEmail as string,",
+				"          HOAAddress as string,",
+				"          EnteredOn as timestamp,",
+				"          EnteredBy as integer,",
+				"          UpdatedOn as timestamp,",
+				"          UpdatedBy as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> FHI",
+				"FHI derive(Division = 'FHI') ~> addOpCoNameFHI",
+				"selectRenameColumns derive(LastUpdateTS = currentTimestamp(),",
+				"          HOAID = concat(Division,'-',toString(LP_HOAID)),",
+				"          JobID = concat(Division,'-',toString(LP_JobID)),",
+				"          HOAStatusID = concat(Division,'-',toString(LP_HOAStatusID)),",
+				"          AssignedToID = concat(Division,'-',toString(LP_AssignedToID))) ~> derivedColumns",
+				"addOpCoNameFHI select(mapColumn(",
+				"          LP_HOAID = id,",
+				"          LP_JobID = job_id,",
+				"          LP_HOAStatusID = HOA_Status,",
+				"          LP_AssignedToID = AssignedTo,",
+				"          SubmittedDate,",
+				"          ARCFormSubmitted,",
+				"          HOAName,",
+				"          HOAPhone,",
+				"          HOAEmail,",
+				"          HOAAddress,",
+				"          EnteredOn,",
+				"          UpdatedOn,",
+				"          Division",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectRenameColumns",
+				"derivedColumns alterRow(upsertIf(true())) ~> AlterRow",
+				"AlterRow sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          HOAID as string,",
+				"          JobID as string,",
+				"          HOAStatusID as string,",
+				"          AssignedToID as string,",
+				"          HOAName as string,",
+				"          HOAPhone as string,",
+				"          HOAEmail as string,",
+				"          HOAAddress as string,",
+				"          ARCFormSubmitted as boolean,",
+				"          SubmittedDate as timestamp,",
+				"          EnteredOn as timestamp,",
+				"          UpdatedOn as timestamp,",
+				"          LP_HOAID as integer,",
+				"          LP_JobID as integer,",
+				"          LP_HOAStatusID as integer,",
+				"          LP_AssignedToID as integer,",
+				"          Division as string,",
+				"          LastUpdateTS as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['HOAID'],",
+				"     format: 'table',",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          LP_HOAID,",
+				"          LP_JobID,",
+				"          LP_HOAStatusID,",
+				"          LP_AssignedToID,",
+				"          SubmittedDate,",
+				"          ARCFormSubmitted,",
+				"          HOAName,",
+				"          HOAPhone,",
+				"          HOAEmail,",
+				"          HOAAddress,",
+				"          EnteredOn,",
+				"          UpdatedOn,",
+				"          Division,",
+				"          LastUpdateTS,",
+				"          HOAID,",
+				"          JobID,",
+				"          HOAStatusID,",
+				"          AssignedToID",
+				"     ),",
+				"     preCommands: [],",
+				"     postCommands: []) ~> targetDim"
+			]
+		}
+	}
+}

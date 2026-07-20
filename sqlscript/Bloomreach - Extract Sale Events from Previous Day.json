@@ -1,0 +1,17 @@
+{
+	"name": "Bloomreach - Extract Sale Events from Previous Day",
+	"properties": {
+		"content": {
+			"query": "SELECT \n'lp_sale' as event_type\n,'lp' as data_source\n,job.Division as division\n,cst.CustomerID as Prospect_ID\n,lds.LeadID as Lead_ID\n,lower(cst.Email) as email_id\n,case \n    when cst.[Phone] is not null then '+1'+Phone\n    else cst.[Phone]\nend as [phone_id]\n,cst.[FirstName] as first_name\n,cst.[LastName] as last_name\n,cst.[Address1] as address1\n,cst.[Address2] as address2\n,cst.[City] as city\n,cst.[State] as [state]\n,cst.[Zip] as zip\n,lower(jbs.JobStatus) as job_status\n,job.JobID as job_id\n,job.ContractDate as contract_date\n,lower(job.[contractid]) as contract_id\n,lower(srs.LeadSubSourceID) as lead_subsource_id\n,lower(srs.[LeadSubSource]) as lead_subsource\n,lower(srs.[SourceCode]) as lead_sourcecode\n,job.[GrossAmount] as gross_amount\n,job.LastModifiedOn as [last_modified_on]\n,dbo.fnConvertUTCtoEST (getdate()) as [timestamp]\n FROM \n EDW.FACT_JOB job\n,EDW.DIM_JOB_STATUS jbs\n,EDW.DIM_JOB_STATUS_CATEGORY jsc\n,EDW.DIM_CUSTOMER cst\n,EDW.FACT_LEAD lds\n,EDW.DIM_LEAD_SUB_SOURCE srs\n WHERE\n job.JobStatusID = jbs.JobStatusID\n and jbs.JobStatusCategoryID = jsc.JobStatusCategoryID\n and job.LeadID = lds.LeadID\n and lds.CustomerID = cst.CustomerID\n and lds.LeadSubSourceID = srs.LeadSubSourceID\n and datediff(DAY, job.[LastModifiedOn], cast(dbo.fnConvertUTCtoEST (getdate()) as date))  = 1\n and jsc.JobStatusCategory = 'Pre-Net'\n and datediff(DAY, job.[ContractDate], cast(dbo.fnConvertUTCtoEST (getdate()) as date))  = 1\n order by job.ContractDate desc",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

@@ -1,0 +1,406 @@
+{
+	"name": "cpy_Safety_Metrics_Injury_Count",
+	"properties": {
+		"activities": [
+			{
+				"name": "cp_safety_metrics_injury_count",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobStorageReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Upsert",
+						"upsertSettings": {
+							"keys": [
+								"MonthYear",
+								"Division"
+							],
+							"interimSchemaName": ""
+						},
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Date",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "MonthYear",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Recordable ",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Recordable",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "Lost Time",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "LostTime",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "Safety_Metrics_Injury_Count_Data",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_SAFETY_METRICS_INJURY_COUNT",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "cp_safety_metrics_employee_hours_count",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "cp_safety_metrics_injury_count",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobStorageReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBehavior": "Upsert",
+						"upsertSettings": {
+							"keys": [
+								"MonthYear",
+								"Division"
+							],
+							"interimSchemaName": ""
+						},
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Date",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "MonthYear",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "EmployeeHours",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "EmployeeHours",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "Safety_Metrics_Employee_Hours",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_SAFETY_METRICS_EMPLOYEE_HOURS",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "cp_safety_metrics_injury_employeehours_summ",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "cp_safety_metrics_employee_hours_count",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "Select A.MonthYear,\r\nA.Division,\r\nA.YTD_Recordable,\r\nA.YTD_LostTime,\r\nA.YTD_EmployeeHours,\r\nCAST((A.YTD_Recordable * 200000.0) / NULLIF(A.YTD_EmployeeHours, 0) AS DECIMAL(10, 2)) AS TRIR,\r\nCAST((A.YTD_LostTime * 200000.0) / NULLIF(A.YTD_EmployeeHours, 0) AS DECIMAL(10, 2)) AS LTIR,\r\n'2.00' as Target_TRIR,\r\n'0.75' as Target_LTIR\r\nfrom\r\n(Select TRY_CONVERT(DATE, i.MonthYear, 105) as MonthYear,\r\nCASE WHEN i.Division='FHIA' THEN 'FHI'\r\nWHEN i.Division='Home Org (CA/RC)' THEN 'CTA'\r\nWHEN i.Division='Mad City' THEN 'MAC'\r\nWHEN i.Division='Max Home' THEN 'MXH'\r\nWHEN i.Division='Pacific Bath' THEN 'PBC'\r\nWHEN i.Division='Rite Window (North/South)' THEN 'RTW'\r\nWHEN i.Division='Statewide' THEN'SWR'\r\nWHEN i.Division='Renuity Home Base' THEN 'HomeBase' END as Division,\r\nSUM(i.Recordable) OVER (PARTITION BY i.Division ORDER BY TRY_CONVERT(DATE, i.MonthYear, 105)\r\n        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS YTD_Recordable,\r\nSUM(i.LostTime) OVER (PARTITION BY i.Division ORDER BY TRY_CONVERT(DATE, i.MonthYear, 105)\r\n        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS YTD_LostTime,\r\ne.EmployeeHours as YTD_EmployeeHours\r\nfrom ODS.SAFETY_METRICS_INJURY_COUNT i left join ODS.SAFETY_METRICS_EMPLOYEE_HOURS e on TRY_CONVERT(DATE, i.MonthYear, 105)=TRY_CONVERT(DATE, e.MonthYear, 105) \r\nand (CASE WHEN i.Division='FHIA' THEN 'FHI'\r\nWHEN i.Division='Home Org (CA/RC)' THEN 'CTA'\r\nWHEN i.Division='Mad City' THEN 'MAC'\r\nWHEN i.Division='Max Home' THEN 'MXH'\r\nWHEN i.Division='Pacific Bath' THEN 'PBC'\r\nWHEN i.Division='Rite Window (North/South)' THEN 'RTW'\r\nWHEN i.Division='Statewide' THEN'SWR'\r\nWHEN i.Division='Renuity Home Base' THEN 'HomeBase' END)=(CASE WHEN e.Division='FHIA' THEN 'FHI'\r\nWHEN e.Division='Home Org (CA/RC)' THEN 'CTA'\r\nWHEN e.Division='Mad City' THEN 'MAC'\r\nWHEN e.Division='Max Home' THEN 'MXH'\r\nWHEN e.Division='Pacific Bath' THEN 'PBC'\r\nWHEN e.Division='Rite Window (North/South)' THEN 'RTW'\r\nWHEN e.Division='Statewide' THEN'SWR'\r\nWHEN e.Division='Renuity HB' THEN 'HomeBase' END)\r\nwhere TRY_CONVERT(DATE, i.MonthYear, 105)>='2025-01-31' --and i.Division='Statewide'\r\n--Order by TRY_CONVERT(DATE, i.MonthYear, 105),Division\r\n\r\nUNION ALL\r\n\r\nSELECT CAST('2024-12-31' AS DATE) AS MonthDate,\r\nCASE WHEN i.Division='FHIA' THEN 'FHI'\r\nWHEN i.Division='Home Org (CA/RC)' THEN 'CTA'\r\nWHEN i.Division='Mad City' THEN 'MAC'\r\nWHEN i.Division='Max Home' THEN 'MXH'\r\nWHEN i.Division='Pacific Bath' THEN 'PBC'\r\nWHEN i.Division='Rite Window (North/South)' THEN 'RTW'\r\nWHEN i.Division='Statewide' THEN'SWR'\r\nWHEN i.Division='Renuity Home Base' THEN 'HomeBase' END as Division,\r\nSUM(i.Recordable) AS YTD_Recordable,\r\nSUM(i.LostTime) AS YTD_LostTime,\r\nMAX(e.EmployeeHours) AS YTD_EmployeeHours\r\nFROM ODS.SAFETY_METRICS_INJURY_COUNT i left join ODS.SAFETY_METRICS_EMPLOYEE_HOURS e on TRY_CONVERT(DATE, i.MonthYear, 105)=TRY_CONVERT(DATE, e.MonthYear, 105) \r\nand (CASE WHEN i.Division='FHIA' THEN 'FHI'\r\nWHEN i.Division='Home Org (CA/RC)' THEN 'CTA'\r\nWHEN i.Division='Mad City' THEN 'MAC'\r\nWHEN i.Division='Max Home' THEN 'MXH'\r\nWHEN i.Division='Pacific Bath' THEN 'PBC'\r\nWHEN i.Division='Rite Window (North/South)' THEN 'RTW'\r\nWHEN i.Division='Statewide' THEN'SWR'\r\nWHEN i.Division='Renuity Home Base' THEN 'HomeBase' END)=(CASE WHEN e.Division='FHIA' THEN 'FHI'\r\nWHEN e.Division='Home Org (CA/RC)' THEN 'CTA'\r\nWHEN e.Division='Mad City' THEN 'MAC'\r\nWHEN e.Division='Max Home' THEN 'MXH'\r\nWHEN e.Division='Pacific Bath' THEN 'PBC'\r\nWHEN e.Division='Rite Window (North/South)' THEN 'RTW'\r\nWHEN e.Division='Statewide' THEN'SWR'\r\nWHEN e.Division='Renuity HB' THEN 'HomeBase' END)\r\n    WHERE YEAR(TRY_CONVERT(DATE, i.MonthYear, 105)) = 2024\r\n    GROUP BY i.Division) A\r\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "Truncate table EDW.SUMM_SAFETY_METRICS_SUMMARY",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "MonthYear",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "MonthYear",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "YTD_Recordable",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "YTD_Recordable",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "YTD_LostTime",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "YTD_LostTime",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "YTD_EmployeeHours",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "YTD_EmployeeHours",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "TRIR",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 10
+								},
+								"sink": {
+									"name": "TRIR",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 10
+								}
+							},
+							{
+								"source": {
+									"name": "LTIR",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 10
+								},
+								"sink": {
+									"name": "LTIR",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 10
+								}
+							},
+							{
+								"source": {
+									"name": "Target_TRIR",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Target_TRIR",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 10
+								}
+							},
+							{
+								"source": {
+									"name": "Target_LTIR",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Target_LTIR",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 10
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ODS_SAFETY_METRICS_INJURY_COUNT",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_SUMM_SAFETY_METRICS_SUMMARY",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "Temp/Akshay"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-08-19T15:53:13Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

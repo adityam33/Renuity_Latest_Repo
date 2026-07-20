@@ -1,0 +1,20 @@
+{
+	"name": "Daily Report - Rev Share Affiliates",
+	"properties": {
+		"folder": {
+			"name": "DMLs/Affiliates"
+		},
+		"content": {
+			"query": "SELECT distinct\naffmap.AffiliateName as AffiliateName\n,cast(GETDATE() as DATE) as ReportDate\n,affmap.ContractType as ReportType\n,srs.[SourceCode] as Source\n,srs.[Descr] as SubSource\n,lds.srs_id as SubSourceID\n,affmap.Division as Division\n,lds.id as LeadID\n,lds.EntryDate\n,cst.[FirstName]\n,cst.[LastName]\n,cst.[Address1]\n,cst.[Address2]\n,cst.[City]\n,cst.[State]\n,cst.[Zip]\n,cst.[Phone]\n,cst.[Email]\n,lds.[Productid] as Product\n,prd.LongDescr as ProductDescription\n,brn.LongName as Market\n,dsp.descr as CurrentLeadDisposition\n,lds.ApptSet as ApptSet\n,app.SetDate as AppointmentSetDate\n,app.ApptDate as AppointmentDate\n,lds.[NetIssued] as [NetIssue]\n,lds.Sat as Demo\n,case \n    when jbs.jsc_id is NULL then 'False'\n    when jbs.jsc_id in (3,5) then 'False'\n    else 'True'\nend as Sold\n,case \n    when jbs.jsc_id is NULL then 0\n    when jbs.jsc_id in (3,5) then 0 \n    else job.GrossAmount\nend as NetSales\n,job.id as JobID\n,jbs.Descr as JobStatus\n,job.ContractDate as [JobContractDate]\n,'' as AffiliateLeadNumber\n,'' as RenuityLeadScore\nFROM \n[ODS].[LP_RTW_Lds_Leads] lds\nleft join [ODS].[LP_RTW_srs_SourceSubs] srs\non lds.srs_id = srs.id\nleft join [RDM].[AFFILIATES_SRS_MAPPING] affmap\non lds.srs_id = affmap.srs_id\nleft join [ODS].[LP_RTW_dsp_Dispositions] dsp\non lds.dsp_id = dsp.Descr\nleft join [ODS].[LP_RTW_cst_Customers] cst\non lds.cst_id = cst.id\nleft join [ODS].[LP_RTW_brn_Branches] brn\non lds.brn_id = brn.id\nleft join [ODS].[LP_RTW_prd_Products] prd\non lds.ProductID = prd.ProductID\nleft join\n(select lds_id, max(SetDate) as SetDate, max(ApptDate) as ApptDate from [ODS].[LP_RTW_app_Appointments] group by lds_id) app\non lds.id = app.lds_id\nleft join\n[ODS].[LP_RTW_job_Jobs] job\non lds.id = job.lds_id\nleft join [ODS].[LP_RTW_jbs_JobStatus] jbs\non job.jbs_id = jbs.id\nWHERE\ndatediff(DAY, lds.EntryDate, dbo.fnConvertUTCtoEST (cast(GETDATE() as DATE) )) between 0 and 90\nand affmap.Division = 'RTW'\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": -1
+		},
+		"type": "SqlQuery"
+	}
+}

@@ -1,0 +1,78 @@
+{
+	"name": "Dataflow9",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ODS_FUNNEL_BKP",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "csv_performance",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [],
+			"scriptLines": [
+				"source(output(",
+				"          Date as date,",
+				"          Data_Source_type as string,",
+				"          Currency as string,",
+				"          Cost as double,",
+				"          Clicks as double,",
+				"          Impressions as double,",
+				"          Account as string,",
+				"          Ad as string,",
+				"          Ad_Group as string,",
+				"          Campaign as string,",
+				"          Media_type as string,",
+				"          Paid__Organic as string,",
+				"          Traffic_source as string,",
+				"          Data_Source_name as string,",
+				"          Data_Source as string,",
+				"          Data_Source_type_name as string,",
+				"          Day_of_week as string,",
+				"          Month as string,",
+				"          Week as string,",
+				"          Year as integer,",
+				"          Week_number as integer,",
+				"          Conversions as double,",
+				"          Ad_Group_ID as string,",
+				"          AD_ID as string,",
+				"          Campaign_ID as string,",
+				"          Market as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT \\nCAST(PerformanceDate AS     Date)     AS  Date     ,\\nDataSourceType                         AS     Data_Source_type     ,\\nCurrency                              AS     Currency     ,\\nCost                                   AS     Cost     ,\\nCAST(Clicks AS INT)                                   AS     Clicks     ,\\nCAST(Impressions  AS INT)                            AS     Impressions     ,\\nAccount                                   AS     Account     ,\\nAd                                        AS     Ad     ,\\nAdGroup                                   AS     Ad_Group     ,\\nCampaign                              AS     Campaign     ,\\nMediaType                              AS     Media_type     ,\\nPaidOrOrganic                         AS     Paid__Organic     ,\\nTrafficSource                         AS     Traffic_source     ,\\nDataSourceName                         AS     Data_Source_name     ,\\nDataSourceID                         AS     Data_Source     ,\\nCASE \\n     WHEN TrafficSource=\\'Bing\\'               THEN \\'Microsoft Advertising\\'\\n     WHEN TrafficSource=\\'Facebook\\'          THEN \\'Facebook Ads\\'\\n     WHEN TrafficSource=\\'Google\\'               THEN \\'Google Ads\\'\\n     WHEN TrafficSource=\\'Nextdoor\\'          THEN \\'Nextdoor\\'\\n     WHEN TrafficSource=\\'Pinterest\\'          THEN \\'Pinterest\\'\\n     WHEN TrafficSource=\\'Taboola\\'          THEN \\'Taboola\\'\\n     WHEN TrafficSource=\\'The Trade Desk\\'     THEN \\'The Trade Desk\\'\\n     END AS Data_Source_type_name     ,\\nPerformanceDayOfWeek               AS     Day_of_week     ,\\nPerformanceMonth                    AS     Month     ,\\nPerformanceWeek                         AS     Week     ,\\nPerformanceYear                         AS     Year     ,\\nPerformanceWeekNumber               AS     Week_number     ,\\nConversions                              AS     Conversions     ,\\nAdGroupID                              AS     Ad_Group_ID     ,\\nAdID                                   AS     AD_ID     ,\\nCampaignID                              AS     Campaign_ID     ,\\nMarket                                   AS     Market     \\nFROM [EDW].[FACT_AD_PERFORMANCE_METRICS_BKP]\\nWHERE DataSourceName IN \\n(\\n\\'Closet America - Guru\\'     ,\\n\\'Closet America - Swish\\'     ,\\n\\'Coatings - Swish\\'     ,\\n\\'FHIA Kitchens - Swish\\'     ,\\n\\'FHIA Remodeling - Guru\\'     ,\\n\\'IHM | CLA | Closet America\\'     ,\\n\\'IHM | MAC | Mad City Windows (Master Account)\\'     ,\\n\\'IHM | Renuity | Bath\\'     ,\\n\\'IHM | Renuity East | Windows & Kitchen\\'     ,\\n\\'IHM | RTW | Rite Window & Bath\\'     ,\\n\\'MAD CITY - Guru\\'     ,\\n\\'Mad City Baths - Swish\\'     ,\\n\\'Mad City Kitchens - Swish\\'     ,\\n\\'Mad City Windows - Swish\\'     ,\\n\\'Pacific Bath - Guru\\'     ,\\n\\'Pacific Bath - Swish\\'     ,\\n\\'Statewide Bath - Swish \\'     ,\\n\\'Statewide Kitchens - Swish\\'     ,\\n\\'Statewide Remodeling - Guru\\'     ,\\n\\'Statewide Windows - Swish\\'     ,\\n\\'Swish - FHIA (Renuity) Bath\\'     ,\\n\\'Swish - FHIA Windows\\'     ,\\n\\'Swish- Renuity West\\'        \\n)\\nAND CAST(PerformanceDate AS     Date) <=\\'2026-06-21\\'',",
+				"     format: 'query',",
+				"     staged: true) ~> source1",
+				"source1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          CampaignID as string,",
+				"          CampaignName as string,",
+				"          CampaignStatus as string,",
+				"          CampaignType as string",
+				"     ),",
+				"     partitionFileNames:['performance_ad.tsv'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> sink1"
+			]
+		}
+	}
+}

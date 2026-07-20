@@ -1,0 +1,379 @@
+{
+	"name": "batch_cpy_AR_Aged_Report_Deposits",
+	"properties": {
+		"activities": [
+			{
+				"name": "cp_ar_aged_report",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "Select p.Customer,c.CustomerName,p.Type as DocType,p.ReferenceNbr,p.Project,p.PaymentMethod,CAST(p.PaymentDate as DATE) as DocumentDate,CAST(p.PaymentDate as DATE) as DueDate,(-1)*p.Balance as Balance,\r\ncase when datediff(d,p.PaymentDate,getdate()) <=0 then (-1)*Balance else 0 end as 'current',\r\ncase when datediff(d,p.PaymentDate,getdate()) between 1 and 30 then (-1)*Balance else 0 end as '1to30Days',\r\ncase when datediff(d,p.PaymentDate,getdate()) between 31 and 60 then (-1)*Balance else 0 end as '31to60Days',\r\ncase when datediff(d,p.PaymentDate,getdate()) between 61 and 90  then (-1)*Balance else 0 end as '61to90Days',\r\ncase when datediff(d,p.PaymentDate,getdate()) between 91 and 120   then (-1)*Balance else 0 end as '91to120Days',\r\ncase when datediff(d,p.PaymentDate,getdate()) between 121 and 150   then (-1)*Balance else 0 end as '121to150Days',\r\ncase when datediff(d,p.PaymentDate,getdate()) between 151 and 180   then (-1)*Balance else 0 end as '151to180Days',\r\ncase when datediff(d,p.PaymentDate,getdate()) between 181 and 360   then (-1)*Balance else 0 end as '181to360Days',\r\ncase when datediff(d,p.PaymentDate,getdate()) >=361   then (-1)*Balance else 0 end as 'Over360Days',\r\nCASE WHEN Branch like '00%' THEN '0.Renuity'\r\nWHEN Branch like '03%' then 'I.Home Org'\r\nWHEN Branch like '1%' then 'H.Rite Window'\r\nWhen Branch like '2%' then 'A.East Division'\r\nWhen Branch like '3%' then 'B.Statewide'\r\nWhen Branch like '4%' then 'C.Mad City'\r\nWhen Branch like '5%' then 'I.Home Org'\r\nWhen Branch like '6%' then 'H.Northeast Division'\r\nWhen Branch like '7%' then 'A.East Division'\r\nWhen Branch like '8%' then 'G.West Division'\r\nWhen Branch like '9%' then '0.Bylte' END as Division,p.Branch,\r\nCASE WHEN UPPER(PaymentMethod) in ('ECHECK','EFT','PAYSIMPACH','PAYSIMPLE') THEN 'ACH Check'\r\nWHEN UPPER(PaymentMethod)='CASH' THEN 'Cash'\r\nWHEN UPPER(PaymentMethod)='CUSTCHECK' THEN 'Check'\r\nWHEN UPPER(PaymentMethod) in ('AMEX','DISCOVER','DISCVERCBS','MC','MCCBS','PAYSIMPCC','VISA','VISACBS') THEN 'Credit Card'\r\nWHEN UPPER(PaymentMethod) in ('AQUA','FOUNDATION','POWERPAY','SERVICE','SUNLIGHT','GOODLEAP','GREENSKY') THEN 'Finance' END as PaymentMethodGrouped,Js.JobStatus,CAST(GETDATE() as DATE) as AgedOnDate\r\nfrom ODS.ERP_AR_PAYMENT p left join ODS.ERP_CUSTOMER_MASTER c on p.Customer=c.CustomerID\r\n--left join EDW.FACT_JOB j \r\nLEFT JOIN EDW.FACT_JOB j \r\n    ON (\r\n        j.ContractID = p.Project\r\n        OR (\r\n            LEFT(j.ContractID, CASE WHEN CHARINDEX('.', j.ContractID) > 0 THEN CHARINDEX('.', j.ContractID) - 1 ELSE LEN(j.ContractID) END) = \r\n            LEFT(p.Project, CASE WHEN CHARINDEX('.', p.Project) > 0 THEN CHARINDEX('.', p.Project) - 1 ELSE LEN(p.Project) END)\r\n            AND \r\n            ( \r\n                (RIGHT(j.ContractID, 2) <> '.2' OR CHARINDEX('.', j.ContractID) = 0)\r\n                AND \r\n                (RIGHT(p.Project, 2) <> '.2' OR CHARINDEX('.', p.Project) = 0)\r\n            )\r\n        )\r\n    )\r\nleft join EDW.DIM_Job_STatus Js on J.JobStatusId=Js.JobStatusID\r\n where Type like 'Prepayment%' and Status='Open' --and p.Project like '%MC73543MK'",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "Truncate table EDW.FACT_AR_AGED_PERIOD_DEPOSITS",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Customer",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Customer",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CustomerName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CustomerName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DocType",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "DocumentType",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ReferenceNbr",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ReferenceNumber",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Project",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Project",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PaymentMethod",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "PaymentMethod",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DocumentDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "DocumentDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "DueDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "DueDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "Balance",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								},
+								"sink": {
+									"name": "Balance",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								}
+							},
+							{
+								"source": {
+									"name": "current",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								},
+								"sink": {
+									"name": "CurrentPeriod",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								}
+							},
+							{
+								"source": {
+									"name": "1to30Days",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								},
+								"sink": {
+									"name": "1-30 DaysPeriod",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								}
+							},
+							{
+								"source": {
+									"name": "31to60Days",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								},
+								"sink": {
+									"name": "31-60 DaysPeriod",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								}
+							},
+							{
+								"source": {
+									"name": "61to90Days",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								},
+								"sink": {
+									"name": "61-90 DaysPeriod",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								}
+							},
+							{
+								"source": {
+									"name": "91to120Days",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								},
+								"sink": {
+									"name": "91-120 DaysPeriod",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								}
+							},
+							{
+								"source": {
+									"name": "121to150Days",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								},
+								"sink": {
+									"name": "121-150 DaysPeriod",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								}
+							},
+							{
+								"source": {
+									"name": "151to180Days",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								},
+								"sink": {
+									"name": "151-180 DaysPeriod",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								}
+							},
+							{
+								"source": {
+									"name": "181to360Days",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								},
+								"sink": {
+									"name": "181-360 DaysPeriod",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								}
+							},
+							{
+								"source": {
+									"name": "Over360Days",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								},
+								"sink": {
+									"name": "Over 360 DaysPeriod",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								}
+							},
+							{
+								"source": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AgedOnDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "AgedOnDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "Branch",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Branch",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PaymentMethodGrouped",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "PaymentMethodGrouped",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "JobStatus",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "JobStatus",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ODS_ERP_AR_PAYMENT",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_FACT_AR_AGED_PERIOD_DEPOSITS",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/FACTS/ERP"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-01-19T09:08:10Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

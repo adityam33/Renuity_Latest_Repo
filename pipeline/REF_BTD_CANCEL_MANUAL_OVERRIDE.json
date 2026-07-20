@@ -1,0 +1,148 @@
+{
+	"name": "REF_BTD_CANCEL_MANUAL_OVERRIDE",
+	"properties": {
+		"activities": [
+			{
+				"name": "REF_BTD_CANCEL_MANUAL_OVERRIDE",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"additionalColumns": [
+							{
+								"name": "LastUpdatedTS",
+								"value": {
+									"value": "@{formatDateTime(utcNow(), 'yyyy-MM-dd HH:mm:ss')}",
+									"type": "Expression"
+								}
+							}
+						],
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "TRUNCATE TABLE [EDW_FCST].[REF_BTD_CANCEL_MANUAL_OVERRIDE];",
+						"allowCopyCommand": true
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "staging"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Division",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CalendarDate",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CalendarDate",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "BTD_PCT",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BTD_PCT",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "BTD_AMT_PCT",
+									"type": "String"
+								},
+								"sink": {
+									"name": "BTD_AMT_PCT",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "CANCEL_PCT",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CANCEL_PCT",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "CANCELLED_AMT_PCT",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CANCELLED_AMT_PCT",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "LastUpdatedTS",
+									"type": "String"
+								},
+								"sink": {
+									"name": "LastUpdatedTS",
+									"type": "DateTime"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_Forecast_BTD_Manual_Override",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_FCST_REF_BTD_CANCEL_MANUAL_OVERRIDE",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/SALES_FORECAST"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-02-18T14:07:18Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

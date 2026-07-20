@@ -1,0 +1,1009 @@
+{
+	"name": "cpy_LP_Log_Job_Status",
+	"properties": {
+		"activities": [
+			{
+				"name": "SWR",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:40:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT * FROM [dbo].[log_Job_Status] WITH (NOLOCK)",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.LP_SWR_Log_Job_Status')  IS NOT NULL TRUNCATE TABLE ODS.LP_SWR_Log_Job_Status",
+						"allowCopyCommand": true,
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Job_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Job_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "OldJbs_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "OldJbs_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "NewJbs_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "NewJbs_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DateChanged",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "DateChanged",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "Emp_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Emp_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "oldGrossAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "oldGrossAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "newGrossAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "newGrossAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "origin",
+									"type": "String"
+								},
+								"sink": {
+									"name": "origin",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_SWR_log_Job_Status",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_LP_SWR_Log_Job_Status",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "FHI",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:40:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT * FROM [dbo].[log_Job_Status] WITH (NOLOCK)",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.LP_FHI_Log_Job_Status')  IS NOT NULL TRUNCATE TABLE ODS.LP_FHI_Log_Job_Status",
+						"allowCopyCommand": true,
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Job_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Job_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "OldJbs_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "OldJbs_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "NewJbs_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "NewJbs_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DateChanged",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "DateChanged",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "Emp_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Emp_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "oldGrossAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "oldGrossAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "newGrossAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "newGrossAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "origin",
+									"type": "String"
+								},
+								"sink": {
+									"name": "origin",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_FHI_log_Job_Status",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_LP_FHI_Log_Job_Status",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "MAC",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:40:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT * FROM [dbo].[log_Job_Status] WITH (NOLOCK)",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.LP_MAC_Log_Job_Status')  IS NOT NULL TRUNCATE TABLE ODS.LP_MAC_Log_Job_Status",
+						"allowCopyCommand": true,
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Job_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Job_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "OldJbs_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "OldJbs_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "NewJbs_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "NewJbs_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DateChanged",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "DateChanged",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "Emp_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Emp_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "oldGrossAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "oldGrossAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "newGrossAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "newGrossAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "origin",
+									"type": "String"
+								},
+								"sink": {
+									"name": "origin",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_MAC_log_Job_Status",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_LP_MAC_Log_Job_Status",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "RTW",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:40:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT * FROM [dbo].[log_Job_Status] WITH (NOLOCK)",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.LP_RTW_Log_Job_Status')  IS NOT NULL TRUNCATE TABLE ODS.LP_RTW_Log_Job_Status",
+						"allowCopyCommand": true,
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Job_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Job_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "OldJbs_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "OldJbs_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "NewJbs_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "NewJbs_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DateChanged",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "DateChanged",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "Emp_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Emp_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "oldGrossAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "oldGrossAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "newGrossAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "newGrossAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "origin",
+									"type": "String"
+								},
+								"sink": {
+									"name": "origin",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_RTW_log_Job_Status",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_LP_RTW_Log_Job_Status",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "CTA",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:40:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT * FROM [dbo].[log_Job_Status] WITH (NOLOCK)",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.LP_CTA_Log_Job_Status')  IS NOT NULL TRUNCATE TABLE ODS.LP_CTA_Log_Job_Status",
+						"allowCopyCommand": true,
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Job_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Job_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "OldJbs_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "OldJbs_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "NewJbs_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "NewJbs_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DateChanged",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "DateChanged",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "Emp_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Emp_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "oldGrossAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "oldGrossAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "newGrossAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "newGrossAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "origin",
+									"type": "String"
+								},
+								"sink": {
+									"name": "origin",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_CTA_log_job_status",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_LP_CTA_Log_Job_Status",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "PBC",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:40:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT * FROM [dbo].[log_Job_Status] WITH (NOLOCK)",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.LP_PBC_Log_Job_Status')  IS NOT NULL TRUNCATE TABLE ODS.LP_PBC_Log_Job_Status",
+						"allowCopyCommand": true,
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Job_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Job_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "OldJbs_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "OldJbs_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "NewJbs_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "NewJbs_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DateChanged",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "DateChanged",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "Emp_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Emp_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "oldGrossAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "oldGrossAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "newGrossAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "newGrossAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "origin",
+									"type": "String"
+								},
+								"sink": {
+									"name": "origin",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_PBC_log_Job_Status",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_LP_PBC_Log_Job_Status",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "MXH",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:40:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT * FROM [dbo].[log_Job_Status] WITH (NOLOCK)",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.LP_MXH_Log_Job_Status')  IS NOT NULL TRUNCATE TABLE ODS.LP_MXH_Log_Job_Status",
+						"allowCopyCommand": true,
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "rdcdatalake/staging/ODS/LP"
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "id",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Job_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Job_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "OldJbs_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "OldJbs_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "NewJbs_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "NewJbs_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DateChanged",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "DateChanged",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "Emp_ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "Emp_ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "oldGrossAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "oldGrossAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "newGrossAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "newGrossAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "origin",
+									"type": "String"
+								},
+								"sink": {
+									"name": "origin",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LP_MXH_log_Job_Status",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_LP_MXH_Log_Job_Status",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "SRC_to_ODS/CRM/LP"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-01-20T12:55:10Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

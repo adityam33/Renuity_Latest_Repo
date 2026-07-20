@@ -1,0 +1,360 @@
+{
+	"name": "cpy_LP_to_ADP_Jobs_FINAL",
+	"properties": {
+		"activities": [
+			{
+				"name": "cpy_Jobs_ALL",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT * FROM\n(\nSELECT \n\n\t/*\n\tTRIM(\t\n\t   CASE \n        WHEN RIGHT(REPLACE(JOB.ContractID, '-', ''), 1) = '.' \n        THEN LEFT(REPLACE(JOB.ContractID, '-', ''), LEN(REPLACE(JOB.ContractID, '-', '')) - 1) \n        ELSE REPLACE(JOB.ContractID, '-', '') \n\t\tEND ) AS JobNumber,\n\t\t*/\n\t\t\n\tTRIM(\n    CASE \n        WHEN PATINDEX('%[^a-zA-Z0-9][a-zA-Z0-9]%', JOB.ContractID) > 0\n        THEN STUFF(\n                JOB.ContractID,\n                PATINDEX('%[^a-zA-Z0-9][a-zA-Z0-9]%', JOB.ContractID),\n                1,\n                '.'\n             )\n        ELSE JOB.ContractID\n    END\n\t) AS JobNumber,\n\t\n\t\tCASE \n\t\t\tWHEN JOB.DIVISION='PBC' THEN 'PBC Job Install'\n\t\t\tWHEN JOB.DIVISION='FHI' THEN 'FHI Job Install'\n\t\t\tWHEN JOB.DIVISION='RTW' THEN 'RTW Job Install'\n\t\t\tWHEN JOB.DIVISION='SWR' THEN 'SWR Job Install'\n\t\t\tWHEN JOB.DIVISION='CTA' THEN 'HRG Job Install'\n\t\t\tWHEN JOB.DIVISION='MAC' THEN 'MAC Job Install'\n\t\t\tWHEN JOB.DIVISION='MXH' THEN 'MXH Job Install'\n\t\t\tEND AS CustName\n    FROM EDW.FACT_JOB JOB\n    JOIN EDW.DIM_CUSTOMER CST ON JOB.CustomerID = CST.CustomerID \n    LEFT JOIN EDW.FACT_MILESTONE_DETAIL MLD \n        ON MLD.JobID = JOB.JobID AND MLD.LP_MilestoneDateTypeID = 'S'\n    WHERE \n        MLD.ActualDate >= CAST(GETDATE() - 60 AS DATE)\n        AND MLD.ActualDate <= CAST(DATEADD(DAY, 7, GETDATE()) AS DATE)\n\t\tAND JOB.ContractID !='NEW'\n\t\tAND JOB.ContractID NOT LIKE'VACA%'\n\t\t\n\nUNION  \n\nSELECT \n\n\t/*\n      TRIM(\t\n\t   CASE \n        WHEN RIGHT(REPLACE(JOB.ContractID, '-', ''), 1) = '.' \n        THEN LEFT(REPLACE(JOB.ContractID, '-', ''), LEN(REPLACE(JOB.ContractID, '-', '')) - 1) \n        ELSE REPLACE(JOB.ContractID, '-', '') \n\t\tEND ) AS JobNumber,\n\t\t*/\n\t\t\n\t\t\n\tTRIM(\n    CASE \n        WHEN PATINDEX('%[^a-zA-Z0-9][a-zA-Z0-9]%', JOB.ContractID) > 0\n        THEN STUFF(\n                JOB.ContractID,\n                PATINDEX('%[^a-zA-Z0-9][a-zA-Z0-9]%', JOB.ContractID),\n                1,\n                '.'\n             )\n        ELSE JOB.ContractID\n    END\n\t) AS JobNumber,\n\t\n        CASE \n\t\t\tWHEN JOB.DIVISION='PBC' THEN 'PBC Job Contract'\n\t\t\tWHEN JOB.DIVISION='FHI' THEN 'FHI Job Contract'\n\t\t\tWHEN JOB.DIVISION='RTW' THEN 'RTW Job Contract'\n\t\t\tWHEN JOB.DIVISION='SWR' THEN 'SWR Job Contract'\n\t\t\tWHEN JOB.DIVISION='CTA' THEN 'HRG Job Contract'\n\t\t\tWHEN JOB.DIVISION='MAC' THEN 'MAC Job Contract'\n\t\t\tWHEN JOB.DIVISION='MXH' THEN 'MXH Job Contract'\n\t\t\tEND AS CustName\n    FROM EDW.FACT_JOB JOB\n    JOIN EDW.DIM_CUSTOMER CST ON JOB.CustomerID = CST.CustomerID \n    LEFT JOIN EDW.FACT_MILESTONE_DETAIL MLD \n        ON MLD.JobID = JOB.JobID AND MLD.LP_MilestoneDateTypeID = 'C'\n    WHERE \n        JOB.ContractDate >= CAST(GETDATE() - 60 AS DATE)\n        AND JOB.ContractDate <= CAST(DATEADD(DAY, 7, GETDATE()) AS DATE)\n\t\tAND JOB.ContractID !='NEW'\n\t\tAND JOB.ContractID NOT LIKE'VACA%'\n\t\t\n\t\t\n\nUNION  \n\n\nSELECT \n/*\nTRIM(\t\n\t   CASE \n        WHEN RIGHT(REPLACE(JOB.ContractID, '-', ''), 1) = '.' \n        THEN LEFT(REPLACE(JOB.ContractID, '-', ''), LEN(REPLACE(JOB.ContractID, '-', '')) - 1) \n        ELSE REPLACE(JOB.ContractID, '-', '') \n\t\tEND )  AS JobNumber,\n\t\t*/\n\t\t\nTRIM(\n    CASE \n        WHEN PATINDEX('%[^a-zA-Z0-9][a-zA-Z0-9]%', JOB.ContractID) > 0\n        THEN STUFF(\n                JOB.ContractID,\n                PATINDEX('%[^a-zA-Z0-9][a-zA-Z0-9]%', JOB.ContractID),\n                1,\n                '.'\n             )\n        ELSE JOB.ContractID\n    END\n) AS JobNumber,\n\t\nCASE \n\tWHEN JSV.DIVISION='PBC' THEN 'PBC Job ID'\n\tWHEN JSV.DIVISION='FHI' THEN 'FHI Job ID'\n\tWHEN JSV.DIVISION='RTW' THEN 'RTW Job ID'\n\tWHEN JSV.DIVISION='SWR' THEN 'SWR Job ID'\n\tWHEN JSV.DIVISION='CTA' THEN 'HRG Job ID'\n\tWHEN JSV.DIVISION='MAC' THEN 'MAC Job ID'\n\tWHEN JSV.DIVISION='MXH' THEN 'MXH Job ID'\n\tEND AS CustName\t\n\nFROM EDW.FACT_JOB_SERVICE JSV \nJOIN EDW.DIM_CUSTOMER CST ON JSV.CustomerID = CST.CustomerID \nLEFT JOIN EDW.FACT_JOB JOB ON JOB.JobID = JSV.JobID\nWHERE JSV.ScheduledServiceDate >=CAST(GETDATE()-60 AS DATE)\nAND JSV.ScheduledServiceDate <= CAST(DATEADD(DAY,7,GETDATE()) AS DATE)\nAND JOB.ContractID !='NEW'\nAND JOB.ContractID NOT LIKE'VACA%'\n\n) M1\nWHERE JobNumber IS NOT NULL",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_FACT_JOB",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ADP_Jobs_ALL",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Services_ALL_DIV",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "cpy_Jobs_ALL",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT \nJSV.LP_JobServiceID \tAS TicketNumber,\nCASE \n\tWHEN JSV.DIVISION='PBC' THEN 'PBC Service ID'\n\tWHEN JSV.DIVISION='FHI' THEN 'FHI Service ID'\n\tWHEN JSV.DIVISION='RTW' THEN 'RTW Service ID'\n\tWHEN JSV.DIVISION='SWR' THEN 'SWR Service ID'\n\tWHEN JSV.DIVISION='CTA' THEN 'HRG Service ID'\n\tWHEN JSV.DIVISION='MAC' THEN 'MAC Service ID'\n\tWHEN JSV.DIVISION='MXH' THEN 'MXH Service ID'\n\tEND AS CustName\n\nFROM EDW.FACT_JOB_SERVICE JSV \nJOIN EDW.DIM_CUSTOMER CST ON JSV.CustomerID = CST.CustomerID \nWHERE JSV.ScheduledServiceDate >=CAST(GETDATE()-60 AS DATE)\nAND JSV.ScheduledServiceDate <= CAST(DATEADD(DAY,7,GETDATE()) AS DATE)",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "TicketNumber",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"type": "String",
+									"physicalType": "String",
+									"ordinal": 1
+								}
+							},
+							{
+								"source": {
+									"name": "CustName",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"type": "String",
+									"physicalType": "String",
+									"ordinal": 2
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_FACT_JOB",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "Services_ALL_DIV_FInal",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Jobs_and_Service_ALL_DIV",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Services_ALL_DIV",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT * FROM \n(\nSELECT \n'SERVICE ID' AS ServiceID,\nJSV.LP_JobServiceID AS TicketNumber,\n/*\nTRIM(CASE \n        WHEN RIGHT(REPLACE(JOB.ContractID, '-', ''), 1) = '.' \n        THEN LEFT(REPLACE(JOB.ContractID, '-', ''), LEN(REPLACE(JOB.ContractID, '-', '')) - 1) \n        ELSE REPLACE(JOB.ContractID, '-', '') \n\t\tEND) AS JobNumber\t\n\t\t*/\n\t\t\nTRIM(\n    CASE \n        WHEN PATINDEX('%[^a-zA-Z0-9][a-zA-Z0-9]%', JOB.ContractID) > 0\n        THEN STUFF(\n                JOB.ContractID,\n                PATINDEX('%[^a-zA-Z0-9][a-zA-Z0-9]%', JOB.ContractID),\n                1,\n                '.'\n             )\n        ELSE JOB.ContractID\n    END\n\t) AS JobNumber\n\nFROM EDW.FACT_JOB_SERVICE JSV \nJOIN EDW.DIM_CUSTOMER CST ON JSV.CustomerID = CST.CustomerID \nLEFT JOIN EDW.FACT_JOB JOB ON JOB.JobID = JSV.JobID\nWHERE JSV.ScheduledServiceDate >=CAST(GETDATE()-60 AS DATE)\nAND JSV.ScheduledServiceDate <= CAST(DATEADD(DAY,7,GETDATE()) AS DATE)\nAND Job.ContractID!='NEW'\nAND JOB.ContractID NOT LIKE'VACA%'\n) M1\nWHERE JobNumber IS NOT NULL",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "ServiceID",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"type": "String",
+									"physicalType": "String",
+									"ordinal": 1
+								}
+							},
+							{
+								"source": {
+									"name": "TicketNumber",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"type": "String",
+									"physicalType": "String",
+									"ordinal": 2
+								}
+							},
+							{
+								"source": {
+									"name": "JobNumber",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"type": "String",
+									"physicalType": "String",
+									"ordinal": 3
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "EDW_FACT_JOB",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "Jobs_and_Service_ALL_DIV_Final",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Get Last Updated Date",
+				"type": "GetMetadata",
+				"dependsOn": [
+					{
+						"activity": "Jobs_and_Service_ALL_DIV",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.6:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "Jobs_and_Service_ALL_DIV_Final",
+						"type": "DatasetReference"
+					},
+					"fieldList": [
+						"lastModified"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "DelimitedTextReadSettings"
+					}
+				}
+			},
+			{
+				"name": "Archive",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Get Last Updated Date",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.6:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": false,
+							"wildcardFolderPath": "lp-extracts/Final_Imports",
+							"wildcardFileName": "*.csv",
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "Jobs_and_Service_ALL_DIV_Final",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ADP_File_Archive",
+						"type": "DatasetReference",
+						"parameters": {
+							"daily_folder": {
+								"value": "@concat('lp-extracts/Final_Imports/archive/',substring(activity('Get Last Updated Date').output.lastModified,0,10))",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "ADP_Employee/LP_to_ADP"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-11-13T12:50:24Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

@@ -1,0 +1,99 @@
+{
+	"name": "cpy_load_FACT_ERP_GL_TRANSACTION_delta_load_only",
+	"properties": {
+		"activities": [
+			{
+				"name": "df_deltaload_FACT_ERP_GL_TRANSACTION",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "cpy_ERP_GL_TRANSACTIONS_GL_DELTA",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "1.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_deltaload_FACT_ERP_GL_TRANSACTION",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "rdcdatalake/staging/EDW/FACTS"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Coarse"
+				}
+			},
+			{
+				"name": "cpy_ERP_GL_TRANSACTIONS_GL_DELTA",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_ERP_GL_TRANSACTIONS_GL_DELTA",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Cleanup data in Fact GL Table",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "df_deltaload_FACT_ERP_GL_TRANSACTION",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "delete\nFROM [EDW].[FACT_ERP_GL_TRANSACTION]\nwhere GL_LINE_KEY in \n(\nSELECT [GL_LINE_KEY]\n FROM [EDW].[FACT_ERP_GL_TRANSACTION]\n group by \n [GL_LINE_KEY]\n having count(1) > 1\n )\n and Selected IS NULL\n "
+						}
+					]
+				}
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/FACTS/ERP"
+		},
+		"annotations": [],
+		"lastPublishTime": "2022-10-23T21:48:57Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

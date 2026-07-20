@@ -1,0 +1,17 @@
+{
+	"name": "Get Coatings Performance for Mad City",
+	"properties": {
+		"content": {
+			"query": "SELECT\nsrs.LeadSubSource as [Lead Sub Source]\n,brn.LongName as [Market]\n,count(distinct lds.LeadID) as [Raw Lead Count]\n--,count(distinct lds.CustomerID) as ProspectCount\n,sum(case when lds.ApptSet = 'True' then 1 else 0 end) as [Appt Set]\n,sum(case when lds.NetIssued = 'True' then 1 else 0 end) as [Net Issue]\n,sum(case when lds.Sat = 'True' then 1 else 0 end) as [Demo]\n,sum(case \n    when jsc.JobStatusCategory is NULL then 0\n    when jsc.JobStatusCategory in ('Cancelled', 'Credit Decline') then 0\n    else 1\nend) as [Net Sold]\n,sum(case \n    when jsc.JobStatusCategory is NULL then 0\n    when jsc.JobStatusCategory in ('Cancelled', 'Credit Decline') then 0 \n    else job.GrossAmount\nend) as [Net Sales Amount]\n--,sum(job.GrossAmount) as GrossSalesAmount\n--,count(distinct job.JobID) as JobCount\nFROM \n[EDW].[FACT_LEAD] lds\ninner join [EDW].[DIM_CUSTOMER] cst\non lds.CustomerID = cst.CustomerID\ninner join [EDW].[DIM_LEAD_SUB_SOURCE] srs\non lds.[LeadSubSourceID] = srs.[LeadSubSourceID]\nleft join [EDW].[DIM_Branch] brn\non lds.BranchID = brn.BranchID\nleft join [EDW].[FACT_JOB] job\non lds.LeadID = job.LeadID\nleft join [EDW].[DIM_JOB_STATUS] jbs\non job.JobStatusID = jbs.JobStatusID\nleft join [EDW].[DIM_JOB_STATUS_CATEGORY] jsc\non jbs.JobStatusCategoryID = jsc.JobStatusCategoryID\nWHERE\n lds.Division = 'MAC'\n and srs.SourceCode = 'Coatings'\ngroup by \nlds.Division\n,brn.LongName\n,srs.LeadSubSource\norder by \nsrs.LeadSubSource\n,brn.LongName\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

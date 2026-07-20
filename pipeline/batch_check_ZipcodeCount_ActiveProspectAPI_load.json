@@ -1,0 +1,160 @@
+{
+	"name": "batch_check_ZipcodeCount_ActiveProspectAPI_load",
+	"properties": {
+		"activities": [
+			{
+				"name": "Division Zipcode count",
+				"type": "Script",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:30:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"parameters": [
+								{
+									"name": "Division",
+									"type": "String",
+									"value": {
+										"value": "@pipeline().parameters.Division",
+										"type": "Expression"
+									},
+									"direction": "Input"
+								}
+							],
+							"type": "Query",
+							"text": "Select Case when RecCount>0 then RecCount Else 0 end as RecCount From \r\n(Select Count(distinct Zipcode) AS RecCount from EDW.DIM_Branch_Zip Where Division=@Division and Zipcode <>'' and Zipcode is not null)A\r\n"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Assign reccount",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Division Zipcode count",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "RecCount",
+					"value": {
+						"value": "@activity('Division Zipcode count').output.resultSets[0].rows[0].RecCount",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "RecCount check",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Assign reccount",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@greater(variables('RecCount'),0)",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "Fail1",
+							"type": "Fail",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"message": {
+									"value": "@concat('Dimension table is empty for ',pipeline().parameters.Division)",
+									"type": "Expression"
+								},
+								"errorCode": "000"
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "Post Zipcode to API",
+							"description": "Post Zipcodes to API list in iterations",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "batch_post_zipcodes_to_API",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"ListURLName": {
+										"value": "@pipeline().parameters.ListURLName",
+										"type": "Expression"
+									},
+									"Division": {
+										"value": "@pipeline().parameters.Division",
+										"type": "Expression"
+									},
+									"ListName": {
+										"value": "@pipeline().parameters.ListName",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"ListURLName": {
+				"type": "string",
+				"defaultValue": "affiliate_service_area_cla"
+			},
+			"ListName": {
+				"type": "string",
+				"defaultValue": "Affiliate_Service_Area_CLA"
+			},
+			"Division": {
+				"type": "string",
+				"defaultValue": "CTA"
+			}
+		},
+		"variables": {
+			"RecCount": {
+				"type": "Integer"
+			}
+		},
+		"folder": {
+			"name": "RDC_to_ActiveProspect"
+		},
+		"annotations": [],
+		"lastPublishTime": "2024-06-23T18:41:18Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

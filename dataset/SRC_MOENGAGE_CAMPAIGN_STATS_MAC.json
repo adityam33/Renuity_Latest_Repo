@@ -1,0 +1,32 @@
+{
+	"name": "SRC_MOENGAGE_CAMPAIGN_STATS_MAC",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"Exportday": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": {
+					"value": "@concat('in/Data_Core_MAC_Events_Export/export_day=',formatDateTime(dataset().Exportday,'yyyy-MM-dd'))",
+					"type": "Expression"
+				},
+				"fileSystem": "moengage"
+			},
+			"compression": {
+				"type": "gzip",
+				"level": "Optimal"
+			}
+		},
+		"schema": {}
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}

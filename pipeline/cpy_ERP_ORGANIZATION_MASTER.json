@@ -1,0 +1,108 @@
+{
+	"name": "cpy_ERP_ORGANIZATION_MASTER",
+	"properties": {
+		"activities": [
+			{
+				"name": "ERP to ODS - Organization Master",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ODataSource",
+						"httpRequestTimeout": "00:05:00"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "IF OBJECT_ID('ODS.ERP_ORGANIZATION_MASTER')  IS NOT NULL TRUNCATE TABLE ODS.ERP_ORGANIZATION_MASTER;",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"tableOption": "autoCreate",
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "CompanyID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CompanyID",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Organization_OrganizationID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "OrganizationID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "CompanyName",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CompanyName",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CompanyType",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CompanyType",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "OrganizationGroup",
+									"type": "String"
+								},
+								"sink": {
+									"name": "OrganizationGroup",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_ERP_ORGANIZATION_MASTER",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ODS_ERP_ORGANIZATION_MASTER",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "SRC_to_ODS/ERP/Acumatica/MASTER DATA"
+		},
+		"annotations": [],
+		"lastPublishTime": "2022-10-21T19:03:13Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

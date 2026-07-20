@@ -1,0 +1,386 @@
+{
+	"name": "batch_load_EDW_FACT_MEDALLIA_CUSTOMER_Survey_Updated",
+	"properties": {
+		"activities": [
+			{
+				"name": "Execute Pipeline ODS Medallia Survey",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_MEDALLIA_CUSTOMER_SURVEY_RESPONSE",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Execute Pipeline EDW FACT_MEDALLIA_SURVEY_RESPONSE",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute Pipeline ODS Medallia Survey",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Execute Pipeline ODS Guild Quality Survey",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_EDW_FACT_MEDALLIA_CUSTOMER_SURVEY_Updated",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_MedaliaFiles_Archive_folder",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Execute Pipeline EDW FACT_MEDALLIA_SURVEY_RESPONSE",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.6:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": false,
+							"wildcardFileName": "Renuity_survey_daily_responses_data_*.csv",
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".csv"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_MEDALLIA_SURVEY_DATA",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "Medallia_File_move_Archive_folder",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Delete_original_file",
+				"type": "Delete",
+				"dependsOn": [
+					{
+						"activity": "cpy_MedaliaFiles_Archive_folder",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "SRC_MEDALLIA_SURVEY_DATA",
+						"type": "DatasetReference"
+					},
+					"logStorageSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "affiliate-medallia/Logging"
+					},
+					"enableLogging": true,
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": false,
+						"wildcardFileName": "Renuity_survey_daily_responses_data_*.csv",
+						"enablePartitionDiscovery": false
+					}
+				}
+			},
+			{
+				"name": "Execute Pipeline ODS Guild Quality Survey",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "cpy_GUILD_QUALITY_CUSTOMER_SURVEY_RESPONSE",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "cpy_GuildQualityFiles_to_Archive_folder",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Execute Pipeline EDW FACT_MEDALLIA_SURVEY_RESPONSE",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.6:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": false,
+							"wildcardFolderPath": "GuildQuality",
+							"wildcardFileName": "Renuity_gq_survey_responses_data_*.csv",
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".csv"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SRC_GUILD_QUALITY_SURVEY_DATA",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "GuildQuality_File_Archive_folder",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Delete_original_file_GQ",
+				"type": "Delete",
+				"dependsOn": [
+					{
+						"activity": "cpy_GuildQualityFiles_to_Archive_folder",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "SRC_GUILD_QUALITY_SURVEY_DATA",
+						"type": "DatasetReference"
+					},
+					"logStorageSettings": {
+						"linkedServiceName": {
+							"referenceName": "renuitydatacore-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"path": "affiliate-medallia/Logging"
+					},
+					"enableLogging": true,
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": false,
+						"wildcardFileName": "Renuity_gq_survey_responses_data_*.csv",
+						"enablePartitionDiscovery": false
+					}
+				}
+			},
+			{
+				"name": "Update_ActiveInd_Flag_last14Days",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Delete_original_file",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "Update EDW.FACT_Medallia_Customer_survey\nSet ActiveInd='1'\nWhere Survey_ID in (Select Survey_ID from EDW.FACT_Medallia_Customer_survey where  \nCAST(Response_Date as Date) between DATEADD(dd,-14,CAST(GETDATE() as DATE)) and DATEADD(dd,-0,CAST(GETDATE() as DATE))  \nand Survey_ID not in (Select Survey_ID from EDW.FACT_Medallia_Customer_survey_Invitations where Survey_Status in ('EXPIRED','NOT_SAMPLED','EXCLUDED','DELIVERY_FAILED','DELIVERY_BOUNCED') \n))"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Update_ActiveInd_Flag_Historical",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Update_ActiveInd_Flag_last14Days",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "Update EDW.FACT_Medallia_Customer_survey\nSet ActiveInd='1'\nWhere Survey_ID in (Select Survey_ID from EDW.FACT_Medallia_Customer_survey where  \nCAST(Response_Date as Date) BETWEEN DATEADD(mm,-3,EOMONTH(CAST(GETDATE() as DATE))) AND DATEADD(dd,-14,CAST(GETDATE() as DATE))  \nand Survey_ID not in (Select Survey_ID from EDW.FACT_Medallia_Customer_survey_Invitations where Survey_Status in ('EXPIRED','NOT_SAMPLED','EXCLUDED','DELIVERY_FAILED','DELIVERY_BOUNCED','INVITATION_RESENT') \n))"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Update_ActiveInd_Flag_to_Inactive",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Update_ActiveInd_Flag_Historical",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "RDC",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "Update EDW.FACT_Medallia_Customer_survey\nSet ActiveInd='0'\nWhere Survey_ID in (Select Survey_ID from EDW.FACT_Medallia_Customer_survey where  \nCAST(Response_Date as Date) BETWEEN DATEADD(mm,-3,EOMONTH(CAST(GETDATE() as DATE))) AND DATEADD(dd,-0,CAST(GETDATE() as DATE))  \nand Survey_ID in (Select Survey_ID from EDW.FACT_Medallia_Customer_survey_Invitations where Survey_Status in ('EXPIRED','NOT_SAMPLED','EXCLUDED','DELIVERY_FAILED','DELIVERY_BOUNCED','INVITATION_RESENT') \n))"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/FACTS/MEDALLIA"
+		},
+		"annotations": [],
+		"lastPublishTime": "2024-08-16T10:01:13Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

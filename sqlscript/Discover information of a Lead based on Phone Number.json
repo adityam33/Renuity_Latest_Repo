@@ -1,0 +1,17 @@
+{
+	"name": "Discover information of a Lead based on Phone Number",
+	"properties": {
+		"content": {
+			"query": "SELECT\ncst.CustomerID\n,cst.Phone\n,lds.LeadID\n,lds.EntryDate\n,dsp.Disposition\n,srs.LeadSubSource\n FROM \n [EDW].[DIM_CUSTOMER] cst\n ,EDW.FACT_LEAD lds\n ,EDW.DIM_DISPOSITION dsp\n ,EDW.DIM_LEAD_SUB_SOURCE srs\n where \n cst.CustomerID = lds.CustomerID\n and lds.DispositionID = dsp.DispositionID\n and lds.LeadSubSourceID = srs.LeadSubSourceID\n and cst.Phone in (\n'9206519094'\n,'2623214033'\n ,'2622692293'\n )\n order by \n cst.CustomerID\n ,lds.EntryDate asc\n\n\nselect * from EDW.FACT_CALL\nwhere Phone IN\n(\n'9206519094'\n,'2623214033'\n ,'2622692293'\n ) order by Phone, CallDate\n\n\nPhone number 9206519094  --  customer ID 563354\n \nPhone number 2623214033  --  customer ID 567711\n \nPhone number 2622692293  --  customer ID 565700",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "rdc_sqlpool_prod",
+				"poolName": "rdc_sqlpool_prod"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

@@ -1,0 +1,97 @@
+{
+	"name": "medallia_survey_archive_status",
+	"properties": {
+		"activities": [
+			{
+				"name": "Get Survery Archive Metadata",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "MEDALLIA_ARCHIVE_SURVEY",
+						"type": "DatasetReference"
+					},
+					"fieldList": [
+						"exists"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "DelimitedTextReadSettings"
+					}
+				}
+			},
+			{
+				"name": "If Condition",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Get Survery Archive Metadata",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@activity('Get Survery Archive Metadata').output.exists",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "Survey Failure",
+							"type": "Fail",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"message": "New Files are not loaded in Survey and its Archive folder",
+								"errorCode": "404"
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "Variable for Survey Archive",
+							"type": "AppendVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "exists_in_archive_folder",
+								"value": "true"
+							}
+						}
+					]
+				}
+			}
+		],
+		"variables": {
+			"exists_in_archive_folder": {
+				"type": "Array"
+			},
+			"medallia_guild_quality_archive_exists": {
+				"type": "Array"
+			},
+			"medallia_guild_quality_files_exists": {
+				"type": "Array"
+			}
+		},
+		"folder": {
+			"name": "Temp/Sameen"
+		},
+		"annotations": [],
+		"lastPublishTime": "2024-04-23T16:16:43Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

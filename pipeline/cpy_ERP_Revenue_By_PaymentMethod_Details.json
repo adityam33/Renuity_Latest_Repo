@@ -1,0 +1,401 @@
+{
+	"name": "cpy_ERP_Revenue_By_PaymentMethod_Details",
+	"properties": {
+		"activities": [
+			{
+				"name": "ODS to EDW - Rveneue by PaymentMethod Details",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "WITH BaseQuery AS (\r\n    -- This CTE holds the original query's logic plus the line-level calculation\r\n    SELECT \r\n        d.TranType,\r\n        d.ReferenceNbr,\r\n        Concat(d.CashAccount,' - ',d.Description) as CashAccount,\r\n        d.Currency,\r\n        d.Status,\r\n        d.Description_2 as Description,\r\n        d.DepositDate,\r\n        d.FinPeriod,\r\n        d.DocumentRef,\r\n        d.CashDropAccount,\r\n        d.CashDropAmount,\r\n        dd.DocModule,\r\n        dd.DocType as Type,\r\n        p.ReferenceNbr as PaymentReference,\r\n        dd.CashAccount as PaymentCashAccount,\r\n        p.Customer,\r\n        c.CustomerName as AccountName,\r\n        dd.DepositAmount AS DepositAmount,\r\n        p.PaymentMethod,\r\n        p.Status as PaymentStatus,\r\n        p.PaymentRef,\r\n        p.PaymentDate,\r\n        p.Branch,\r\n        p.BranchName,\r\n        -- Calculate ChargeSharePerLine\r\n        ISNULL(\r\n            CAST(d.chargeTotal AS DECIMAL(18, 4)) / \r\n            NULLIF(COUNT(dd.ReferenceNbr) OVER (PARTITION BY d.ReferenceNbr,d.TranType), 0), \r\n            0\r\n        ) AS ChargeSharePerLine,\r\n        -- Calculate the Division field (kept as-is)\r\n        CASE \r\n            WHEN BranchName LIKE '9%' THEN 'BYLT'\r\n            WHEN BranchName LIKE '8%' THEN 'PBC'\r\n            WHEN BranchName LIKE '7%' THEN 'FHIA'\r\n            WHEN BranchName LIKE '03%' THEN 'CTA'\r\n            WHEN BranchName LIKE '6%' AND BranchName != '6008' THEN 'RTW'\r\n            WHEN BranchName LIKE '5%' AND BranchName NOT IN ('5009','5010','5011','5012','5013','5014') THEN 'CTA'\r\n            WHEN BranchName LIKE '4%' AND BranchName != '4014' THEN 'MAC'\r\n            WHEN BranchName LIKE '3%' THEN 'SWR'\r\n            WHEN BranchName LIKE '2%' THEN 'FHIA'\r\n            WHEN BranchName LIKE '1%' THEN 'RTW'\r\n            WHEN BranchName IN ('6008','5009','5010','5011','5012','5013','5014','4014') OR BranchName like 'Renuity%' THEN 'Ren'\r\n        END AS Division\r\n    FROM \r\n        ODS.ERP_CA_DEPOSIT d \r\n        LEFT JOIN ODS.ERP_CA_DEPOSIT_DETAIL dd ON d.ReferenceNbr=dd.ReferenceNbr AND d.TranType=dd.TranType\r\n        LEFT JOIN ODS.ERP_AR_PAYMENT p ON p.ReferenceNbr=dd.ReferenceNbr_2 AND p.Type=dd.DocType\r\n        LEFT JOIN EDW.DIM_ERP_CUSTOMER c ON p.Customer=c.CustomerID\r\n    WHERE \r\n        d.LastModifiedOn>=DATEADD(mm,-12,GETDATE()) --and d.FinPeriod='082025'\r\n)\r\n-- Select from the CTE and apply the final logic\r\nSELECT \r\n    *,\r\n    -- Calculate the Total Amount by grouping\r\n    SUM(DepositAmount - ChargeSharePerLine) OVER (\r\n        PARTITION BY TranType, ReferenceNbr, Status\r\n    ) AS TotalAmount,\r\n    -- Determine Debit/Credit based on the grouped Total Amount\r\n    CASE \r\n        WHEN SUM(DepositAmount - ChargeSharePerLine) OVER (\r\n            PARTITION BY TranType, ReferenceNbr, Status\r\n        ) >= 0 THEN 'Credit'\r\n        ELSE 'Debit'\r\n    END AS Debit_Credit_Indicator\r\nFROM \r\n    BaseQuery;",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"preCopyScript": "Truncate table EDW.ERP_Revenue_By_PaymentMethod_Details",
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false,
+						"tableOption": "autoCreate",
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "TranType",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "TranType",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ReferenceNbr",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ReferenceNumber",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CashAccount",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CashAccount",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Currency",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Currency",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Status",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Status",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Description",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Description",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DepositDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "DepositDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "FinPeriod",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "FinPeriod",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DocumentRef",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "DocumentRef",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CashDropAccount",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CashDropAccount",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "CashDropAmount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								},
+								"sink": {
+									"name": "CashDropAmount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 18
+								}
+							},
+							{
+								"source": {
+									"name": "DocModule",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "DocumentModule",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Type",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "DocumentType",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PaymentReference",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "PaymentReference",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PaymentCashAccount",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "PaymentCashAccount",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Customer",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Customer",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "AccountName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "AccountName",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DepositAmount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 18,
+									"precision": 38
+								},
+								"sink": {
+									"name": "DepositAmount",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 18
+								}
+							},
+							{
+								"source": {
+									"name": "PaymentMethod",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "PaymentMethod",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PaymentStatus",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "PaymentStatus",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PaymentRef",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "PaymentRef",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "PaymentDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								},
+								"sink": {
+									"name": "PaymentDate",
+									"type": "DateTime",
+									"physicalType": "datetime2"
+								}
+							},
+							{
+								"source": {
+									"name": "Branch",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "Branch",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "BranchName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "BranchName",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Division",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ChargeSharePerLine",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 15,
+									"precision": 29
+								},
+								"sink": {
+									"name": "ChargeSharePerLine",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 8,
+									"precision": 16
+								}
+							},
+							{
+								"source": {
+									"name": "Debit_Credit_Indicator",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "Debit_Credit_Indicator",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ODS_ERP_CA_DEPOSIT_DETAIL",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "EDW_ERP_REVENUE_BY_PAYMENTMETHOD_DETAILS",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "ODS_to_EDW/FACTS/ERP"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-01-16T14:54:42Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

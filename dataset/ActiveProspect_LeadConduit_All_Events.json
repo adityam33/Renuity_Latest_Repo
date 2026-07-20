@@ -1,0 +1,27 @@
+{
+	"name": "ActiveProspect_LeadConduit_All_Events",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ActiveProspectLeadConduitAPI",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"Date": {
+				"type": "string"
+			},
+			"StartTime": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "RestResource",
+		"typeProperties": {
+			"relativeUrl": {
+				"value": "@concat(\n    'https://app.leadconduit.com/events?start=',\n    concat(dataset().Date, 'T', dataset().StartTime, 'Z'),\n    '&end=',\n    concat(\n        formatDateTime(\n            addSeconds(\n                concat(dataset().Date, 'T', dataset().StartTime),\n                299\n            ),\n            'yyyy-MM-ddTHH:mm:ss'\n        ),\n        'Z'\n    ),\n    '&sort=asc&limit=1000&after_id=692ce0588c641aee962cfbbb'\n)",
+				"type": "Expression"
+			}
+		},
+		"schema": []
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}

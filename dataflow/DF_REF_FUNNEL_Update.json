@@ -1,0 +1,81 @@
+{
+	"name": "DF_REF_FUNNEL_Update",
+	"properties": {
+		"folder": {
+			"name": "Test-Dataflows"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "SRC_REF_FUNNEL_MARKET",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "RDM_REF_FUNNEL_AD_MARKET",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "alterRow1"
+				},
+				{
+					"name": "derivedColumn1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          Division as string,",
+				"          {DMA Region} as string,",
+				"          Branch as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> source1",
+				"derivedColumn1 alterRow(updateIf(true())) ~> alterRow1",
+				"source1 derive(TrafficSource = 'Facebook',",
+				"          LastUpdatedTS = currentUTC()) ~> derivedColumn1",
+				"alterRow1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          DIVISION as string,",
+				"          ACCOUNT as string,",
+				"          DMAREGION as string,",
+				"          LP_MARKET as string,",
+				"          LP_REPORTINGMARKETID as string,",
+				"          FLAG as string,",
+				"          CREATEDTS as timestamp,",
+				"          LASTUPDATEDTS as timestamp,",
+				"          TRAFFICSOURCE as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:true,",
+				"     upsertable:false,",
+				"     keys:['TRAFFICSOURCE','DIVISION','DMAREGION'],",
+				"     format: 'table',",
+				"     staged: true,",
+				"     allowCopyCommand: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          DIVISION = Division,",
+				"          DMAREGION = {DMA Region},",
+				"          LP_MARKET = Branch,",
+				"          LASTUPDATEDTS = LastUpdatedTS,",
+				"          TRAFFICSOURCE = TrafficSource",
+				"     )) ~> sink1"
+			]
+		}
+	}
+}
